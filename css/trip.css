@@ -1,0 +1,2053 @@
+/* ============================================
+   Trip Page Styles - trip.css
+   ============================================
+   ?????
+   1. ?? trip.html ? Hero?Planner Desk????????????????????????
+   2. ?????????????????????????????????????????????
+   3. ????Hero -> Planner Desk -> ????? -> ???? -> ??????????
+*/
+
+/* 文件说明?
+   这份样式主要负责 trip 页的首屏海域舞台、Planner Desk 控制台?
+   “已经收进行程”的档案卡、准备系统以及移动端收束方式?
+   阅读时建议按 “Hero -> Planner Desk -> 已收进行?-> 准备系统 -> 响应式?的顺序理解?*/
+/* 行程页整体背景与页面层级 */
+.trip-page {
+    padding-top: 70px;
+    overflow-x: hidden;
+    background:
+        radial-gradient(circle at 50% -8%, rgba(205, 236, 255, 0.2) 0%, rgba(205, 236, 255, 0) 26%),
+        linear-gradient(180deg, #0f3754 0%, #123a56 24%, #0f2f47 54%, #0a2133 100%);
+}
+
+/* page-stage：行程页主舞台容器，负责承载整个页面的海层过渡?*/
+.trip-page .page-stage {
+    min-height: 100vh;
+}
+
+/* Hero 外层海域：这?trip 页进入“规划层”后的第一块深海背景，情绪比首页更深、更静?*/
+/* 这一层负责给首屏上半部分铺出更沉静的深海氛围，而不是普通页面头图?*/
+.trip-hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(64px, 8vw, 112px) var(--spacing-lg) clamp(56px, 7vw, 92px);
+    /* 这里?clamp(最小? 跟随视口变化的理想? 最大??
+       作用是：大屏时保留更舒展的上下空间，小屏时又不会把首屏压得过高?*/
+    background:
+        radial-gradient(circle at 16% 8%, rgba(204, 233, 247, 0.18) 0%, rgba(204, 233, 247, 0) 24%),
+        radial-gradient(circle at 82% 14%, rgba(97, 153, 186, 0.12) 0%, rgba(97, 153, 186, 0) 24%),
+        linear-gradient(180deg, rgba(14, 52, 76, 0.96) 0%, rgba(10, 36, 54, 0.98) 38%, rgba(8, 27, 42, 1) 100%);
+}
+
+/* Hero 顶层流光：纯装饰层，用很慢的亮带漂移去模拟海流，不承接任何点击?*/
+.trip-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 22% 22%, rgba(211, 236, 250, 0.16) 0%, rgba(211, 236, 250, 0) 18%),
+        radial-gradient(circle at 74% 34%, rgba(112, 182, 214, 0.1) 0%, rgba(112, 182, 214, 0) 20%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 28%, rgba(143, 210, 238, 0.06) 54%, rgba(255, 255, 255, 0) 82%);
+    opacity: 0.8; /* 淇濈暀瀛樺湪鎰燂紝浣嗕笉鐩栬繃姝ｆ枃鍜?Planner Desk */
+    mix-blend-mode: screen; /* 鐠佲晠鐝崗澶婂剼閸欑姴婀ù鐑芥桨娑撳﹦娈戦崗澶涚礉閼板奔绗夐弰顖欑鐏炲倸鐤勯懝鏌ヤ紕缂?*/
+    animation: trip-hero-current 24s ease-in-out infinite alternate; /* 閹便垽鈧喐绱撶粔浼欑礉娣囨繃瀵旈垾婊勬崳閸︺劌鎳犻崥绯曗偓婵堟畱閹扮喕顫?*/
+    pointer-events: none; /* 绾楗板眰锛岄伩鍏嶆尅浣忔寜閽拰閾炬帴鐐瑰嚮 */
+}
+
+/* Hero 底部雾层：用模糊渐变把首屏自然接到下方内容，而不是硬切到下一段?*/
+.trip-hero::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -46px;
+    height: 138px;
+    background: linear-gradient(180deg, rgba(12, 45, 67, 0) 0%, rgba(14, 47, 69, 0.72) 44%, rgba(18, 67, 96, 0.94) 100%);
+    filter: blur(28px);
+    pointer-events: none;
+}
+
+/* Hero 内容限宽壳层：把大屏内容收在可控宽度里，避免文字?Planner Desk 被拉得过散?*/
+.trip-hero-shell {
+    position: relative;
+    z-index: 1;
+    max-width: 1380px;
+    margin: 0 auto;
+}
+
+/* Hero 閸愬懘鍎存稉鏄忓灦閸欏府绱?
+   这是文案区?Planner Desk 共同所在的玻璃舱?   这里既要有雾感，也要足够稳，才能让“安排行程”像在海里慢慢展开?*/
+.trip-hero-stage {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(30px, 4vw, 44px); /* 鐠虹喖娈㈢仦蹇撶閸欐ê瀵茬拫鍐Ν閸愬懓绔熺捄婵撶礉鐏忓繐鐫嗘稉宥嗗閹搞倧绱濇径褍鐫嗘稉宥団敄閺?*/
+    border-radius: 40px;
+    background:
+        radial-gradient(circle at 12% 0%, rgba(211, 237, 249, 0.16) 0%, rgba(211, 237, 249, 0) 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(153, 191, 212, 0.06) 100%),
+        rgba(7, 24, 38, 0.58);
+    border: 1px solid rgba(209, 232, 244, 0.14);
+    box-shadow:
+        0 34px 62px rgba(3, 14, 23, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -20px 40px rgba(5, 18, 29, 0.18);
+    backdrop-filter: blur(22px) saturate(132%); /* 閼冲本娅欓崘鍛啇鐞氼偉浜ら弻鏃囨珓閸栨牭绱濆楦跨殶閻滆崵鎷戦懜杈ㄥ妳 */
+    -webkit-backdrop-filter: blur(22px) saturate(132%);
+    opacity: 0; /* 閸掓繂顫愰崗鍫ユ閽樺骏绱濈粵澶婄窡閸忋儱婧€閸斻劎鏁剧敮锕€鐣犲ù顔惧箛閸戠儤娼?*/
+    transform: translate3d(0, 28px, 0); /* 閸忓牏鏆愬顔荤瑓濞屽绱濋崗銉ユ簚閺冩湹绱伴張澶嗏偓婊€绮犲ù铚傜瑓閹额剝鎹ｉ垾婵堟畱閹扮喕顫?*/
+    filter: blur(20px);
+    animation: trip-hero-stage-rise 1100ms cubic-bezier(0.16, 0.82, 0.2, 1) forwards, trip-hero-breath 12s ease-in-out 1.2s infinite;
+}
+
+/* Hero 主舞台内层装饰：
+   before 提供柔和高光，after 提供一层更克制的内边框?   让整块玻璃舱看起来更有厚度，而不是一张平面卡片?*/
+.trip-hero-stage::before,
+.trip-hero-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.trip-hero-stage::before {
+    background:
+        radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 24%),
+        radial-gradient(circle at 78% 18%, rgba(129, 200, 230, 0.1) 0%, rgba(129, 200, 230, 0) 18%);
+    opacity: 0.85;
+}
+
+.trip-hero-stage::after {
+    inset: 14px;
+    border-radius: 30px;
+    border: 1px solid rgba(230, 244, 252, 0.08);
+    mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.92), transparent 76%);
+    -webkit-mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.92), transparent 76%);
+}
+
+/* Hero 閺傚洦顢嶉崠鐚寸窗
+   閸滃苯褰告稉瀣煙 Planner Desk 閸掑棛绮嶉幗鍡樻杹閵?   鏉╂瑩鍣烽幒褍鍩楅弬鍥х摟閺堫剝闊╅惃鍕付婢堆囨鐠囪顔旀惔锔肩礉闁灝鍘ら梹鍨綖鐎涙劖瀚嬪妤€銇婇梹瑁も偓?*/
+.trip-hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 820px;
+    margin-bottom: 34px;
+}
+
+/* Hero 与分区通用 kicker：这些英文小标题负责建立“档案标签感”，帮助层级更清楚?*/
+.trip-hero-kicker,
+.trip-section-kicker {
+    margin: 0 0 12px;
+    font-size: 0.72rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: rgba(196, 223, 240, 0.62);
+}
+
+/* Hero 娑撶粯鐖ｆ０姗堢窗
+   标题字号?clamp 跟着屏幕变化，避免手机太大、桌面又显得偏小?*/
+.trip-hero-title {
+    margin: 0 0 18px;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(2.2rem, 4.8vw, 4rem);
+    font-weight: 600;
+    line-height: 1.16;
+    color: #f4fbff;
+    text-shadow: 0 10px 24px rgba(4, 14, 24, 0.24);
+}
+
+/* Hero 閸擃垱鐖ｆ０姗堢窗
+   这里控制正文说明的阅读宽度和行距，让长句子仍然有呼吸感?*/
+.trip-hero-subtitle {
+    margin: 0 0 26px;
+    max-width: 760px;
+    font-size: 1.02rem;
+    line-height: 1.9;
+    color: rgba(219, 234, 243, 0.82);
+}
+
+/* Hero 閹垮秳缍旈幐澶愭尦缂佸嫸绱?
+   两个入口并排放置，形成“继续下?/ 回到上一层”的并行选择?*/
+.trip-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Hero 文案分层入场：让 kicker、标题、副文案和按钮依次显现，而不是一次全部出现?*/
+.trip-hero-kicker,
+.trip-hero-title,
+.trip-hero-subtitle,
+.trip-hero-actions {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    filter: blur(10px);
+    animation: trip-hero-copy-rise 820ms cubic-bezier(0.16, 0.82, 0.2, 1) forwards;
+}
+
+.trip-hero-kicker {
+    animation-delay: 180ms;
+}
+
+.trip-hero-title {
+    animation-delay: 280ms;
+}
+
+.trip-hero-subtitle {
+    animation-delay: 390ms;
+}
+
+.trip-hero-actions {
+    animation-delay: 520ms;
+}
+
+/* Planner Desk 主容器：
+   这里不是普通搜索栏，而是 trip 页核心的行程安排面板?*/
+.trip-page-planner {
+    position: relative;
+    z-index: 2;
+    overflow: visible; /* 閸忎浇顔忛崥搴ｇ敾濞搭喖鐪扮憴鍡氼潕娑撳﹨绉撮崙楦垮煃娴ｆ搫绱濇稉宥勭窗鐞氼偆鍩楃仦鍌濐梿閹?*/
+    padding-top: 0;
+    background: transparent;
+}
+
+/* 去掉继承下来?::after 装饰，避?Planner Desk 重复叠一层无关光效?*/
+.trip-page-planner::after {
+    content: none;
+}
+
+/* Planner Desk 双栏结构：左侧是摘要回读，右侧是可操作字段；?grid areas 明确空间角色?*/
+.trip-page-planner .trip-planner-shell {
+    position: relative;
+    z-index: 2;
+    overflow: visible; /* 閹芥顩﹂崪灞界摟濞堥潧宕遍崗浣筋啅闂冩潙濂栭妴浣硅癁鐏炲倽绉撮崙楦垮殰闊偆娲呯€?*/
+    display: grid;
+    grid-template-areas:
+        "confirmed"
+        "search"
+        "summary";
+    grid-template-columns: minmax(0, 1fr);
+    /* trip 页先读当前行程，再看已经收进来的海，最后继续整理控制台?*/
+    gap: 28px;
+    align-items: start;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* 閺冄呭閺傚洦顢嶉崠鍝勬躬 trip 妞ゅ吀绗夐崘宥勫▏閻㈩煉绱?
+   这里保留选择器但直接隐藏，避免影响当前双?Planner Desk 结构?*/
+.trip-page-planner .trip-planner-copy {
+    display: none;
+}
+
+/* Planner Desk 控制台?
+   这里?grid 把“海?/ 日?/ 人?/ 提交动作”排成一块有层次的操作台?   不直接用普通表单纵排，是为了保留海图式的空间感?*/
+.trip-page-planner .trip-search-bar {
+    grid-area: search;
+    align-self: stretch;
+    position: relative;
+    z-index: 4;
+    overflow: visible; /* 鐎涙顔?hover閵嗕礁鐫嶅鈧崪灞捐癁鐏炲倸鐣炬担宥嗘闁粙娓剁憰浣界Ш閸戠儤婀版担?*/
+    display: grid;
+    grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr);
+    /* 海域字段信息量最大，所以左列略宽；日期和人数放右列，更像次级决策?*/
+    grid-template-areas:
+        "spot date"
+        "spot people"
+        "action action";
+    gap: 18px;
+    padding: 22px;
+    border-radius: 34px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(196, 226, 244, 0.16) 0%, rgba(196, 226, 244, 0) 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(166, 201, 222, 0.08) 100%),
+        rgba(10, 33, 49, 0.56);
+    border: 1px solid rgba(205, 229, 242, 0.14);
+    box-shadow:
+        0 28px 48px rgba(4, 16, 25, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(18px) saturate(138%); /* 鐠佲晛鍞撮柈銊ョ摟濞堥潧鍎氶幃顒€婀ù閿嬫寜娑擃厾娈戦悳鑽ゆ嫅瀹搞儰缍旈崣?*/
+    -webkit-backdrop-filter: blur(18px) saturate(138%);
+    opacity: 0;
+    transform: translate3d(0, 24px, 0); /* 閸掓繂顫愰悾銉ヤ簳娑撳鐭囬敍宀勫帳閸氬牆鍙嗛崷鐑樻纯閸嶅繒绱﹂幈銏¤癁鐠?*/
+    filter: blur(18px);
+    animation: planner-desk-rise 960ms cubic-bezier(0.16, 0.82, 0.2, 1) 680ms forwards;
+}
+
+
+/* Planner 浮层总承载层：统一挂到页面上层，避免被局部布局、overflow ?transform 裁切?*/
+.planner-floating-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    pointer-events: none; /* 榛樿涓嶆嫤鎴〉闈㈢偣鍑伙紝鍙湁鐪熸鎵撳紑鐨勬诞灞傝嚜宸辨帴绠′氦?*/
+}
+
+/* 设?Planner Desk 字段舱的玻璃外观、边框和交互层次 */
+.planner-field {
+    position: relative;
+    min-height: 132px;
+    padding: 18px 18px 16px;
+    border-radius: 26px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(136, 174, 196, 0.08) 100%),
+        rgba(9, 28, 43, 0.48);
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 18px 30px rgba(4, 15, 24, 0.16);
+    transition:
+        transform 340ms ease,
+        border-color 340ms ease,
+        box-shadow 340ms ease,
+        background-color 340ms ease;
+    overflow: visible;
+}
+
+.planner-field-select[data-planner-field="spot"] {
+    grid-area: spot;
+    min-height: 282px;
+    padding: 22px 20px 20px;
+}
+
+.planner-field-date {
+    grid-area: date;
+}
+
+.planner-field-select[data-planner-field="people"] {
+    grid-area: people;
+}
+
+/* ?Planner Desk 字段舱加一层很轻的潮光扫过层，增强玻璃表面的流动感?*/
+.planner-field::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 34%, rgba(145, 220, 255, 0.08) 68%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transform: translateX(-18%);
+    transition: opacity 340ms ease, transform 480ms ease;
+    pointer-events: none;
+}
+
+/* 字段 hover 或展开时轻微上浮，并增强边缘高光，像这一格海流被选中?*/
+.planner-field:hover,
+.planner-field.is-open,
+.planner-field.is-active {
+    z-index: 18;
+    transform: translateY(-3px);
+    border-color: rgba(214, 238, 248, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 24px 40px rgba(4, 15, 24, 0.22),
+        0 0 24px rgba(118, 191, 222, 0.08);
+}
+
+/* 字段 hover 或展开时显示扫光，让当前操作区域比旁边更清晰一点?*/
+.planner-field:hover::before,
+.planner-field.is-open::before,
+.planner-field.is-active::before {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* 字段标题标签：告诉用户这一格是在整理海域、时间还是同行?*/
+.planner-field-label {
+    margin: 0 0 12px;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(194, 221, 236, 0.58);
+}
+
+/* 将字段主体做成无默认按钮样式的深海信息展示面 */
+.planner-field-trigger {
+    width: 100%;
+    min-height: 86px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    text-align: left;
+}
+
+.planner-field-select[data-planner-field="spot"] .planner-field-trigger {
+    min-height: 198px;
+    justify-content: flex-end;
+}
+
+.planner-field-select[data-planner-field="spot"] .planner-field-value {
+    font-size: 1.32rem;
+    line-height: 1.5;
+    max-width: 18ch;
+}
+
+.planner-field-select[data-planner-field="spot"] .planner-field-note {
+    max-width: 34ch;
+}
+
+/* 字段主值：显示当前选择结果，或在空状态下承担主要阅读内容?*/
+.planner-field-value {
+    display: block;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: 1.08rem;
+    line-height: 1.45;
+    color: #f4fbff;
+}
+
+/* 字段辅助说明：替代普?placeholder，让空状态也有盐憩自己的语气?*/
+.planner-field-note {
+    display: block;
+    max-width: 28ch;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    color: rgba(210, 226, 237, 0.58);
+}
+
+/* 原生日期输入只负责调起能力，不直接参与视觉呈现，真正展示的是自定义字段?*/
+.planner-date-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Planner 选项浮层?
+   这组样式控制海域 / 同行人数面板在桌面端的尺寸、列数和玻璃质感?
+   重点是让浮层像一块悬在字段旁边的海图面板，而不是普通下拉菜单?*/
+.planner-option-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 桌面端默认两列：信息更舒展，也能减少面板向下拉得过长 */
+    gap: 10px;
+    padding: 14px;
+    width: min(560px, calc(100vw - 32px));
+    /* width 先给理想宽度 560px；如果视口更窄，就退到“屏幕宽度减?32px”?
+       这里?32px = 左右各留 16px 安全边距，避免浮层贴住屏幕边缘?*/
+    max-width: calc(100vw - 32px); /* 再补一层最大宽度限制，防止定位修正后仍然超出可视区?*/
+    max-height: min(520px, calc(100vh - 32px));
+    /* max-height 同时比较两个值：
+       1. 鐞嗘兂涓婃渶楂?520px
+       2. 但如果屏幕更矮，就按“视口高?- 32px”收住，给上下各?16px 余地?*/
+    overflow-y: auto; /* 选项过多时只让面板内部滚动，不把整个页面一起拉?*/
+    overscroll-behavior: contain; /* 面板滚到边界时，不把滚动惯性继续传给外层页?*/
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(166, 201, 222, 0.08) 100%),
+        rgba(7, 24, 38, 0.88);
+    border: 1px solid rgba(205, 229, 242, 0.12);
+    box-shadow:
+        0 24px 40px rgba(2, 12, 20, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    opacity: 0; /* 默认不可见，打开时再淡入，避免页面初始闪现浮?*/
+    transform: translate3d(0, 14px, 0); /* 初始微微下沉，展开时像从静水里浮上?*/
+    filter: blur(12px);
+    transition:
+        opacity 320ms ease,
+        transform 360ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        filter 360ms ease;
+    pointer-events: none; /* 没打开前不接管点击，避免透明面板挡住页面其他交互 */
+    z-index: 40;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(188, 222, 240, 0.22) rgba(255, 255, 255, 0.04);
+}
+
+/* 紧凑型选项浮层?
+   专门给“同行人数”使用，因为人数项更短，不需要海域面板那么宽?*/
+.planner-option-panel-compact {
+    width: min(420px, calc(100vw - 32px)); /* 人数项文案更短，所以把理想宽度收窄?420px */
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 两列刚好能排?2x2 的轻量选择面板 */
+    gap: 8px;
+}
+.planner-option-custom {
+    grid-column: 1 / -1;
+}
+
+.planner-custom-people {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(205, 229, 242, 0.08);
+}
+
+.planner-custom-people-label {
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(194, 221, 236, 0.54);
+}
+
+.planner-custom-people-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.planner-custom-people-input {
+    min-height: 46px;
+    padding: 0 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 229, 242, 0.12);
+    background: rgba(9, 28, 43, 0.56);
+    color: #f4fbff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 240ms ease, box-shadow 240ms ease, transform 240ms ease;
+}
+
+.planner-custom-people-input::placeholder {
+    color: rgba(194, 221, 236, 0.34);
+}
+
+.planner-custom-people-input:focus {
+    border-color: rgba(214, 238, 248, 0.22);
+    box-shadow: 0 0 0 3px rgba(120, 185, 215, 0.08);
+}
+
+.planner-custom-people-apply {
+    min-height: 46px;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 229, 242, 0.12);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(138, 178, 201, 0.05) 100%),
+        rgba(10, 33, 49, 0.56);
+    color: #eef6ff;
+    transition: transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+}
+
+.planner-custom-people-apply:hover {
+    transform: translateY(-1px);
+    border-color: rgba(214, 238, 248, 0.18);
+    box-shadow: 0 12px 18px rgba(2, 12, 20, 0.16);
+}
+
+.planner-custom-people-note {
+    margin: 0;
+    line-height: 1.65;
+    color: rgba(194, 221, 236, 0.58);
+}
+
+/* 面板向上展开时：
+   位置改成往上轻抬，避免靠近底部时浮层掉出视口?*/
+.planner-option-panel.opens-upward {
+    transform: translate3d(0, -14px, 0);
+}
+
+/* 潮汐日历浮层?
+   日期不直接走浏览器默?date picker，而是在页面里展开一张自定义时间面板?
+   这样才能把“当前月?/ 推荐窗口 / 已选日期”都纳入同一套盐憩视觉语言?*/
+.planner-calendar-panel {
+    width: min(392px, calc(100vw - 32px)); /* 鏃ュ巻涓嶉渶瑕佽繃瀹斤紝浣嗗湪灏忓睆涓婁粛鐒惰淇濈暀宸﹀彸 16px 瀹夊叏杈硅窛 */
+    grid-template-columns: 1fr; /* 日历面板是纵向阅读流，所以这里强制单?*/
+    gap: 16px;
+    padding: 18px;
+    max-height: none; /* 日历按自身内容自然撑开，不像海域面板那样主要靠滚动容纳 */
+    overflow: hidden; /* 防止切换月份时的滑动和高光跑出圆角面?*/
+}
+
+/* 日历浮层顶部：布置月份标题和前后切月按钮?*/
+.planner-calendar-head {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 日期面板标题区：显示“潮汐窗口”这层语义和当前月份?*/
+.planner-calendar-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+}
+
+.planner-calendar-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(194, 221, 236, 0.48);
+}
+
+.planner-calendar-heading strong {
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f4fbff;
+}
+
+/* 月份切换按钮：保持轻量和安静的玻璃感，不做普通系统箭头按钮?*/
+.planner-calendar-nav {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(205, 229, 242, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(238, 246, 255, 0.9);
+    font-size: 1.15rem;
+    line-height: 1;
+    transition:
+        transform 240ms ease,
+        border-color 240ms ease,
+        background-color 240ms ease,
+        box-shadow 240ms ease;
+}
+
+.planner-calendar-nav:hover {
+    transform: translateY(-2px);
+    border-color: rgba(214, 238, 248, 0.24);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 20px rgba(2, 12, 20, 0.14);
+}
+
+/* 星期栏：弱化显示，避免日历一眼看上去像后台组件?*/
+.planner-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.planner-calendar-weekdays span {
+    text-align: center;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: rgba(194, 221, 236, 0.52);
+}
+
+/* 日期网格：把每天排成一张安静的“时间海图”?*/
+.planner-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+    transition: opacity 220ms ease, transform 260ms ease, filter 260ms ease;
+}
+
+.planner-calendar-grid.is-transitioning {
+    opacity: 0.36; /* 鍒囨湀鏃跺厛娣′竴鐐癸紝鏆楃ず鏃ф湀浠芥鍦ㄩ€€鍦?*/
+    transform: translateX(8px); /* 鏉炶浜曞鏉戦挬閸嬪繒些閿涘苯搴滈崝鈺冩暏閹撮攱鍔呴惌銉⑩偓婊呯倳妞ょ鈧繆鈧奔绗夐弰顖滅崐閻掑爼鍣哥紒?*/
+    filter: blur(6px);
+}
+
+/* 日期格：做成可点的玻璃日期块，而不是普通表格按钮?*/
+.planner-calendar-day {
+    position: relative;
+    min-height: 46px; /* 娣囨繆鐦夊В蹇庨嚋閺冦儲婀￠弽鍏兼箒閸欘垳鍋ｉ棃銏⑿濋敍灞肩瘍缂佹瑥绨抽柈銊ュ絺閸忓鍋ｉ悾娆戔敄闂?*/
+    border-radius: 16px;
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(120, 160, 184, 0.05) 100%),
+        rgba(10, 33, 49, 0.48);
+    color: rgba(238, 246, 255, 0.9);
+    font-size: 0.9rem;
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background-color 220ms ease,
+        box-shadow 220ms ease;
+}
+
+.planner-calendar-day::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    background: rgba(162, 225, 255, 0.74);
+    box-shadow: 0 0 10px rgba(122, 196, 228, 0.34);
+}
+
+.planner-calendar-day:hover {
+    transform: translateY(-2px);
+    border-color: rgba(214, 238, 248, 0.22);
+    box-shadow: 0 14px 24px rgba(2, 12, 20, 0.12);
+}
+
+.planner-calendar-day.is-outside {
+    color: rgba(171, 191, 205, 0.38);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.planner-calendar-day.is-today {
+    border-color: rgba(205, 229, 242, 0.2);
+}
+
+.planner-calendar-day.is-today::after,
+.planner-calendar-day.is-recommended::after {
+    opacity: 1;
+}
+
+.planner-calendar-day.is-selected {
+    border-color: rgba(214, 238, 248, 0.3);
+    background:
+        radial-gradient(circle at 50% 20%, rgba(185, 227, 247, 0.2) 0%, rgba(185, 227, 247, 0) 42%),
+        linear-gradient(180deg, rgba(132, 188, 214, 0.24) 0%, rgba(36, 78, 102, 0.52) 100%);
+    box-shadow:
+        0 16px 26px rgba(2, 12, 20, 0.16),
+        0 0 22px rgba(112, 188, 224, 0.16);
+}
+
+/* 浮层加上 is-open 后才真正可见、可点；
+   默认先隐藏，避免还没展开就遮挡页面?*/
+.planner-option-panel.is-open {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+    pointer-events: auto;
+}
+
+/* 单个选项做成小型海域档案卡，而不是普通下拉菜单的一行文字?*/
+.planner-option {
+    width: 100%;
+    min-height: 92px;
+    padding: 14px 14px 13px;
+    border-radius: 18px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(201, 226, 239, 0.08);
+    color: inherit;
+    transition:
+        transform 260ms ease,
+        border-color 260ms ease,
+        background-color 260ms ease,
+        box-shadow 260ms ease;
+}
+
+/* 人数面板里的选项改成 4 个直接点选的玻璃块，不需要滚动式选择?*/
+.planner-option-panel-compact .planner-option {
+    min-height: 116px;
+    padding: 16px 14px;
+}
+
+/* hover 时像轻轻碰到一张海域档案卡：上浮一点，但不过度互联网化?*/
+.planner-option:hover,
+.planner-option.is-selected {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(214, 238, 248, 0.22);
+    box-shadow: 0 14px 26px rgba(2, 12, 20, 0.16);
+}
+
+/* 选项卡内部文案排版：把标题和说明拆成清楚的两层?*/
+.planner-option-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* 閺勫墽銇氶柅澶愩€嶉崥宥囆?*/
+.planner-option-copy strong {
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: #f4fbff;
+}
+
+/* 閺勫墽銇氶柅澶愩€嶉幓蹇氬牚 */
+.planner-option-copy small {
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: rgba(204, 223, 235, 0.68);
+}
+
+/* Planner Desk 主行动按钮：承担“继续把这次下潜往下排”的动作?*/
+.planner-submit-btn {
+    grid-area: action;
+    position: relative;
+    align-self: stretch;
+    min-height: 92px;
+    padding: 0;
+    border: 0;
+    border-radius: 28px;
+    background: transparent;
+    overflow: hidden;
+    transition: transform 280ms ease;
+}
+
+/* 鎻愪緵鎸夐挳澶栧眰鐨勪綆璋冮槾褰变笌杈圭紭杞粨 */
+.planner-submit-btn-outer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    padding: 1px;
+    background:
+        linear-gradient(135deg, rgba(200, 232, 244, 0.26), rgba(104, 151, 176, 0.08) 58%, rgba(255, 255, 255, 0.08));
+    box-shadow:
+        0 24px 40px rgba(4, 16, 25, 0.22),
+        0 0 24px rgba(109, 176, 208, 0.08);
+}
+
+/* 提供按钮内层的深海推进感和低饱和青蓝层次 */
+.planner-submit-btn-inner {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(194, 233, 246, 0.14) 0%, rgba(194, 233, 246, 0) 32%),
+        linear-gradient(180deg, rgba(18, 67, 96, 0.88) 0%, rgba(8, 30, 46, 0.96) 100%);
+    overflow: hidden;
+}
+
+/* 按钮表面的淡潮光层：hover 时缓慢扫过，不做强烈炫光?*/
+.planner-submit-btn-inner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(118deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 36%, rgba(136, 216, 255, 0.12) 72%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0.58;
+    transform: translateX(-18%);
+    transition: transform 520ms ease, opacity 320ms ease;
+}
+
+/* 閺勫墽銇氶幐澶愭尦閺傚洦顢?*/
+.planner-submit-btn-label {
+    position: relative;
+    z-index: 1;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: 1.04rem;
+    letter-spacing: 0.08em;
+    color: #f4fbff;
+}
+
+/* hover 閺冭埖瀵滈柦顔夸氦瀵邦喕绗傚ù顔艰嫙閹绘劒瀵掑顔煎帨 */
+.planner-submit-btn:hover {
+    transform: translateY(-3px);
+}
+
+/* hover 时推进感更明显，但不过度互联网化 */
+.planner-submit-btn:hover .planner-submit-btn-inner::before {
+    transform: translateX(0);
+    opacity: 0.78;
+}
+
+/* 点击按钮时轻微下沉，像往下一层海域轻推一步?*/
+.planner-submit-btn:active {
+    transform: translateY(1px);
+}
+
+/* Planner Desk 舞台入场动画：从轻微下沉和模糊中慢慢浮现?*/
+@keyframes trip-hero-stage-rise {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 28px, 0);
+        filter: blur(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes trip-hero-copy-rise {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0);
+        filter: blur(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes trip-hero-breath {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(0, -4px, 0);
+    }
+}
+
+@keyframes trip-hero-current {
+    0% {
+        transform: translate3d(-2%, 0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate3d(2%, -1.5%, 0) scale(1.02);
+    }
+}
+
+@keyframes planner-desk-rise {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 24px, 0);
+        filter: blur(18px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
+.planner-summary {
+    grid-area: summary;
+    display: grid;
+    gap: 14px;
+    margin-top: 0;
+    align-self: stretch;
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    filter: blur(18px);
+    animation: planner-desk-rise 960ms cubic-bezier(0.16, 0.82, 0.2, 1) 760ms forwards;
+}
+
+.planner-summary-head {
+    padding: 4px 4px 10px;
+}
+
+.planner-summary-kicker {
+    margin: 0 0 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(194, 221, 236, 0.48);
+}
+
+.planner-summary-intro {
+    margin: 0;
+    max-width: 42ch;
+    line-height: 1.78;
+    color: rgba(208, 224, 235, 0.7);
+}
+
+/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
+.planner-item {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 16px;
+    padding: 18px 18px 17px;
+    border-radius: 24px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(138, 178, 201, 0.04) 100%),
+        rgba(7, 22, 34, 0.52);
+    border: 1px solid rgba(205, 229, 242, 0.08);
+    transition: transform 0.34s ease, box-shadow 0.34s ease, border-color 0.34s ease;
+    box-shadow:
+        0 12px 22px rgba(4, 17, 28, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* .planner-item:hover 鼠标移入时的样式 */
+.planner-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.24);
+    border-color: rgba(202, 231, 244, 0.12);
+}
+
+.planner-item-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    color: rgba(219, 237, 247, 0.78);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(209, 231, 243, 0.08);
+}
+
+.planner-item-copy {
+    display: grid;
+    gap: 6px;
+}
+
+.planner-item-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 76px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: rgba(231, 243, 249, 0.8);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(204, 227, 239, 0.08);
+}
+
+/* .planner-label 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.planner-label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(188, 213, 227, 0.5);
+}
+
+/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
+.planner-item strong {
+    display: block;
+    font-size: 1.02rem;
+    line-height: 1.5;
+    color: #eef6ff;
+}
+
+/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
+.planner-item small {
+    display: block;
+    font-size: 0.82rem;
+    line-height: 1.72;
+    color: rgba(198, 217, 229, 0.58);
+}
+
+/* .trip-focus-section, .trip-prep-section 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-section,
+.trip-prep-section {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(54px, 6vw, 84px) var(--spacing-lg);
+}
+
+/* .trip-focus-section 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-section {
+    background:
+        radial-gradient(circle at 82% 12%, rgba(164, 202, 225, 0.12) 0%, rgba(164, 202, 225, 0) 22%),
+        linear-gradient(180deg, #133a55 0%, #0d2a3f 100%);
+}
+
+/* .trip-prep-section 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-prep-section {
+    background:
+        radial-gradient(circle at 20% 16%, rgba(199, 226, 240, 0.08) 0%, rgba(199, 226, 240, 0) 20%),
+        linear-gradient(180deg, #0d273a 0%, #081a27 100%);
+}
+
+/* .trip-section-head 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-section-head {
+    max-width: 820px;
+    margin: 0 auto 30px;
+    text-align: center;
+}
+
+/* .trip-section-title 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-section-title {
+    margin: 0;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+    font-weight: 600;
+    line-height: 1.32;
+    color: #f2fbff;
+}
+
+/* .trip-focus-grid, .trip-prep-grid 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-grid,
+.trip-prep-grid {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    gap: 24px;
+}
+
+/* .trip-focus-grid 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* .trip-prep-grid 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-prep-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* .trip-focus-card, .trip-prep-card 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-card,
+.trip-prep-card {
+    border-radius: 28px;
+    padding: 24px 24px 22px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(169, 205, 226, 0.08) 100%),
+        rgba(126, 165, 191, 0.08);
+    border: 1px solid rgba(196, 223, 240, 0.16);
+    box-shadow:
+        0 18px 30px rgba(5, 16, 25, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px) saturate(128%);
+    -webkit-backdrop-filter: blur(16px) saturate(128%);
+}
+
+/* .trip-focus-label 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-label {
+    margin: 0 0 12px;
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(189, 218, 235, 0.62);
+}
+
+/* .trip-focus-card h3, .trip-prep-card h3 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-card h3,
+.trip-prep-card h3 {
+    margin: 0 0 12px;
+    font-size: 1.18rem;
+    color: #f4fbff;
+}
+
+/* .trip-focus-card p, .trip-prep-card p 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.trip-focus-card p,
+.trip-prep-card p {
+    margin: 0;
+    line-height: 1.82;
+    color: rgba(208, 225, 235, 0.74);
+}
+
+/* .prep-system 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-system {
+    max-width: 1240px;
+    margin: 0 auto;
+}
+
+/* .prep-card-grid 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 26px;
+}
+
+/* 下潜准备卡片：控制卡片外观、层次和激活反馈?*/
+.prep-card {
+    position: relative;
+    width: 100%;
+    padding: 22px 22px 20px;
+    border-radius: 28px;
+    text-align: left;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(169, 205, 226, 0.08) 100%),
+        rgba(126, 165, 191, 0.08);
+    border: 1px solid rgba(196, 223, 240, 0.14);
+    box-shadow:
+        0 18px 30px rgba(5, 16, 25, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px) saturate(128%);
+    -webkit-backdrop-filter: blur(16px) saturate(128%);
+    transition:
+        transform 320ms ease,
+        box-shadow 320ms ease,
+        border-color 320ms ease,
+        background 320ms ease,
+        opacity 320ms ease,
+        filter 320ms ease;
+    overflow: hidden;
+    opacity: 0.8;
+    filter: saturate(0.9) brightness(0.94);
+}
+
+/* .prep-card::before：卡片表面的扫光层，hover 或激活时会更明显?*/
+.prep-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 32%, rgba(255, 255, 255, 0.08) 72%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transform: translateX(-16%);
+    transition: opacity 320ms ease, transform 420ms ease;
+    pointer-events: none;
+}
+
+/* 选中态的海流高光条：
+   不用按钮式实心高亮，而是在卡片顶部给一条更像“当前这层准备被照亮”的流光。 */
+.prep-card::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    top: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(132, 202, 224, 0), rgba(198, 234, 247, 0.94), rgba(132, 202, 224, 0));
+    opacity: 0;
+    transform: translate3d(0, -6px, 0) scaleX(0.78);
+    transform-origin: center;
+    transition: opacity 320ms ease, transform 420ms cubic-bezier(0.2, 0.78, 0.22, 1);
+    pointer-events: none;
+}
+
+/* .prep-card:hover, .prep-card.is-active 鼠标移入时的样式 */
+.prep-card:hover,
+.prep-card.is-active {
+    opacity: 1;
+    filter: saturate(1) brightness(1);
+    transform: translateY(-7px) scale(1.012);
+    border-color: rgba(218, 239, 250, 0.46);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(181, 217, 236, 0.12) 100%),
+        rgba(126, 165, 191, 0.12);
+    box-shadow:
+        0 28px 44px rgba(6, 19, 30, 0.2),
+        0 0 28px rgba(174, 221, 245, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* hover / 激活时让扫光显现，提示这张准备卡正在被查看?*/
+.prep-card:hover::before,
+.prep-card.is-active::before {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.prep-card:hover::after,
+.prep-card.is-active::after {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scaleX(1);
+}
+
+/* .prep-card-kicker 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-card-kicker {
+    margin: 0 0 12px;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(187, 216, 233, 0.58);
+}
+
+.prep-card.is-active .prep-card-kicker {
+    color: rgba(221, 241, 249, 0.86);
+}
+
+/* .prep-card-title 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-card-title {
+    margin: 0 0 12px;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: 1.34rem;
+    color: #f4fbff;
+}
+
+.prep-card.is-active .prep-card-title {
+    color: #ffffff;
+    text-shadow: 0 10px 22px rgba(3, 18, 31, 0.18);
+}
+
+/* .prep-card-lines 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-card-lines {
+    margin: 0 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(239, 247, 252, 0.94);
+}
+
+/* .prep-card-lines span 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-card-lines span {
+    display: block;
+}
+
+/* .prep-card-summary 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-card-summary {
+    margin: 0;
+    line-height: 1.84;
+    color: rgba(205, 223, 234, 0.76);
+}
+
+.prep-card.is-active .prep-card-summary {
+    color: rgba(233, 244, 250, 0.92);
+}
+
+/* 准备系统右侧详情面板：负责展开后的说明内容和玻璃质感?*/
+.prep-detail-panel {
+    min-height: 420px;
+    padding: 28px 28px 24px;
+    border-radius: 32px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(169, 205, 226, 0.08) 100%),
+        rgba(126, 165, 191, 0.08);
+    border: 1px solid rgba(196, 223, 240, 0.16);
+    box-shadow:
+        0 24px 40px rgba(6, 19, 30, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(18px) saturate(132%);
+    -webkit-backdrop-filter: blur(18px) saturate(132%);
+}
+
+/* .prep-detail-head 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-head {
+    margin-bottom: 24px;
+}
+
+/* .prep-detail-kicker 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-kicker {
+    margin: 0 0 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(188, 217, 234, 0.56);
+}
+
+/* .prep-detail-title 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-title {
+    margin: 0 0 12px;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.5rem, 2.2vw, 2rem);
+    color: #f4fbff;
+}
+
+/* .prep-detail-summary 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-summary {
+    margin: 0;
+    max-width: 820px;
+    line-height: 1.86;
+    color: rgba(205, 223, 234, 0.76);
+}
+
+/* .prep-detail-content 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-content {
+    display: grid;
+    gap: 16px;
+}
+
+/* .prep-detail-block 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-block {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    filter: blur(10px);
+    padding: 18px 18px 16px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(196, 223, 240, 0.08);
+    transition:
+        opacity 620ms ease,
+        transform 720ms cubic-bezier(0.16, 0.8, 0.2, 1),
+        filter 720ms ease;
+}
+
+/* 详情块在面板可见后依次进入，避免内容同时砸出来?*/
+.prep-detail-panel.is-visible .prep-detail-block {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+}
+
+/* һȳ֣Ŀ?delay ?*/
+.prep-detail-panel.is-visible .prep-detail-block:nth-child(1) { transition-delay: 40ms; }
+.prep-detail-panel.is-visible .prep-detail-block:nth-child(2) { transition-delay: 130ms; }
+.prep-detail-panel.is-visible .prep-detail-block:nth-child(3) { transition-delay: 220ms; }
+.prep-detail-panel.is-visible .prep-detail-block:nth-child(4) { transition-delay: 310ms; }
+
+.prep-detail-block h4 {
+    margin: 0 0 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f4fbff;
+}
+
+/* .prep-detail-block p 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-block p {
+    margin: 0;
+    line-height: 1.82;
+    color: rgba(207, 224, 234, 0.74);
+}
+
+/* .prep-detail-list 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+/* .prep-detail-item 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-item {
+    padding: 14px 14px 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(196, 223, 240, 0.08);
+}
+
+/* .prep-detail-item h5 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-item h5 {
+    margin: 0 0 8px;
+    font-size: 0.96rem;
+    color: #f5fbff;
+}
+
+/* .prep-detail-item p 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-detail-item p {
+    font-size: 0.92rem;
+}
+
+/* .prep-rhythm-list, .prep-timeline 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-rhythm-list,
+.prep-timeline {
+    display: grid;
+    gap: 10px;
+}
+
+/* .prep-rhythm-list span, .prep-timeline span 閻ㄥ嫪瀵岀憰浣筋潒鐟欏绗岀敮鍐ㄧ湰閺佸牊鐏?*/
+.prep-rhythm-list span,
+.prep-timeline span {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 999px;
+    color: rgba(229, 242, 249, 0.84);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(196, 223, 240, 0.08);
+}
+
+/* 二级内容入口按钮：控制折叠子内容的展开入口?*/
+.prep-subtoggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 999px;
+    color: #f5fbff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(210, 234, 247, 0.12);
+    transition: transform 220ms ease, background-color 220ms ease, border-color 220ms ease;
+}
+
+/* .prep-subtoggle:hover 鼠标移入时的样式 */
+.prep-subtoggle:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(210, 234, 247, 0.2);
+}
+
+/* 二级子面板默认折叠：先收起高度、透明度和位移?*/
+.prep-subpanel {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+    transition:
+        max-height 420ms ease,
+        opacity 320ms ease,
+        transform 420ms ease,
+        margin-top 320ms ease;
+}
+
+/* 子面板打开后恢复高度和透明度，让内容自然滑出?*/
+.prep-subpanel.is-open {
+    max-height: 320px;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    margin-top: 14px;
+}
+
+/* trip ?footer：给首屏和页脚之间留出更自然的收束空间?*/
+.trip-page .footer {
+    padding-top: 70px;
+}
+
+/* 中屏断点：开始把 trip 页从大舞台收成更适合平板阅读的结构?*/
+@media (max-width: 980px) {
+    /* 先把大块区域改成单列，避免横向内容过挤?*/
+    .trip-focus-grid,
+    .trip-prep-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Hero 舞台在中屏下收紧内边距和圆角，保持完整但不过重?*/
+    .trip-hero-stage {
+        padding: 30px;
+        border-radius: 32px;
+    }
+
+    .trip-hero-copy {
+        margin-bottom: 28px;
+    }
+
+    /* 准备卡与详情列表都改成单列，优先保证可读性?*/
+    .prep-card-grid,
+    .prep-detail-list {
+        grid-template-columns: 1fr;
+    }
+
+    /* Planner 总壳层在中屏下改成单列堆叠：摘要、已收进行程、控制台依次排开?*/
+    .trip-page-planner .trip-planner-shell {
+        grid-template-areas:
+            "confirmed"
+            "search"
+            "summary";
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    /* 摘要卡在中屏下改单列，避免多列挤压文字?*/
+    .planner-summary {
+        grid-template-columns: 1fr;
+        margin-top: 0;
+    }
+
+    /* Planner 控制台在中屏下仍保留两列，但把海域放整行，防止信息太满?*/
+    .trip-page-planner .trip-search-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+            "spot spot"
+            "date people"
+            "action action";
+    }
+
+    /* 按钮横跨整行，形成更自然的“收束动作”结尾?*/
+    .planner-submit-btn {
+        min-height: 92px;
+    }
+}
+
+/* 小屏断点：继续收紧首屏留白，保证 Hero 和功能区不贴边?*/
+@media (max-width: 768px) {
+    /* 手机前的过渡断点：先压缩 Hero 左右边距?*/
+    .trip-hero {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+
+    /* 其它分区同步收紧左右留白，保持页面边缘一致?*/
+    .trip-focus-section,
+    .trip-prep-section {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+}
+
+/* 手机?Planner Desk?   重点不是缩得更小，而是保留完整可读性和点击空间?*/
+@media (max-width: 600px) {
+    /* 手机?Hero 按钮改纵向堆叠，避免横向挤压?*/
+    .trip-hero-actions {
+        flex-direction: column;
+    }
+
+    /* 让按钮在手机端占满宽度，更像一条安静的流向?*/
+    .trip-hero-actions .sea-action {
+        width: 100%;
+    }
+
+    /* 手机端控制台改成单列，海域、日期、人数依次排开?*/
+    .trip-page-planner .trip-search-bar {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "spot"
+            "date"
+            "people"
+            "action";
+        padding: 18px;
+    }
+
+    /* 手机端适当缩小字段最小高度，保留层级但不让整体过长?*/
+    .planner-field,
+    .planner-submit-btn {
+        min-height: 116px;
+    }
+
+    .planner-field-select[data-planner-field="spot"] {
+        min-height: 198px;
+    }
+
+/* 手机端浮层尺寸说明：
+   这里专门解释你提到的 `100vw - 24px`、`min(...)` 这一类计算?
+   目标是让面板在小屏里尽量完整显示，同时始终给屏幕边缘留出呼吸空间?*/
+    .planner-option-panel {
+        grid-template-columns: 1fr; /* 手机上改成单列，避免两列卡片挤在一起看不清 */
+        width: calc(100vw - 24px); /* 面板宽度 = 屏幕宽度减去 24px，也就是左右各留 12px */
+        max-width: calc(100vw - 24px); /* 再补一层最大宽度限制，避免某些定位场景下仍超出屏幕 */
+        max-height: min(58vh, calc(100vh - 24px));
+        /* 这里比较两个值，取更小的那个?
+           1. 58vh：别让浮层在手机上占掉太多垂直空?
+           2. 100vh - 24px：同时保证上下各?12px，不会顶住屏幕边?*/
+        padding: 12px; /* 手机端把内边距收紧一点，但仍然保留面板的留白?*/
+    }
+
+    .planner-option-panel-compact {
+        grid-template-columns: 1fr; /* 人数面板也改单列，避免小屏里两列选项显得局?*/
+    }
+
+    .planner-calendar-panel {
+        width: calc(100vw - 24px); /* 日历面板和选项面板沿用同一套左右边距规则，看起来更统一 */
+        padding: 14px; /* 日历要比普通选项卡留更多内边距，避免月份标题和日期格太挤 */
+    }
+
+    .planner-calendar-day {
+        min-height: 42px; /* 手机上把单元格高度收一点，这样整个月更容易在一屏里看完 */
+    }
+
+    /* 手机端进一步收?Hero / 焦点?/ 准备卡的内边距和圆角?*/
+    .trip-hero-stage,
+    .trip-focus-card,
+    .trip-prep-card {
+        padding: 20px 18px;
+        border-radius: 24px;
+    }
+
+    /* 手机端同步收紧准备卡和详情面板，让整段内容不会过长?*/
+    .prep-card,
+    .prep-detail-panel {
+        padding: 20px 18px;
+        border-radius: 24px;
+    }
+
+/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
+    .planner-item {
+        grid-template-columns: 44px minmax(0, 1fr);
+        padding: 16px 15px;
+    }
+
+    .planner-item-state {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
+.planner-option-custom {
+    grid-column: 1 / -1;
+}
+
+.planner-custom-people {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(205, 229, 242, 0.08);
+}
+
+.planner-custom-people-label {
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(194, 221, 236, 0.54);
+}
+
+.planner-custom-people-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.planner-custom-people-input {
+    min-height: 46px;
+    padding: 0 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 229, 242, 0.12);
+    background: rgba(9, 28, 43, 0.56);
+    color: #f4fbff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 240ms ease, box-shadow 240ms ease, transform 240ms ease;
+}
+
+.planner-custom-people-input::placeholder {
+    color: rgba(194, 221, 236, 0.34);
+}
+
+.planner-custom-people-input:focus {
+    border-color: rgba(214, 238, 248, 0.22);
+    box-shadow: 0 0 0 3px rgba(120, 185, 215, 0.08);
+}
+
+.planner-custom-people-apply {
+    min-height: 46px;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 229, 242, 0.12);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(138, 178, 201, 0.05) 100%),
+        rgba(10, 33, 49, 0.56);
+    color: #eef6ff;
+    transition: transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+}
+
+.planner-custom-people-apply:hover {
+    transform: translateY(-1px);
+    border-color: rgba(214, 238, 248, 0.18);
+    box-shadow: 0 12px 18px rgba(2, 12, 20, 0.16);
+}
+
+.planner-custom-people-note {
+    margin: 0;
+    line-height: 1.65;
+    color: rgba(194, 221, 236, 0.58);
+}
+
+/* 已收进行程区域：?detail 页确认过的套餐以更安静的海域档案方式停留?trip 页里?*/
+.confirmed-bookings-stage {
+    grid-area: confirmed;
+    position: relative;
+    display: grid;
+    gap: 18px;
+    padding: 24px 24px 22px;
+    border-radius: 30px;
+    background:
+        radial-gradient(circle at 16% 0%, rgba(192, 228, 243, 0.12) 0%, rgba(192, 228, 243, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(138, 178, 201, 0.04) 100%),
+        rgba(7, 24, 38, 0.48);
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    box-shadow:
+        0 18px 30px rgba(4, 17, 28, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+    filter: blur(18px);
+    animation: planner-desk-rise 960ms cubic-bezier(0.16, 0.82, 0.2, 1) 560ms forwards;
+}
+
+.confirmed-bookings-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.confirmed-bookings-copy {
+    display: grid;
+    gap: 10px;
+    max-width: 60ch;
+}
+
+.confirmed-bookings-kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(194, 221, 236, 0.5);
+}
+
+.confirmed-bookings-title {
+    margin: 0;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.34rem, 1.8vw, 1.7rem);
+    line-height: 1.34;
+    color: #f4fbff;
+}
+
+.confirmed-bookings-intro {
+    margin: 0;
+    line-height: 1.78;
+    color: rgba(208, 224, 235, 0.72);
+}
+
+.confirmed-bookings-switch {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    padding: 12px 18px;
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(138, 178, 201, 0.04) 100%),
+        rgba(7, 24, 38, 0.44);
+    color: rgba(236, 246, 250, 0.84);
+    font-size: 0.76rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow:
+        0 14px 26px rgba(4, 17, 28, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition:
+        transform 280ms ease,
+        border-color 280ms ease,
+        color 280ms ease,
+        box-shadow 280ms ease,
+        opacity 280ms ease;
+}
+
+.confirmed-bookings-switch:hover {
+    transform: translateY(-2px);
+    border-color: rgba(216, 239, 248, 0.18);
+    color: #f4fbff;
+    box-shadow:
+        0 18px 30px rgba(4, 17, 28, 0.16),
+        0 0 18px rgba(111, 180, 210, 0.08);
+}
+
+.confirmed-bookings-switch:active {
+    transform: translateY(1px);
+}
+
+.confirmed-bookings-empty {
+    padding: 18px 18px 16px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(205, 229, 242, 0.08);
+    line-height: 1.76;
+    color: rgba(198, 217, 229, 0.62);
+}
+
+.confirmed-bookings-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.confirmed-booking-card {
+    position: relative;
+    display: grid;
+    gap: 16px;
+    padding: 20px 20px 18px;
+    border-radius: 26px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(137, 178, 200, 0.05) 100%),
+        rgba(8, 26, 40, 0.6);
+    border: 1px solid rgba(204, 228, 239, 0.1);
+    box-shadow:
+        0 16px 28px rgba(4, 17, 28, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    transition: transform 320ms ease, border-color 320ms ease, box-shadow 320ms ease;
+}
+
+.confirmed-booking-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(214, 238, 248, 0.16);
+    box-shadow:
+        0 22px 34px rgba(4, 17, 28, 0.18),
+        0 0 22px rgba(104, 171, 203, 0.08);
+}
+
+.confirmed-booking-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.confirmed-booking-meta {
+    display: grid;
+    gap: 8px;
+}
+
+.confirmed-booking-kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(191, 218, 233, 0.56);
+}
+
+.confirmed-booking-spot {
+    margin: 0;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: 1.18rem;
+    color: #f4fbff;
+}
+
+.confirmed-booking-tagline {
+    margin: 0;
+    line-height: 1.7;
+    color: rgba(208, 224, 235, 0.72);
+}
+
+.confirmed-booking-chip,
+.confirmed-booking-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(205, 229, 242, 0.08);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: rgba(233, 244, 249, 0.82);
+}
+
+.confirmed-booking-body {
+    display: grid;
+    gap: 10px;
+}
+
+.confirmed-booking-price-wrap {
+    display: grid;
+    gap: 6px;
+}
+
+.confirmed-booking-price-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.confirmed-booking-price {
+    font-size: 1.36rem;
+    font-weight: 700;
+    color: #eff8ff;
+}
+
+.confirmed-booking-price-cny {
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
+    color: rgba(198, 224, 236, 0.74);
+}
+
+.confirmed-booking-price-note {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: rgba(194, 221, 236, 0.58);
+}
+
+.confirmed-booking-note {
+    margin: 0;
+    line-height: 1.76;
+    color: rgba(207, 223, 235, 0.72);
+}
+
+.confirmed-booking-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.confirmed-booking-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.confirmed-booking-detail {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    display: grid;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(205, 229, 242, 0.06);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 240ms ease,
+        border-color 240ms ease,
+        background-color 240ms ease,
+        box-shadow 240ms ease;
+}
+
+.confirmed-booking-detail:hover,
+.confirmed-booking-detail:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(205, 229, 242, 0.18);
+    background: rgba(255, 255, 255, 0.065);
+    box-shadow: 0 14px 24px rgba(4, 16, 26, 0.12);
+    outline: none;
+}
+
+.confirmed-booking-detail-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(189, 213, 227, 0.48);
+}
+
+.confirmed-booking-detail strong {
+    font-size: 0.94rem;
+    line-height: 1.55;
+    color: #eef6ff;
+}
+
+.confirmed-booking-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.confirmed-booking-link,
+.confirmed-booking-remove {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f3fbff;
+    border-radius: 999px;
+    padding: 11px 16px;
+    line-height: 1;
+    transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease;
+}
+
+.confirmed-booking-link:hover,
+.confirmed-booking-remove:hover {
+    transform: translateY(-2px);
+    border-color: rgba(214, 238, 248, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 980px) {
+    .confirmed-bookings-list {
+        grid-template-columns: 1fr;
+    }
+
+    .confirmed-bookings-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .confirmed-bookings-switch {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .confirmed-bookings-stage {
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .confirmed-booking-card {
+        padding: 18px 16px 16px;
+        border-radius: 22px;
+    }
+
+    .confirmed-booking-top,
+    .confirmed-booking-details {
+        grid-template-columns: 1fr;
+        display: grid;
+    }
+
+    .confirmed-booking-actions {
+        flex-direction: column;
+    }
+
+    .confirmed-booking-link,
+    .confirmed-booking-remove {
+        width: 100%;
+        justify-content: center;
+    }
+}
+

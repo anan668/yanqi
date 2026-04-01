@@ -1,0 +1,600 @@
+/* ============================================
+   Global Styles - global.css
+   ============================================
+   ?????
+   1. ????????????????????????????????????
+   2. ??????????????????????????????????????????
+   3. ?????? -> ???? -> ???? -> ?? -> ?? -> ????????????
+*/
+
+/* CSS 变量定义 */
+/* 中文说明：该文件提供全站通用变量、基础排版、导航、按钮和公共布局基线。 */
+/* 阅读提示：后续按“基础元素 -> 导航 -> 通用组件 -> 页脚 -> 返回顶部 -> 响应式”顺序组织。 */
+/* 定义全局主题变量 */
+:root {
+    /* 颜色系统 */
+    --primary: #1e88e5;
+    --primary-dark: #1565c0;
+    --primary-light: #64b5f6;
+    --secondary: #00bcd4;
+    --accent: #ff6b6b;
+    
+    /* 中性色 */
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-light: #f5f7fa;
+    --bg-white: #ffffff;
+    --border-color: #e0e6ed;
+    
+    /* 玻璃效果 */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-backdrop: blur(20px);
+    
+    /* 间距 */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    
+    /* 圆角 */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 20px;
+    --radius-full: 50%;
+    
+    /* 阴影 */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+    
+    /* 过渡 */
+    --transition-fast: 0.15s ease-in-out;
+    --transition-normal: 0.3s ease-in-out;
+    --transition-slow: 0.6s ease-in-out;
+    
+    /* 字体 */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --font-family-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* 亮度/深色模式支持 */
+/* 当前屏幕条件下的响应式样式 */
+@media (prefers-color-scheme: dark) {
+/* 定义全局主题变量 */
+    :root {
+        --text-dark: #ecf0f1;
+        --text-light: #95a5a6;
+        --bg-light: #1a1a1a;
+        --bg-white: #2d2d2d;
+        --border-color: #444;
+    }
+}
+
+/* ============================================
+   全局重置与基础样式
+   ============================================ */
+
+/* *, *::before, *::after 的前置装饰样式 */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* html 的主要视觉与布局效果 */
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 设置页面根节点与全局背景联动效果 */
+body {
+    font-family: var(--font-family);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--bg-white);
+    overflow-x: hidden;
+}
+
+/* 标题样式 */
+/* h1, h2, h3, h4, h5, h6 的主要视觉与布局效果 */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text-dark);
+}
+
+/* h1 { font-size: 2.5rem; } 的主要视觉与布局效果 */
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.1rem; }
+h6 { font-size: 1rem; }
+
+/* 段落 */
+p {
+    margin-bottom: var(--spacing-md);
+}
+
+/* 列表 */
+/* ul, ol 的主要视觉与布局效果 */
+ul, ol {
+    margin-left: var(--spacing-lg);
+}
+
+/* li 的主要视觉与布局效果 */
+li {
+    margin-bottom: var(--spacing-sm);
+}
+
+/* 链接 */
+/* a 的主要视觉与布局效果 */
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+/* a:hover 鼠标移入时的样式 */
+a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+/* 统一按钮元素的鼠标、边框和字体基线，方便后续各页面再覆盖成品牌化按钮 */
+button {
+    font-family: var(--font-family);
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+/* 统一输入类控件的字体基线，避免不同页面表单控件出现默认样式差异 */
+input,
+select,
+textarea {
+    font-family: var(--font-family);
+    font-size: 1rem;
+}
+
+/* 图片 */
+/* img 的主要视觉与布局效果 */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ============================================
+   导航栏样式
+   ============================================ */
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background:
+        linear-gradient(180deg, rgba(10, 33, 52, 0.88) 0%, rgba(12, 42, 64, 0.8) 100%),
+        rgba(9, 27, 41, 0.76);
+    backdrop-filter: blur(16px) saturate(130%);
+    /* 导航固定在最上层后，背后页面会持续滚动经过。
+       这里做模糊和轻微增色，是为了让导航始终像漂浮在海水上，而不是一条死黑条。 */
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    border-bottom: 1px solid rgba(210, 230, 242, 0.12);
+    z-index: 1000;
+    box-shadow: 0 10px 28px rgba(5, 18, 29, 0.16);
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+.nav-brand {
+    display: flex;
+    align-items: center;
+}
+
+/* .logo 的主要视觉与布局效果 */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f5fbff;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    letter-spacing: 0.12em;
+    transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+/* .logo:hover 鼠标移入时的样式 */
+.logo:hover {
+    color: #f5fbff;
+    opacity: 0.88;
+    text-decoration: none;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: var(--spacing-xl);
+    flex: 1;
+    justify-content: center;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+.nav-link {
+    color: rgba(220, 235, 244, 0.68);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: color var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
+    position: relative;
+}
+
+/* .nav-link:hover, .nav-link.active 鼠标移入时的样式 */
+.nav-link:hover,
+.nav-link.active {
+    color: #f5fbff;
+    text-decoration: none;
+}
+
+/* .nav-link:hover 鼠标移入时的样式 */
+.nav-link:hover {
+    transform: translateY(-1px);
+}
+
+/* .nav-link.active::after 的后置装饰样式 */
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(182, 220, 241, 0), rgba(214, 238, 250, 0.92), rgba(182, 220, 241, 0));
+    border-radius: 999px;
+    box-shadow: 0 0 16px rgba(180, 221, 241, 0.18);
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* .avatar 的主要视觉与布局效果 */
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+    border: 1px solid rgba(221, 236, 246, 0.24);
+}
+
+/* .avatar:hover 鼠标移入时的样式 */
+.avatar:hover {
+    transform: scale(1.1);
+}
+
+/* ============================================
+   通用组件样式
+   ============================================ */
+
+/* 卡片 */
+/* .card 的主要视觉与布局效果 */
+.card {
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+}
+
+/* .card:hover 鼠标移入时的样式 */
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+
+/* 按钮变量 */
+/* 设置通用按钮的颜色、边框和悬停过渡 */
+.btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: all var(--transition-fast);
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+    text-align: center;
+}
+
+/* 设置通用按钮的颜色、边框和悬停过渡 */
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+/* .btn-primary:hover 鼠标移入时的样式 */
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* 设置通用按钮的颜色、边框和悬停过渡 */
+.btn-secondary {
+    background: var(--secondary);
+    color: white;
+}
+
+/* .btn-secondary:hover 鼠标移入时的样式 */
+.btn-secondary:hover {
+    background: #00acc1;
+    transform: translateY(-2px);
+}
+
+/* 设置通用按钮的颜色、边框和悬停过渡 */
+.btn-outline {
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+}
+
+/* .btn-outline:hover 鼠标移入时的样式 */
+.btn-outline:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* 容器 */
+/* 控制通用内容容器的最大宽度和左右留白 */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+}
+
+/* 部分标题 */
+/* 设置通用区块标题的字号、字重和排版节奏 */
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+/* 设置通用区块标题的字号、字重和排版节奏 */
+.section-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+/* ============================================
+   底部样式
+   ============================================ */
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer {
+    background: var(--bg-light);
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    margin-top: var(--spacing-2xl);
+    border-top: 1px solid var(--border-color);
+}
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer-column h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-dark);
+}
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer-column p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer-column ul {
+    list-style: none;
+    margin-left: 0;
+}
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer-column ul li {
+    margin-bottom: var(--spacing-sm);
+}
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer-column a {
+    color: var(--text-light);
+    transition: color var(--transition-fast);
+}
+
+/* .footer-column a:hover 鼠标移入时的样式 */
+.footer-column a:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* .social-icons 的主要视觉与布局效果 */
+.social-icons {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+/* .social-icon 的主要视觉与布局效果 */
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--border-color);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+/* .social-icon:hover 鼠标移入时的样式 */
+.social-icon:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* 控制页脚区域的布局、层次和收束氛围 */
+.footer-bottom {
+    text-align: center;
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   辅助样式
+   ============================================ */
+
+/* 返回顶部按钮 */
+/* 控制返回顶部按钮的位置、显隐和悬停反馈 */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    opacity: 0; /* 默认先不显示，避免首屏就出现打断海面入口 */
+    transform: translateY(20px); /* 初始略微下沉，出现时会像从页面底部浮上来 */
+    transition: all var(--transition-normal);
+    z-index: 900;
+    pointer-events: none; /* 隐藏状态不可点击，避免透明按钮挡住下面内容 */
+}
+
+/* .back-to-top.visible 显示状态下的样式 */
+.back-to-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* .back-to-top:hover 鼠标移入时的样式 */
+.back-to-top:hover {
+    background: var(--primary-dark);
+    transform: translateY(-5px);
+}
+
+/* 显示/隐藏类 */
+/* 提供通用的隐藏、不可见或无障碍辅助样式 */
+.hidden {
+    display: none !important;
+}
+
+/* 提供通用的隐藏、不可见或无障碍辅助样式 */
+.invisible {
+    visibility: hidden;
+}
+
+/* 提供通用的隐藏、不可见或无障碍辅助样式 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* 响应式设计 */
+/* 当前屏幕条件下的响应式样式 */
+@media (max-width: 768px) {
+/* h1 { font-size: 1.8rem; } 的主要视觉与布局效果 */
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.2rem; }
+    
+    .nav-menu {
+        gap: var(--spacing-md);
+    }
+    
+/* 设置通用区块标题的字号、字重和排版节奏 */
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-lg);
+    }
+    
+/* 控制页脚区域的布局、层次和收束氛围 */
+    .footer-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 当前屏幕条件下的响应式样式 */
+@media (max-width: 480px) {
+/* h1 { font-size: 1.5rem; } 的主要视觉与布局效果 */
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.2rem; }
+    h3 { font-size: 1rem; }
+    
+    .nav-container {
+        padding: 0 var(--spacing-md);
+    }
+    
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+    .nav-menu {
+        display: none;
+    }
+    
+/* 控制返回顶部按钮的位置、显隐和悬停反馈 */
+    .back-to-top {
+        width: 45px;
+        height: 45px;
+        bottom: 20px;
+        right: 20px;
+    }
+}

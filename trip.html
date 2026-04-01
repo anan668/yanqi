@@ -1,0 +1,596 @@
+
+<!DOCTYPE html>
+<!-- 行程页：负责用户的潜水行程规划、准备系统以及与首页联动的深度层级体验。 -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盐憩 - 我的行程</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/page-transition.css">
+    <link rel="stylesheet" href="css/depth-gauge.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/trip.css">
+</head>
+<body class="trip-page">
+    <!-- 页面过渡遮罩：用于跨页面切换时承接海洋层级动画 -->
+    <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
+
+    <div class="depth-gauge left" aria-hidden="true">
+        <div class="gauge-current" id="leftGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="leftGaugeMarkers"></div>
+    </div>
+
+    <div class="depth-gauge right" aria-hidden="true">
+        <div class="gauge-current" id="rightGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="rightGaugeMarkers"></div>
+    </div>
+
+    <!-- 顶部导航：负责首页、目的地、故事与我的行程之间的页面切换 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="home.html" class="logo">盐憩</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="home.html" class="nav-link">首页</a></li>
+                <li><a href="home.html#featured-destinations" class="nav-link">目的地</a></li>
+                <li><a href="home.html#why-yanqi" class="nav-link">盐憩故事</a></li>
+                <li><a href="trip.html" class="nav-link active">我的行程</a></li>
+            </ul>
+            <div class="nav-user">
+                <img src="assets/images/avatar.png" alt="用户头像" class="avatar" title="点击返回登录页或退出">
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面主舞台：承载行程页所有核心区块，并参与跨页面深度切换动画。 -->
+    <div class="page-stage" id="pageStage">
+        <!-- 英雄区：说明当前页面处于“规划层”，为用户建立行程页的情绪入口 -->
+        <section class="trip-hero" id="trip-top">
+            <div class="trip-hero-shell">
+                <div class="trip-hero-stage">
+                    <div class="trip-hero-copy">
+                        <p class="trip-hero-kicker">Planner Desk</p>
+                        <h1 class="trip-hero-title">我的行程</h1>
+                        <p class="trip-hero-subtitle">把出发时间、同行人数与想去的海域，安静地放进这一层海流里。规划不必像填表，更像为一次下潜预留合适的潮汐与呼吸。</p>
+
+                        <div class="trip-hero-actions">
+                            <button type="button" class="sea-action sea-action-primary" data-scroll-target="#trip-layer">继续安排行程</button>
+                            <a href="home.html" class="sea-action sea-action-secondary">返回首页</a>
+                        </div>
+                    </div>
+
+                    <!-- Planner Desk 主区域：
+                         这是 trip 页真正的安排行程核心。
+                         外层保留为 section，既能承接英雄区文案，也方便后续被页内滚动和深度计定位。 -->
+                    <section class="trip-planner-section trip-page-planner" id="trip-planner">
+                        <div class="trip-planner-shell">
+                            <!-- 已收进行程：显示在 detail 页确认过的套餐，让 trip 页像一份被慢慢收住的行程档案。 -->
+                            <section class="confirmed-bookings-stage" id="confirmedBookingsStage" aria-labelledby="confirmedBookingsTitle">
+                                <div class="confirmed-bookings-head">
+                                    <div class="confirmed-bookings-copy">
+                                        <p class="confirmed-bookings-kicker">Booked Waters</p>
+                                        <h2 class="confirmed-bookings-title" id="confirmedBookingsTitle">已经收进行程的海</h2>
+                                        <p class="confirmed-bookings-intro">
+                                            在详情页确认过的套餐，会安静地停在这里，方便你继续整理出发时间与同行节奏。
+                                        </p>
+                                    </div>
+
+                                    <button type="button" class="confirmed-bookings-switch" id="confirmedBookingsSwitch" hidden>
+                                        换一批
+                                    </button>
+                                </div>
+
+                                <div class="confirmed-bookings-empty" id="confirmedBookingsEmpty">
+                                    还没有哪一片海被正式收进行程。等你在详情页慢慢确认以后，它会停在这里。
+                                </div>
+
+                                <div class="confirmed-bookings-list" id="confirmedBookingsList"></div>
+                            </section>
+
+                            <!-- Planner 交互控制台：
+                                 这一层看起来像搜索栏，但实际上是 trip 页的三段式安排行程面板。
+                                 JS 会在这里监听按钮点击，再把真正的浮层挂到页面顶层容器。 -->
+                            <div class="search-bar trip-search-bar planner-desk-control" id="plannerDeskControl">
+                                <!-- 海域字段：
+                                     视觉上留成较大卡片，因为它承担“先决定去哪片海”的主决策。 -->
+                                <article class="planner-field planner-field-select" data-planner-field="spot">
+                                    <p class="planner-field-label">海域</p>
+                                    <button type="button" class="planner-field-trigger" id="plannerSpotTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="plannerSpotPanel">
+                                        <span class="planner-field-value" id="plannerSpotValue">海域尚未落定</span>
+                                        <span class="planner-field-note" id="plannerSpotHint">等一片愿意下去的蓝慢慢浮现</span>
+                                    </button>
+                                    <!-- 海域浮层面板：
+                                         初始写在字段附近只是为了让 HTML 结构更好读；
+                                         页面初始化后，JS 会把它移动到顶层浮层容器里，避免被局部布局裁切。 -->
+                                    <div class="planner-option-panel" id="plannerSpotPanel" role="listbox" hidden>
+                                        <button type="button" class="planner-option is-selected" data-option-group="spot" data-value="" data-label="海域尚未落定" data-note="等一片愿意下去的蓝慢慢浮现">
+                                            <span class="planner-option-copy">
+                                                <strong>海域尚未落定</strong>
+                                                <small>先让这一潜停在想象里，慢慢等它靠近。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="spot" data-value="sipadan" data-label="诗巴丹 Sipadan" data-note="鱼群风暴与海龟共游，适合把记忆留在更深一点的蓝里。">
+                                            <span class="planner-option-copy">
+                                                <strong>诗巴丹 Sipadan</strong>
+                                                <small>鱼群风暴与海龟共游，适合把记忆留在更深一点的蓝里。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="spot" data-value="mabul" data-label="马布岛 Mabul" data-note="更适合慢下来，把潜水和海岛停驻放进同一段时间。">
+                                            <span class="planner-option-copy">
+                                                <strong>马布岛 Mabul</strong>
+                                                <small>更适合慢下来，把潜水和海岛停驻放进同一段时间。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="spot" data-value="komodo" data-label="科莫多 Komodo" data-note="洋流、大景与更完整的海况层次，会在这里慢慢打开。">
+                                            <span class="planner-option-copy">
+                                                <strong>科莫多 Komodo</strong>
+                                                <small>洋流、大景与更完整的海况层次，会在这里慢慢打开。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="spot" data-value="bohol" data-label="薄荷岛 Bohol" data-note="光线温和、节奏平稳，适合把潜水放进轻一些的假期里。">
+                                            <span class="planner-option-copy">
+                                                <strong>薄荷岛 Bohol</strong>
+                                                <small>光线温和、节奏平稳，适合把潜水放进轻一些的假期里。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="spot" data-value="maldives-north-atoll" data-label="马尔代夫北环礁 Maldives North Atoll" data-note="玻璃海与缓和窗口更适合把身体慢慢交还给海。">
+                                            <span class="planner-option-copy">
+                                                <strong>马尔代夫北环礁 Maldives North Atoll</strong>
+                                                <small>玻璃海与缓和窗口更适合把身体慢慢交还给海。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="spot" data-value="palau" data-label="帕劳 Palau" data-note="蓝洞、断层与光线层次，适合更从容地读懂一片海。">
+                                            <span class="planner-option-copy">
+                                                <strong>帕劳 Palau</strong>
+                                                <small>蓝洞、断层与光线层次，适合更从容地读懂一片海。</small>
+                                            </span>
+                                        </button>
+                                    </div>
+                                    <input id="plannerSpot" type="hidden" value="">
+                                </article>
+
+                                <!-- 日期字段：
+                                     表面是按钮，真正的日期选择发生在后面的自定义潮汐日历浮层里。
+                                     原生 input[type="date"] 这里只作为数据存储与系统能力兜底。 -->
+                                <article class="planner-field planner-field-date" data-planner-field="date">
+                                    <p class="planner-field-label">出发时间</p>
+                                    <button type="button" class="planner-field-trigger" id="plannerDateTrigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="plannerDatePanel">
+                                        <span class="planner-field-value" id="plannerDateValue">仍在等一段合适的潮汐</span>
+                                        <span class="planner-field-note" id="plannerDateHint">让天气、光线与节奏更从容一些</span>
+                                    </button>
+                                    <input id="plannerDate" type="date" class="planner-date-native">
+                                </article>
+
+                                <!-- 人数字段：
+                                     结构和海域字段一致，但信息更短，所以后面会走更紧凑的浮层尺寸规则。 -->
+                                <article class="planner-field planner-field-select" data-planner-field="people">
+                                    <p class="planner-field-label">同行人数</p>
+                                    <button type="button" class="planner-field-trigger" id="plannerPeopleTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="plannerPeoplePanel">
+                                        <span class="planner-field-value" id="plannerPeopleValue">同行尚未写进这次下潜</span>
+                                        <span class="planner-field-note" id="plannerPeopleHint">也可以先一个人安静决定这片海</span>
+                                    </button>
+                                    <!-- 人数浮层面板：
+                                         和海域一样会被 JS 挂到高层容器；
+                                         这里保留在原位置，主要是为了阅读 HTML 时仍能看出它属于哪个字段。 -->
+                                    <div class="planner-option-panel planner-option-panel-compact" id="plannerPeoplePanel" role="listbox" hidden>
+                                        <button type="button" class="planner-option is-selected" data-option-group="people" data-value="" data-label="同行尚未写进这次下潜" data-note="也可以先一个人安静决定这片海">
+                                            <span class="planner-option-copy">
+                                                <strong>同行尚未写进这次下潜</strong>
+                                                <small>让这片海先落在你自己身上。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="people" data-value="1" data-label="1 人独行" data-note="更适合把注意力慢慢留给这片海。">
+                                            <span class="planner-option-copy">
+                                                <strong>1 人独行</strong>
+                                                <small>更适合把注意力慢慢留给这片海。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="people" data-value="2" data-label="2 人同行" data-note="把彼此的节奏放进同一层海流里。">
+                                            <span class="planner-option-copy">
+                                                <strong>2 人同行</strong>
+                                                <small>把彼此的节奏放进同一层海流里。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="people" data-value="3-5" data-label="3–5 人同潜" data-note="适合安排更完整的船潜与停驻节奏。">
+                                            <span class="planner-option-copy">
+                                                <strong>3–5 人同潜</strong>
+                                                <small>适合安排更完整的船潜与停驻节奏。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option" data-option-group="people" data-value="6+" data-label="6 人以上" data-note="需要更从容地预留船位、房型与海况窗口。">
+                                            <span class="planner-option-copy">
+                                                <strong>6 人以上</strong>
+                                                <small>需要更从容地预留船位、房型与海况窗口。</small>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="planner-option planner-option-custom" data-option-group="people" data-value="custom" data-label="自定义人数" data-note="如果这次同行人数不在预设节奏里，可以单独写进这一潜。">
+                                            <span class="planner-option-copy">
+                                                <strong>自定义人数</strong>
+                                                <small>如果这次同行人数不在预设节奏里，可以单独写进这一潜。</small>
+                                            </span>
+                                        </button>
+                                        <div class="planner-custom-people" id="plannerCustomPeople" hidden>
+                                            <label class="planner-custom-people-label" for="plannerCustomPeopleInput">自定义人数</label>
+                                            <div class="planner-custom-people-row">
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max="99"
+                                                    step="1"
+                                                    inputmode="numeric"
+                                                    class="planner-custom-people-input"
+                                                    id="plannerCustomPeopleInput"
+                                                    placeholder="输入人数"
+                                                >
+                                                <button type="button" class="planner-custom-people-apply" id="plannerCustomPeopleApply">
+                                                    写进行程
+                                                </button>
+                                            </div>
+                                            <p class="planner-custom-people-note">适合人数不在预设选项里的小团或同行安排。</p>
+                                        </div>
+                                    </div>
+                                    <input id="plannerPeople" type="hidden" value="">
+                                </article>
+
+                                <!-- 主行动按钮：
+                                     它不提交到后台，而是把当前排好的信息往下一层内容继续带。 -->
+                                <button type="button" class="planner-submit-btn" data-scroll-target="#trip-layer">
+                                    <span class="planner-submit-btn-outer">
+                                        <span class="planner-submit-btn-inner">
+                                            <span class="planner-submit-btn-label">继续安排行程</span>
+                                        </span>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- 行程摘要回读：
+                                 这块不是表单，而是把当前选择翻译成更安静的自然语言，
+                                 让用户在看完已收进行程、整理好当前控制台之后，再确认这次海已经排到了哪一步。 -->
+                            <div class="planner-summary" id="plannerSummary">
+                                <div class="planner-summary-head">
+                                    <p class="planner-summary-kicker">Trip Draft</p>
+                                    <p class="planner-summary-intro">先把这次下潜的轮廓收得安静一些，再决定要把自己交给哪一层海。</p>
+                                </div>
+
+                                <article class="planner-item">
+                                    <span class="planner-item-index">01</span>
+                                    <div class="planner-item-copy">
+                                        <span class="planner-label">海域线索</span>
+                                        <strong id="plannerSummarySpot">海域尚未落定</strong>
+                                        <small id="plannerSummarySpotMeta">这段行程会从哪片蓝开始，还在慢慢浮现。</small>
+                                    </div>
+                                    <span class="planner-item-state" id="plannerSummarySpotState">未落定</span>
+                                </article>
+
+                                <article class="planner-item">
+                                    <span class="planner-item-index">02</span>
+                                    <div class="planner-item-copy">
+                                        <span class="planner-label">潮汐窗口</span>
+                                        <strong id="plannerSummaryDate">仍在等一段合适的潮汐</strong>
+                                        <small id="plannerSummaryDateMeta">让天气、光线和身体状态先对上节奏。</small>
+                                    </div>
+                                    <span class="planner-item-state" id="plannerSummaryDateState">待确认</span>
+                                </article>
+
+                                <article class="planner-item">
+                                    <span class="planner-item-index">03</span>
+                                    <div class="planner-item-copy">
+                                        <span class="planner-label">同行节奏</span>
+                                        <strong id="plannerSummaryPeople">同行尚未写进这次下潜</strong>
+                                        <small id="plannerSummaryPeopleMeta">一起下去的人，会决定这趟海的速度与停驻方式。</small>
+                                    </div>
+                                    <span class="planner-item-state" id="plannerSummaryPeopleState">未写入</span>
+                                </article>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+
+        <section class="trip-focus-section" id="trip-layer">
+            <div class="trip-section-head">
+                <p class="trip-section-kicker">Planning Notes</p>
+                <h2 class="trip-section-title">让行程像海水一样，有层次地展开。</h2>
+            </div>
+
+            <div class="trip-focus-grid">
+                <article class="trip-focus-card">
+                    <p class="trip-focus-label">想去的海域</p>
+                    <h3>先确定这一潜想看见什么</h3>
+                    <p>海龟、鱼群风暴、深蓝洞壁，或者只是更安静的水色。先把向往说清楚，海域才会慢慢靠近。</p>
+                </article>
+                <article class="trip-focus-card">
+                    <p class="trip-focus-label">出发的节奏</p>
+                    <h3>给时间一点呼吸感</h3>
+                    <p>盐憩的行程不强调匆忙抵达，而是让天气、海流和身体状态都留出余地。</p>
+                </article>
+                <article class="trip-focus-card">
+                    <p class="trip-focus-label">同行与准备</p>
+                    <h3>把细节放进更安静的秩序里</h3>
+                    <p>同行人数、证书等级、装备偏好与上船节奏，都应在出发前被温柔地安排好。</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="trip-prep-section" id="trip-prep">
+            <div class="trip-section-head">
+                <p class="trip-section-kicker">Before Diving</p>
+                <h2 class="trip-section-title">出发前，把海面以下的准备慢慢收齐。</h2>
+            </div>
+
+            <!-- 下潜准备系统：左侧卡片负责切换准备主题，右侧详情面板负责展开具体内容。 -->
+            <div class="prep-system">
+                <div class="prep-card-grid" role="tablist" aria-label="下潜准备卡片">
+                    <button type="button" class="prep-card is-active" data-prep-card="gear" role="tab" aria-controls="prepDetailPanel" aria-expanded="true">
+                        <p class="prep-card-kicker">Equipment & Rhythm</p>
+                        <h3 class="prep-card-title">装备与节奏</h3>
+                        <p class="prep-card-lines">
+                            <span>把下一次下潜，</span>
+                            <span>安静地排进日程。</span>
+                        </p>
+                        <p class="prep-card-summary">面镜、脚蹼、电脑表与防寒衣可以自带，也可以提前交由行程页统一备注。</p>
+                    </button>
+
+                    <button type="button" class="prep-card" data-prep-card="certification" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">
+                        <p class="prep-card-kicker">Certification Path</p>
+                        <h3 class="prep-card-title">证书与等级</h3>
+                        <p class="prep-card-summary">确认 OW / AOW 等级、近 12 个月潜水记录，以及是否需要进阶课程衔接。</p>
+                    </button>
+
+                    <button type="button" class="prep-card" data-prep-card="weather" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">
+                        <p class="prep-card-kicker">Weather Window</p>
+                        <h3 class="prep-card-title">天气与窗口</h3>
+                        <p class="prep-card-summary">把出发日期放进最适合的季节区间里，让能见度、洋流与光线都更稳定。</p>
+                    </button>
+                </div>
+
+                <div class="prep-detail-panel" id="prepDetailPanel" role="tabpanel" aria-live="polite">
+                    <div class="prep-detail-head">
+                        <p class="prep-detail-kicker" id="prepDetailKicker">Equipment & Rhythm</p>
+                        <h3 class="prep-detail-title" id="prepDetailTitle">装备与节奏</h3>
+                        <p class="prep-detail-summary" id="prepDetailSummary">把下一次下潜，安静地排进日程。面镜、脚蹼、电脑表与防寒衣可以自带，也可以提前交由行程页统一备注。</p>
+                    </div>
+                    <div class="prep-detail-content" id="prepDetailContent"></div>
+                </div>
+            </div>
+
+            <!-- 详情模板区：
+                 这些 template 不会直接显示在页面里，
+                 它们是给 JS 读取和克隆的“内容底稿”，用于切换右侧准备详情面板。 -->
+            <template id="prep-template-gear">
+                <div class="prep-detail-block">
+                    <h4>基础装备介绍</h4>
+                    <div class="prep-detail-list">
+                        <article class="prep-detail-item">
+                            <h5>面镜</h5>
+                            <p>先看贴合度，再看起雾处理与近视镜片方案。真正适合的面镜，会让你在下潜前就安静下来。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>脚蹼</h5>
+                            <p>全脚式更轻便，开放式更适合复杂水域与搭配潜水靴。按海域和踢动习惯选，比盲目追求推进力更重要。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>电脑表</h5>
+                            <p>记录深度、免减压时间与安全停留，是下潜节奏里最安静但最关键的一块秩序。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>防寒衣</h5>
+                            <p>根据水温选择厚度，热带浅海与较深海域的体感差异很大，合适的厚度会直接影响这一次下潜的舒适度。</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>可自带 / 可租借</h4>
+                    <p>面镜和电脑表更建议自带，贴合度和熟悉感会直接影响水下体验。脚蹼、防寒衣和 BCD 可以现场租借，但若对尺寸或脚感敏感，建议提前备注。相机、灯具与特殊配件则最好在出发前确认库存。</p>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>装备节奏建议</h4>
+                    <div class="prep-rhythm-list">
+                        <span>出发前一周，检查装备状态与耗材</span>
+                        <span>出发前一天，确认电池、表带与面镜防雾</span>
+                        <span>上船前，再做一次 buddy check</span>
+                    </div>
+                </div>
+
+                <div class="prep-detail-block prep-detail-subblock">
+                    <button type="button" class="prep-subtoggle" data-subpanel-target="gear-help">查看装备详情</button>
+                    <div class="prep-subpanel" data-subpanel="gear-help">
+                        <p>盐憩会在行程确认后，把租借清单、建议自带项和备注项整理成一份装备说明。你可以按海域、水温和拍摄需求逐项核对，而不是在出发前一天临时补齐。</p>
+                    </div>
+                </div>
+            </template>
+
+            <template id="prep-template-certification">
+                <div class="prep-detail-block">
+                    <h4>常见证书介绍</h4>
+                    <div class="prep-detail-list">
+                        <article class="prep-detail-item">
+                            <h5>OW</h5>
+                            <p>Open Water Diver，开放水域初级潜水员。适合浅水、平稳海域，是第一次真正进入海里的起点。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>AOW</h5>
+                            <p>Advanced Open Water Diver，进阶开放水域潜水员。可以进入更复杂的潜点与更丰富的水下环境。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>Rescue / Divemaster</h5>
+                            <p>前者强调判断与救援能力，后者则进入更专业的带队与协助层级。它们不是炫耀性的等级，而是责任更重的一层海域。</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="prep-detail-block prep-detail-subblock">
+                    <button type="button" class="prep-subtoggle" data-subpanel-target="cert-path">查看证书路径</button>
+                    <div class="prep-subpanel" data-subpanel="cert-path">
+                        <div class="prep-timeline">
+                            <span>理论学习</span>
+                            <span>平静水域练习</span>
+                            <span>开放水域训练</span>
+                            <span>完成考核后拿证</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>等级与海域匹配</h4>
+                    <p>OW 更适合浅水、流速平稳的海域；AOW 更适合进入更复杂、深度更高或洋流更明显的潜点。如果某片海要求更高等级或近期记录，盐憩会在行程确认时提前提醒，而不是在船上才临时判断。</p>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>近 12 个月潜水记录</h4>
+                    <p>近期下潜记录会帮助判断你是否适应当前海况。如果太久没有下潜，先安排一次 refresh / 复习课程，通常会比硬着头皮下水更从容。</p>
+                </div>
+            </template>
+
+            <template id="prep-template-weather">
+                <div class="prep-detail-block">
+                    <h4>常见天气因素</h4>
+                    <div class="prep-detail-list">
+                        <article class="prep-detail-item">
+                            <h5>风浪与降雨</h5>
+                            <p>决定出海稳定度与水面体验，也会间接影响晕船感和上下船节奏。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>能见度与洋流</h5>
+                            <p>决定这一潜能看到多远，也决定是否适合当前等级进入。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>光线与水温</h5>
+                            <p>影响拍摄、体感与整体氛围。不同海域在同一季节里，也会有完全不同的水下情绪。</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>常见情况与应对方式</h4>
+                    <p>风浪较大时，优先调整出海时间或换更稳的点位；持续降雨时，关注能见度变化并保留替代安排；洋流偏强时，根据等级判断是否下潜；光线不足时，则调整下潜时段或改变拍摄预期。</p>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>最佳季节区间</h4>
+                    <p>不是所有海都适合任何时间去。把目的地放进更合适的季节窗口里，往往比一味追求固定假期更能换来一次真正稳定的下潜。</p>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>出发前确认建议</h4>
+                    <div class="prep-rhythm-list">
+                        <span>出发前 7 天，看趋势</span>
+                        <span>出发前 3 天，看窗口</span>
+                        <span>出发前 24 小时，确认最终安排</span>
+                    </div>
+                </div>
+            </template>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-shell">
+                <section class="footer-brand-stage" aria-labelledby="footerBrandTitle">
+                    <p class="footer-overline">Yanqi Sea Retreat</p>
+                    <h2 class="footer-brand" id="footerBrandTitle">盐憩</h2>
+                    <p class="footer-whisper">向海而栖，向深而行。</p>
+                    <p class="footer-murmur">在盐分、光影与潮汐之间，找到属于你的停驻。</p>
+                </section>
+
+                <div class="footer-middle">
+                    <nav class="footer-nav" aria-label="页脚导航">
+                        <section class="footer-nav-group">
+                            <h3 class="footer-nav-title">探索</h3>
+                            <ul class="footer-nav-list">
+                                <li><a href="home.html#hot-spots" class="footer-link">热门潜点</a></li>
+                                <li><a href="home.html#featured-destinations" class="footer-link">精选目的地</a></li>
+                                <li><a href="home.html#hero-home" class="footer-link">今日海域</a></li>
+                                <li><a href="home.html#why-yanqi" class="footer-link">盐憩故事</a></li>
+                            </ul>
+                        </section>
+
+                        <section class="footer-nav-group">
+                            <h3 class="footer-nav-title">行程</h3>
+                            <ul class="footer-nav-list">
+                                <li><a href="#trip-planner" class="footer-link" data-scroll-target="#trip-planner">我的行程</a></li>
+                                <li><a href="#trip-layer" class="footer-link" data-scroll-target="#trip-layer">收藏海域</a></li>
+                                <li><a href="#trip-planner" class="footer-link" data-scroll-target="#trip-planner">下潜日历</a></li>
+                                <li><a href="#trip-prep" class="footer-link" data-scroll-target="#trip-prep">出行准备</a></li>
+                            </ul>
+                        </section>
+
+                        <section class="footer-nav-group">
+                            <h3 class="footer-nav-title">关于盐憩</h3>
+                            <ul class="footer-nav-list">
+                                <li><a href="home.html#why-yanqi" class="footer-link">品牌故事</a></li>
+                                <li><a href="contact.html" class="footer-link">联系我们</a></li>
+                                <li><a href="terms.html" class="footer-link">用户协议</a></li>
+                                <li><a href="privacy.html" class="footer-link">隐私政策</a></li>
+                            </ul>
+                        </section>
+                    </nav>
+
+                    <aside class="footer-companion" aria-labelledby="footerCompanionTitle">
+                        <h3 class="footer-companion-title" id="footerCompanionTitle">继续向海而行</h3>
+                        <p class="footer-companion-copy">在更多日常里，继续看海。</p>
+                        <div class="footer-social-list">
+                            <a href="https://www.xiaohongshu.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往小红书官网"><span class="footer-social-mark">○</span><span>小红书</span></a>
+                            <a href="https://www.douyin.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往抖音官网"><span class="footer-social-mark">○</span><span>抖音</span></a>
+                            <a href="https://weibo.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往微博官网"><span class="footer-social-mark">○</span><span>微博</span></a>
+                            <a href="https://weixin.qq.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往微信官网"><span class="footer-social-mark">○</span><span>微信公众号</span></a>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="footer-bottom">
+                    <p>© 2024 盐憩 Yanqi</p>
+                    <p>All rights reserved.</p>
+                    <p>为每一次下潜，留一处安静停靠。</p>
+                </div>
+            </div>
+        </footer>
+
+        <button id="back-to-top" class="back-to-top">↑ 顶部</button>
+    </div>
+
+    <!-- Planner 顶层浮层容器：
+         所有下拉面板最终都会挂到这里。
+         这样可以脱离 Hero 和 Planner Desk 自己的布局上下文，保证定位、层级和裁切都更稳定。 -->
+    <div class="planner-floating-layer" id="plannerFloatingLayer" hidden aria-hidden="true">
+        <!-- 日期浮层：
+             这是唯一常驻在顶层容器里的自定义日历。
+             它不写在字段内部，是因为切月、定位和最大高度都更依赖视口，而不是局部卡片尺寸。 -->
+        <div class="planner-option-panel planner-calendar-panel" id="plannerDatePanel" role="dialog" aria-modal="false" hidden>
+            <div class="planner-calendar-head">
+                <button type="button" class="planner-calendar-nav" id="plannerCalendarPrev" aria-label="上个月">
+                    <span aria-hidden="true">‹</span>
+                </button>
+                <div class="planner-calendar-heading">
+                    <span class="planner-calendar-kicker">Tide Window</span>
+                    <strong id="plannerCalendarMonth">2026年03月</strong>
+                </div>
+                <button type="button" class="planner-calendar-nav" id="plannerCalendarNext" aria-label="下个月">
+                    <span aria-hidden="true">›</span>
+                </button>
+            </div>
+            <div class="planner-calendar-weekdays" aria-hidden="true">
+                <span>一</span>
+                <span>二</span>
+                <span>三</span>
+                <span>四</span>
+                <span>五</span>
+                <span>六</span>
+                <span>日</span>
+            </div>
+            <!-- 日期格子由 JS 动态生成：
+                 这样可以同时标记“今天 / 推荐窗口 / 当前选中日期”，
+                 也便于切月时做轻量动画。 -->
+            <div class="planner-calendar-grid" id="plannerCalendarGrid"></div>
+        </div>
+    </div>
+
+    <script src="js/ocean-scroll.js"></script>
+    <script src="js/depth-manager.js"></script>
+    <script src="js/yanqi-trip-store.js"></script>
+    <script src="js/trip.js"></script>
+</body>
+</html>

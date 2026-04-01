@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<!-- ???????
+     ?????????????????? Hero ????????????????Dive Match???????????
+     ?????? -> Hero -> ???? -> ????? -> Dive Match -> ?? -> ?? -> ?????????? -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盐憩 - 首页</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/page-transition.css">
+    <link rel="stylesheet" href="css/depth-gauge.css">
+    <link rel="stylesheet" href="css/home.css">
+</head>
+<body class="home-page">
+    <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
+
+    <!-- 顶部导航：
+         这是首页的跨页入口层，不只负责跳转，也会被跨页面过渡一起带着上下浮动。 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="home.html" class="logo">盐憩</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" class="nav-link active">首页</a></li>
+                <li><a href="#featured-destinations" class="nav-link" data-scroll-target="#featured-destinations">目的地</a></li>
+                <li><a href="#why-yanqi" class="nav-link" data-scroll-target="#why-yanqi">盐憩故事</a></li>
+                <li><a href="trip.html" class="nav-link">我的行程</a></li>
+            </ul>
+            <div class="nav-user">
+                <img src="assets/images/avatar.png" alt="用户头像" class="avatar" title="点击返回登录页或退出">
+            </div>
+        </div>
+    </nav>
+
+    <!-- 左侧深度计 -->
+    <div class="depth-gauge left" aria-hidden="true">
+        <div class="gauge-current" id="leftGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="leftGaugeMarkers">
+            <!-- 刻度由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 右侧深度计 -->
+    <div class="depth-gauge right" aria-hidden="true">
+        <div class="gauge-current" id="rightGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="rightGaugeMarkers">
+            <!-- 刻度由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 页面主舞台：承载首页所有主要 section，并作为跨页面过渡动画的整体移动容器。 -->
+    <div class="page-stage" id="pageStage">
+        <!-- 英雄区：
+             首页最浅的一层海面入口。
+             这里既负责品牌开场，也负责把用户慢慢引到“热门潜点”和“我的行程”两条路线。 -->
+        <section class="hero-section" id="hero-home">
+            <!-- 海面氛围层：
+                 这一组 span 纯粹服务视觉，不承载交互。
+                 CSS 会让它们像浮光、海浪和浮游生物一样缓慢漂动。 -->
+            <div class="hero-ocean-layers" aria-hidden="true">
+                <span class="hero-ocean-glow hero-ocean-glow-one"></span>
+                <span class="hero-ocean-glow hero-ocean-glow-two"></span>
+                <span class="hero-ocean-wave hero-ocean-wave-one"></span>
+                <span class="hero-ocean-wave hero-ocean-wave-two"></span>
+                <span class="hero-plankton hero-plankton-one"></span>
+                <span class="hero-plankton hero-plankton-two"></span>
+                <span class="hero-plankton hero-plankton-three"></span>
+                <span class="hero-plankton hero-plankton-four"></span>
+                <span class="hero-plankton hero-plankton-five"></span>
+                <span class="hero-plankton hero-plankton-six"></span>
+            </div>
+            <!-- Hero 文案与今日海域卡片：负责首页首屏的品牌开场和两个主要行动入口。 -->
+            <div class="hero-content">
+                <h1 class="hero-title hero-stage-copy">下一次下潜，从哪里开始？</h1>
+                <p class="hero-subtitle hero-stage-copy">探索全球最美的潜点，与海洋生命亲密接触</p>
+
+                <div class="hero-hotspots-stage-shell" id="heroHotspotsStageShell">
+                    <div class="hero-hotspots-resize-layer" aria-hidden="true">
+                        <button type="button" class="hero-hotspots-resize-handle is-west" data-hotspots-resize-direction="w" tabindex="-1" aria-hidden="true"></button>
+                        <button type="button" class="hero-hotspots-resize-handle is-east" data-hotspots-resize-direction="e" tabindex="-1" aria-hidden="true"></button>
+                        <button type="button" class="hero-hotspots-resize-handle is-south" data-hotspots-resize-direction="s" tabindex="-1" aria-hidden="true"></button>
+                        <button type="button" class="hero-hotspots-resize-handle is-south-west" data-hotspots-resize-direction="sw" tabindex="-1" aria-hidden="true"></button>
+                        <button type="button" class="hero-hotspots-resize-handle is-south-east" data-hotspots-resize-direction="se" tabindex="-1" aria-hidden="true"></button>
+                    </div>
+
+                    <section class="hero-hotspots-shell today-sea-card" id="hot-spots" aria-labelledby="heroHotspotsTitle">
+                        <div class="hero-hotspots-head">
+                            <p class="hero-hotspots-kicker">Yanqi Journal</p>
+                            <div class="hero-hotspots-copy">
+                                <h2 class="hero-hotspots-title" id="heroHotspotsTitle">今日海域</h2>
+                                <p class="hero-hotspots-subtitle">海流把几片值得停下来的蓝，慢慢推到了眼前</p>
+                            </div>
+                        </div>
+
+                    <!-- 热门潜点滚动舞台：
+                         左右箭头、卡片轨道和中间内容都在这层里，
+                         JS 会把卡片渲染到中间轨道，并接管拖拽、惯性和详情页跳转。 -->
+                    <div class="bamboo-scroll-container hero-bamboo-scroll-container">
+                        <button type="button" class="scroll-arrow button-3d left" id="scroll-left" aria-label="上一张">
+                            <span class="button-top">
+                                <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M14.5 5.5L8 12l6.5 6.5" />
+                                </svg>
+                            </span>
+                            <span class="button-bottom"></span>
+                            <span class="button-base"></span>
+                        </button>
+
+                        <div class="bamboo-cards-wrapper hero-bamboo-cards-wrapper">
+                            <div class="bamboo-cards-content" id="bambooCardsContent">
+                                <!-- 热门潜点卡片会由 JS 动态生成 -->
+                            </div>
+                        </div>
+
+                        <button type="button" class="scroll-arrow button-3d right" id="scroll-right" aria-label="下一张">
+                            <span class="button-top">
+                                <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M9.5 5.5L16 12l-6.5 6.5" />
+                                </svg>
+                            </span>
+                            <span class="button-bottom"></span>
+                            <span class="button-base"></span>
+                        </button>
+                    </div>
+
+                    <div class="today-sea-actions hero-hotspots-actions">
+                        <button type="button" class="sea-action sea-action-primary" data-scroll-target="#featured-destinations">探索海域</button>
+                        <button type="button" class="sea-action sea-action-secondary" data-navigation-url="trip.html">去我的行程</button>
+                    </div>
+                </section>
+                </div>
+            </div>
+        </section>
+
+        <!-- 精选目的地 -->
+        <section class="featured-destinations" id="featured-destinations" data-curated-phase="top">
+            <div class="curated-waters-shell">
+                <header class="curated-waters-intro curated-reveal">
+                    <p class="curated-waters-kicker">Curated Waters</p>
+                    <h2 class="curated-waters-title">精选目的地</h2>
+                    <p class="curated-waters-subtitle">不是更多的海，而是更适合你的那一片蓝。</p>
+                    <p class="curated-waters-lead">有的海适合第一次安静地下去，有的海适合把鱼群风暴留给更进阶的潜水员。盐憩想做的，是替你把每一片海的性格、光线与节奏，看得更清楚一些。</p>
+                </header>
+
+                <!-- 海域档案舞台：
+                     左侧主卡是当前主角，右侧样本卡是切换入口。
+                     这样的分组是为了让“看海域”更像在翻看同一片海图，而不是普通卡片列表。 -->
+                <div class="curated-waters-stage curated-reveal" id="curatedWatersStage">
+                    <article class="curated-main-card" id="curatedMainCard" aria-live="polite">
+                        <!-- 主舞台卡片由 JS 动态生成 -->
+                    </article>
+
+                    <div class="curated-sample-cloud" id="destinationsGrid" aria-label="海域样本卡">
+                        <!-- 海域样本卡由 JS 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 潜水匹配推荐区 -->
+        <section class="dive-match" id="dive-match">
+            <div class="dive-match-shell">
+                <header class="dive-match-intro dive-match-reveal">
+                    <p class="dive-match-kicker">Dive Match</p>
+                    <h2 class="dive-match-title">不是更多的海，而是更适合你的那一片</h2>
+                    <p class="dive-match-subtitle">从等级、经验到潜水节奏，慢慢找到此刻更适合你的那一潜。</p>
+                </header>
+
+                <!-- Dive Match 舞台：
+                     顶部标签负责切换“适合谁”，下方展示层负责输出对应的大卡和推荐海域。
+                     这块会和深度计联动，不同匹配分类会把首页深度推进到不同海层。 -->
+                <div class="dive-match-stage dive-match-reveal" id="diveMatchStage">
+                    <div class="dive-match-rail" id="diveMatchFilters" aria-label="潜水匹配分类">
+                        <!-- 潜水匹配分类标签由 JS 动态生成 -->
+                    </div>
+
+                    <div class="dive-match-display" id="diveMatchDisplay" aria-live="polite">
+                        <!-- 潜水匹配大卡与推荐档案卡由 JS 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 盐憩故事 -->
+        <section class="why-yanqi" id="why-yanqi">
+            <div class="story-shell">
+                <header class="story-intro story-reveal">
+                    <p class="story-kicker">Yanqi Story</p>
+                    <h2 class="story-title">盐憩故事</h2>
+                    <p class="story-lead">盐憩想做的，不只是带人抵达一片海。而是让一次下潜，从出发之前，就已经开始变得安静、清晰而值得期待。</p>
+                    <p class="story-echo">在这里，海域不是被快速选择的选项，旅程也不只是被安排好的结果。我们更在意的是，你是否在进入那片蓝之前，就已经慢慢进入了它的节奏。</p>
+                </header>
+
+                <div class="story-river" aria-hidden="true">
+                    <span class="story-river-line"></span>
+                    <span class="story-river-glow"></span>
+                </div>
+
+                <div class="story-grid">
+                    <article class="story-card story-reveal" style="--story-delay: 0ms;">
+                        <p class="story-card-index">01</p>
+                        <h3 class="story-card-title">去值得下潜的海</h3>
+                        <p class="story-card-copy">盐憩不会把海域做成简单罗列，而是希望你看到每一片海的性格、光线、洋流与节奏，选到真正适合自己的那一潜。</p>
+                    </article>
+
+                    <article class="story-card story-reveal story-card-offset" style="--story-delay: 90ms;">
+                        <p class="story-card-index">02</p>
+                        <h3 class="story-card-title">有人懂你的下潜节奏</h3>
+                        <p class="story-card-copy">从出发前开始，就有人替你看海、判断窗口、安排节奏与陪伴方式。安心感不是附加值，而是旅程的一部分。</p>
+                    </article>
+
+                    <article class="story-card story-reveal" style="--story-delay: 180ms;">
+                        <p class="story-card-index">03</p>
+                        <h3 class="story-card-title">海底不只是目的地</h3>
+                        <p class="story-card-copy">真正难忘的，不只是看见什么，而是那片海如何被你记住。盐憩想留下的，是一次完整而温柔的海洋停驻。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚收束区：
+             不是普通信息尾栏，而是首页浏览结束时的“停靠点”。
+             前面一路下潜后，用户会在这里慢慢把节奏收住。 -->
+        <footer class="footer" id="homeFooter">
+            <div class="footer-shell">
+                <section class="footer-brand-stage" aria-labelledby="footerBrandTitle">
+                    <p class="footer-overline">Yanqi Sea Retreat</p>
+                    <h2 class="footer-brand" id="footerBrandTitle">盐憩</h2>
+                    <p class="footer-whisper">向海而栖，向深而行。</p>
+                    <p class="footer-murmur">在盐分、光影与潮汐之间，找到属于你的停驻。</p>
+                </section>
+
+                <div class="footer-middle">
+                    <nav class="footer-nav" aria-label="页脚导航">
+                        <section class="footer-nav-group">
+                            <h3 class="footer-nav-title">探索</h3>
+                            <ul class="footer-nav-list">
+                                <li><a href="#hot-spots" class="footer-link" data-scroll-target="#hot-spots">热门潜点</a></li>
+                                <li><a href="#featured-destinations" class="footer-link" data-scroll-target="#featured-destinations">精选目的地</a></li>
+                                <li><a href="#hero-home" class="footer-link" data-scroll-target="#hero-home">今日海域</a></li>
+                                <li><a href="#why-yanqi" class="footer-link" data-scroll-target="#why-yanqi">盐憩故事</a></li>
+                            </ul>
+                        </section>
+
+                        <section class="footer-nav-group">
+                            <h3 class="footer-nav-title">行程</h3>
+                            <ul class="footer-nav-list">
+                                <li><a href="trip.html" class="footer-link">我的行程</a></li>
+                                <li><a href="trip.html#trip-planner" class="footer-link">收藏海域</a></li>
+                                <li><a href="trip.html#trip-planner" class="footer-link">下潜日历</a></li>
+                                <li><a href="trip.html#trip-prep" class="footer-link">出行准备</a></li>
+                            </ul>
+                        </section>
+
+                        <section class="footer-nav-group">
+                            <h3 class="footer-nav-title">关于盐憩</h3>
+                            <ul class="footer-nav-list">
+                                <li><a href="#why-yanqi" class="footer-link" data-scroll-target="#why-yanqi">品牌故事</a></li>
+                                <li><a href="contact.html" class="footer-link">联系我们</a></li>
+                                <li><a href="terms.html" class="footer-link">用户协议</a></li>
+                                <li><a href="privacy.html" class="footer-link">隐私政策</a></li>
+                            </ul>
+                        </section>
+                    </nav>
+
+                    <aside class="footer-companion" aria-labelledby="footerCompanionTitle">
+                        <h3 class="footer-companion-title" id="footerCompanionTitle">继续向海而行</h3>
+                        <p class="footer-companion-copy">在更多日常里，继续看海。</p>
+                        <div class="footer-social-list">
+                            <a href="https://www.xiaohongshu.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往小红书官网"><span class="footer-social-mark">○</span><span>小红书</span></a>
+                            <a href="https://www.douyin.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往抖音官网"><span class="footer-social-mark">○</span><span>抖音</span></a>
+                            <a href="https://weibo.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往微博官网"><span class="footer-social-mark">○</span><span>微博</span></a>
+                            <a href="https://weixin.qq.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往微信官网"><span class="footer-social-mark">○</span><span>微信公众号</span></a>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="footer-bottom">
+                    <p>© 2024 盐憩 Yanqi</p>
+                    <p>All rights reserved.</p>
+                    <p>为每一次下潜，留一处安静停靠。</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- 首页海图导览：
+         这是首页的悬浮快速导航，不是普通回到顶部按钮。
+         它会根据滚动位置高亮当前所在海层，帮助用户知道自己正停留在哪一段内容里。 -->
+    <div class="sea-guide sea-guide-home" id="homeSeaGuide" aria-hidden="true">
+        <button
+            type="button"
+            class="sea-guide-trigger"
+            id="homeSeaGuideTrigger"
+            aria-expanded="false"
+            aria-controls="homeSeaGuidePanel"
+            aria-label="打开海图导览"
+        >
+            <span class="sea-guide-trigger-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <path
+                        d="M12 3.5c3.7 0 6.9 2.9 7.2 6.7.3 3.3-1.5 5.7-3.7 8.1-.9 1-1.9 2-2.8 3.3a1 1 0 0 1-1.7 0c-.9-1.3-1.9-2.3-2.8-3.3-2.2-2.4-4-4.8-3.7-8.1.3-3.8 3.5-6.7 7.2-6.7Zm0 4.2a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </span>
+            <span class="sea-guide-trigger-copy">
+                <strong>海图</strong>
+                <small>导览</small>
+            </span>
+        </button>
+
+        <nav class="sea-guide-panel" id="homeSeaGuidePanel" aria-label="首页海图导览" aria-hidden="true">
+            <p class="sea-guide-kicker">Sea Guide</p>
+            <div class="sea-guide-list">
+                <button type="button" class="sea-guide-entry" data-key="surface" data-target="#hero-home">
+                    <span class="sea-guide-entry-copy">
+                        <strong>回到海面</strong>
+                        <small>回到首页这片海的入口</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="hotspots" data-target="#hot-spots">
+                    <span class="sea-guide-entry-copy">
+                        <strong>先看热门潜点</strong>
+                        <small>沿着热流先看下一片吸引你的海</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="destinations" data-target="#featured-destinations">
+                    <span class="sea-guide-entry-copy">
+                        <strong>去目的地展台</strong>
+                        <small>慢慢翻开不同性格的海域档案</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="match" data-target="#dive-match">
+                    <span class="sea-guide-entry-copy">
+                        <strong>找更适合你的海</strong>
+                        <small>顺着能力与节奏再往下一层去看</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="story" data-target="#why-yanqi">
+                    <span class="sea-guide-entry-copy">
+                        <strong>听听盐憩的故事</strong>
+                        <small>在更安静的一层读懂这片海的气质</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="harbor" data-target="#homeFooter">
+                    <span class="sea-guide-entry-copy">
+                        <strong>在底部停驻</strong>
+                        <small>把这次浏览慢慢收住在海风里</small>
+                    </span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <script src="js/ocean-scroll.js"></script>
+    <script src="js/depth-manager.js"></script>
+    <script src="js/home.js"></script>
+</body>
+</html>
+

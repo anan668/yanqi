@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!-- ??????????
+     ??????????????????????????????????
+     ??????Hero -> ????? -> ???? -> ??? -> ???? -> ?????????? -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盐憩 - 联系我们</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/page-transition.css">
+    <link rel="stylesheet" href="css/depth-gauge.css">
+    <link rel="stylesheet" href="css/info-pages.css">
+</head>
+<body class="info-page contact-page">
+    <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
+
+    <div class="depth-gauge left" aria-hidden="true">
+        <div class="gauge-current" id="leftGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="leftGaugeMarkers"></div>
+    </div>
+
+    <div class="depth-gauge right" aria-hidden="true">
+        <div class="gauge-current" id="rightGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="rightGaugeMarkers"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="home.html" class="logo">盐憩</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="home.html" class="nav-link">首页</a></li>
+                <li><a href="trip.html" class="nav-link">我的行程</a></li>
+                <li><a href="contact.html" class="nav-link active">联系我们</a></li>
+            </ul>
+            <div class="nav-user">
+                <img src="assets/images/avatar.png" alt="用户头像" class="avatar">
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-stage" id="pageStage">
+        <main class="info-stage">
+            <header class="info-hero info-reveal">
+                <p class="info-overline">Contact Yanqi</p>
+                <h1 class="info-title">联系我们</h1>
+                <p class="info-copy">
+                    如果你想问一片海、一次出发，或只是想把某个念头慢慢留下，都可以从这里靠近盐憩。
+                    有些问题不需要立刻回答，但可以先在这里轻轻靠岸。
+                </p>
+            </header>
+
+            <div class="info-shell info-reveal info-reveal-delay-1">
+                <div class="contact-stage">
+                    <article class="contact-card">
+                        <p class="contact-card-kicker">Trip Inquiry</p>
+                        <h2 class="contact-card-title">行程咨询</h2>
+                        <p class="contact-card-copy">如果你已经有一片想靠近的海，或正在犹豫该从哪里开始，可以先把这次下潜的轮廓放在这里。</p>
+                        <button type="button" class="contact-card-action" data-info-scroll="#contactMethodsSection">先看联络方式</button>
+                    </article>
+                    <article class="contact-card">
+                        <p class="contact-card-kicker">Partnership</p>
+                        <h2 class="contact-card-title">合作联系</h2>
+                        <p class="contact-card-copy">关于内容合作、潜店沟通或海域共创，如果想用更适合盐憩的方式靠近，也可以先从这里留下方向。</p>
+                        <button type="button" class="contact-card-action" data-info-scroll="#contactFormSection">留下合作想法</button>
+                    </article>
+                    <article class="contact-card">
+                        <p class="contact-card-kicker">Echoes</p>
+                        <h2 class="contact-card-title">反馈与建议</h2>
+                        <p class="contact-card-copy">如果你对页面节奏、潜点内容或行程体验有想补上的一句话，也欢迎在这里轻轻留下。</p>
+                        <button type="button" class="contact-card-action" data-info-scroll="#contactFormSection">写下一句话</button>
+                    </article>
+                </div>
+            </div>
+
+            <div class="info-shell info-reveal info-reveal-delay-2" id="contactMethodsSection">
+                <section class="info-section">
+                    <h2 class="info-section-title">联络方式</h2>
+                    <p class="info-section-copy">如果这几条入口已经整理好，你会直接看见它们。如果还没有，它们也会先以一种更柔和的方式停在这里。</p>
+                    <div class="contact-methods" id="contactMethods"></div>
+                </section>
+            </div>
+
+            <div class="info-shell info-reveal info-reveal-delay-3" id="contactFormSection">
+                <section class="contact-form-shell">
+                    <h2 class="info-section-title">把想说的话留在这里</h2>
+                    <p class="contact-form-copy">这还是前端演示版留言台。点击发送后，内容会先在当前浏览器里被暂时收下，不会伪装成已经发到服务器。</p>
+
+                    <form id="contactForm" novalidate>
+                        <div class="contact-form-grid">
+                            <div class="contact-field">
+                                <label for="contactName">称呼</label>
+                                <input type="text" id="contactName" placeholder="想让盐憩怎么称呼你">
+                            </div>
+                            <div class="contact-field">
+                                <label for="contactMethodValue">联系方式</label>
+                                <input type="text" id="contactMethodValue" placeholder="邮箱、微信或一个能被找到的方式">
+                            </div>
+                            <div class="contact-field">
+                                <label for="contactTopic">主题类型</label>
+                                <select id="contactTopic">
+                                    <option value="">先说明这一句更靠近什么</option>
+                                    <option value="行程咨询">行程咨询</option>
+                                    <option value="合作联系">合作联系</option>
+                                    <option value="反馈建议">反馈与建议</option>
+                                </select>
+                            </div>
+                            <div class="contact-field is-full">
+                                <label for="contactMessage">想说的话</label>
+                                <textarea id="contactMessage" placeholder="把关于这片海、这次出发，或这张网页的想法慢慢写下来。"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="contact-form-actions">
+                            <button type="submit" class="contact-submit">先把这条留言轻轻留下</button>
+                            <a href="home.html" class="contact-secondary">回到首页</a>
+                        </div>
+                    </form>
+
+                    <div class="contact-feedback" id="contactFeedback" aria-live="polite"></div>
+                </section>
+            </div>
+
+            <footer class="info-footer info-reveal info-reveal-delay-3">
+                <div class="info-footer-top">
+                    <a href="home.html" class="info-footer-link">回到首页</a>
+                    <a href="trip.html" class="info-footer-link">去我的行程</a>
+                    <a href="detail.html?id=1" class="info-footer-link">继续看一片海</a>
+                </div>
+                <div class="info-footer-links">
+                    <a href="terms.html" class="policy-link">用户协议</a>
+                    <a href="privacy.html" class="policy-link">隐私政策</a>
+                </div>
+                <p class="info-footer-meta">这页仍在盐憩这片海里，只是停在一层更安静的说明水域。</p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="js/ocean-scroll.js"></script>
+    <script src="js/depth-manager.js"></script>
+    <script src="js/info-pages.js"></script>
+</body>
+</html>

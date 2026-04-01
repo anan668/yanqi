@@ -1,0 +1,287 @@
+/* ============================================
+   Legacy Transition Styles - transitions.css
+   ============================================
+   ?????
+   1. ??????????????????????????????????????
+   2. ?????? page-transition.css?????????????????????
+   3. ?????????? -> ?? -> ??????????
+*/
+
+/* 中文说明：该文件是较早的深度过渡样式文件，保留旧版下潜动画和覆盖层结构。 */
+/* 阅读提示：后续按“旧版深度容器 -> 海洋遮罩 -> 刻度结构 -> 气泡层 -> 页面过渡实验样式”顺序组织。 */
+/* .depth-gauge-container 的主要视觉与布局效果 */
+.depth-gauge-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    display: none;
+    overflow: hidden;
+}
+
+/* .depth-gauge-container.active 激活状态下的样式 */
+.depth-gauge-container.active {
+    display: block;
+}
+
+/* ============================================
+   蓝色海洋覆盖层
+   ============================================ */
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.ocean-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+/* .ocean-gradient 的主要视觉与布局效果 */
+.ocean-gradient {
+    width: 100%;
+    height: 100%;
+    background: rgba(240, 245, 250, 0.8);
+    animation: oceanGradientShift 2.5s ease-in forwards;
+}
+
+/* 定义 oceanGradientShift 动画的关键帧 */
+@keyframes oceanGradientShift {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        background: rgba(240, 245, 250, 0.8);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        background: rgba(10, 50, 100, 0.9);
+    }
+}
+
+/* ============================================
+   深度计刻度尺
+   ============================================ */
+
+/* 控制左右深度计的固定位置、尺寸和整体层级 */
+.depth-gauge {
+    position: fixed;
+    width: auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    z-index: 10;
+    padding: 40px 0;
+}
+
+/* .depth-gauge-left 的主要视觉与布局效果 */
+.depth-gauge-left {
+    left: 20px;
+    top: 0;
+}
+
+/* .depth-gauge-right 的主要视觉与布局效果 */
+.depth-gauge-right {
+    right: 20px;
+    top: 0;
+}
+
+/* 刻度组 */
+/* .gauge-ticks 的主要视觉与布局效果 */
+.gauge-ticks {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: 100%;
+    position: relative;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.tick-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    flex: 1;
+}
+
+/* 左侧刻度线在右侧，右侧刻度线在左侧 */
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-gauge-left .tick-group {
+    justify-content: flex-end;
+    padding-right: 20px;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-gauge-right .tick-group {
+    justify-content: flex-start;
+    padding-left: 20px;
+}
+
+/* 刻度激活时显示 */
+/* .depth-gauge-container.active .tick-group 激活状态下的样式 */
+.depth-gauge-container.active .tick-group {
+    opacity: 1;
+}
+
+/* 刻度线 - CSS绘制 */
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.tick-line {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+/* 刻度数字 */
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.tick-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 35px;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   气泡上升动画
+   ============================================ */
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.bubbles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    bottom: -20px;
+    animation: none;
+}
+
+/* .depth-gauge-container.active .bubble 激活状态下的样式 */
+.depth-gauge-container.active .bubble {
+    animation: bubble-rise 3s ease-in infinite;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.bubble:nth-child(1) {
+    width: 20px;
+    height: 20px;
+    left: 35%;
+    animation-delay: 0s;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.bubble:nth-child(2) {
+    width: 15px;
+    height: 15px;
+    left: 55%;
+    animation-delay: 0.8s;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.bubble:nth-child(3) {
+    width: 18px;
+    height: 18px;
+    left: 65%;
+    animation-delay: 1.6s;
+}
+
+/* 定义 bubble-rise 动画的关键帧 */
+@keyframes bubble-rise {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        bottom: -20px;
+        opacity: 1;
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        bottom: 120%;
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   页面下掉动画
+   ============================================ */
+
+/* 定义 pageFallDown 动画的关键帧 */
+@keyframes pageFallDown {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translateY(0) scaleY(1);
+        opacity: 1;
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translateY(100vh) scaleY(0.8);
+        opacity: 0;
+    }
+}
+
+/* .login-page.transition-out 的主要视觉与布局效果 */
+.login-page.transition-out {
+    animation: pageFallDown 1s ease-in forwards;
+    z-index: 0;
+}
+
+/* .depth-gauge-container.fade-out 离场淡出时的样式 */
+.depth-gauge-container.fade-out {
+    animation: pageFallDown 1s ease-in forwards;
+}
+
+/* .depth-gauge-container.active.fade-out 激活并离场时的样式 */
+.depth-gauge-container.active.fade-out {
+    animation: pageFallDown 1s ease-in forwards;
+}
+
+/* ============================================
+   视差效果 - 登录页内容向上滑动
+   ============================================ */
+
+/* .login-page.parallax-scroll 的主要视觉与布局效果 */
+.login-page.parallax-scroll {
+    animation: loginParallaxScroll 2.5s ease-in forwards;
+}
+
+/* 定义 loginParallaxScroll 动画的关键帧 */
+@keyframes loginParallaxScroll {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translateY(0);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translateY(-300px);
+    }
+}
+
+/* 蓝色覆盖层缓慢下降 */
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.ocean-overlay.parallax-background {
+    animation: oceanParallaxScroll 2.5s ease-in forwards;
+}
+
+/* 定义 oceanParallaxScroll 动画的关键帧 */
+@keyframes oceanParallaxScroll {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translateY(0);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translateY(150px);
+    }
+}

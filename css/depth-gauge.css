@@ -1,0 +1,224 @@
+/* ============================================
+   Depth Gauge Styles - depth-gauge.css
+   ============================================
+   ?????
+   1. ???????????????????????????????????
+   2. ?????????????????????????
+   3. ???????? -> ????? -> ???? -> ??? -> ?????????
+*/
+
+/* 文件说明：该文件负责左右深度计的固定布局、刻度显示，以及交互时的视觉反馈。 */
+/* 阅读提示：可以按“整体定位 -> 当前深度数字 -> 刻度线 -> 交互态 -> 响应式”来理解。 */
+/* 页面级深度计变量：集中管理上下左右安全边距，后面左右两侧共用这套值。 */
+body {
+    --depth-gauge-top: 20px;
+    --depth-gauge-bottom: 20px;
+    --depth-gauge-side: 3px;
+}
+
+/* 深度计外层：用 fixed 固定在视口两边，让它始终像整站海层语言，而不是某个 section 内部组件。 */
+.depth-gauge {
+    position: fixed;
+    top: var(--depth-gauge-top);
+    bottom: var(--depth-gauge-bottom);
+    width: 74px;
+    /* 74px 足够放下刻度线和数字标签，但又不会让两侧仪表显得过重。 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none; /* 深度计只做空间提示，不抢页面上的真实交互 */
+    z-index: 1200;
+}
+
+/* .depth-gauge.left 的主要视觉与布局效果 */
+.depth-gauge.left {
+    left: var(--depth-gauge-side);
+    align-items: flex-end;
+}
+
+/* .depth-gauge.right 的主要视觉与布局效果 */
+.depth-gauge.right {
+    right: var(--depth-gauge-side);
+    align-items: flex-start;
+}
+
+/* 设置当前深度数字的样式和发光效果 */
+.gauge-current {
+    min-width: 58px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(10, 60, 96, 0.52);
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 20px rgba(4, 27, 52, 0.22);
+    backdrop-filter: blur(6px);
+    /* 当前深度数字始终悬在页面最前层，轻微模糊能让它像仪表窗，而不是普通标签。 */
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* .gauge-markers 的主要视觉与布局效果 */
+.gauge-markers {
+    flex: 1;
+    width: 100%;
+    margin: 14px 0 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker {
+    display: grid;
+    width: 100%;
+    align-items: center;
+    column-gap: 8px;
+    opacity: 0.24; /* 默认只保留很轻的存在感，避免刻度线把页面两侧压得太重 */
+    transform: scale(1);
+    transition: opacity 180ms ease, transform 220ms ease;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-gauge.left .depth-marker {
+    grid-template-columns: 24px 32px;
+    justify-content: end;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-gauge.right .depth-marker {
+    grid-template-columns: 32px 24px;
+    justify-content: start;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker-line {
+    width: 10px;
+    height: 1px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.42);
+}
+
+.depth-gauge.left .depth-marker-line {
+    grid-column: 1;
+    justify-self: end;
+}
+
+.depth-gauge.right .depth-marker-line {
+    grid-column: 2;
+    justify-self: start;
+}
+
+.depth-marker.medium .depth-marker-line {
+    width: 16px;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker.major .depth-marker-line {
+    width: 24px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker-label {
+    min-width: 32px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-gauge.left .depth-marker-label {
+    grid-column: 2;
+    text-align: left;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-gauge.right .depth-marker-label {
+    grid-column: 1;
+    text-align: right;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker.is-reached {
+    opacity: 0.56;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker.is-current {
+    opacity: 1;
+    transform: scale(1.06);
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker.is-current .depth-marker-line {
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+.depth-marker.is-current .depth-marker-label {
+    color: #ffffff;
+}
+
+/* 设置当前深度数字的样式和发光效果 */
+body.depth-gauge-interactive .gauge-current {
+    animation: gauge-current-drift 1.8s ease-in-out infinite;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+body.depth-gauge-interactive .depth-marker {
+    animation: gauge-marker-drift 1.5s ease-in-out infinite;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+body.depth-gauge-interactive .depth-marker:nth-child(odd) {
+    animation-delay: -0.2s;
+}
+
+/* 控制深度刻度线、标签和当前刻度的视觉状态 */
+body.depth-gauge-interactive .depth-marker:nth-child(3n) {
+    animation-delay: -0.42s;
+}
+
+/* 定义 gauge-current-drift 动画的关键帧 */
+@keyframes gauge-current-drift {
+/* 控制动画在 0%, 100% 阶段的状态 */
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+/* 控制动画在 50% 阶段的状态 */
+    50% {
+        transform: translate3d(0, -2px, 0);
+    }
+}
+
+/* 定义 gauge-marker-drift 动画的关键帧 */
+@keyframes gauge-marker-drift {
+/* 控制动画在 0%, 100% 阶段的状态 */
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+/* 控制动画在 50% 阶段的状态 */
+    50% {
+        transform: translate3d(1px, -1px, 0) scale(1.02);
+    }
+}
+
+/* 当前屏幕条件下的响应式样式 */
+@media (max-width: 900px) {
+/* 控制左右深度计的固定位置、尺寸和整体层级 */
+    .depth-gauge {
+        display: none;
+    }
+}

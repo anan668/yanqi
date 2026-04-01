@@ -1,0 +1,409 @@
+/* ============================================
+   Page Transition Styles - page-transition.css
+   ============================================
+   ?????
+   1. ???????????????????????????
+   2. ????????????????????????
+   3. ???????? -> ??? -> ????? -> ???????????
+*/
+
+/* 中文说明：该文件负责首页、详情页、行程页之间的跨页面过渡、海洋遮罩与特殊切换动画。 */
+/* 阅读提示：后续按“全局过渡变量 -> 遮罩层 -> 特殊气泡层 -> 页面进出场动画 -> 细节状态”顺序组织。 */
+/* 定义全局主题变量 */
+:root {
+    --ocean-base-opacity: 0.02;
+    --ocean-cover-opacity: 0;
+    --ocean-depth-progress: 0;
+    --login-home-blue-opacity: 0;
+    --page-exit-duration: 1120ms;
+    --page-enter-duration: 880ms;
+    --page-ocean-exit-duration: 1420ms;
+    --page-ocean-enter-duration: 1260ms;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.page-transition-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 780;
+    overflow: hidden;
+    isolation: isolate;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 50% -8%, rgb(172 224 255 / calc((var(--ocean-base-opacity) + var(--ocean-cover-opacity)) * 0.78)), transparent 48%),
+        linear-gradient(
+            180deg,
+            rgb(16 81 125 / calc((var(--ocean-base-opacity) + var(--ocean-cover-opacity)) * 0.72)) 0%,
+            rgb(6 33 62 / calc((var(--ocean-base-opacity) + var(--ocean-cover-opacity)) * 0.98)) 100%
+        );
+    /* 这里的 calc() 不是在算尺寸，而是在算颜色透明度：
+       基础海层透明度 + 额外过渡增强值 会一起决定当前海水遮罩有多浓。 */
+}
+
+/* .page-transition-overlay::before 的前置装饰样式 */
+.page-transition-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+        radial-gradient(circle at 50% 14%, rgba(126, 198, 255, 0.2), transparent 44%),
+        linear-gradient(180deg, rgba(12, 36, 66, 0.9) 0%, rgba(6, 23, 48, 0.96) 100%);
+    opacity: var(--login-home-blue-opacity);
+}
+
+/* .page-transition-overlay::after 的后置装饰样式 */
+.page-transition-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 22%),
+        linear-gradient(180deg, transparent 0%, rgba(0, 12, 34, 0.28) 100%);
+    opacity: calc((var(--ocean-base-opacity) + var(--ocean-cover-opacity)) * (0.72 + var(--ocean-depth-progress) * 1.24));
+    /* 深度越深，后半段乘数越大，遮罩就会更重；
+       所以“继续下潜”时不只页面在移动，整片海也会一起加深。 */
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.page-transition-bubbles {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 240ms linear;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+body.page-login-home-special-active .page-transition-bubbles {
+    opacity: 1;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+body.page-login-home-bubbles-fade .page-transition-bubbles {
+    opacity: 0;
+    transition: opacity 1140ms ease-out;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+.page-transition-bubble {
+    position: absolute;
+    left: var(--bubble-left, 50%);
+    bottom: -12vh;
+    width: var(--bubble-size, 18px);
+    height: var(--bubble-size, 18px);
+    border-radius: 999px;
+    background:
+        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.22) 58%, transparent 72%),
+        radial-gradient(circle at 62% 68%, rgba(180, 226, 255, 0.45), transparent 72%);
+    box-shadow: 0 0 16px rgba(171, 226, 255, 0.22);
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.45);
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+body.page-login-home-bubbles .page-transition-bubble {
+    animation: login-home-bubble-rise var(--bubble-duration, 1.8s) ease-out var(--bubble-delay, 0s) forwards;
+}
+
+/* .page-stage 的主要视觉与布局效果 */
+.page-stage {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 100vh;
+    transform: none;
+    transform-origin: center center;
+    opacity: 1;
+    filter: blur(0);
+    will-change: transform, opacity, filter;
+    backface-visibility: hidden;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+body.home-page > .navbar,
+body.detail-page > .navbar,
+body.trip-page > .navbar {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+    filter: blur(0);
+    will-change: transform, opacity, filter;
+    backface-visibility: hidden;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+body.page-transition-active {
+    overflow: hidden;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+body.page-transition-active .page-stage,
+body.page-transition-active.home-page > .navbar,
+body.page-transition-active.detail-page > .navbar,
+body.page-transition-active.trip-page > .navbar {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+body.page-transition-active .navbar,
+body.page-transition-active .back-to-top,
+body.page-transition-active .sea-guide {
+    pointer-events: none;
+}
+
+/* 控制页面过渡遮罩、气泡层和海洋切换特效 */
+body.page-transition-active.home-page > .navbar,
+body.page-transition-active.detail-page > .navbar,
+body.page-transition-active.trip-page > .navbar {
+    z-index: 760;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+body.page-exit-up .page-stage,
+body.home-page.page-exit-up > .navbar,
+body.detail-page.page-exit-up > .navbar,
+body.trip-page.page-exit-up > .navbar {
+    animation: page-exit-up var(--page-exit-duration) cubic-bezier(0.22, 0.74, 0.18, 1) forwards;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+body.page-exit-down .page-stage,
+body.home-page.page-exit-down > .navbar,
+body.detail-page.page-exit-down > .navbar,
+body.trip-page.page-exit-down > .navbar {
+    animation: page-exit-down var(--page-exit-duration) cubic-bezier(0.22, 0.74, 0.18, 1) forwards;
+}
+
+/* body.page-enter-from-bottom .page-stage, body.home-page.page-enter-from-bottom > .nav... 的主要视觉与布局效果 */
+body.page-enter-from-bottom .page-stage,
+body.home-page.page-enter-from-bottom > .navbar,
+body.detail-page.page-enter-from-bottom > .navbar,
+body.trip-page.page-enter-from-bottom > .navbar {
+    animation: page-enter-from-bottom var(--page-enter-duration) cubic-bezier(0.14, 0.86, 0.2, 1) both;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+body.page-enter-from-top .page-stage,
+body.home-page.page-enter-from-top > .navbar,
+body.detail-page.page-enter-from-top > .navbar,
+body.trip-page.page-enter-from-top > .navbar {
+    animation: page-enter-from-top var(--page-enter-duration) cubic-bezier(0.14, 0.86, 0.2, 1) both;
+}
+
+/* 控制顶部导航的布局、透明度和当前页状态反馈 */
+body.page-ocean-dive-exit .page-stage,
+body.home-page.page-ocean-dive-exit > .navbar,
+body.detail-page.page-ocean-dive-exit > .navbar,
+body.trip-page.page-ocean-dive-exit > .navbar {
+    animation: page-ocean-dive-exit var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.8, 0.2, 1) forwards;
+}
+
+/* body.page-ocean-dive-enter .page-stage, body.home-page.page-ocean-dive-enter > .navba... 的主要视觉与布局效果 */
+body.page-ocean-dive-enter .page-stage,
+body.home-page.page-ocean-dive-enter > .navbar,
+body.detail-page.page-ocean-dive-enter > .navbar,
+body.trip-page.page-ocean-dive-enter > .navbar {
+    animation: page-ocean-dive-enter var(--page-ocean-enter-duration) cubic-bezier(0.16, 0.84, 0.18, 1) both;
+}
+
+/* body.page-ocean-surface-exit .page-stage, body.home-page.page-ocean-surface-exit > .n... 的主要视觉与布局效果 */
+body.page-ocean-surface-exit .page-stage,
+body.home-page.page-ocean-surface-exit > .navbar,
+body.detail-page.page-ocean-surface-exit > .navbar,
+body.trip-page.page-ocean-surface-exit > .navbar {
+    animation: page-ocean-surface-exit var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.76, 0.24, 1) forwards;
+}
+
+/* body.page-ocean-surface-enter .page-stage, body.home-page.page-ocean-surface-enter > ... 的主要视觉与布局效果 */
+body.page-ocean-surface-enter .page-stage,
+body.home-page.page-ocean-surface-enter > .navbar,
+body.detail-page.page-ocean-surface-enter > .navbar,
+body.trip-page.page-ocean-surface-enter > .navbar {
+    animation: page-ocean-surface-enter var(--page-ocean-enter-duration) cubic-bezier(0.12, 0.84, 0.18, 1) both;
+}
+
+/* 定义 page-exit-up 动画的关键帧 */
+@keyframes page-exit-up {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+        filter: blur(0);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, -108vh, 0);
+        opacity: 0.12;
+        filter: blur(10px);
+    }
+}
+
+/* 定义 page-exit-down 动画的关键帧 */
+@keyframes page-exit-down {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+        filter: blur(0);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, 108vh, 0);
+        opacity: 0.12;
+        filter: blur(10px);
+    }
+}
+
+/* 定义 page-enter-from-bottom 动画的关键帧 */
+@keyframes page-enter-from-bottom {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, 108vh, 0);
+        opacity: 0.08;
+        filter: blur(10px);
+    }
+/* 控制动画在 72% 阶段的状态 */
+    72% {
+        opacity: 0.92;
+        filter: blur(2px);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* 定义 page-enter-from-top 动画的关键帧 */
+@keyframes page-enter-from-top {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, -108vh, 0);
+        opacity: 0.08;
+        filter: blur(10px);
+    }
+/* 控制动画在 72% 阶段的状态 */
+    72% {
+        opacity: 0.92;
+        filter: blur(2px);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* 定义 page-ocean-dive-exit 动画的关键帧 */
+@keyframes page-ocean-dive-exit {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+/* 控制动画在 54% 阶段的状态 */
+    54% {
+        opacity: 0.52;
+        filter: blur(4px);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, -14vh, 0) scale(0.964);
+        opacity: 0.12;
+        filter: blur(12px);
+    }
+}
+
+/* 定义 page-ocean-dive-enter 动画的关键帧 */
+@keyframes page-ocean-dive-enter {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, 11vh, 0) scale(1.03);
+        opacity: 0.06;
+        filter: blur(14px);
+    }
+/* 控制动画在 68% 阶段的状态 */
+    68% {
+        opacity: 0.88;
+        filter: blur(3px);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* 定义 page-ocean-surface-exit 动画的关键帧 */
+@keyframes page-ocean-surface-exit {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+/* 控制动画在 52% 阶段的状态 */
+    52% {
+        opacity: 0.56;
+        filter: blur(4px);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, 12vh, 0) scale(0.972);
+        opacity: 0.14;
+        filter: blur(11px);
+    }
+}
+
+/* 定义 page-ocean-surface-enter 动画的关键帧 */
+@keyframes page-ocean-surface-enter {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, -10vh, 0) scale(1.016);
+        opacity: 0.08;
+        filter: blur(13px);
+    }
+/* 控制动画在 68% 阶段的状态 */
+    68% {
+        opacity: 0.9;
+        filter: blur(3px);
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* 定义 login-home-bubble-rise 动画的关键帧 */
+@keyframes login-home-bubble-rise {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(0.45);
+    }
+/* 控制动画在 12% 阶段的状态 */
+    12% {
+        opacity: 0.84;
+    }
+/* 控制动画在 68% 阶段的状态 */
+    68% {
+        opacity: 0.66;
+    }
+/* 控制动画在 86% 阶段的状态 */
+    86% {
+        opacity: 0.22;
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        opacity: 0;
+        transform: translate3d(var(--bubble-drift, 0px), -122vh, 0) scale(1.08);
+    }
+}

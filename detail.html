@@ -1,0 +1,423 @@
+
+<!DOCTYPE html>
+<!-- 详情页：负责展示单个潜点的英雄区、介绍信息、地图定位台、套餐预订与评论体验。 -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盐憩 - 行程详情</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/page-transition.css">
+    <link rel="stylesheet" href="css/depth-gauge.css">
+    <link rel="stylesheet" href="css/detail.css">
+</head>
+<body class="detail-page">
+    <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
+
+    <!-- 左侧深度计 -->
+    <div class="depth-gauge left" aria-hidden="true">
+        <div class="gauge-current" id="leftGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="leftGaugeMarkers">
+            <!-- 刻度由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 右侧深度计 -->
+    <div class="depth-gauge right" aria-hidden="true">
+        <div class="gauge-current" id="rightGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="rightGaugeMarkers">
+            <!-- 刻度由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 顶部导航：
+         负责在首页、详情页和行程页之间切换，也让详情页仍然保持在整站同一套海层体系里。 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="home.html" class="logo">盐憩</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="home.html" class="nav-link">首页</a></li>
+                <li><a href="home.html#featured-destinations" class="nav-link">目的地</a></li>
+                <li><a href="home.html#why-yanqi" class="nav-link">盐憩故事</a></li>
+                <li><a href="trip.html" class="nav-link">我的行程</a></li>
+            </ul>
+            <div class="nav-user">
+                <img src="assets/images/avatar.png" alt="用户头像" class="avatar">
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面主舞台：承载详情页主体内容，并作为相关推荐切换时的统一动画容器。 -->
+    <div class="page-stage" id="pageStage">
+        <!-- 详情 Hero：
+             这是进入某一片具体海域后的第一眼。
+             图片是情绪入口，标题和标签负责快速交代这片海的难度、深度和季节。 -->
+        <section class="detail-hero" id="detailHero">
+            <div class="hero-image-wrapper">
+                <img src="assets/images/diving-spot.jpg" alt="潜点风景" class="hero-image" loading="eager" fetchpriority="high">
+                <div class="hero-overlay"></div>
+            </div>
+            
+            <div class="hero-content">
+                <h1 class="detail-title" id="spotName">诗巴丹</h1>
+                <p class="detail-subtitle" id="spotTagline">海狼风暴的故乡，深海探险者的天堂</p>
+                
+                <div class="detail-tags">
+                    <span class="tag difficulty" id="difficultyTag">
+                        <strong>难度</strong> ★★★
+                    </span>
+                    <span class="tag depth" id="depthTag">
+                        <strong>深度</strong> 5-40m
+                    </span>
+                    <span class="tag season" id="seasonTag">
+                        <strong>最佳季节</strong> 3-10月
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 内容主体：
+             这一层把“阅读”和“预订”拆成左右两栏。
+             左侧负责慢慢读懂这片海，右侧负责把它收进行程。 -->
+        <main class="detail-content">
+            <div class="content-wrapper">
+                <!-- 左侧信息主栏：
+                     这里集中放潜点介绍、地图定位台和评论区。
+                     之所以把三块放在一起，是为了让用户先读懂一片海，再决定要不要继续往下预订。 -->
+                <article class="intro-section" id="spotOverview">
+                    <div class="intro-section-head">
+                        <p class="intro-section-kicker">Sea Dossier</p>
+                        <h2 class="intro-section-title">潜点介绍</h2>
+                        <p class="intro-section-lead">
+                            先知道它在哪里，再慢慢读懂这里会遇见什么、进入时需要怎样的节奏，以及哪一段季节更适合靠近。
+                        </p>
+                    </div>
+                    <div class="intro-text" id="introText">
+                        <h3>地理位置</h3>
+                        <p>诗巴丹位于马来西亚沙巴州，坐落在苏禄海中。这座海岛是世界顶级的潜水目的地之一，以其独特的水下生态和丰富的海洋生物而闻名。</p>
+
+                        <h3>水下生物</h3>
+                        <p>在诗巴丹，你可能会看到：</p>
+                        <ul>
+                            <li>🐋 海狼风暴（黑鳍礁鲨群）</li>
+                            <li>🐢 绿海龟与玳瑁海龟</li>
+                            <li>🦑 巨型马尾藻鱼群</li>
+                            <li>🐠 五彩斑斓的珊瑚鱼群</li>
+                            <li>🦐 龙虾和各种贝类</li>
+                        </ul>
+
+                        <h3>潜水注意事项</h3>
+                        <ul>
+                            <li>⚠️ 强劲洋流，需要有一定潜水经验（OW及以上）</li>
+                            <li>⚠️ 深度可达40米，建议携带电脑表</li>
+                            <li>⚠️ 海洋生物众多，保持安全距离，不要触摸</li>
+                            <li>⚠️ 防晒和晕船药物建议携带</li>
+                        </ul>
+
+                        <h3>天气与水温</h3>
+                        <p><strong>最佳潜水季节：</strong>3月-10月</p>
+                        <p><strong>平均水温：</strong>26-28°C</p>
+                        <p><strong>能见度：</strong>15-30米</p>
+                    </div>
+
+                    <!-- 海域定位台：
+                         不直接写死静态图片，而交给 JS 按当前潜点生成对应的地图 / 海图内容。 -->
+                    <h2 id="spotMapSection">潜点位置</h2>
+                    <div class="map-container" id="mapContainer">
+                        <!-- 海域定位台由 JS 动态生成 -->
+                    </div>
+
+                    <!-- 用户评价区：
+                         上方 filters 是评论筛选入口，下方列表才是真正的评论内容容器。 -->
+                    <h2 id="spotReviews">用户评价</h2>
+                    <div class="reviews-stage">
+                        <div class="reviews-intro">
+                            <p class="reviews-kicker">Travel Echoes</p>
+                            <p class="reviews-lead">这些不是打卡式短评，而是人真正进入这片海之后，留下来的住宿、饮食、风景和下潜回声。</p>
+                        </div>
+                        <div class="reviews-filters" id="reviewsFilters"></div>
+                    </div>
+                    <div class="reviews-section" id="reviewsSection">
+                        <!-- 评价会由 JS 动态生成 -->
+                    </div>
+                </article>
+
+                <!-- 右侧套餐侧栏：
+                     这一栏会跟着滚动停驻，方便用户在阅读过程中随时回到“适合自己的套餐”。
+                     它不是立即下单入口，而是一个按能力和节奏整理行程的收束区。 -->
+                <aside class="booking-sidebar" id="bookingPackages">
+                    <div class="booking-sticky">
+                        <div class="price-badge">
+                            <span class="price-label">从</span>
+                            <span class="price-amount" id="priceAmount">$2,786</span>
+                            <span class="price-period">起</span>
+                        </div>
+
+                        <div class="booking-match" id="packageMatchTags"></div>
+
+                        <div class="booking-copy" id="bookingCopy">
+                            <p class="booking-kicker">
+                                <span class="booking-kicker-line">Dive Match</span>
+                            </p>
+                            <h3 class="booking-title" aria-label="按下潜能力匹配这次行程">
+                                <span class="booking-title-line">按下潜能力匹配这次行程</span>
+                            </h3>
+                            <p class="booking-intro">
+                                <span class="booking-intro-line">不是先决定价格，而是先确认自己适合怎样进入这片海。根据证书等级、近期下潜经验和想要的节奏，去看更合适的套餐层级。</span>
+                            </p>
+                        </div>
+
+                        <div class="itinerary-list" id="itineraryList">
+                            <!-- 行程卡片会由 JS 动态生成 -->
+                        </div>
+
+                        <div class="booking-note" id="bookingNote">
+                            <p>先打开套餐详情，再决定是否预订。盐憩更在意你是否适合这一次下潜，而不是让你仓促下单。</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+
+        <!-- 相关推荐海域：
+             这里不是普通列表，而是一块可切换的“相邻海域舞台”。
+             用户可以像在附近海域之间潜游一样，从当前详情继续横向移动。 -->
+        <section class="related-spots" id="relatedSpots">
+    <div class="related-shell">
+        <div class="related-head">
+            <p class="related-kicker">Neighboring Waters</p>
+            <h2 class="related-title">还可以继续看的海</h2>
+            <p class="related-lead">
+                从这片海离开之前，也许还可以再看看另一种水色、流向和停驻方式。
+                不是更多的目的地，而是几片也许会让你继续停下来的海。
+            </p>
+        </div>
+
+        <div class="related-grid" id="relatedGrid">
+            <!-- 相邻海域舞台会由 JS 动态生成 -->
+        </div>
+    </div>
+</section>
+
+        <!-- 详情页收束区：
+             负责把这一片海的阅读余韵慢慢收住，同时给出下一步去哪里。 -->
+        <footer class="detail-footer" id="detailFooter">
+            <div class="detail-footer-shell">
+                <section class="detail-footer-echo detail-footer-reveal" aria-labelledby="detailFooterSpotName">
+                    <p class="detail-footer-kicker">After the Dive</p>
+                    <h2 class="detail-footer-title" id="detailFooterSpotName">诗巴丹</h2>
+                    <p class="detail-footer-lead" id="detailFooterLead">
+                        这片海不会在离开页面时结束。真正留下来的，往往是海突然安静下来、呼吸也跟着放慢的那一瞬。
+                    </p>
+                    <p class="detail-footer-murmur" id="detailFooterMurmur">
+                        你可以继续把它排进行程，或再看看另一片更适合此刻的蓝。
+                    </p>
+
+                    <div class="detail-footer-actions">
+                        <button type="button" class="detail-footer-chip" data-detail-scroll="#detailHero">回到海面</button>
+                        <button type="button" class="detail-footer-chip" data-detail-scroll="#itineraryList">把这片海排进行程</button>
+                    </div>
+                </section>
+
+                <section class="detail-footer-explore detail-footer-reveal" aria-labelledby="detailFooterExploreTitle">
+                    <div class="detail-footer-explore-head">
+                        <p class="detail-footer-overline">Keep Diving</p>
+                        <h3 class="detail-footer-explore-title" id="detailFooterExploreTitle">继续向海而行</h3>
+                        <p class="detail-footer-explore-copy">看完这片海以后，你还可以沿着更相近的潮线，继续往下一层去。</p>
+                    </div>
+
+                    <div class="detail-footer-grid">
+                        <section class="detail-footer-group" aria-labelledby="detailFooterGroupExplore">
+                            <h4 class="detail-footer-group-title" id="detailFooterGroupExplore">再看一片更适合的蓝</h4>
+                            <div class="detail-footer-links">
+                                <a href="home.html#featured-destinations" class="detail-footer-link">回到精选目的地</a>
+                                <a href="home.html#dive-match" class="detail-footer-link">查看适合自己的海</a>
+                                <button type="button" class="detail-footer-link detail-footer-link-button" data-detail-scroll="#relatedSpots">再看一片相近的海域</button>
+                            </div>
+                        </section>
+
+                        <section class="detail-footer-group" aria-labelledby="detailFooterGroupTrip">
+                            <h4 class="detail-footer-group-title" id="detailFooterGroupTrip">把这一潜慢慢收进行程</h4>
+                            <div class="detail-footer-links">
+                                <button type="button" class="detail-footer-link detail-footer-link-button" data-detail-scroll="#itineraryList">去看可预订套餐</button>
+                                <a href="trip.html" class="detail-footer-link">返回行程规划页</a>
+                                <a href="trip.html#trip-prep" class="detail-footer-link">潜前再确认一下</a>
+                            </div>
+                        </section>
+
+                        <section class="detail-footer-group" aria-labelledby="detailFooterGroupBrand">
+                            <h4 class="detail-footer-group-title" id="detailFooterGroupBrand">盐憩仍在这里</h4>
+                            <div class="detail-footer-links">
+                                <a href="home.html#why-yanqi" class="detail-footer-link">盐憩故事</a>
+                                <a href="contact.html" class="detail-footer-link">联系我们</a>
+                                <a href="terms.html" class="detail-footer-link">用户协议</a>
+                                <a href="privacy.html" class="detail-footer-link">隐私政策</a>
+                            </div>
+                        </section>
+
+                        <aside class="detail-footer-next" aria-labelledby="detailFooterNextTitle">
+                            <p class="detail-footer-next-kicker">Next Water</p>
+                            <a href="detail.html?id=2" class="detail-footer-next-card" id="detailFooterNextLink">
+                                <span class="detail-footer-next-label" id="detailFooterNextTitle">下一片海</span>
+                                <strong class="detail-footer-next-name" id="detailFooterNextName">帕劳 Palau</strong>
+                                <span class="detail-footer-next-copy" id="detailFooterNextCopy">再往前一点，去看另一片与你此刻节奏更接近的蓝。</span>
+                            </a>
+                        </aside>
+                    </div>
+                </section>
+
+                <div class="detail-footer-bottom detail-footer-reveal">
+                    <p>© 2024 盐憩 Yanqi</p>
+                    <p>All rights reserved.</p>
+                    <p id="detailFooterClosing">为每一次下潜，留一处安静停靠。</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- 详情页海图导览：
+         这是详情页的悬浮导航浮标。
+         它会根据当前阅读位置高亮对应条目，帮助用户在“概览 / 套餐 / 地图 / 评论 / 收束区”之间快速切换。 -->
+    <div class="sea-guide" id="seaGuide" aria-hidden="true">
+        <button
+            type="button"
+            class="sea-guide-trigger"
+            id="seaGuideTrigger"
+            aria-expanded="false"
+            aria-controls="seaGuidePanel"
+            aria-label="打开海图导览"
+        >
+            <span class="sea-guide-trigger-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <path
+                        d="M12 3.5c3.7 0 6.9 2.9 7.2 6.7.3 3.3-1.5 5.7-3.7 8.1-.9 1-1.9 2-2.8 3.3a1 1 0 0 1-1.7 0c-.9-1.3-1.9-2.3-2.8-3.3-2.2-2.4-4-4.8-3.7-8.1.3-3.8 3.5-6.7 7.2-6.7Zm0 4.2a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </span>
+            <span class="sea-guide-trigger-copy">
+                <strong>海图</strong>
+                <small>导览</small>
+            </span>
+        </button>
+
+        <nav class="sea-guide-panel" id="seaGuidePanel" aria-label="海图导览" aria-hidden="true">
+            <p class="sea-guide-kicker">Sea Guide</p>
+            <div class="sea-guide-list">
+                <button type="button" class="sea-guide-entry" data-key="surface" data-target="#detailHero">
+                    <span class="sea-guide-entry-copy">
+                        <strong>回到海面</strong>
+                        <small>回到这片海的入口</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="overview" data-target="#spotOverview">
+                    <span class="sea-guide-entry-copy">
+                        <strong>先看这片海</strong>
+                        <small>把地理与水下性格看清楚</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="packages" data-target="#itineraryList">
+                    <span class="sea-guide-entry-copy">
+                        <strong>看行程与套餐</strong>
+                        <small>把适合自己的安排先看一遍</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="map" data-target="#spotMapSection">
+                    <span class="sea-guide-entry-copy">
+                        <strong>找到这片海的位置</strong>
+                        <small>沿着海图再靠近一点</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="reviews" data-target="#spotReviews">
+                    <span class="sea-guide-entry-copy">
+                        <strong>听听别人的回声</strong>
+                        <small>看这片海留下来的体验记录</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="notes" data-target="#relatedSpots">
+                    <span class="sea-guide-entry-copy">
+                        <strong>还可以继续看的海</strong>
+                        <small>去看看这片海之外还在等你的潜点</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="closing" data-target="#detailFooter">
+                    <span class="sea-guide-entry-copy">
+                        <strong>把这一潜慢慢收住</strong>
+                        <small>去页脚看看这片海最后留下来的余波</small>
+                    </span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- 套餐详情弹层：
+         点击右侧套餐卡后，JS 会把对应套餐的完整说明写进这里。
+         采用独立弹层而不是直接展开侧栏，是为了不打断正文的阅读节奏。 -->
+    <div id="bookingModal" class="modal booking-modal" aria-hidden="true">
+        <div class="modal-content booking-modal-content">
+            <button class="modal-close" type="button" aria-label="关闭套餐详情">&times;</button>
+            <div id="bookingModalBody"></div>
+        </div>
+    </div>
+
+    <!-- 评论详情弹层：
+         评论卡片先只展示摘要，真正的长内容、照片和评分细节都会放到这里。 -->
+    <div id="reviewDetailModal" class="review-detail-modal" aria-hidden="true">
+        <div class="review-detail-panel" role="dialog" aria-modal="true" aria-labelledby="reviewDetailTitle">
+            <button class="review-detail-close" type="button" aria-label="关闭评论详情">&times;</button>
+            <div id="reviewDetailBody" class="review-detail-body"></div>
+        </div>
+    </div>
+
+    <!-- 评论图片放大层：
+         当用户点击评论里的照片时，JS 会把大图和说明挂到这里，避免在原卡片里把版面撑乱。 -->
+    <div id="reviewLightbox" class="review-lightbox" aria-hidden="true">
+        <button class="review-lightbox-close" type="button" aria-label="关闭图片">&times;</button>
+        <div class="review-lightbox-shell">
+            <img id="reviewLightboxImage" src="" alt="" class="review-lightbox-image">
+            <p id="reviewLightboxCaption" class="review-lightbox-caption"></p>
+        </div>
+    </div>
+
+    <!-- 预订确认反馈层：
+         套餐确认后不再自动跳走，而是在当前海域里给出一张安静的“已收进行程”回执。 -->
+    <div class="booking-confirm-feedback" id="bookingConfirmFeedback" aria-hidden="true">
+        <div class="booking-confirm-feedback-backdrop" data-close-booking-feedback></div>
+
+        <div class="booking-confirm-feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="bookingConfirmTitle">
+            <div class="booking-confirm-feedback-inner">
+                <p class="booking-confirm-kicker">Stored in Journey</p>
+                <h3 class="booking-confirm-title" id="bookingConfirmTitle">这片海已经慢慢收进行程了</h3>
+                <p class="booking-confirm-copy" id="bookingConfirmCopy">
+                    你可以继续留在这里看这片海，也可以去“我的行程”整理出发时间与同行节奏。
+                </p>
+
+                <div class="booking-confirm-meta" id="bookingConfirmMeta"></div>
+
+                <div class="booking-confirm-actions">
+                    <a class="booking-confirm-primary" id="bookingConfirmGoTrip" href="trip.html#confirmedBookingsStage">
+                        去我的行程
+                    </a>
+                    <button type="button" class="booking-confirm-secondary" id="bookingConfirmStay">
+                        继续看这片海
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/depth-manager.js"></script>
+    <script src="js/ocean-scroll.js"></script>
+    <script src="js/yanqi-trip-store.js"></script>
+    <script src="js/detail.js"></script>
+</body>
+</html>
+
+

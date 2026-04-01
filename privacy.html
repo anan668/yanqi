@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!-- ??????????
+     ????????????????????????????????????????
+     ????Hero -> ??? -> ???? -> ???? -> ???? -> ?????????? -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盐憩 - 隐私政策</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/page-transition.css">
+    <link rel="stylesheet" href="css/depth-gauge.css">
+    <link rel="stylesheet" href="css/info-pages.css">
+</head>
+<body class="info-page privacy-page">
+    <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
+
+    <div class="depth-gauge left" aria-hidden="true">
+        <div class="gauge-current" id="leftGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="leftGaugeMarkers"></div>
+    </div>
+    <div class="depth-gauge right" aria-hidden="true">
+        <div class="gauge-current" id="rightGaugeCurrent">0m</div>
+        <div class="gauge-markers" id="rightGaugeMarkers"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="home.html" class="logo">盐憩</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="home.html" class="nav-link">首页</a></li>
+                <li><a href="trip.html" class="nav-link">我的行程</a></li>
+                <li><a href="privacy.html" class="nav-link active">隐私政策</a></li>
+            </ul>
+            <div class="nav-user">
+                <img src="assets/images/avatar.png" alt="用户头像" class="avatar">
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-stage" id="pageStage">
+        <main class="info-stage">
+            <header class="info-hero info-reveal">
+                <p class="info-overline">Privacy Policy</p>
+                <h1 class="info-title">隐私政策</h1>
+                <p class="info-copy">你留下的信息，会被怎样看见、保存与使用，这里有一份更安静的说明。在靠近海之前，先把边界说清楚。</p>
+            </header>
+
+            <div class="info-shell info-reveal info-reveal-delay-1">
+                <div class="info-layout">
+                    <aside class="info-nav" aria-label="隐私政策段落导航">
+                        <p class="info-nav-kicker">潮线目录</p>
+                        <div class="info-nav-list">
+                            <a href="#privacy-collect" class="info-nav-link" data-info-scroll="#privacy-collect" data-target="#privacy-collect">我们会收集哪些信息</a>
+                            <a href="#privacy-use" class="info-nav-link" data-info-scroll="#privacy-use" data-target="#privacy-use">这些信息用于什么</a>
+                            <a href="#privacy-storage" class="info-nav-link" data-info-scroll="#privacy-storage" data-target="#privacy-storage">本地存储说明</a>
+                            <a href="#privacy-protect" class="info-nav-link" data-info-scroll="#privacy-protect" data-target="#privacy-protect">信息保存与保护</a>
+                            <a href="#privacy-third" class="info-nav-link" data-info-scroll="#privacy-third" data-target="#privacy-third">第三方服务</a>
+                            <a href="#privacy-rights" class="info-nav-link" data-info-scroll="#privacy-rights" data-target="#privacy-rights">你的选择与权利</a>
+                            <a href="#privacy-update" class="info-nav-link" data-info-scroll="#privacy-update" data-target="#privacy-update">政策更新方式</a>
+                            <a href="#privacy-contact" class="info-nav-link" data-info-scroll="#privacy-contact" data-target="#privacy-contact">联系我们</a>
+                        </div>
+                    </aside>
+
+                    <div class="info-content">
+                        <section class="policy-block" id="privacy-collect">
+                            <h2 class="policy-block-title">我们会收集哪些信息</h2>
+                            <p>你在登录、注册、留言、行程规划和套餐确认过程中，可能主动提供邮箱、手机号、称呼、出发时间、同行人数以及想去的海域等信息。除此之外，页面也会在浏览器端保存少量偏好和状态，用来维持你当前的使用节奏。</p>
+                        </section>
+
+                        <section class="policy-block" id="privacy-use">
+                            <h2 class="policy-block-title">这些信息用于什么</h2>
+                            <p>这些信息主要用于维持登录与浏览体验、保存“我的行程”草稿、记录你已经收进行程的海、保持页面联动与模块回读，以及承接你主动留下的留言和反馈。当前站点并未声明已经处理支付敏感信息，也不伪装成完整业务后台。</p>
+                        </section>
+
+                        <section class="policy-block" id="privacy-storage">
+                            <h2 class="policy-block-title">本地存储说明</h2>
+                            <p>当前前端演示站已经使用浏览器本地存储来保存部分状态，例如登录记忆、Planner Desk 草稿、详情页确认后写入的“已收进行程”记录，以及部分页面联动状态。这些数据目前主要停留在当前浏览器中，用于让体验连续，而不是服务器侧正式订单系统。</p>
+                        </section>
+
+                        <section class="policy-block" id="privacy-protect">
+                            <h2 class="policy-block-title">信息保存与保护</h2>
+                            <p>盐憩会尽量在当前实现范围内减少不必要的数据暴露。由于当前项目仍以前端演示和体验为主，很多信息保存在用户自己的浏览器环境中。后续如果接入真实业务系统、后台数据库或客服系统，保护方式与范围会在当时再明确补充。</p>
+                        </section>
+
+                        <section class="policy-block" id="privacy-third">
+                            <h2 class="policy-block-title">第三方服务</h2>
+                            <p>如果未来接入第三方登录、地图服务、客服工具或统计脚本，会在实际接入时根据具体服务补充说明。当前页面里展示的第三方登录按钮与联系入口，更多是交互层和体验层的预留，不等于已经接入完整第三方身份或支付服务。</p>
+                        </section>
+
+                        <section class="policy-block" id="privacy-rights">
+                            <h2 class="policy-block-title">你的选择与权利</h2>
+                            <p>你可以通过清除本地存储、移除“已收进行程”的内容、停止使用当前浏览器或前往“联系我们”页面留下需求，来处理自己不希望继续保留的前端演示数据。若未来接入真实账户体系，会在当时补充更完整的删除、导出和更正说明。</p>
+                        </section>
+
+                        <section class="policy-block" id="privacy-update">
+                            <h2 class="policy-block-title">政策更新方式</h2>
+                            <p>当隐私政策因项目功能、展示逻辑或真实业务接入而发生变化时，盐憩会在这页更新相应说明与日期。你继续使用网站，意味着已看到并理解更新后的版本。</p>
+                        </section>
+
+                        <section class="policy-block" id="privacy-contact">
+                            <h2 class="policy-block-title">联系我们</h2>
+                            <p>如果你想询问当前页面会保存哪些信息、想删除本地演示数据，或只是希望先把边界问清楚，可以去“联系我们”页面继续留下问题。</p>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="info-footer info-reveal info-reveal-delay-3">
+                <div class="info-footer-top">
+                    <a href="terms.html" class="info-footer-link">去看用户协议</a>
+                    <a href="contact.html" class="info-footer-link">联系我们</a>
+                    <a href="home.html" class="info-footer-link">回到首页</a>
+                </div>
+                <p class="info-footer-meta">最后更新日期：2026-03-15</p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="js/ocean-scroll.js"></script>
+    <script src="js/depth-manager.js"></script>
+    <script src="js/info-pages.js"></script>
+</body>
+</html>
