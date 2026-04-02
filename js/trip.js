@@ -444,17 +444,17 @@ function setupPlannerSummary() {
 
     const COPY = {
         spot: {
-            emptyLabel: '娴峰煙灏氭湭钀藉畾',
-            emptyHint: '鍏堝喅瀹氾紝杩欎竴娆¤鎶婅嚜宸变氦缁欏摢鐗囪摑'
+            emptyLabel: '海域尚未落定',
+            emptyHint: '先决定，这一次要把自己交给哪片蓝'
         },
         date: {
-            emptyLabel: '浠嶅湪绛変竴娈靛悎閫傜殑娼睈',
-            emptyHint: '鎶婂嚭鍙戞斁杩涙洿閫傚悎鐨勭獥鍙ｉ噷',
-            filledHint: '杩欎竴娈垫椂闂村凡缁忓啓杩涜绋嬶紝鎺ヤ笅鏉ュ彧绛夌湡姝ｅ嚭鍙?
+            emptyLabel: '仍在等一段合适的潮汐',
+            emptyHint: '把出发放进更适合的窗口里',
+            filledHint: '这一段时间已经写进行程，接下来只等真正出发。'
         },
         people: {
-            emptyLabel: '鍚岃灏氭湭鍐欒繘杩欐涓嬫綔',
-            emptyHint: '鍐冲畾杩欒稛娴蜂細浠ユ€庢牱鐨勮妭濂忓彂鐢?
+            emptyLabel: '同行尚未写进这次下潜',
+            emptyHint: '决定这趟海会以怎样的节奏发生'
         }
     };
 
@@ -483,7 +483,7 @@ function setupPlannerSummary() {
             value: '',
             label: COPY.spot.emptyLabel,
             note: COPY.spot.emptyHint,
-            description: '鍏堣杩欎竴娼滃仠鍦ㄦ兂璞￠噷锛屾參鎱㈢瓑瀹冮潬杩戙€?
+            description: '先让这一潜停在想象里，慢慢等它靠近。'
         };
 
     // fieldMap 鎶婃瘡涓瓧娈电浉鍏崇殑 DOM 鍜岄粯璁ゆ枃妗堟敹鎴愪竴涓〃銆?
@@ -526,31 +526,31 @@ function setupPlannerSummary() {
             valueNode: summarySpot,
             metaNode: summarySpotMeta,
             stateNode: summarySpotState,
-            emptyValue: '娴峰煙灏氭湭纭',
-            emptyMeta: '鍓嶅線鍝墖娴疯繕鍦ㄦ暣鐞嗛噷锛屽厛璁╄繖娆′笅娼滄參鎱㈡敹鍑烘柟鍚戙€?,
-            emptyState: '寰呯‘璁?,
-            filledState: '宸叉敹浣?,
-            filledMeta: '鍓嶅線鐨勬捣鍩熷凡缁忚惤浣嶏紝杩欎竴娼滅殑鏂瑰悜涔熷紑濮嬪彉寰楁竻妤氥€?
+            emptyValue: '海域尚未确认',
+            emptyMeta: '前往哪片海还在整理里，先让这次下潜慢慢收出方向。',
+            emptyState: '待确认',
+            filledState: '已收住',
+            filledMeta: '前往的海域已经落位，这一潜的方向也开始变得清楚。'
         },
         date: {
             valueNode: summaryDate,
             metaNode: summaryDateMeta,
             stateNode: summaryDateState,
-            emptyValue: '浠嶅湪绛変竴娈靛悎閫傜殑娼睈',
-            emptyMeta: '鍑哄彂鏃堕棿杩樺湪绛変竴娈垫洿鍚堥€傜殑娼睈绐楀彛銆?,
-            emptyState: '寰呯‘璁?,
-            filledState: '宸插啓鍏?,
-            filledMeta: '鍑哄彂鏃堕棿宸茬粡鍐欒繘杩欐涓嬫綔锛屾暣娈靛畨鎺掑紑濮嬫湁浜嗚妭濂忋€?
+            emptyValue: '仍在等一段合适的潮汐',
+            emptyMeta: '出发时间还在等一段更合适的潮汐窗口。',
+            emptyState: '待确认',
+            filledState: '已写入',
+            filledMeta: '出发时间已经写进这次下潜，整段安排开始有了节奏。'
         },
         people: {
             valueNode: summaryPeople,
             metaNode: summaryPeopleMeta,
             stateNode: summaryPeopleState,
-            emptyValue: '鍚岃灏氭湭纭',
-            emptyMeta: '鍚岃浜烘暟杩樻病钀戒笅锛岃繖瓒熸捣浼氭€庢牱鍙戠敓涔熻繕鍦ㄧ‘璁ゃ€?,
-            emptyState: '寰呯‘璁?,
-            filledState: '宸插啓鍏?,
-            filledMeta: '鍚岃浜烘暟宸茬粡鍐欒繘鏉ワ紝杩欎竴娼滅殑鑺傚鍜岄櫔浼存劅涔熸洿鏄庣‘浜嗐€?
+            emptyValue: '同行尚未确认',
+            emptyMeta: '同行人数还没落下，这趟海会怎样发生也还在确认。',
+            emptyState: '待确认',
+            filledState: '已写入',
+            filledMeta: '同行人数已经写进来，这一潜的节奏和陪伴感也更明确了。'
         }
     };
 
@@ -624,14 +624,14 @@ function setupPlannerSummary() {
             seen.add(spotKey);
             bookedSpotOptions.push({
                 value: spotKey,
-                label: String(booking.spotName || '鏈懡鍚嶆捣鍩?).trim(),
+                label: String(booking.spotName || '未命名海域').trim(),
                 note: String(
                     booking.spotTagline
-                    || '杩欑墖娴峰凡缁忔敹杩涜绋嬶紝鎺ヤ笅鏉ュ彲浠ョ户缁暣鐞嗚繖娆′笅娼滅殑鑺傚銆?
+                    || '这片海已经收进行程，接下来可以继续整理这次下潜的节奏。'
                 ).trim(),
                 description: String(
                     booking.spotTagline
-                    || '杩欑墖娴峰凡缁忔敹杩涜绋嬶紝鎺ヤ笅鏉ュ彲浠ョ户缁暣鐞嗚繖娆′笅娼滅殑鑺傚銆?
+                    || '这片海已经收进行程，接下来可以继续整理这次下潜的节奏。'
                 ).trim()
             });
         });
@@ -773,7 +773,7 @@ function setupPlannerSummary() {
      * @returns {string} - 骞存湀鏍囬鏂囨湰
      */
     function formatCalendarMonthLabel(date) {
-        return `${date.getFullYear()}骞?{String(date.getMonth() + 1).padStart(2, '0')}鏈坄;
+        return `${date.getFullYear()}年 ${String(date.getMonth() + 1).padStart(2, '0')}月`;
     }
 
     /**
@@ -1203,8 +1203,8 @@ function setupPlannerSummary() {
         }
 
         peopleInput.value = String(parsed);
-        peopleInput.dataset.label = `${parsed} 浜哄悓琛宍;
-        peopleInput.dataset.note = `杩欐涓嬫綔鎸?${parsed} 浜虹殑鍚岃鑺傚瀹夋帓銆俙;
+        peopleInput.dataset.label = `${parsed} 人同行`;
+        peopleInput.dataset.note = `这次下潜按 ${parsed} 人的同行节奏安排。`;
         peopleValue.textContent = peopleInput.dataset.label;
         peopleHint.textContent = peopleInput.dataset.note;
         peopleField.classList.add('is-active');
@@ -1286,12 +1286,12 @@ function setupPlannerSummary() {
         summaryRoot.classList.toggle('is-confirmed', isConfirmed);
 
         summaryIntro.textContent = isConfirmed
-            ? '娴峰煙銆佹椂闂翠笌鍚岃鑺傚閮藉凡缁忚鍐欒繘鏉ワ紝杩欎竴娼滄瀹夐潤鍦板仠鍦ㄥ嚭鍙戝墠銆?
-            : '褰撴捣鍩熴€佹椂闂翠笌鍚岃鑺傚琚‘璁や笅鏉ワ紝杩欐涓嬫綔灏变細瀹夐潤鍦板仠鍦ㄨ繖閲岋紝绛夌潃鐪熸鍑哄彂銆?;
+            ? '海域、时间与同行节奏都已经被写进来，这一潜正安静地停在出发前。'
+            : '当海域、时间与同行节奏被确认下来，这次下潜就会安静地停在这里，等着真正出发。';
 
         summaryStatusNote.textContent = isConfirmed
-            ? '杩欐涓嬫綔宸茬粡鏈変簡娓呮鐨勮疆寤擄紝鎺ヤ笅鏉ュ彧绛夌湡姝ｅ嚭鍙戙€?
-            : '杩欐涓嬫綔杩樺湪鏁寸悊杞粨锛屽厛鎶婃捣鍩熴€佹椂闂村拰鍚岃鎱㈡參瀹氫笅鏉ャ€?;
+            ? '这次下潜已经有了清楚的轮廓，接下来只等真正出发。'
+            : '这次下潜还在整理轮廓，先把海域、时间和同行慢慢定下来。';
 
         if (summaryPreviousValues.spot && summaryPreviousValues.spot !== nextValues.spot) {
             pulsePlannerSummaryItem(summaryItems[0]);
@@ -1664,10 +1664,10 @@ class PrepSystem {
 
 // 宸叉敹杩涜绋嬪尯鍩熼厤缃細缁熶竴鎺у埗绌虹姸鎬佹枃妗堜笌缂虹渷瀛楁鐨勭洂鎲╄姘斻€?
 const CONFIRMED_BOOKING_COPY = Object.freeze({
-    emptyDate: '浠嶅湪绛変竴娈靛悎閫傜殑娼睈',
-    emptyPeople: '鍚岃鑺傚杩樻病鍐欒繘杩欎竴娼?,
-    emptyTagline: '杩欑墖娴峰凡缁忚鏀朵笅锛屾帴涓嬫潵鍙瓑鑺傚鎱㈡參闈犳嫝銆?,
-    emptyNote: '杩欐涓嬫綔宸茬粡鍋滆繘琛岀▼閲岋紝鎺ヤ笅鏉ュ彲浠ョ户缁暣鐞嗘棩鏈熴€佸悓琛屼笌娴峰喌绐楀彛銆?
+    emptyDate: '仍在等一段合适的潮汐',
+    emptyPeople: '同行节奏还没写进这一潜',
+    emptyTagline: '这片海已经被收下，接下来只等节奏慢慢靠近。',
+    emptyNote: '这次下潜已经停进行程里，接下来可以继续整理日期、同行与海况窗口。'
 });
 
 const CONFIRMED_BOOKINGS_PAGE_SIZE = 4;
@@ -1777,7 +1777,7 @@ function getPeopleCountFromSelectionValue(value) {
         return Math.max(1, Number.parseInt(exactMatch[1], 10) || 1);
     }
 
-    const rangeMatch = safeValue.match(/^(\d+)\s*[-鈥揮\s*(\d+)$/);
+    const rangeMatch = safeValue.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
     if (rangeMatch) {
         return Math.max(1, Number.parseInt(rangeMatch[1], 10) || 1);
     }
@@ -1886,8 +1886,8 @@ function getConfirmedBookingPriceView(booking) {
     const pricePrefix = parsedPrice.currency ? `${parsedPrice.currency}` : '';
     const selectionLabel = String(booking?.selectedPeopleLabel || '').trim();
     const secondary = /^\d+$/.test(String(booking?.selectedPeople || '').trim())
-        ? `${peopleCount} 浜哄悎璁
-        : `${selectionLabel || `${peopleCount} 浜哄悓琛宍}鎸?${peopleCount} 浜鸿捣绠梎;
+        ? `${peopleCount} 人合计`
+        : `${selectionLabel || `${peopleCount} 人同行`} · 按 ${peopleCount} 人起算`;
 
     return {
         primary: `${pricePrefix}${formatConfirmedBookingAmount(baseAmount, parsedPrice.fractionDigits)}`,
@@ -1956,11 +1956,11 @@ function buildConfirmedBookingCardMarkup(booking) {
         <article class="confirmed-booking-card" data-booking-id="${escapeHtml(booking.bookingId)}">
             <div class="confirmed-booking-top">
                 <div class="confirmed-booking-meta">
-                    <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '琛岀▼妗ｆ')}</p>
-                    <h3 class="confirmed-booking-spot">${escapeHtml(booking.spotName || '鏈懡鍚嶆捣鍩?)}</h3>
+                    <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '行程档案')}</p>
+                    <h3 class="confirmed-booking-spot">${escapeHtml(booking.spotName || '未命名海域')}</h3>
                     <p class="confirmed-booking-tagline">${escapeHtml(safeTagline)}</p>
                 </div>
-                <span class="confirmed-booking-chip">${escapeHtml(booking.packageTitle || '鏈懡鍚嶅椁?)}</span>
+                <span class="confirmed-booking-chip">${escapeHtml(booking.packageTitle || '未命名套餐')}</span>
             </div>
 
             <div class="confirmed-booking-body">
@@ -1984,28 +1984,28 @@ function buildConfirmedBookingCardMarkup(booking) {
                     type="button"
                     class="confirmed-booking-detail"
                     data-planner-field-target="date"
-                    aria-label="璋冩暣杩欐涓嬫綔鐨勬棩鏈?
+                    aria-label="调整这次下潜的日期"
                 >
-                    <span class="confirmed-booking-detail-label">鏃ユ湡</span>
+                    <span class="confirmed-booking-detail-label">日期</span>
                     <strong>${escapeHtml(safeDate)}</strong>
                 </button>
                 <button
                     type="button"
                     class="confirmed-booking-detail"
                     data-planner-field-target="people"
-                    aria-label="璋冩暣杩欐涓嬫綔鐨勫悓琛屼汉鏁?
+                    aria-label="调整这次下潜的同行人数"
                 >
-                    <span class="confirmed-booking-detail-label">鍚岃</span>
+                    <span class="confirmed-booking-detail-label">同行</span>
                     <strong>${escapeHtml(safePeople)}</strong>
                 </button>
             </div>
 
             <div class="confirmed-booking-actions">
                 <button type="button" class="confirmed-booking-link" data-detail-href="${escapeHtml(booking.detailHref || `detail.html?id=${booking.spotKey}`)}">
-                    鍥炲埌杩欑墖娴?
+                    回到这片海
                 </button>
                 <button type="button" class="confirmed-booking-remove" data-booking-id="${escapeHtml(booking.bookingId)}">
-                    浠庤绋嬮噷绉诲紑
+                    从行程里移开
                 </button>
             </div>
         </article>
