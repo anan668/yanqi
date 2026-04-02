@@ -258,6 +258,7 @@
     grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr);
     /* 海域字段信息量最大，所以左列略宽；日期和人数放右列，更像次级决策?*/
     grid-template-areas:
+        "head head"
         "spot date"
         "spot people"
         "action action";
@@ -278,6 +279,43 @@
     transform: translate3d(0, 24px, 0); /* 閸掓繂顫愰悾銉ヤ簳娑撳鐭囬敍宀勫帳閸氬牆鍙嗛崷鐑樻纯閸嶅繒绱﹂幈銏¤癁鐠?*/
     filter: blur(18px);
     animation: planner-desk-rise 960ms cubic-bezier(0.16, 0.82, 0.2, 1) 680ms forwards;
+}
+
+.planner-console-head {
+    grid-area: head;
+    display: grid;
+    gap: 10px;
+    padding: 4px 4px 8px;
+    max-width: 40rem;
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    filter: blur(16px);
+    animation: planner-console-rise 820ms cubic-bezier(0.18, 0.8, 0.22, 1) 860ms forwards;
+}
+
+.planner-console-kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(194, 221, 236, 0.52);
+}
+
+.planner-console-title {
+    margin: 0;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.42rem, 2.1vw, 1.9rem);
+    line-height: 1.32;
+    color: #f2fbff;
+    text-wrap: balance;
+}
+
+.planner-console-intro {
+    margin: 0;
+    max-width: 38ch;
+    font-size: 0.92rem;
+    line-height: 1.82;
+    color: rgba(210, 226, 237, 0.7);
 }
 
 
@@ -308,20 +346,27 @@
         box-shadow 340ms ease,
         background-color 340ms ease;
     overflow: visible;
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    filter: blur(12px);
+    animation: planner-console-rise 760ms cubic-bezier(0.18, 0.8, 0.22, 1) forwards;
 }
 
 .planner-field-select[data-planner-field="spot"] {
     grid-area: spot;
     min-height: 282px;
     padding: 22px 20px 20px;
+    animation-delay: 980ms;
 }
 
 .planner-field-date {
     grid-area: date;
+    animation-delay: 1060ms;
 }
 
 .planner-field-select[data-planner-field="people"] {
     grid-area: people;
+    animation-delay: 1140ms;
 }
 
 /* ?Planner Desk 字段舱加一层很轻的潮光扫过层，增强玻璃表面的流动感?*/
@@ -784,6 +829,10 @@
     background: transparent;
     overflow: hidden;
     transition: transform 280ms ease;
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    filter: blur(12px);
+    animation: planner-console-rise 760ms cubic-bezier(0.18, 0.8, 0.22, 1) 1220ms forwards;
 }
 
 /* 鎻愪緵鎸夐挳澶栧眰鐨勪綆璋冮槾褰变笌杈圭紭杞粨 */
@@ -917,6 +966,63 @@
     }
 }
 
+@keyframes planner-console-rise {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0);
+        filter: blur(14px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes planner-summary-item-glow {
+    0% {
+        box-shadow:
+            0 12px 22px rgba(4, 17, 28, 0.14),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    50% {
+        box-shadow:
+            0 18px 34px rgba(12, 34, 49, 0.24),
+            0 0 26px rgba(127, 197, 225, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    100% {
+        box-shadow:
+            0 12px 22px rgba(4, 17, 28, 0.14),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+}
+
+@keyframes planner-summary-shell-glow {
+    0% {
+        box-shadow:
+            0 22px 38px rgba(4, 16, 25, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    50% {
+        box-shadow:
+            0 30px 52px rgba(4, 16, 25, 0.24),
+            0 0 40px rgba(128, 196, 223, 0.14),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    100% {
+        box-shadow:
+            0 26px 46px rgba(4, 16, 25, 0.22),
+            0 0 34px rgba(128, 196, 223, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+}
+
 /* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
 .planner-summary {
     grid-area: summary;
@@ -924,14 +1030,33 @@
     gap: 14px;
     margin-top: 0;
     align-self: stretch;
+    padding: 24px 24px 22px;
+    border-radius: 32px;
+    background:
+        radial-gradient(circle at 16% 0%, rgba(196, 226, 244, 0.12) 0%, rgba(196, 226, 244, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(160, 194, 214, 0.07) 100%),
+        rgba(8, 27, 41, 0.5);
+    border: 1px solid rgba(205, 229, 242, 0.12);
+    box-shadow:
+        0 22px 38px rgba(4, 16, 25, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(18px) saturate(136%);
+    -webkit-backdrop-filter: blur(18px) saturate(136%);
     opacity: 0;
     transform: translate3d(0, 24px, 0);
     filter: blur(18px);
     animation: planner-desk-rise 960ms cubic-bezier(0.16, 0.82, 0.2, 1) 760ms forwards;
+    transition:
+        border-color 420ms ease,
+        box-shadow 420ms ease,
+        background-color 420ms ease,
+        transform 420ms ease;
 }
 
 .planner-summary-head {
-    padding: 4px 4px 10px;
+    display: grid;
+    gap: 10px;
+    padding: 2px 4px 12px;
 }
 
 .planner-summary-kicker {
@@ -942,11 +1067,53 @@
     color: rgba(194, 221, 236, 0.48);
 }
 
+.planner-summary-title {
+    margin: 0;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.34rem, 2vw, 1.82rem);
+    line-height: 1.34;
+    color: #f2fbff;
+}
+
 .planner-summary-intro {
     margin: 0;
     max-width: 42ch;
     line-height: 1.78;
     color: rgba(208, 224, 235, 0.7);
+}
+
+.planner-summary-status-note {
+    margin: 2px 0 0;
+    padding: 12px 14px;
+    border-radius: 18px;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    color: rgba(214, 230, 240, 0.7);
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(205, 229, 242, 0.08);
+    transition:
+        color 320ms ease,
+        background-color 320ms ease,
+        border-color 320ms ease,
+        transform 320ms ease;
+}
+
+.planner-summary.is-confirmed {
+    border-color: rgba(210, 235, 247, 0.2);
+    box-shadow:
+        0 26px 46px rgba(4, 16, 25, 0.22),
+        0 0 34px rgba(128, 196, 223, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.planner-summary.is-confirmed .planner-summary-status-note {
+    color: rgba(232, 244, 250, 0.84);
+    background: rgba(134, 190, 215, 0.08);
+    border-color: rgba(183, 223, 241, 0.16);
+}
+
+.planner-summary.is-updated-confirmed {
+    animation: planner-summary-shell-glow 1100ms ease;
 }
 
 /* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
@@ -967,6 +1134,29 @@
     box-shadow:
         0 12px 22px rgba(4, 17, 28, 0.14),
         inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.planner-item.is-confirmed {
+    border-color: rgba(196, 228, 242, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(148, 190, 211, 0.06) 100%),
+        rgba(8, 25, 38, 0.6);
+}
+
+.planner-item.is-confirmed .planner-item-index {
+    color: rgba(241, 249, 253, 0.9);
+    background: rgba(120, 184, 211, 0.12);
+    border-color: rgba(194, 227, 241, 0.16);
+}
+
+.planner-item.is-confirmed .planner-item-state {
+    color: rgba(236, 247, 251, 0.9);
+    background: rgba(120, 184, 211, 0.12);
+    border-color: rgba(194, 227, 241, 0.16);
+}
+
+.planner-item.is-updated {
+    animation: planner-summary-item-glow 920ms ease;
 }
 
 /* .planner-item:hover 鼠标移入时的样式 */
@@ -1516,6 +1706,7 @@
     .trip-page-planner .trip-search-bar {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-template-areas:
+            "head head"
             "spot spot"
             "date people"
             "action action";
@@ -1559,6 +1750,7 @@
     .trip-page-planner .trip-search-bar {
         grid-template-columns: 1fr;
         grid-template-areas:
+            "head"
             "spot"
             "date"
             "people"
@@ -1798,6 +1990,16 @@
 
 .confirmed-bookings-switch:active {
     transform: translateY(1px);
+}
+
+/* Trip 页沿用首页的海图导览样式，但这里的导览项更多。
+   稍微加高面板，并给第 7 项补一个更自然的延迟，避免展开时最后一项突兀挤出来。 */
+.trip-page .sea-guide-home .sea-guide-panel {
+    max-height: min(68vh, 620px);
+}
+
+.trip-page .sea-guide-home.is-open .sea-guide-entry:nth-child(7) {
+    transition-delay: 170ms;
 }
 
 .confirmed-bookings-empty {

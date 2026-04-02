@@ -93,13 +93,22 @@
                                  这一层看起来像搜索栏，但实际上是 trip 页的三段式安排行程面板。
                                  JS 会在这里监听按钮点击，再把真正的浮层挂到页面顶层容器。 -->
                             <div class="search-bar trip-search-bar planner-desk-control" id="plannerDeskControl">
+                                <div class="planner-console-head">
+                                    <p class="planner-console-kicker">Trip Console</p>
+                                    <h2 class="planner-console-title">把下一次下潜先定下来</h2>
+                                    <p class="planner-console-intro">
+                                        先把海域、出发时间与同行人数收进行程里。
+                                        不是一次把所有事填完，而是先让这一潜有一个清楚的轮廓。
+                                    </p>
+                                </div>
+
                                 <!-- 海域字段：
-                                     视觉上留成较大卡片，因为它承担“先决定去哪片海”的主决策。 -->
+                                      视觉上留成较大卡片，因为它承担“先决定去哪片海”的主决策。 -->
                                 <article class="planner-field planner-field-select" data-planner-field="spot">
                                     <p class="planner-field-label">海域</p>
                                     <button type="button" class="planner-field-trigger" id="plannerSpotTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="plannerSpotPanel">
                                         <span class="planner-field-value" id="plannerSpotValue">海域尚未落定</span>
-                                        <span class="planner-field-note" id="plannerSpotHint">等一片愿意下去的蓝慢慢浮现</span>
+                                        <span class="planner-field-note" id="plannerSpotHint">先决定，这一次要把自己交给哪片蓝</span>
                                     </button>
                                     <!-- 海域浮层面板：
                                          初始写在字段附近只是为了让 HTML 结构更好读；
@@ -158,7 +167,7 @@
                                     <p class="planner-field-label">出发时间</p>
                                     <button type="button" class="planner-field-trigger" id="plannerDateTrigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="plannerDatePanel">
                                         <span class="planner-field-value" id="plannerDateValue">仍在等一段合适的潮汐</span>
-                                        <span class="planner-field-note" id="plannerDateHint">让天气、光线与节奏更从容一些</span>
+                                        <span class="planner-field-note" id="plannerDateHint">把出发放进更适合的窗口里</span>
                                     </button>
                                     <input id="plannerDate" type="date" class="planner-date-native">
                                 </article>
@@ -169,7 +178,7 @@
                                     <p class="planner-field-label">同行人数</p>
                                     <button type="button" class="planner-field-trigger" id="plannerPeopleTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="plannerPeoplePanel">
                                         <span class="planner-field-value" id="plannerPeopleValue">同行尚未写进这次下潜</span>
-                                        <span class="planner-field-note" id="plannerPeopleHint">也可以先一个人安静决定这片海</span>
+                                        <span class="planner-field-note" id="plannerPeopleHint">决定这趟海会以怎样的节奏发生</span>
                                     </button>
                                     <!-- 人数浮层面板：
                                          和海域一样会被 JS 挂到高层容器；
@@ -239,7 +248,7 @@
                                 <button type="button" class="planner-submit-btn" data-scroll-target="#trip-layer">
                                     <span class="planner-submit-btn-outer">
                                         <span class="planner-submit-btn-inner">
-                                            <span class="planner-submit-btn-label">继续安排行程</span>
+                                            <span class="planner-submit-btn-label">确认这一层安排</span>
                                         </span>
                                     </span>
                                 </button>
@@ -250,26 +259,32 @@
                                  让用户在看完已收进行程、整理好当前控制台之后，再确认这次海已经排到了哪一步。 -->
                             <div class="planner-summary" id="plannerSummary">
                                 <div class="planner-summary-head">
-                                    <p class="planner-summary-kicker">Trip Draft</p>
-                                    <p class="planner-summary-intro">先把这次下潜的轮廓收得安静一些，再决定要把自己交给哪一层海。</p>
+                                    <p class="planner-summary-kicker">Confirmed Dive Plan</p>
+                                    <h2 class="planner-summary-title">即将进行的这一潜</h2>
+                                    <p class="planner-summary-intro" id="plannerSummaryIntro">
+                                        当海域、时间与同行节奏被确认下来，这次下潜就会安静地停在这里，等着真正出发。
+                                    </p>
+                                    <p class="planner-summary-status-note" id="plannerSummaryStatusNote">
+                                        这次下潜还在整理轮廓，先把海域、时间和同行慢慢定下来。
+                                    </p>
                                 </div>
 
                                 <article class="planner-item">
                                     <span class="planner-item-index">01</span>
                                     <div class="planner-item-copy">
-                                        <span class="planner-label">海域线索</span>
-                                        <strong id="plannerSummarySpot">海域尚未落定</strong>
-                                        <small id="plannerSummarySpotMeta">这段行程会从哪片蓝开始，还在慢慢浮现。</small>
+                                        <span class="planner-label">前往海域</span>
+                                        <strong id="plannerSummarySpot">海域尚未确认</strong>
+                                        <small id="plannerSummarySpotMeta">前往哪片海还在整理里，先让这次下潜慢慢收出方向。</small>
                                     </div>
-                                    <span class="planner-item-state" id="plannerSummarySpotState">未落定</span>
+                                    <span class="planner-item-state" id="plannerSummarySpotState">待确认</span>
                                 </article>
 
                                 <article class="planner-item">
                                     <span class="planner-item-index">02</span>
                                     <div class="planner-item-copy">
-                                        <span class="planner-label">潮汐窗口</span>
+                                        <span class="planner-label">出发时间</span>
                                         <strong id="plannerSummaryDate">仍在等一段合适的潮汐</strong>
-                                        <small id="plannerSummaryDateMeta">让天气、光线和身体状态先对上节奏。</small>
+                                        <small id="plannerSummaryDateMeta">出发时间还在等一段更合适的潮汐窗口。</small>
                                     </div>
                                     <span class="planner-item-state" id="plannerSummaryDateState">待确认</span>
                                 </article>
@@ -277,11 +292,11 @@
                                 <article class="planner-item">
                                     <span class="planner-item-index">03</span>
                                     <div class="planner-item-copy">
-                                        <span class="planner-label">同行节奏</span>
-                                        <strong id="plannerSummaryPeople">同行尚未写进这次下潜</strong>
-                                        <small id="plannerSummaryPeopleMeta">一起下去的人，会决定这趟海的速度与停驻方式。</small>
+                                        <span class="planner-label">同行人数</span>
+                                        <strong id="plannerSummaryPeople">同行尚未确认</strong>
+                                        <small id="plannerSummaryPeopleMeta">同行人数还没落下，这趟海会怎样发生也还在确认。</small>
                                     </div>
-                                    <span class="planner-item-state" id="plannerSummaryPeopleState">未写入</span>
+                                    <span class="planner-item-state" id="plannerSummaryPeopleState">待确认</span>
                                 </article>
                             </div>
                         </div>
@@ -487,7 +502,7 @@
             </template>
         </section>
 
-        <footer class="footer">
+        <footer class="footer" id="tripFooter">
             <div class="footer-shell">
                 <section class="footer-brand-stage" aria-labelledby="footerBrandTitle">
                     <p class="footer-overline">Yanqi Sea Retreat</p>
@@ -549,7 +564,82 @@
             </div>
         </footer>
 
-        <button id="back-to-top" class="back-to-top">↑ 顶部</button>
+    </div>
+
+    <div class="sea-guide sea-guide-home" id="tripSeaGuide" aria-hidden="true">
+        <button
+            type="button"
+            class="sea-guide-trigger"
+            id="tripSeaGuideTrigger"
+            aria-expanded="false"
+            aria-controls="tripSeaGuidePanel"
+            aria-label="打开行程海图导览"
+        >
+            <span class="sea-guide-trigger-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <path
+                        d="M12 3.5c3.7 0 6.9 2.9 7.2 6.7.3 3.3-1.5 5.7-3.7 8.1-.9 1-1.9 2-2.8 3.3a1 1 0 0 1-1.7 0c-.9-1.3-1.9-2.3-2.8-3.3-2.2-2.4-4-4.8-3.7-8.1.3-3.8 3.5-6.7 7.2-6.7Zm0 4.2a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </span>
+            <span class="sea-guide-trigger-copy">
+                <strong>海图</strong>
+                <small>导览</small>
+            </span>
+        </button>
+
+        <nav class="sea-guide-panel" id="tripSeaGuidePanel" aria-label="行程海图导览" aria-hidden="true">
+            <p class="sea-guide-kicker">Sea Guide</p>
+            <div class="sea-guide-list">
+                <button type="button" class="sea-guide-entry" data-key="surface" data-target="#trip-top">
+                    <span class="sea-guide-entry-copy">
+                        <strong>回到浅层</strong>
+                        <small>回到这次行程刚刚浮出海面的入口</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="bookings" data-target="#confirmedBookingsStage">
+                    <span class="sea-guide-entry-copy">
+                        <strong>先看收进来的海</strong>
+                        <small>确认哪些海域与套餐已经停进这一程</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="console" data-target="#plannerDeskControl">
+                    <span class="sea-guide-entry-copy">
+                        <strong>把下一次下潜定下来</strong>
+                        <small>把海域、时间与同行节奏慢慢收住</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="summary" data-target="#plannerSummary">
+                    <span class="sea-guide-entry-copy">
+                        <strong>确认这一潜</strong>
+                        <small>看这次即将出发的下潜如何被写成行程卡</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="notes" data-target="#trip-layer">
+                    <span class="sea-guide-entry-copy">
+                        <strong>再读一遍行程笔记</strong>
+                        <small>从想去的海到出发节奏，把轮廓再看清一些</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="prep" data-target="#trip-prep">
+                    <span class="sea-guide-entry-copy">
+                        <strong>出发前准备</strong>
+                        <small>把装备、证书与天气窗口安静地排进这一潜</small>
+                    </span>
+                </button>
+                <button type="button" class="sea-guide-entry" data-key="harbor" data-target="#tripFooter">
+                    <span class="sea-guide-entry-copy">
+                        <strong>在底部停驻</strong>
+                        <small>把这一程慢慢收住在海风和余波里</small>
+                    </span>
+                </button>
+            </div>
+        </nav>
     </div>
 
     <!-- Planner 顶层浮层容器：
@@ -591,6 +681,7 @@
     <script src="js/ocean-scroll.js"></script>
     <script src="js/depth-manager.js"></script>
     <script src="js/yanqi-trip-store.js"></script>
+    <script src="js/text-layout-adapter.js"></script>
     <script src="js/trip.js"></script>
 </body>
 </html>

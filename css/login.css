@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    Login Page Styles - login.css
    ============================================
    ?????
@@ -7,11 +7,11 @@
    3. ??????? -> ???? -> ???? -> ???? -> ?? -> ?????????
 */
 
-/* 文件说明：
-   这份样式负责登录页的“潜前门厅”氛围，包括背景水体、玻璃舞台、
-   左侧品牌门厅、右侧认证面板，以及登录 / 注册切换时的缓慢换面感。
-   阅读时可按 “整体舞台 -> 背景层 -> 品牌区 -> 表单区 -> 动画与响应式” 来理解。 */
-/* 登录页整体背景与页面框架 */
+/* 鏂囦欢璇存槑锛?
+   杩欎唤鏍峰紡璐熻矗鐧诲綍椤电殑鈥滄綔鍓嶉棬鍘呪€濇皼鍥达紝鍖呮嫭鑳屾櫙姘翠綋銆佺幓鐠冭垶鍙般€?
+   宸︿晶鍝佺墝闂ㄥ巺銆佸彸渚ц璇侀潰鏉匡紝浠ュ強鐧诲綍 / 娉ㄥ唽鍒囨崲鏃剁殑缂撴參鎹㈤潰鎰熴€?
+   闃呰鏃跺彲鎸?鈥滄暣浣撹垶鍙?-> 鑳屾櫙灞?-> 鍝佺墝鍖?-> 琛ㄥ崟鍖?-> 鍔ㄧ敾涓庡搷搴斿紡鈥?鏉ョ悊瑙ｃ€?*/
+/* 鐧诲綍椤垫暣浣撹儗鏅笌椤甸潰妗嗘灦 */
 .login-page {
     min-height: 100vh;
     display: flex;
@@ -23,7 +23,7 @@
     font-family: "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
-/* 页面主舞台：page-stage 把登录舞台整体向右收一些，给左侧品牌门厅和海面留白预留空间。 */
+/* 椤甸潰涓昏垶鍙帮細page-stage 鎶婄櫥褰曡垶鍙版暣浣撳悜鍙虫敹涓€浜涳紝缁欏乏渚у搧鐗岄棬鍘呭拰娴烽潰鐣欑櫧棰勭暀绌洪棿銆?*/
 .login-page .page-stage {
     min-height: 100vh;
     display: flex;
@@ -33,25 +33,25 @@
     padding-right: clamp(20px, 6vw, 96px);
 }
 
-/* 登录舞台主容器：这里控制整块内容在视口中的宽度和外层留白，不让它变成普通居中的登录框。 */
+/* 鐧诲綍鑸炲彴涓诲鍣細杩欓噷鎺у埗鏁村潡鍐呭鍦ㄨ鍙ｄ腑鐨勫搴﹀拰澶栧眰鐣欑櫧锛屼笉璁╁畠鍙樻垚鏅€氬眳涓殑鐧诲綍妗嗐€?*/
 .login-container {
     position: relative;
     z-index: 2;
     width: auto;
     max-width: calc(100vw - clamp(36px, 8vw, 160px));
-    /* `min(920px, 62vw)`：理想宽度上限是 920px；如果屏幕更窄，就退到视口宽度的 62%。 */
-    /* 这样做是为了保住左侧品牌门厅的留白，不让右侧表单把整页挤成普通后台登录框。 */
-    /* `min(920px, 62vw)`：理想宽度上限是 920px；
-       如果屏幕没有这么宽，就退到视口宽度的 62%，避免舞台显得又满又硬。 */
-    /* 登录舞台的目标宽度最多到 920px，同时只占视口约 62%，避免整页像普通居中登录框。 */
-    padding: clamp(12px, 2vw, 26px); /* 小屏收紧，大屏舒展，避免外层安全留白忽大忽小 */
+    /* `min(920px, 62vw)`锛氱悊鎯冲搴︿笂闄愭槸 920px锛涘鏋滃睆骞曟洿绐勶紝灏遍€€鍒拌鍙ｅ搴︾殑 62%銆?*/
+    /* 杩欐牱鍋氭槸涓轰簡淇濅綇宸︿晶鍝佺墝闂ㄥ巺鐨勭暀鐧斤紝涓嶈鍙充晶琛ㄥ崟鎶婃暣椤垫尋鎴愭櫘閫氬悗鍙扮櫥褰曟銆?*/
+    /* `min(920px, 62vw)`锛氱悊鎯冲搴︿笂闄愭槸 920px锛?
+       濡傛灉灞忓箷娌℃湁杩欎箞瀹斤紝灏遍€€鍒拌鍙ｅ搴︾殑 62%锛岄伩鍏嶈垶鍙版樉寰楀張婊″張纭€?*/
+    /* 鐧诲綍鑸炲彴鐨勭洰鏍囧搴︽渶澶氬埌 920px锛屽悓鏃跺彧鍗犺鍙ｇ害 62%锛岄伩鍏嶆暣椤靛儚鏅€氬眳涓櫥褰曟銆?*/
+    padding: clamp(12px, 2vw, 26px); /* 灏忓睆鏀剁揣锛屽ぇ灞忚垝灞曪紝閬垮厤澶栧眰瀹夊叏鐣欑櫧蹇藉ぇ蹇藉皬 */
     margin: 0;
     animation: login-shell-rise 0.78s cubic-bezier(0.2, 0.9, 0.24, 1) both;
 }
 
-/* login-stage-shell：
-   这层是整块“潜前门厅”的可调舞台。
-   用户拖拽边缘时，我们只改这层的宽高，内部玻璃卡和表单布局继续按既有规则重排。 */
+/* login-stage-shell锛?
+   杩欏眰鏄暣鍧椻€滄綔鍓嶉棬鍘呪€濈殑鍙皟鑸炲彴銆?
+   鐢ㄦ埛鎷栨嫿杈圭紭鏃讹紝鎴戜滑鍙敼杩欏眰鐨勫楂橈紝鍐呴儴鐜荤拑鍗″拰琛ㄥ崟甯冨眬缁х画鎸夋棦鏈夎鍒欓噸鎺掋€?*/
 .login-stage-shell {
     --login-stage-width: min(920px, 62vw);
     --login-stage-height: auto;
@@ -64,8 +64,8 @@
     margin: 0 auto;
 }
 
-/* login-stage-glow：
-   拖拽时这层会一起跟着舞台尺寸变化，保持门厅边缘那层很淡的海雾光晕。 */
+/* login-stage-glow锛?
+   鎷栨嫿鏃惰繖灞備細涓€璧疯窡鐫€鑸炲彴灏哄鍙樺寲锛屼繚鎸侀棬鍘呰竟缂橀偅灞傚緢娣＄殑娴烽浘鍏夋檿銆?*/
 .login-stage-glow {
     position: absolute;
     inset: -16px -20px -22px;
@@ -80,9 +80,9 @@
     z-index: 0;
 }
 
-/* login-stage-resize-layer：
-   这一层只负责接住拖拽动作。
-   默认几乎隐身，hover 或拖拽时才轻微露出，不抢主舞台。 */
+/* login-stage-resize-layer锛?
+   杩欎竴灞傚彧璐熻矗鎺ヤ綇鎷栨嫿鍔ㄤ綔銆?
+   榛樿鍑犱箮闅愯韩锛宧over 鎴栨嫋鎷芥椂鎵嶈交寰湶鍑猴紝涓嶆姠涓昏垶鍙般€?*/
 .login-stage-resize-layer {
     position: absolute;
     inset: -10px;
@@ -218,9 +218,9 @@
     animation-play-state: paused;
 }
 
-/* 登录舞台外壳：
-   glass-card 是整张“入海观察舱”，不是普通玻璃卡。
-   这里的背景、阴影和模糊叠在一起，是为了做出更安静的深海门厅感。 */
+/* 鐧诲綍鑸炲彴澶栧３锛?
+   glass-card 鏄暣寮犫€滃叆娴疯瀵熻埍鈥濓紝涓嶆槸鏅€氱幓鐠冨崱銆?
+   杩欓噷鐨勮儗鏅€侀槾褰卞拰妯＄硦鍙犲湪涓€璧凤紝鏄负浜嗗仛鍑烘洿瀹夐潤鐨勬繁娴烽棬鍘呮劅銆?*/
 .glass-card {
     position: relative;
     isolation: isolate;
@@ -231,8 +231,8 @@
         linear-gradient(180deg, rgba(141, 182, 206, 0.1), rgba(112, 156, 183, 0.04)),
         rgba(20, 39, 58, 0.2);
     backdrop-filter: blur(28px) saturate(128%);
-    /* 毛玻璃不只是单纯模糊，还稍微提高一点饱和度和层次，避免背景变灰。 */
-       /* 这样后面的海水颜色透过来时，仍然能保持清楚的深浅关系。 */
+    /* 姣涚幓鐠冧笉鍙槸鍗曠函妯＄硦锛岃繕绋嶅井鎻愰珮涓€鐐归ケ鍜屽害鍜屽眰娆★紝閬垮厤鑳屾櫙鍙樼伆銆?*/
+       /* 杩欐牱鍚庨潰鐨勬捣姘撮鑹查€忚繃鏉ユ椂锛屼粛鐒惰兘淇濇寔娓呮鐨勬繁娴呭叧绯汇€?*/
     -webkit-backdrop-filter: blur(28px) saturate(128%);
     border: 1px solid rgba(255, 255, 255, 0.24);
     border-radius: 28px;
@@ -246,7 +246,7 @@
     animation: glass-card-breathe 5.6s ease-in-out 1s infinite alternate;
 }
 
-/* .glass-card::before：前置高光层，给观察舱加一层缓慢扫过的冷白雾光。 */
+/* .glass-card::before锛氬墠缃珮鍏夊眰锛岀粰瑙傚療鑸卞姞涓€灞傜紦鎱㈡壂杩囩殑鍐风櫧闆惧厜銆?*/
 .glass-card::before {
     content: "";
     position: absolute;
@@ -260,7 +260,7 @@
     animation: card-light-sweep 12s ease-in-out infinite;
 }
 
-/* .glass-card::after：后置纹理层，用细微流线和暗部梯度补足海水内部的层次。 */
+/* .glass-card::after锛氬悗缃汗鐞嗗眰锛岀敤缁嗗井娴佺嚎鍜屾殫閮ㄦ搴﹁ˉ瓒虫捣姘村唴閮ㄧ殑灞傛銆?*/
 .glass-card::after {
     content: "";
     position: absolute;
@@ -275,34 +275,34 @@
     z-index: 0;
 }
 
-/* 左右分区布局：
-   左边是品牌门厅，右边是认证动作。
-   这里没有做 50/50 平分，而是明确让右侧获得更多空间，避免像普通宣传页双栏。 */
+/* 宸﹀彸鍒嗗尯甯冨眬锛?
+   宸﹁竟鏄搧鐗岄棬鍘咃紝鍙宠竟鏄璇佸姩浣溿€?
+   杩欓噷娌℃湁鍋?50/50 骞冲垎锛岃€屾槸鏄庣‘璁╁彸渚ц幏寰楁洿澶氱┖闂达紝閬垮厤鍍忔櫘閫氬浼犻〉鍙屾爮銆?*/
 .card-layout {
     position: relative;
     z-index: 1;
     display: grid;
     grid-template-columns: minmax(205px, 31%) minmax(0, 69%);
-    /* 左侧至少保留 205px 给品牌门厅，右侧把更多空间留给表单，避免变成平均分栏。 */
+    /* 宸︿晶鑷冲皯淇濈暀 205px 缁欏搧鐗岄棬鍘咃紝鍙充晶鎶婃洿澶氱┖闂寸暀缁欒〃鍗曪紝閬垮厤鍙樻垚骞冲潎鍒嗘爮銆?*/
     min-height: 590px;
     height: 100%;
 }
 
-/* .glass-card.is-rippled .card-layout：卡片被点击反馈触发时，让内部布局跟着做一次轻微水波回弹。 */
+/* .glass-card.is-rippled .card-layout锛氬崱鐗囪鐐瑰嚮鍙嶉瑙﹀彂鏃讹紝璁╁唴閮ㄥ竷灞€璺熺潃鍋氫竴娆¤交寰按娉㈠洖寮广€?*/
 .glass-card.is-rippled .card-layout {
     animation: card-water-feedback 0.34s ease-out;
 }
 
-/* 兼容不支持 backdrop-filter 的浏览器：退回更实的底色，保证内容依然清楚。 */
+/* 鍏煎涓嶆敮鎸?backdrop-filter 鐨勬祻瑙堝櫒锛氶€€鍥炴洿瀹炵殑搴曡壊锛屼繚璇佸唴瀹逛緷鐒舵竻妤氥€?*/
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-/* 这一层是模糊失效时的兜底背景，让玻璃卡仍然有足够对比度。 */
+/* 杩欎竴灞傛槸妯＄硦澶辨晥鏃剁殑鍏滃簳鑳屾櫙锛岃鐜荤拑鍗′粛鐒舵湁瓒冲瀵规瘮搴︺€?*/
     .glass-card {
         background: rgba(245, 251, 255, 0.9);
     }
 }
 
-/* 左侧品牌门厅：
-   负责让用户先进入盐憩的呼吸节奏，再去操作登录或注册。 */
+/* 宸︿晶鍝佺墝闂ㄥ巺锛?
+   璐熻矗璁╃敤鎴峰厛杩涘叆鐩愭啯鐨勫懠鍚歌妭濂忥紝鍐嶅幓鎿嶄綔鐧诲綍鎴栨敞鍐屻€?*/
 .login-side {
     position: relative;
     display: flex;
@@ -317,7 +317,7 @@
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* .login-side::after：品牌区上的轻雾覆盖层，用来压住背景亮度并统一色调。 */
+/* .login-side::after锛氬搧鐗屽尯涓婄殑杞婚浘瑕嗙洊灞傦紝鐢ㄦ潵鍘嬩綇鑳屾櫙浜害骞剁粺涓€鑹茶皟銆?*/
 .login-side::after {
     content: "";
     position: absolute;
@@ -326,8 +326,8 @@
     pointer-events: none;
 }
 
-/* login-brand-copy：
-   左侧品牌门厅只保留四层信息，作为进入盐憩前的一道安静签名。 */
+/* login-brand-copy锛?
+   宸︿晶鍝佺墝闂ㄥ巺鍙繚鐣欏洓灞備俊鎭紝浣滀负杩涘叆鐩愭啯鍓嶇殑涓€閬撳畨闈欑鍚嶃€?*/
 .login-brand-copy {
     position: relative;
     z-index: 1;
@@ -337,8 +337,8 @@
     width: min(320px, 100%);
 }
 
-/* side-kicker：
-   英文小标识只负责建立门厅语气，不抢品牌名的主锚点。 */
+/* side-kicker锛?
+   鑻辨枃灏忔爣璇嗗彧璐熻矗寤虹珛闂ㄥ巺璇皵锛屼笉鎶㈠搧鐗屽悕鐨勪富閿氱偣銆?*/
 .side-kicker {
     margin: 0;
     font-size: 0.7rem;
@@ -347,7 +347,7 @@
     color: rgba(229, 238, 245, 0.44);
 }
 
-/* .side-title：左侧品牌主标题，是整页唯一明确的品牌锚点。 */
+/* .side-title锛氬乏渚у搧鐗屼富鏍囬锛屾槸鏁撮〉鍞竴鏄庣‘鐨勫搧鐗岄敋鐐广€?*/
 .side-title {
     position: relative;
     z-index: 1;
@@ -359,13 +359,13 @@
     margin: 0;
 }
 
-/* .side-title::after：品牌副标识，补充英文锚点和层级。 */
+/* .side-title::after锛氬搧鐗屽壇鏍囪瘑锛岃ˉ鍏呰嫳鏂囬敋鐐瑰拰灞傜骇銆?*/
 .side-title::after {
     content: none;
 }
 
-/* side-quote：
-   这是品牌区最明确的一句引导，语气更稳、权重高于补充文案。 */
+/* side-quote锛?
+   杩欐槸鍝佺墝鍖烘渶鏄庣‘鐨勪竴鍙ュ紩瀵硷紝璇皵鏇寸ǔ銆佹潈閲嶉珮浜庤ˉ鍏呮枃妗堛€?*/
 .side-quote {
     margin: 4px 0 0;
     max-width: 13em;
@@ -374,8 +374,8 @@
     color: rgba(244, 248, 252, 0.88);
 }
 
-/* side-meta：
-   最后一层补充文案只保留一句，帮助用户把岸上的节奏放下。 */
+/* side-meta锛?
+   鏈€鍚庝竴灞傝ˉ鍏呮枃妗堝彧淇濈暀涓€鍙ワ紝甯姪鐢ㄦ埛鎶婂哺涓婄殑鑺傚鏀句笅銆?*/
 .side-meta {
     margin: 2px 0 0;
     max-width: 16em;
@@ -384,8 +384,8 @@
     color: rgba(220, 231, 239, 0.66);
 }
 
-/* 左侧四层文案分开出现：
-   先看见门厅标识，再看见品牌名，最后才是呼吸提示。 */
+/* 宸︿晶鍥涘眰鏂囨鍒嗗紑鍑虹幇锛?
+   鍏堢湅瑙侀棬鍘呮爣璇嗭紝鍐嶇湅瑙佸搧鐗屽悕锛屾渶鍚庢墠鏄懠鍚告彁绀恒€?*/
 .login-side .side-kicker,
 .login-side .side-title,
 .login-side .side-quote,
@@ -410,23 +410,23 @@
     animation-delay: 0.54s;
 }
 
-/* 右侧认证区：
-   承接登录 / 注册交互，但视觉上仍然保持“静水里的控制台”感。 */
+/* 鍙充晶璁よ瘉鍖猴細
+   鎵挎帴鐧诲綍 / 娉ㄥ唽浜や簰锛屼絾瑙嗚涓婁粛鐒朵繚鎸佲€滈潤姘撮噷鐨勬帶鍒跺彴鈥濇劅銆?*/
 .form-side {
     padding: clamp(22px, 3vw, 36px) clamp(22px, 3vw, 36px) 4px;
 }
 
-/* 登录模式下的表单区：多给一点底部空间，避免按钮和底链显得太挤。 */
+/* 鐧诲綍妯″紡涓嬬殑琛ㄥ崟鍖猴細澶氱粰涓€鐐瑰簳閮ㄧ┖闂达紝閬垮厤鎸夐挳鍜屽簳閾炬樉寰楀お鎸ゃ€?*/
 .login-page[data-auth-mode="login"] .form-side {
     padding-bottom: clamp(32px, 4.8vw, 46px);
 }
 
-/* .form-brand：承接右侧标题、小字和说明文案的整体容器。 */
+/* .form-brand锛氭壙鎺ュ彸渚ф爣棰樸€佸皬瀛楀拰璇存槑鏂囨鐨勬暣浣撳鍣ㄣ€?*/
 .form-brand {
     margin-bottom: 18px;
 }
 
-/* .form-kicker：右侧认证区的小标题，用来建立“进入动作”层级。 */
+/* .form-kicker锛氬彸渚ц璇佸尯鐨勫皬鏍囬锛岀敤鏉ュ缓绔嬧€滆繘鍏ュ姩浣溾€濆眰绾с€?*/
 .form-kicker {
     margin: 0 0 10px;
     font-size: 0.72rem;
@@ -435,18 +435,18 @@
     color: rgba(245, 245, 245, 0.52);
 }
 
-/* .form-copy：登录态和注册态各自的说明文案容器。 */
+/* .form-copy锛氱櫥褰曟€佸拰娉ㄥ唽鎬佸悇鑷殑璇存槑鏂囨瀹瑰櫒銆?*/
 .form-copy {
     display: none;
 }
 
-/* 根据当前模式只显示对应说明文案，避免登录和注册的文案同时占位。 */
+/* 鏍规嵁褰撳墠妯″紡鍙樉绀哄搴旇鏄庢枃妗堬紝閬垮厤鐧诲綍鍜屾敞鍐岀殑鏂囨鍚屾椂鍗犱綅銆?*/
 .login-page[data-auth-mode="login"] .form-copy-login,
 .login-page[data-auth-mode="register"] .form-copy-register {
     display: block;
 }
 
-/* .form-title：右侧当前动作标题，例如“欢迎回来”或“创建你的账户”。 */
+/* .form-title锛氬彸渚у綋鍓嶅姩浣滄爣棰橈紝渚嬪鈥滄杩庡洖鏉モ€濇垨鈥滃垱寤轰綘鐨勮处鎴封€濄€?*/
 .form-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -458,7 +458,7 @@
 
 
 
-/* .form-subtitle：右侧的辅助说明，负责把“进入盐憩”说得更柔和。 */
+/* .form-subtitle锛氬彸渚х殑杈呭姪璇存槑锛岃礋璐ｆ妸鈥滆繘鍏ョ洂鎲┾€濊寰楁洿鏌斿拰銆?*/
 .form-subtitle {
     margin: 12px 0 0;
     font-size: 0.95rem;
@@ -470,7 +470,7 @@
    Background
    ============================================ */
 
-/* 背景氛围总容器：承接海水层、渐变层和漂浮装饰。 */
+/* 鑳屾櫙姘涘洿鎬诲鍣細鎵挎帴娴锋按灞傘€佹笎鍙樺眰鍜屾紓娴楗般€?*/
 .bg-container {
     position: fixed;
     inset: 0;
@@ -478,7 +478,7 @@
     pointer-events: none;
 }
 
-/* 背景主水体层：用纵向渐变和顶部微光打出“海面下第一层静水”的底色。 */
+/* 鑳屾櫙涓绘按浣撳眰锛氱敤绾靛悜娓愬彉鍜岄《閮ㄥ井鍏夋墦鍑衡€滄捣闈笅绗竴灞傞潤姘粹€濈殑搴曡壊銆?*/
 .gradient-bg {
     position: absolute;
     inset: 0;
@@ -488,7 +488,7 @@
     animation: gradient-shift 14s ease-in-out infinite;
 }
 
-/* .gradient-bg::before：背景主图层，把潜点图压暗后融进整页水体。 */
+/* .gradient-bg::before锛氳儗鏅富鍥惧眰锛屾妸娼滅偣鍥惧帇鏆楀悗铻嶈繘鏁撮〉姘翠綋銆?*/
 .gradient-bg::before {
     content: "";
     position: absolute;
@@ -500,7 +500,7 @@
     filter: saturate(0.52) contrast(0.98) brightness(0.48);
 }
 
-/* .gradient-bg::after：顶部水光层，补一层很弱的海面折射感。 */
+/* .gradient-bg::after锛氶《閮ㄦ按鍏夊眰锛岃ˉ涓€灞傚緢寮辩殑娴烽潰鎶樺皠鎰熴€?*/
 .gradient-bg::after {
     content: "";
     position: absolute;
@@ -513,42 +513,42 @@
     animation: sea-light-sweep 18s ease-in-out infinite;
 }
 
-/* 定义 gradient-shift 动画的关键帧 */
+/* 瀹氫箟 gradient-shift 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes gradient-shift {
-/* gradient-shift 在 0% 和 100%：回到初始位置，形成完整呼吸循环。 */
+/* gradient-shift 鍦?0% 鍜?100%锛氬洖鍒板垵濮嬩綅缃紝褰㈡垚瀹屾暣鍛煎惛寰幆銆?*/
     0%,
     100% {
         transform: scale(1) translate3d(0, 0, 0);
     }
-/* gradient-shift 在 50%：轻微放大并平移，让背景像水体缓慢漂移。 */
+/* gradient-shift 鍦?50%锛氳交寰斁澶у苟骞崇Щ锛岃鑳屾櫙鍍忔按浣撶紦鎱㈡紓绉汇€?*/
     50% {
         transform: scale(1.025) translate3d(-1.2%, 0.8%, 0);
     }
 }
 
-/* 定义 sea-light-sweep 动画的关键帧 */
+/* 瀹氫箟 sea-light-sweep 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes sea-light-sweep {
-/* sea-light-sweep 在 0% 和 100%：保持原位，作为一轮水光循环的起点和终点。 */
+/* sea-light-sweep 鍦?0% 鍜?100%锛氫繚鎸佸師浣嶏紝浣滀负涓€杞按鍏夊惊鐜殑璧风偣鍜岀粓鐐广€?*/
     0%,
     100% {
         transform: translate3d(0, 0, 0) scale(1);
         opacity: 0.82;
     }
-/* sea-light-sweep 在 50%：轻微偏移并放大，让光感像在水里慢慢滑过。 */
+/* sea-light-sweep 鍦?50%锛氳交寰亸绉诲苟鏀惧ぇ锛岃鍏夋劅鍍忓湪姘撮噷鎱㈡參婊戣繃銆?*/
     50% {
         transform: translate3d(1.4%, -1.2%, 0) scale(1.04);
         opacity: 1;
     }
 }
 
-/* .salt-particles：承载背景里缓慢漂浮的小颗粒。 */
+/* .salt-particles锛氭壙杞借儗鏅噷缂撴參婕傛诞鐨勫皬棰楃矑銆?*/
 .salt-particles {
     position: absolute;
     width: 100%;
     height: 100%;
 }
 
-/* 单颗粒子：设置背景里漂浮粒子的基础外观和动画参数。 */
+/* 鍗曢绮掑瓙锛氳缃儗鏅噷婕傛诞绮掑瓙鐨勫熀纭€澶栬鍜屽姩鐢诲弬鏁般€?*/
 .particle {
     position: absolute;
     background: radial-gradient(circle, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.16) 100%);
@@ -559,7 +559,7 @@
     animation: float-up 14s ease-in-out infinite;
 }
 
-/* 第 1 颗粒子：较大、偏左、节奏更快一点。 */
+/* 绗?1 棰楃矑瀛愶細杈冨ぇ銆佸亸宸︺€佽妭濂忔洿蹇竴鐐广€?*/
 .particle:nth-child(1) {
     width: 20px;
     height: 20px;
@@ -569,7 +569,7 @@
     animation-duration: 10s;
 }
 
-/* 第 2 颗粒子：尺寸较小，延迟一点出现。 */
+/* 绗?2 棰楃矑瀛愶細灏哄杈冨皬锛屽欢杩熶竴鐐瑰嚭鐜般€?*/
 .particle:nth-child(2) {
     width: 15px;
     height: 15px;
@@ -579,7 +579,7 @@
     animation-duration: 12s;
 }
 
-/* 第 3 颗粒子：尺寸更大，用来补足中间区域的漂浮层次。 */
+/* 绗?3 棰楃矑瀛愶細灏哄鏇村ぇ锛岀敤鏉ヨˉ瓒充腑闂村尯鍩熺殑婕傛诞灞傛銆?*/
 .particle:nth-child(3) {
     width: 25px;
     height: 25px;
@@ -589,7 +589,7 @@
     animation-duration: 14s;
 }
 
-/* 第 4 颗粒子：落在偏右位置，避免画面左重右轻。 */
+/* 绗?4 棰楃矑瀛愶細钀藉湪鍋忓彸浣嶇疆锛岄伩鍏嶇敾闈㈠乏閲嶅彸杞汇€?*/
 .particle:nth-child(4) {
     width: 18px;
     height: 18px;
@@ -599,7 +599,7 @@
     animation-duration: 11s;
 }
 
-/* 第 5 颗粒子：补足右侧偏中的漂浮层次。 */
+/* 绗?5 棰楃矑瀛愶細琛ヨ冻鍙充晶鍋忎腑鐨勬紓娴眰娆°€?*/
 .particle:nth-child(5) {
     width: 22px;
     height: 22px;
@@ -609,7 +609,7 @@
     animation-duration: 13s;
 }
 
-/* 第 6 颗粒子：更小、更慢，作为边缘的细碎气泡感。 */
+/* 绗?6 棰楃矑瀛愶細鏇村皬銆佹洿鎱紝浣滀负杈圭紭鐨勭粏纰庢皵娉℃劅銆?*/
 .particle:nth-child(6) {
     width: 16px;
     height: 16px;
@@ -619,7 +619,7 @@
     animation-duration: 15s;
 }
 
-/* 第 7 颗粒子：回到左侧区域，避免漂浮分布失衡。 */
+/* 绗?7 棰楃矑瀛愶細鍥炲埌宸︿晶鍖哄煙锛岄伩鍏嶆紓娴垎甯冨け琛°€?*/
 .particle:nth-child(7) {
     width: 20px;
     height: 20px;
@@ -629,7 +629,7 @@
     animation-duration: 11.5s;
 }
 
-/* 第 8 颗粒子：放在中部，补一点均匀的漂浮密度。 */
+/* 绗?8 棰楃矑瀛愶細鏀惧湪涓儴锛岃ˉ涓€鐐瑰潎鍖€鐨勬紓娴瘑搴︺€?*/
 .particle:nth-child(8) {
     width: 18px;
     height: 18px;
@@ -639,7 +639,7 @@
     animation-duration: 12.5s;
 }
 
-/* 第 9 颗粒子：尺寸更大一些，让右侧背景不显得空。 */
+/* 绗?9 棰楃矑瀛愶細灏哄鏇村ぇ涓€浜涳紝璁╁彸渚ц儗鏅笉鏄惧緱绌恒€?*/
 .particle:nth-child(9) {
     width: 24px;
     height: 24px;
@@ -649,7 +649,7 @@
     animation-duration: 10.5s;
 }
 
-/* 第 10 颗粒子：靠左中部的小粒子，用来打散节奏。 */
+/* 绗?10 棰楃矑瀛愶細闈犲乏涓儴鐨勫皬绮掑瓙锛岀敤鏉ユ墦鏁ｈ妭濂忋€?*/
 .particle:nth-child(10) {
     width: 17px;
     height: 17px;
@@ -659,22 +659,22 @@
     animation-duration: 14.5s;
 }
 
-/* 定义 float-up 动画的关键帧 */
+/* 瀹氫箟 float-up 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes float-up {
-/* float-up 在 0%：粒子从画面底部、较小且透明的状态开始。 */
+/* float-up 鍦?0%锛氱矑瀛愪粠鐢婚潰搴曢儴銆佽緝灏忎笖閫忔槑鐨勭姸鎬佸紑濮嬨€?*/
     0% {
         transform: translate3d(0, 0, 0) scale(0.92);
         opacity: 0;
     }
-/* float-up 在 10%：先快速出现一点存在感，避免粒子突然冒出来。 */
+/* float-up 鍦?10%锛氬厛蹇€熷嚭鐜颁竴鐐瑰瓨鍦ㄦ劅锛岄伩鍏嶇矑瀛愮獊鐒跺啋鍑烘潵銆?*/
     10% {
         opacity: 0.48;
     }
-/* float-up 在 90%：准备离场前先降低透明度，让上浮更柔和。 */
+/* float-up 鍦?90%锛氬噯澶囩鍦哄墠鍏堥檷浣庨€忔槑搴︼紝璁╀笂娴洿鏌斿拰銆?*/
     90% {
         opacity: 0.28;
     }
-/* float-up 在 100%：沿对角线漂出视口，同时略微放大，像气泡散掉。 */
+/* float-up 鍦?100%锛氭部瀵硅绾挎紓鍑鸿鍙ｏ紝鍚屾椂鐣ュ井鏀惧ぇ锛屽儚姘旀场鏁ｆ帀銆?*/
     100% {
         transform: translate3d(42px, -118vh, 0) scale(1.18);
         opacity: 0;
@@ -685,12 +685,12 @@
    Tabs and Form
    ============================================ */
 
-/* .tab-section：包住登录 / 注册切换器的外层。 */
+/* .tab-section锛氬寘浣忕櫥褰?/ 娉ㄥ唽鍒囨崲鍣ㄧ殑澶栧眰銆?*/
 .tab-section {
     margin-bottom: 12px;
 }
 
-/* .tabs：登录 / 注册分段控制器的整体玻璃底板。 */
+/* .tabs锛氱櫥褰?/ 娉ㄥ唽鍒嗘鎺у埗鍣ㄧ殑鏁翠綋鐜荤拑搴曟澘銆?*/
 .tabs {
     display: flex;
     gap: 8px;
@@ -705,7 +705,7 @@
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* 登录 / 注册切换按钮：控制分段按钮的外观、边界和状态过渡。 */
+/* 鐧诲綍 / 娉ㄥ唽鍒囨崲鎸夐挳锛氭帶鍒跺垎娈垫寜閽殑澶栬銆佽竟鐣屽拰鐘舵€佽繃娓°€?*/
 .tab-btn {
     flex: 1;
     border: none;
@@ -718,13 +718,13 @@
     transition: all var(--transition-fast);
 }
 
-/* .tab-btn:hover：鼠标移入时轻微提亮，提示可以切换。 */
+/* .tab-btn:hover锛氶紶鏍囩Щ鍏ユ椂杞诲井鎻愪寒锛屾彁绀哄彲浠ュ垏鎹€?*/
 .tab-btn:hover {
     color: #f6fbff;
     background: rgba(255, 255, 255, 0.09);
 }
 
-/* .tab-btn.active：当前入口被选中时，用更亮的玻璃层托住它。 */
+/* .tab-btn.active锛氬綋鍓嶅叆鍙ｈ閫変腑鏃讹紝鐢ㄦ洿浜殑鐜荤拑灞傛墭浣忓畠銆?*/
 .tab-btn.active {
     background: linear-gradient(135deg, rgba(245, 247, 248, 0.92), rgba(223, 235, 244, 0.88));
     color: #0d2b44;
@@ -733,26 +733,26 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-/* .auth-form：表单总容器，负责承接登录 / 注册两层内容和高度变化。 */
+/* .auth-form锛氳〃鍗曟€诲鍣紝璐熻矗鎵挎帴鐧诲綍 / 娉ㄥ唽涓ゅ眰鍐呭鍜岄珮搴﹀彉鍖栥€?*/
 .auth-form {
     position: relative;
     margin-bottom: 12px;
     transition: min-height 0.56s cubic-bezier(0.2, 0.9, 0.24, 1);
-    /* 登录和注册字段数量不同，这里只过渡 min-height，让卡片高度变化更平滑。 */
+    /* 鐧诲綍鍜屾敞鍐屽瓧娈垫暟閲忎笉鍚岋紝杩欓噷鍙繃娓?min-height锛岃鍗＄墖楂樺害鍙樺寲鏇村钩婊戙€?*/
 }
 
-/* .tab-content：单个表单面板的默认隐藏状态，先收起透明度、位移和模糊。 */
+/* .tab-content锛氬崟涓〃鍗曢潰鏉跨殑榛樿闅愯棌鐘舵€侊紝鍏堟敹璧烽€忔槑搴︺€佷綅绉诲拰妯＄硦銆?*/
 .tab-content {
     position: absolute;
     inset: 0;
     visibility: hidden;
-    pointer-events: none; /* 隐藏的表单层不能接收点击或参与输入。 */
+    pointer-events: none; /* 闅愯棌鐨勮〃鍗曞眰涓嶈兘鎺ユ敹鐐瑰嚮鎴栧弬涓庤緭鍏ャ€?*/
     opacity: 0;
     transform: translate3d(0, 24px, 0) scale(0.985);
     filter: blur(6px);
 }
 
-/* .tab-content.active：当前表单层进入前台，恢复可见和可交互状态。 */
+/* .tab-content.active锛氬綋鍓嶈〃鍗曞眰杩涘叆鍓嶅彴锛屾仮澶嶅彲瑙佸拰鍙氦浜掔姸鎬併€?*/
 .tab-content.active {
     position: relative;
     visibility: visible;
@@ -762,12 +762,12 @@
     filter: blur(0);
 }
 
-/* .tab-content.is-entering：新表单切入前台时的入场状态。 */
+/* .tab-content.is-entering锛氭柊琛ㄥ崟鍒囧叆鍓嶅彴鏃剁殑鍏ュ満鐘舵€併€?*/
 .tab-content.is-entering {
     animation: tab-content-enter 0.56s cubic-bezier(0.2, 0.82, 0.24, 1) both;
 }
 
-/* .tab-content.is-leaving：旧表单离场时暂时保留一层退后动画。 */
+/* .tab-content.is-leaving锛氭棫琛ㄥ崟绂诲満鏃舵殏鏃朵繚鐣欎竴灞傞€€鍚庡姩鐢汇€?*/
 .tab-content.is-leaving {
     position: absolute;
     inset: 0;
@@ -776,15 +776,15 @@
     animation: tab-content-leave 0.52s cubic-bezier(0.45, 0.03, 0.58, 0.99) both;
 }
 
-/* 定义 tab-content-enter 动画的关键帧 */
+/* 瀹氫箟 tab-content-enter 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes tab-content-enter {
-/* tab-content-enter 在 0%：新表单从略微下沉和模糊的状态开始靠近。 */
+/* tab-content-enter 鍦?0%锛氭柊琛ㄥ崟浠庣暐寰笅娌夊拰妯＄硦鐨勭姸鎬佸紑濮嬮潬杩戙€?*/
     0% {
         opacity: 0;
         transform: translate3d(0, 28px, 0) scale(0.987);
         filter: blur(8px);
     }
-/* tab-content-enter 在 100%：新表单回到清晰、稳定的阅读位置。 */
+/* tab-content-enter 鍦?100%锛氭柊琛ㄥ崟鍥炲埌娓呮櫚銆佺ǔ瀹氱殑闃呰浣嶇疆銆?*/
     100% {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
@@ -792,15 +792,15 @@
     }
 }
 
-/* 定义 tab-content-leave 动画的关键帧 */
+/* 瀹氫箟 tab-content-leave 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes tab-content-leave {
-/* tab-content-leave 在 0%：旧表单先从当前稳定状态开始离场。 */
+/* tab-content-leave 鍦?0%锛氭棫琛ㄥ崟鍏堜粠褰撳墠绋冲畾鐘舵€佸紑濮嬬鍦恒€?*/
     0% {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
         filter: blur(0);
     }
-/* tab-content-leave 在 100%：旧表单上移并模糊，像退回同一层静水后方。 */
+/* tab-content-leave 鍦?100%锛氭棫琛ㄥ崟涓婄Щ骞舵ā绯婏紝鍍忛€€鍥炲悓涓€灞傞潤姘村悗鏂广€?*/
     100% {
         opacity: 0;
         transform: translate3d(0, -16px, 0) scale(0.982);
@@ -808,13 +808,13 @@
     }
 }
 
-/* .input-group：单个输入项容器，负责 label、输入框和状态过渡。 */
+/* .input-group锛氬崟涓緭鍏ラ」瀹瑰櫒锛岃礋璐?label銆佽緭鍏ユ鍜岀姸鎬佽繃娓°€?*/
 .input-group {
     margin-bottom: 12px;
     transition: transform 0.3s ease, filter 0.3s ease;
 }
 
-/* 输入项标签：控制字段标题的字重、颜色和上下间距。 */
+/* 杈撳叆椤规爣绛撅細鎺у埗瀛楁鏍囬鐨勫瓧閲嶃€侀鑹插拰涓婁笅闂磋窛銆?*/
 .input-group label {
     display: block;
     margin-bottom: 8px;
@@ -824,7 +824,7 @@
     transition: color 0.3s ease, letter-spacing 0.3s ease;
 }
 
-/* 输入框本体：设置玻璃质感、圆角、阴影和聚焦过渡。 */
+/* 杈撳叆妗嗘湰浣擄細璁剧疆鐜荤拑璐ㄦ劅銆佸渾瑙掋€侀槾褰卞拰鑱氱劍杩囨浮銆?*/
 .input-group input {
     width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.16);
@@ -845,18 +845,18 @@
     will-change: transform, box-shadow, border-color;
 }
 
-/* .input-group:focus-within：字段被聚焦时，整组内容轻微上提。 */
+/* .input-group:focus-within锛氬瓧娈佃鑱氱劍鏃讹紝鏁寸粍鍐呭杞诲井涓婃彁銆?*/
 .input-group:focus-within {
     transform: translate3d(0, -2px, 0);
 }
 
-/* 聚焦时同步提亮 label，让用户更容易感知当前输入位置。 */
+/* 鑱氱劍鏃跺悓姝ユ彁浜?label锛岃鐢ㄦ埛鏇村鏄撴劅鐭ュ綋鍓嶈緭鍏ヤ綅缃€?*/
 .input-group:focus-within label {
     color: rgba(221, 244, 255, 0.96);
     letter-spacing: 0.01em;
 }
 
-/* 输入框聚焦状态：不是系统蓝边，而是更柔和的海水提亮。 */
+/* 杈撳叆妗嗚仛鐒︾姸鎬侊細涓嶆槸绯荤粺钃濊竟锛岃€屾槸鏇存煍鍜岀殑娴锋按鎻愪寒銆?*/
 .input-group input:focus {
     outline: none;
     transform: translate3d(0, -2px, 0);
@@ -870,25 +870,25 @@
         rgba(160, 203, 226, 0.14);
 }
 
-/* 输入框 placeholder：弱化提示文字，避免和真实输入内容抢层级。 */
+/* 杈撳叆妗?placeholder锛氬急鍖栨彁绀烘枃瀛楋紝閬垮厤鍜岀湡瀹炶緭鍏ュ唴瀹规姠灞傜骇銆?*/
 .input-group input::placeholder {
     color: rgba(229, 239, 247, 0.46);
     transition: color 0.28s ease, opacity 0.28s ease;
 }
 
-/* 聚焦时进一步淡化 placeholder，把视觉优先级让给真实输入。 */
+/* 鑱氱劍鏃惰繘涓€姝ユ贰鍖?placeholder锛屾妸瑙嗚浼樺厛绾ц缁欑湡瀹炶緭鍏ャ€?*/
 .input-group input:focus::placeholder {
     color: rgba(229, 239, 247, 0.22);
     opacity: 0.45;
 }
 
-/* .input-group.is-shaking, .checkbox-group.is-shaking 空字段提交时的左右提醒 */
+/* .input-group.is-shaking, .checkbox-group.is-shaking 绌哄瓧娈垫彁浜ゆ椂鐨勫乏鍙虫彁閱?*/
 .input-group.is-shaking,
 .checkbox-group.is-shaking {
     animation: field-shake 0.38s ease;
 }
 
-/* 复选区域：控制“记住我 / 协议”这一行的横向排布和间距。 */
+/* 澶嶉€夊尯鍩燂細鎺у埗鈥滆浣忔垜 / 鍗忚鈥濊繖涓€琛岀殑妯悜鎺掑竷鍜岄棿璺濄€?*/
 .checkbox-group {
     display: flex;
     align-items: center;
@@ -896,21 +896,21 @@
     margin: 6px 0 14px;
 }
 
-/* 原生复选框：这里只保留点击能力和基础尺寸，视觉重点交给整行文案。 */
+/* 鍘熺敓澶嶉€夋锛氳繖閲屽彧淇濈暀鐐瑰嚮鑳藉姏鍜屽熀纭€灏哄锛岃瑙夐噸鐐逛氦缁欐暣琛屾枃妗堛€?*/
 .checkbox-group input[type="checkbox"] {
     width: 17px;
     height: 17px;
     accent-color: #0d6db2;
 }
 
-/* .checkbox-label：显示复选项说明文字，避免这一行显得像系统表单。 */
+/* .checkbox-label锛氭樉绀哄閫夐」璇存槑鏂囧瓧锛岄伩鍏嶈繖涓€琛屾樉寰楀儚绯荤粺琛ㄥ崟銆?*/
 .checkbox-label {
     font-size: 0.9rem;
     color: rgba(229, 239, 247, 0.62);
     user-select: none;
 }
 
-/* .checkbox-label a：弱化的辅助链接，用于协议等次级入口。 */
+/* .checkbox-label a锛氬急鍖栫殑杈呭姪閾炬帴锛岀敤浜庡崗璁瓑娆＄骇鍏ュ彛銆?*/
 .checkbox-label a {
     color: #ff8c42;
 }
@@ -919,7 +919,7 @@
    Login Button (Uiverse Inspired)
    ============================================ */
 
-/* 主按钮：承担“进入下一层海”的动作，不做普通实心系统按钮。 */
+/* 涓绘寜閽細鎵挎媴鈥滆繘鍏ヤ笅涓€灞傛捣鈥濈殑鍔ㄤ綔锛屼笉鍋氭櫘閫氬疄蹇冪郴缁熸寜閽€?*/
 .button,
 .submit-btn {
     position: relative;
@@ -944,32 +944,32 @@
     font-size: clamp(14px, 2vw, 15px);
 }
 
-/* .icon：按钮里的轻量箭头图标，hover 时会配合轻微前移。 */
+/* .icon锛氭寜閽噷鐨勮交閲忕澶村浘鏍囷紝hover 鏃朵細閰嶅悎杞诲井鍓嶇Щ銆?*/
 .icon {
     width: clamp(18px, 2.4vw, 24px);
     height: clamp(18px, 2.4vw, 24px);
     transition: all 0.3s ease-in-out;
 }
 
-/* 主按钮 hover：轻微放大并提亮边框，像开始往下一层海推进。 */
+/* 涓绘寜閽?hover锛氳交寰斁澶у苟鎻愪寒杈规锛屽儚寮€濮嬪線涓嬩竴灞傛捣鎺ㄨ繘銆?*/
 .button:hover,
 .submit-btn:hover {
     transform: scale(1.03);
     border-color: #fff9;
 }
 
-/* 按钮 hover 时箭头轻轻前移，增强进入感。 */
+/* 鎸夐挳 hover 鏃剁澶磋交杞诲墠绉伙紝澧炲己杩涘叆鎰熴€?*/
 .button:hover .icon {
     transform: translateX(4px);
 }
 
-/* .button:hover::before / .submit-btn:hover::before：hover 时启动按钮表面的扫光。 */
+/* .button:hover::before / .submit-btn:hover::before锛歨over 鏃跺惎鍔ㄦ寜閽〃闈㈢殑鎵厜銆?*/
 .button:hover::before,
 .submit-btn:hover::before {
     animation: shine 1.5s ease-out infinite;
 }
 
-/* .button::before / .submit-btn::before：按钮内部的细长高光片，用来制造缓慢掠过的光感。 */
+/* .button::before / .submit-btn::before锛氭寜閽唴閮ㄧ殑缁嗛暱楂樺厜鐗囷紝鐢ㄦ潵鍒堕€犵紦鎱㈡帬杩囩殑鍏夋劅銆?*/
 .button::before,
 .submit-btn::before {
     content: "";
@@ -987,20 +987,20 @@
     opacity: 0.6;
 }
 
-/* 定义 shine 动画的关键帧 */
+/* 瀹氫箟 shine 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes shine {
-/* shine 在 0%：高光片从按钮左侧外部开始。 */
+/* shine 鍦?0%锛氶珮鍏夌墖浠庢寜閽乏渚у閮ㄥ紑濮嬨€?*/
     0% {
         left: -100px;
     }
-/* shine 在 60% 和 100%：高光片穿过整颗按钮，完成一次扫光。 */
+/* shine 鍦?60% 鍜?100%锛氶珮鍏夌墖绌胯繃鏁撮鎸夐挳锛屽畬鎴愪竴娆℃壂鍏夈€?*/
     60%,
     100% {
         left: 100%;
     }
 }
 
-/* .submit-btn：主提交流程按钮的补充样式。 */
+/* .submit-btn锛氫富鎻愪氦娴佺▼鎸夐挳鐨勮ˉ鍏呮牱寮忋€?*/
 .submit-btn {
     border: 3px solid #ffffff4d;
     outline: none;
@@ -1010,7 +1010,7 @@
    Footer and Social
    ============================================ */
 
-/* .footer-links：底部辅助链接区，承接忘记密码和游客进入等次级入口。 */
+/* .footer-links锛氬簳閮ㄨ緟鍔╅摼鎺ュ尯锛屾壙鎺ュ繕璁板瘑鐮佸拰娓稿杩涘叆绛夋绾у叆鍙ｃ€?*/
 .footer-links {
     display: flex;
     justify-content: center;
@@ -1021,13 +1021,13 @@
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* 登录模式下的 footer-links：给底链更多留白，让首屏结尾更从容。 */
+/* 鐧诲綍妯″紡涓嬬殑 footer-links锛氱粰搴曢摼鏇村鐣欑櫧锛岃棣栧睆缁撳熬鏇翠粠瀹广€?*/
 .login-page[data-auth-mode="login"] .footer-links {
     padding: 22px 0 10px;
     margin-bottom: 18px;
 }
 
-/* .link-forgot / .link-guest：弱化的底部辅助入口。 */
+/* .link-forgot / .link-guest锛氬急鍖栫殑搴曢儴杈呭姪鍏ュ彛銆?*/
 .link-forgot,
 .link-guest {
     font-size: 0.9rem;
@@ -1038,30 +1038,30 @@
     transition: color var(--transition-fast);
 }
 
-/* 底部辅助链接 hover：只做轻微提亮和下划线，不抢主按钮存在感。 */
+/* 搴曢儴杈呭姪閾炬帴 hover锛氬彧鍋氳交寰彁浜拰涓嬪垝绾匡紝涓嶆姠涓绘寜閽瓨鍦ㄦ劅銆?*/
 .link-forgot:hover,
 .link-guest:hover {
     color: #ffb073;
     text-decoration: underline;
 }
 
-/* .divider：分隔底部两个辅助链接。 */
+/* .divider锛氬垎闅斿簳閮ㄤ袱涓緟鍔╅摼鎺ャ€?*/
 .divider {
     color: rgba(229, 239, 247, 0.32);
 }
 
-/* .social-login：第三方登录区的总容器。 */
+/* .social-login锛氱涓夋柟鐧诲綍鍖虹殑鎬诲鍣ㄣ€?*/
 .social-login {
     text-align: center;
     margin-top: -1px;
 }
 
-/* 登录模式下的社交入口：上边距更紧，和主表单更自然衔接。 */
+/* 鐧诲綍妯″紡涓嬬殑绀句氦鍏ュ彛锛氫笂杈硅窛鏇寸揣锛屽拰涓昏〃鍗曟洿鑷劧琛旀帴銆?*/
 .login-page[data-auth-mode="login"] .social-login {
     margin-top: 0;
 }
 
-/* .social-text：第三方入口的轻提示文案。 */
+/* .social-text锛氱涓夋柟鍏ュ彛鐨勮交鎻愮ず鏂囨銆?*/
 .social-text {
     color: rgba(226, 236, 244, 0.64);
     font-size: 0.9rem;
@@ -1069,25 +1069,25 @@
     margin-bottom: 1px;
 }
 
-/* 登录模式下让社交提示文字多一点呼吸空间。 */
+/* 鐧诲綍妯″紡涓嬭绀句氦鎻愮ず鏂囧瓧澶氫竴鐐瑰懠鍚哥┖闂淬€?*/
 .login-page[data-auth-mode="login"] .social-text {
     line-height: 1.4;
     margin-bottom: 14px;
 }
 
-/* .social-buttons：第三方按钮组的横向排布。 */
+/* .social-buttons锛氱涓夋柟鎸夐挳缁勭殑妯悜鎺掑竷銆?*/
 .social-buttons {
     display: flex;
     justify-content: center;
     gap: 6px;
 }
 
-/* 登录模式下放宽社交按钮间距，避免显得太像工具按钮排排站。 */
+/* 鐧诲綍妯″紡涓嬫斁瀹界ぞ浜ゆ寜閽棿璺濓紝閬垮厤鏄惧緱澶儚宸ュ叿鎸夐挳鎺掓帓绔欍€?*/
 .login-page[data-auth-mode="login"] .social-buttons {
     gap: 14px;
 }
 
-/* .social-btn：第三方登录按钮的玻璃外观和悬停反馈。 */
+/* .social-btn锛氱涓夋柟鐧诲綍鎸夐挳鐨勭幓鐠冨瑙傚拰鎮仠鍙嶉銆?*/
 .social-btn {
     min-width: 56px;
     height: 42px;
@@ -1111,13 +1111,13 @@
         0 8px 18px rgba(7, 29, 46, 0.14);
 }
 
-/* .social-btn span：控制按钮内文字或图标的轻微位移动画。 */
+/* .social-btn span锛氭帶鍒舵寜閽唴鏂囧瓧鎴栧浘鏍囩殑杞诲井浣嶇Щ鍔ㄧ敾銆?*/
 .social-btn span {
     display: inline-block;
     transition: transform 0.24s ease, opacity 0.24s ease;
 }
 
-/* .social-btn:hover：鼠标移入时轻微上浮并提亮。 */
+/* .social-btn:hover锛氶紶鏍囩Щ鍏ユ椂杞诲井涓婃诞骞舵彁浜€?*/
 .social-btn:hover {
     transform: translateY(-2px);
     border-color: rgba(170, 223, 255, 0.28);
@@ -1129,48 +1129,48 @@
         0 12px 22px rgba(16, 80, 128, 0.18);
 }
 
-/* .social-btn:hover span：hover 时让按钮内部内容有一点点跟随。 */
+/* .social-btn:hover span锛歨over 鏃惰鎸夐挳鍐呴儴鍐呭鏈変竴鐐圭偣璺熼殢銆?*/
 .social-btn:hover span {
     transform: scale(1.06) translateY(-1px);
     opacity: 0.96;
 }
 
-/* .social-btn:active：按下时触发轻微水波式点击反馈。 */
+/* .social-btn:active锛氭寜涓嬫椂瑙﹀彂杞诲井姘存尝寮忕偣鍑诲弽棣堛€?*/
 .social-btn:active {
     animation: social-water-tap 0.24s ease-out;
 }
 
-/* 定义 social-water-tap 动画的关键帧 */
+/* 瀹氫箟 social-water-tap 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes social-water-tap {
-/* social-water-tap 在 0%：从正常位置开始，准备给社交按钮一点水波式回弹。 */
+/* social-water-tap 鍦?0%锛氫粠姝ｅ父浣嶇疆寮€濮嬶紝鍑嗗缁欑ぞ浜ゆ寜閽竴鐐规按娉㈠紡鍥炲脊銆?*/
     0% {
         transform: translate3d(0, -1px, 0) scale(1);
     }
-/* social-water-tap 在 35%：先轻微偏向一侧，模拟水里点按反馈。 */
+/* social-water-tap 鍦?35%锛氬厛杞诲井鍋忓悜涓€渚э紝妯℃嫙姘撮噷鐐规寜鍙嶉銆?*/
     35% {
         transform: translate3d(1px, 0, 0) scale(0.985);
     }
-/* social-water-tap 在 65%：再反向回摆一点，让点击不显得机械。 */
+/* social-water-tap 鍦?65%锛氬啀鍙嶅悜鍥炴憜涓€鐐癸紝璁╃偣鍑讳笉鏄惧緱鏈烘銆?*/
     65% {
         transform: translate3d(-1px, 1px, 0) scale(0.992);
     }
-/* social-water-tap 在 100%：回到稳定状态。 */
+/* social-water-tap 鍦?100%锛氬洖鍒扮ǔ瀹氱姸鎬併€?*/
     100% {
         transform: translate3d(0, 0, 0) scale(1);
     }
 }
 
-/* 微信入口：保留平台识别色，但只作为轻提示。 */
+/* 寰俊鍏ュ彛锛氫繚鐣欏钩鍙拌瘑鍒壊锛屼絾鍙綔涓鸿交鎻愮ず銆?*/
 .social-btn.wechat {
     color: #09b83e;
 }
 
-/* QQ 入口：保留平台识别色，但不让它盖过整体气质。 */
+/* QQ 鍏ュ彛锛氫繚鐣欏钩鍙拌瘑鍒壊锛屼絾涓嶈瀹冪洊杩囨暣浣撴皵璐ㄣ€?*/
 .social-btn.qq {
     color: #1296db;
 }
 
-/* Google 入口：同样只保留轻量识别，不做强品牌块。 */
+/* Google 鍏ュ彛锛氬悓鏍峰彧淇濈暀杞婚噺璇嗗埆锛屼笉鍋氬己鍝佺墝鍧椼€?*/
 .social-btn.google {
     color: #ea4335;
 }
@@ -1179,23 +1179,23 @@
    Animations and Responsive
    ============================================ */
 
-/* 定义 login-shell-rise 动画的关键帧 */
+/* 瀹氫箟 login-shell-rise 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes login-shell-rise {
-/* login-shell-rise 在 0%：整块门厅从略微下沉和缩放的状态开始出现。 */
+/* login-shell-rise 鍦?0%锛氭暣鍧楅棬鍘呬粠鐣ュ井涓嬫矇鍜岀缉鏀剧殑鐘舵€佸紑濮嬪嚭鐜般€?*/
     0% {
         opacity: 0;
         transform: translate3d(0, 36px, 0) scale(0.988);
     }
-/* login-shell-rise 在 100%：舞台回到稳定位置。 */
+/* login-shell-rise 鍦?100%锛氳垶鍙板洖鍒扮ǔ瀹氫綅缃€?*/
     100% {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
     }
 }
 
-/* 定义 glass-card-breathe 动画的关键帧 */
+/* 瀹氫箟 glass-card-breathe 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes glass-card-breathe {
-/* glass-card-breathe 在 0% 和 100%：回到基准状态，形成一轮完整呼吸。 */
+/* glass-card-breathe 鍦?0% 鍜?100%锛氬洖鍒板熀鍑嗙姸鎬侊紝褰㈡垚涓€杞畬鏁村懠鍚搞€?*/
     0%,
     100% {
         transform: translate3d(0, 0, 0);
@@ -1205,7 +1205,7 @@
             inset 0 1px 0 rgba(255, 255, 255, 0.28),
             inset 0 -1px 0 rgba(255, 255, 255, 0.06);
     }
-/* glass-card-breathe 在 50%：轻微上浮，并把阴影和高光再托亮一点。 */
+/* glass-card-breathe 鍦?50%锛氳交寰笂娴紝骞舵妸闃村奖鍜岄珮鍏夊啀鎵樹寒涓€鐐广€?*/
     50% {
         transform: translate3d(1px, -3px, 0);
         box-shadow:
@@ -1216,50 +1216,50 @@
     }
 }
 
-/* 定义 card-water-feedback 动画的关键帧 */
+/* 瀹氫箟 card-water-feedback 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes card-water-feedback {
-/* card-water-feedback 在 0%：从静止状态开始。 */
+/* card-water-feedback 鍦?0%锛氫粠闈欐鐘舵€佸紑濮嬨€?*/
     0% {
         transform: translate3d(0, 0, 0);
     }
-/* card-water-feedback 在 30%：先往一个方向轻轻错位，像表面被碰到。 */
+/* card-water-feedback 鍦?30%锛氬厛寰€涓€涓柟鍚戣交杞婚敊浣嶏紝鍍忚〃闈㈣纰板埌銆?*/
     30% {
         transform: translate3d(1px, -1px, 0);
     }
-/* card-water-feedback 在 62%：再反向回摆，形成柔和的水波反馈。 */
+/* card-water-feedback 鍦?62%锛氬啀鍙嶅悜鍥炴憜锛屽舰鎴愭煍鍜岀殑姘存尝鍙嶉銆?*/
     62% {
         transform: translate3d(-1px, 1px, 0);
     }
-/* card-water-feedback 在 100%：回到原位。 */
+/* card-water-feedback 鍦?100%锛氬洖鍒板師浣嶃€?*/
     100% {
         transform: translate3d(0, 0, 0);
     }
 }
 
-/* 定义 card-light-sweep 动画的关键帧 */
+/* 瀹氫箟 card-light-sweep 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes card-light-sweep {
-/* card-light-sweep 在 0% 和 100%：扫光回到基准位置。 */
+/* card-light-sweep 鍦?0% 鍜?100%锛氭壂鍏夊洖鍒板熀鍑嗕綅缃€?*/
     0%,
     100% {
         transform: translate3d(0, 0, 0);
         opacity: 0.94;
     }
-/* card-light-sweep 在 50%：扫光稍微偏移，模拟玻璃表面的流动高光。 */
+/* card-light-sweep 鍦?50%锛氭壂鍏夌◢寰亸绉伙紝妯℃嫙鐜荤拑琛ㄩ潰鐨勬祦鍔ㄩ珮鍏夈€?*/
     50% {
         transform: translate3d(1.6%, -1.2%, 0);
         opacity: 1;
     }
 }
 
-/* 定义 content-rise-in 动画的关键帧 */
+/* 瀹氫箟 content-rise-in 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes content-rise-in {
-/* content-rise-in 在 0%：内容从轻微下沉和模糊中开始出现。 */
+/* content-rise-in 鍦?0%锛氬唴瀹逛粠杞诲井涓嬫矇鍜屾ā绯婁腑寮€濮嬪嚭鐜般€?*/
     0% {
         opacity: 0;
         transform: translate3d(0, 18px, 0);
         filter: blur(6px);
     }
-/* content-rise-in 在 100%：内容回到清晰稳定的阅读状态。 */
+/* content-rise-in 鍦?100%锛氬唴瀹瑰洖鍒版竻鏅扮ǔ瀹氱殑闃呰鐘舵€併€?*/
     100% {
         opacity: 1;
         transform: translate3d(0, 0, 0);
@@ -1267,39 +1267,39 @@
     }
 }
 
-/* 定义 field-shake 动画的关键帧 */
+/* 瀹氫箟 field-shake 鍔ㄧ敾鐨勫叧閿抚 */
 @keyframes field-shake {
-/* field-shake 在 0% 和 100%：空字段最终都要回到原位。 */
+/* field-shake 鍦?0% 鍜?100%锛氱┖瀛楁鏈€缁堥兘瑕佸洖鍒板師浣嶃€?*/
     0%,
     100% {
         transform: translate3d(0, 0, 0);
     }
-/* field-shake 在 20%：先向左小幅晃动，提醒用户这里还没填。 */
+/* field-shake 鍦?20%锛氬厛鍚戝乏灏忓箙鏅冨姩锛屾彁閱掔敤鎴疯繖閲岃繕娌″～銆?*/
     20% {
         transform: translate3d(-6px, 0, 0);
     }
-/* field-shake 在 40%：再向右回摆，形成清楚但克制的提醒。 */
+/* field-shake 鍦?40%锛氬啀鍚戝彸鍥炴憜锛屽舰鎴愭竻妤氫絾鍏嬪埗鐨勬彁閱掋€?*/
     40% {
         transform: translate3d(5px, 0, 0);
     }
-/* field-shake 在 60%：幅度开始收小，避免提示动作过重。 */
+/* field-shake 鍦?60%锛氬箙搴﹀紑濮嬫敹灏忥紝閬垮厤鎻愮ず鍔ㄤ綔杩囬噸銆?*/
     60% {
         transform: translate3d(-4px, 0, 0);
     }
-/* field-shake 在 80%：最后一次轻摆，准备回到静止状态。 */
+/* field-shake 鍦?80%锛氭渶鍚庝竴娆¤交鎽嗭紝鍑嗗鍥炲埌闈欐鐘舵€併€?*/
     80% {
         transform: translate3d(3px, 0, 0);
     }
 }
 
-/* .fade-in-up：通用的轻微上浮淡入动画。 */
+/* .fade-in-up锛氶€氱敤鐨勮交寰笂娴贰鍏ュ姩鐢汇€?*/
 .fade-in-up {
     animation: content-rise-in 0.66s cubic-bezier(0.2, 0.86, 0.24, 1) forwards;
 }
 
-/* 减少动态效果模式：只收敛长期漂浮装饰，不关闭登录页本身的入场动画。 */
+/* 鍑忓皯鍔ㄦ€佹晥鏋滄ā寮忥細鍙敹鏁涢暱鏈熸紓娴楗帮紝涓嶅叧闂櫥褰曢〉鏈韩鐨勫叆鍦哄姩鐢汇€?*/
 @media (prefers-reduced-motion: reduce) {
-/* 只降低背景里的长期漂浮装饰，不关闭登录页本身的入场动画。 */
+/* 鍙檷浣庤儗鏅噷鐨勯暱鏈熸紓娴楗帮紝涓嶅叧闂櫥褰曢〉鏈韩鐨勫叆鍦哄姩鐢汇€?*/
     .glass-card::before,
     .gradient-bg,
     .gradient-bg::after,
@@ -1309,16 +1309,16 @@
     }
 }
 
-/* 平板断点：开始收紧登录舞台的宽度和左右结构。 */
+/* 骞虫澘鏂偣锛氬紑濮嬫敹绱х櫥褰曡垶鍙扮殑瀹藉害鍜屽乏鍙崇粨鏋勩€?*/
 @media (max-width: 980px) {
-/* page-stage 在平板宽度下继续居中，并缩小左右留白。 */
+/* page-stage 鍦ㄥ钩鏉垮搴︿笅缁х画灞呬腑锛屽苟缂╁皬宸﹀彸鐣欑櫧銆?*/
     .login-page .page-stage {
         justify-content: center;
         padding-left: clamp(18px, 4vw, 36px);
         padding-right: clamp(18px, 4vw, 36px);
     }
 
-/* login-container 在平板下进一步放宽占比，让舞台保持完整但不过满。 */
+/* login-container 鍦ㄥ钩鏉夸笅杩涗竴姝ユ斁瀹藉崰姣旓紝璁╄垶鍙颁繚鎸佸畬鏁翠絾涓嶈繃婊°€?*/
     .login-container {
         width: min(1100px, 94vw);
         max-width: none;
@@ -1335,36 +1335,36 @@
         display: none;
     }
 
-/* 左右双栏在平板下仍保留，但比例继续偏向表单区。 */
+/* 宸﹀彸鍙屾爮鍦ㄥ钩鏉夸笅浠嶄繚鐣欙紝浣嗘瘮渚嬬户缁亸鍚戣〃鍗曞尯銆?*/
     .card-layout {
         grid-template-columns: 30% 70%;
         min-height: 560px;
     }
 
-/* 品牌标题在平板下适当缩小，避免压住表单。 */
+/* 鍝佺墝鏍囬鍦ㄥ钩鏉夸笅閫傚綋缂╁皬锛岄伩鍏嶅帇浣忚〃鍗曘€?*/
     .side-title {
         font-size: clamp(2.3rem, 5vw, 4rem);
     }
 }
 
-/* 中小屏断点：把左右结构改成更适合竖向阅读的布局。 */
+/* 涓皬灞忔柇鐐癸細鎶婂乏鍙崇粨鏋勬敼鎴愭洿閫傚悎绔栧悜闃呰鐨勫竷灞€銆?*/
 @media (max-width: 768px) {
-/* 页面主舞台：
-   page-stage 把登录舞台整体向右收一点，给左侧品牌门厅和海面留白预留空间。 */
+/* 椤甸潰涓昏垶鍙帮細
+   page-stage 鎶婄櫥褰曡垶鍙版暣浣撳悜鍙虫敹涓€鐐癸紝缁欏乏渚у搧鐗岄棬鍘呭拰娴烽潰鐣欑櫧棰勭暀绌洪棿銆?*/
     .login-page .page-stage {
         justify-content: center;
         padding-left: 12px;
         padding-right: 12px;
     }
 
-/* 卡片内部改成单列，表单区成为手机端主视觉。 */
+/* 鍗＄墖鍐呴儴鏀规垚鍗曞垪锛岃〃鍗曞尯鎴愪负鎵嬫満绔富瑙嗚銆?*/
     .card-layout {
         grid-template-columns: 1fr;
         min-height: auto;
         height: auto;
     }
 
-/* 手机端隐藏左侧品牌门厅，把空间留给输入和按钮。 */
+/* 鎵嬫満绔殣钘忓乏渚у搧鐗岄棬鍘咃紝鎶婄┖闂寸暀缁欒緭鍏ュ拰鎸夐挳銆?*/
     .login-side {
         display: none;
     }
@@ -1373,17 +1373,17 @@
         display: none;
     }
 
-/* 品牌标题在窄屏下继续缩放，避免换行失控。 */
+/* 鍝佺墝鏍囬鍦ㄧ獎灞忎笅缁х画缂╂斁锛岄伩鍏嶆崲琛屽け鎺с€?*/
     .side-title {
         letter-spacing: 0.1em;
         font-size: clamp(2rem, 9vw, 3.2rem);
     }
 }
 
-/* 超窄屏断点：进一步收紧舞台圆角、内边距和 tab 尺寸。 */
+/* 瓒呯獎灞忔柇鐐癸細杩涗竴姝ユ敹绱ц垶鍙板渾瑙掋€佸唴杈硅窛鍜?tab 灏哄銆?*/
 @media (max-width: 480px) {
-/* 登录舞台主容器：
-   这里同时限制理想宽度和相对视口宽度，避免它在大屏上像后台系统那样铺得过满。 */
+/* 鐧诲綍鑸炲彴涓诲鍣細
+   杩欓噷鍚屾椂闄愬埗鐞嗘兂瀹藉害鍜岀浉瀵硅鍙ｅ搴︼紝閬垮厤瀹冨湪澶у睆涓婂儚鍚庡彴绯荤粺閭ｆ牱閾哄緱杩囨弧銆?*/
 .login-container {
         width: 100vw;
         padding: 10px;
@@ -1394,49 +1394,47 @@
         min-height: auto;
     }
 
-/* 超窄屏下缩小观察舱圆角，避免边角占太多空间。 */
+/* 瓒呯獎灞忎笅缂╁皬瑙傚療鑸卞渾瑙掞紝閬垮厤杈硅鍗犲お澶氱┖闂淬€?*/
     .glass-card {
         border-radius: 18px;
     }
 
-/* 超窄屏下收紧表单区内边距，给输入区和按钮留出更合理比例。 */
+/* 瓒呯獎灞忎笅鏀剁揣琛ㄥ崟鍖哄唴杈硅窛锛岀粰杈撳叆鍖哄拰鎸夐挳鐣欏嚭鏇村悎鐞嗘瘮渚嬨€?*/
     .form-side {
         padding: 18px 14px 4px;
     }
 
-/* 登录模式下给表单区多留一点底部空间，避免按钮和底链显得太挤。 */
+/* 鐧诲綍妯″紡涓嬬粰琛ㄥ崟鍖哄鐣欎竴鐐瑰簳閮ㄧ┖闂达紝閬垮厤鎸夐挳鍜屽簳閾炬樉寰楀お鎸ゃ€?*/
     .login-page[data-auth-mode="login"] .form-side {
         padding-bottom: 28px;
     }
 
-/* 超窄屏下收紧 tabs 的内边距，保证登录 / 注册切换仍能放在一行。 */
+/* 瓒呯獎灞忎笅鏀剁揣 tabs 鐨勫唴杈硅窛锛屼繚璇佺櫥褰?/ 娉ㄥ唽鍒囨崲浠嶈兘鏀惧湪涓€琛屻€?*/
     .tabs {
         padding: 6px;
     }
 
-/* 超窄屏下同步缩小登录 / 注册切换按钮，保持一行可读。 */
+/* 瓒呯獎灞忎笅鍚屾缂╁皬鐧诲綍 / 娉ㄥ唽鍒囨崲鎸夐挳锛屼繚鎸佷竴琛屽彲璇汇€?*/
     .tab-btn {
         font-size: 0.88rem;
         padding: 9px 10px;
     }
 
-/* 超窄屏下缩小底部辅助链接的间距，避免页脚区域换行过散。 */
+/* 瓒呯獎灞忎笅缂╁皬搴曢儴杈呭姪閾炬帴鐨勯棿璺濓紝閬垮厤椤佃剼鍖哄煙鎹㈣杩囨暎銆?*/
     .footer-links {
         gap: 8px;
     }
 
-/* 超窄屏下同步收紧社交登录按钮组的间距。 */
+/* 瓒呯獎灞忎笅鍚屾鏀剁揣绀句氦鐧诲綍鎸夐挳缁勭殑闂磋窛銆?*/
     .social-buttons {
         gap: 8px;
     }
 
-/* 超窄屏下缩小单个社交按钮的尺寸，避免按钮组把表单挤乱。 */
+/* 瓒呯獎灞忎笅缂╁皬鍗曚釜绀句氦鎸夐挳鐨勫昂瀵革紝閬垮厤鎸夐挳缁勬妸琛ㄥ崟鎸や贡銆?*/
     .social-btn {
         min-width: 52px;
         height: 40px;
         padding: 0 10px;
     }
 }
-
-
 

@@ -1506,6 +1506,7 @@ class DetailPage {
         this.reviewLightboxCloseTimer = 0;
         this.bookingConfirmCloseTimer = 0;
         this.packagePriceObserver = null;
+        this.relatedTextLayoutController = null;
         this.bookingFeedbackTimer = 0;
         this.seaGuideOpen = false;
         this.seaGuideUpdateRaf = 0;
@@ -5122,6 +5123,7 @@ class DetailPage {
             this.relatedGrid.classList.remove('is-switching');
             this.relatedGrid.classList.add('is-entering', flowClass);
             this.bindRelatedStageInteractions();
+            this.syncRelatedTextLayout();
 
             this.relatedStageSwitchTimer = 0;
 
@@ -5152,6 +5154,8 @@ class DetailPage {
         const relatedSpots = Array.isArray(this.spotData.related) ? this.spotData.related : [];
         if (relatedSpots.length === 0) {
             this.relatedGrid.innerHTML = '';
+            this.relatedTextLayoutController?.disconnect?.();
+            this.relatedTextLayoutController = null;
             return;
         }
 
@@ -5161,7 +5165,46 @@ class DetailPage {
 
         this.relatedGrid.innerHTML = this.buildRelatedStageMarkup();
         this.bindRelatedStageInteractions();
+        this.syncRelatedTextLayout();
         this.preloadRelatedAssets(relatedSpots);
+    }
+
+    /**
+     * syncRelatedTextLayout() - 用 pretext 预测相关推荐舞台里的多行文本高度。
+     * 这里优先稳定主推荐卡和相邻海域卡片的标题 / 描述文本，避免切换主卡或窗口宽度变化时，
+     * 卡片因为重新换行而产生明显跳动。
+     *
+     * 当前只接到相关推荐区，是因为：
+     * 1. 它会频繁切换主卡与相邻卡；
+     * 2. 多行标题和说明文案长度差异大；
+     * 3. 这里的布局抖动会直接影响“在相邻海域之间潜游”的舞台感。
+     *
+     * @returns {void} - 无返回值，直接给相关推荐文本块应用预测高度。
+     */
+    syncRelatedTextLayout() {
+        const textLayout = window.YanqiTextLayout;
+
+        this.relatedTextLayoutController?.disconnect?.();
+        this.relatedTextLayoutController = null;
+
+        if (!this.relatedGrid || !textLayout || typeof textLayout.mountResponsiveBatch !== 'function') {
+            return;
+        }
+
+        this.relatedTextLayoutController = textLayout.mountResponsiveBatch(this.relatedGrid, [
+            {
+                selector: '.related-feature-title'
+            },
+            {
+                selector: '.related-feature-desc'
+            },
+            {
+                selector: '.related-neighbor-name'
+            },
+            {
+                selector: '.related-neighbor-desc'
+            }
+        ]);
     }
 
     /**

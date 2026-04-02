@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    Trip Page Logic - trip.js
    ============================================
    ?????
@@ -7,7 +7,7 @@
    3. ???????? -> Planner Desk -> ????? -> ???? -> DOMContentLoaded ?????????
 */
 
-// 准备系统配置：集中定义三张准备卡片的标题、摘要和模板映射。
+// 鍑嗗绯荤粺閰嶇疆锛氶泦涓畾涔変笁寮犲噯澶囧崱鐗囩殑鏍囬銆佹憳瑕佸拰妯℃澘鏄犲皠銆?
 const PREP_CONTENT = Object.freeze({
     gear: {
         kicker: 'Equipment & Rhythm',
@@ -33,9 +33,9 @@ const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HOME_ENTRY_DEPTH_STORAGE_KEY = 'YANQI_HOME_ENTRY_DEPTH';
 
 /**
- * storePendingHomeScrollTarget(targetSelector) - 记录跨页回首页后需要自动对齐的 section
- * @param {string} targetSelector - 首页内需要恢复滚动的目标选择器
- * @returns {void} - 无返回值，直接写入 sessionStorage
+ * storePendingHomeScrollTarget(targetSelector) - 璁板綍璺ㄩ〉鍥為椤靛悗闇€瑕佽嚜鍔ㄥ榻愮殑 section
+ * @param {string} targetSelector - 棣栭〉鍐呴渶瑕佹仮澶嶆粴鍔ㄧ殑鐩爣閫夋嫨鍣?
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍐欏叆 sessionStorage
  */
 function storePendingHomeScrollTarget(targetSelector) {
     if (!targetSelector) {
@@ -48,15 +48,15 @@ function storePendingHomeScrollTarget(targetSelector) {
             at: Date.now()
         }));
     } catch (error) {
-        // 忽略存储失败，避免影响正常跳页。
+        // 蹇界暐瀛樺偍澶辫触锛岄伩鍏嶅奖鍝嶆甯歌烦椤点€?
     }
 }
 
 /**
- * storePendingHomeEntryDepth(targetSelector, depth) - 记录回到首页时应先稳定到的目标深度
- * @param {string} targetSelector - 首页内需要恢复的目标选择器
- * @param {number} depth - 需要优先进入的首页深度
- * @returns {void} - 无返回值，直接写入 sessionStorage
+ * storePendingHomeEntryDepth(targetSelector, depth) - 璁板綍鍥炲埌棣栭〉鏃跺簲鍏堢ǔ瀹氬埌鐨勭洰鏍囨繁搴?
+ * @param {string} targetSelector - 棣栭〉鍐呴渶瑕佹仮澶嶇殑鐩爣閫夋嫨鍣?
+ * @param {number} depth - 闇€瑕佷紭鍏堣繘鍏ョ殑棣栭〉娣卞害
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍐欏叆 sessionStorage
  */
 function storePendingHomeEntryDepth(targetSelector, depth) {
     if (!targetSelector || !Number.isFinite(depth)) {
@@ -70,15 +70,15 @@ function storePendingHomeEntryDepth(targetSelector, depth) {
             at: Date.now()
         }));
     } catch (error) {
-        // 忽略存储失败，避免影响正常跳页。
+        // 蹇界暐瀛樺偍澶辫触锛岄伩鍏嶅奖鍝嶆甯歌烦椤点€?
     }
 }
 
-// 统一导航入口：让行程页跳转回首页或其他页面时保持深度层级一致。
+// 缁熶竴瀵艰埅鍏ュ彛锛氳琛岀▼椤佃烦杞洖棣栭〉鎴栧叾浠栭〉闈㈡椂淇濇寔娣卞害灞傜骇涓€鑷淬€?
 /**
- * navigateWithDepth(url) - 带深度切换效果地跳转到目标页面
- * @param {string} url - 目标页面地址
- * @returns {void} - 无返回值，直接执行页面跳转
+ * navigateWithDepth(url) - 甯︽繁搴﹀垏鎹㈡晥鏋滃湴璺宠浆鍒扮洰鏍囬〉闈?
+ * @param {string} url - 鐩爣椤甸潰鍦板潃
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鎵ц椤甸潰璺宠浆
  */
 function navigateWithDepth(url) {
     if (window.DepthManager && typeof window.DepthManager.navigateTo === 'function') {
@@ -89,12 +89,12 @@ function navigateWithDepth(url) {
     window.location.href = url;
 }
 
-// 页面内滚动工具：负责行程页导航与按钮在不同 section 之间做平滑移动。
+// 椤甸潰鍐呮粴鍔ㄥ伐鍏凤細璐熻矗琛岀▼椤靛鑸笌鎸夐挳鍦ㄤ笉鍚?section 涔嬮棿鍋氬钩婊戠Щ鍔ㄣ€?
 /**
- * scrollToSection(targetSelector, duration) - 平滑滚动到行程页指定区块
- * @param {string} targetSelector - 目标区块选择器
- * @param {number} duration - 滚动动画时长
- * @returns {void} - 无返回值，直接执行滚动
+ * scrollToSection(targetSelector, duration) - 骞虫粦婊氬姩鍒拌绋嬮〉鎸囧畾鍖哄潡
+ * @param {string} targetSelector - 鐩爣鍖哄潡閫夋嫨鍣?
+ * @param {number} duration - 婊氬姩鍔ㄧ敾鏃堕暱
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鎵ц婊氬姩
  */
 function scrollToSection(targetSelector, duration) {
     if (!targetSelector) {
@@ -120,10 +120,10 @@ function scrollToSection(targetSelector, duration) {
     window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset));
 }
 
-// 绑定行程页顶部导航和带 data-scroll-target 的内部跳转链接。
+// 缁戝畾琛岀▼椤甸《閮ㄥ鑸拰甯?data-scroll-target 鐨勫唴閮ㄨ烦杞摼鎺ャ€?
 /**
- * setupTripScrollLinks() - 绑定行程页顶部导航和内部滚动链接
- * @returns {void} - 无返回值，直接注册事件监听
+ * setupTripScrollLinks() - 缁戝畾琛岀▼椤甸《閮ㄥ鑸拰鍐呴儴婊氬姩閾炬帴
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴娉ㄥ唽浜嬩欢鐩戝惉
  */
 function setupTripScrollLinks() {
     const tripLink = document.querySelector('.nav-link.active');
@@ -176,38 +176,173 @@ function setupTripScrollLinks() {
 }
 
 /**
- * setupBackToTop() - 初始化行程页返回顶部按钮的显示与点击行为
- * @returns {void} - 无返回值，直接注册滚动和点击事件
- */
-function setupBackToTop() {
-    const button = document.getElementById('back-to-top');
-    if (!button) {
-        return;
+ * TripSeaGuide - trip 椤垫捣鍥惧瑙堛€? * 杩欏浜や簰娌跨敤棣栭〉鐨勨€滄捣鍥惧瑙堚€濊瑷€锛岀敤涓€缁勬偓娴叆鍙ｆ浛浠ｆ櫘閫氬洖椤舵寜閽紝
+ * 甯敤鎴峰湪鈥滃凡鏀惰繘琛岀▼鐨勬捣 / 琛岀▼鏀舵潫鍙?/ 鍗冲皢杩涜鐨勮繖涓€娼?/ Planning Notes / 鍑哄彂鍓嶅噯澶団€濅箣闂村揩閫熷垏鎹€? */
+class TripSeaGuide {
+    /**
+     * constructor() - 鍒濆鍖?trip 椤垫捣鍥惧瑙堥渶瑕佺殑 DOM 寮曠敤鍜屽唴閮ㄧ姸鎬?     */
+    constructor() {
+        this.guide = document.getElementById('tripSeaGuide');
+        this.trigger = document.getElementById('tripSeaGuideTrigger');
+        this.panel = document.getElementById('tripSeaGuidePanel');
+        this.entries = Array.from(document.querySelectorAll('#tripSeaGuide .sea-guide-entry'));
+        this.isOpen = false;
+        this.updateRaf = 0;
+
+        if (this.guide && this.trigger && this.panel && this.entries.length) {
+            this.init();
+        }
     }
 
-    window.addEventListener('scroll', () => {
-        button.classList.toggle('visible', window.pageYOffset > 300);
-    });
+    /**
+     * getOffset() - 璁＄畻 trip 椤垫粴鍔ㄦ椂闇€瑕侀伩寮€鐨勫浐瀹氬鑸珮搴?     * @returns {number} 椤甸潰婊氬姩鍋忕Щ閲?     */
+    getOffset() {
+        const navbar = document.querySelector('.navbar');
+        return (navbar ? navbar.offsetHeight : 72) + 18;
+    }
 
-    button.addEventListener('click', () => {
-        if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
-            window.OceanScroll.animateTo(0, { duration: 1760 });
+    /**
+     * getProbeTarget(selector) - 鑾峰彇鐢ㄤ簬鍒ゆ柇褰撳墠鎵€鍦ㄦ捣灞傜殑鎺㈤拡鍏冪礌
+     * @param {string} selector - 娴峰浘瀵艰鏉＄洰鎸囧悜鐨勭洰鏍囬€夋嫨鍣?     * @returns {Element|null} 褰撳墠鏉＄洰瀵瑰簲鐨勬帰閽堝厓绱?     */
+    getProbeTarget(selector) {
+        const target = selector ? document.querySelector(selector) : null;
+        if (!target) {
+            return null;
+        }
+
+        if (selector === '#trip-top') {
+            return target.querySelector('.trip-hero-shell') || target;
+        }
+
+        if (selector === '#tripFooter') {
+            return target.querySelector('.footer-shell') || target;
+        }
+
+        return target;
+    }
+
+    /**
+     * setOpen(isOpen) - 鍒囨崲琛岀▼娴峰浘瀵艰鐨勫睍寮€涓庢敹璧风姸鎬?     * @param {boolean} isOpen - 鏄惁灞曞紑娴峰浘瀵艰闈㈡澘
+     */
+    setOpen(isOpen) {
+        this.isOpen = Boolean(isOpen);
+        this.guide.classList.toggle('is-open', this.isOpen);
+        this.trigger.setAttribute('aria-expanded', String(this.isOpen));
+        this.panel.setAttribute('aria-hidden', String(!this.isOpen));
+    }
+
+    /**
+     * scrollToTarget(selector) - 骞虫粦婊氬姩鍒?trip 椤垫寚瀹氬尯鍧?     * @param {string} selector - 鐩爣 section 閫夋嫨鍣?     */
+    scrollToTarget(selector) {
+        if (!selector) {
             return;
         }
 
-        window.scrollTo(0, 0);
-    });
+        scrollToSection(selector, 1620);
+    }
+
+    /**
+     * getCurrentKey() - 鏍规嵁褰撳墠婊氬姩浣嶇疆鍒ゆ柇 trip 椤垫鍦ㄥ仠鐣欏湪鍝竴灞?     * @returns {string} 褰撳墠鏉＄洰鐨?key
+     */
+    getCurrentKey() {
+        if (!this.entries.length) {
+            return '';
+        }
+
+        const probeY = window.scrollY + this.getOffset() + Math.min(window.innerHeight * 0.24, 220);
+        let currentKey = this.entries[0].dataset.key || '';
+
+        this.entries.forEach((entry) => {
+            const target = this.getProbeTarget(entry.dataset.target);
+            if (!target) {
+                return;
+            }
+
+            const sectionTop = target.getBoundingClientRect().top + window.scrollY - this.getOffset();
+            if (probeY >= sectionTop - 24) {
+                currentKey = entry.dataset.key || currentKey;
+            }
+        });
+
+        return currentKey;
+    }
+
+    /**
+     * updateState() - 鍚屾 trip 椤垫捣鍥惧瑙堢殑鏄鹃殣銆佹繁灞傜姸鎬佷笌褰撳墠鏉＄洰楂樹寒
+     */
+    updateState() {
+        const scrollTop = window.scrollY || window.pageYOffset || 0;
+        const isVisible = scrollTop > 72;
+        const isDeep = scrollTop > Math.max(window.innerHeight * 0.92, 840);
+        const currentKey = this.getCurrentKey();
+
+        this.guide.classList.toggle('is-visible', isVisible);
+        this.guide.classList.toggle('is-deep', isDeep);
+        this.guide.setAttribute('aria-hidden', String(!isVisible));
+
+        this.entries.forEach((entry) => {
+            const isCurrent = entry.dataset.key === currentKey;
+            entry.classList.toggle('is-current', isCurrent);
+            entry.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+        });
+    }
+
+    /**
+     * init() - 缁戝畾 trip 椤垫捣鍥惧瑙堢殑灞曞紑銆佸叧闂€佹粴鍔ㄩ珮浜拰鐐瑰嚮璺宠浆閫昏緫
+     */
+    init() {
+        const requestStateUpdate = () => {
+            if (this.updateRaf) {
+                return;
+            }
+
+            this.updateRaf = window.requestAnimationFrame(() => {
+                this.updateRaf = 0;
+                this.updateState();
+            });
+        };
+
+        this.trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            this.setOpen(!this.isOpen);
+        });
+
+        this.entries.forEach((entry) => {
+            entry.addEventListener('click', () => {
+                this.setOpen(false);
+                this.scrollToTarget(entry.dataset.target);
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!this.isOpen || this.guide.contains(event.target)) {
+                return;
+            }
+
+            this.setOpen(false);
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && this.isOpen) {
+                this.setOpen(false);
+            }
+        });
+
+        window.addEventListener('scroll', requestStateUpdate, { passive: true });
+        window.addEventListener('resize', requestStateUpdate);
+        window.setTimeout(() => this.updateState(), 80);
+    }
 }
 
-// Planner Desk 主控逻辑：
-// 这个函数同时负责：
-// 1. 管理海域 / 日期 / 人数三个字段的当前值
-// 2. 控制三个浮层的打开、关闭和定位
-// 3. 把字段结果实时回写到左侧摘要卡
-// 4. 在桌面端与移动端之间维持一致的交互逻辑
+// Planner Desk 涓绘帶閫昏緫锛?
+// 杩欎釜鍑芥暟鍚屾椂璐熻矗锛?
+// 1. 绠＄悊娴峰煙 / 鏃ユ湡 / 浜烘暟涓変釜瀛楁鐨勫綋鍓嶅€?
+// 2. 鎺у埗涓変釜娴眰鐨勬墦寮€銆佸叧闂拰瀹氫綅
+// 3. 鎶婂瓧娈电粨鏋滃疄鏃跺洖鍐欏埌宸︿晶鎽樿鍗?
+// 4. 鍦ㄦ闈㈢涓庣Щ鍔ㄧ涔嬮棿缁存寔涓€鑷寸殑浜や簰閫昏緫
 /**
- * setupPlannerSummary() - 监听 Planner Desk 输入并实时更新摘要卡片
- * @returns {void} - 无返回值，直接绑定表单输入事件
+ * setupPlannerSummary() - 鐩戝惉 Planner Desk 杈撳叆骞跺疄鏃舵洿鏂版憳瑕佸崱鐗?
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴缁戝畾琛ㄥ崟杈撳叆浜嬩欢
  */
 function setupPlannerSummary() {
     const store = getTripStore();
@@ -224,6 +359,10 @@ function setupPlannerSummary() {
     const summarySpotState = document.getElementById('plannerSummarySpotState');
     const summaryDateState = document.getElementById('plannerSummaryDateState');
     const summaryPeopleState = document.getElementById('plannerSummaryPeopleState');
+    const summaryRoot = document.getElementById('plannerSummary');
+    const summaryIntro = document.getElementById('plannerSummaryIntro');
+    const summaryStatusNote = document.getElementById('plannerSummaryStatusNote');
+    const summaryItems = Array.from(document.querySelectorAll('#plannerSummary .planner-item'));
 
     const spotField = document.querySelector('[data-planner-field="spot"]');
     const dateField = document.querySelector('[data-planner-field="date"]');
@@ -267,6 +406,9 @@ function setupPlannerSummary() {
         !summarySpotState ||
         !summaryDateState ||
         !summaryPeopleState ||
+        !summaryRoot ||
+        !summaryIntro ||
+        !summaryStatusNote ||
         !spotField ||
         !dateField ||
         !peopleField ||
@@ -295,31 +437,31 @@ function setupPlannerSummary() {
         return;
     }
 
-    // 浮层与视口边缘、字段之间的安全距离。
-    // 这些值会同时影响“是否向上展开”和“最终能留出多少呼吸空间”。
+    // 娴眰涓庤鍙ｈ竟缂樸€佸瓧娈典箣闂寸殑瀹夊叏璺濈銆?
+    // 杩欎簺鍊间細鍚屾椂褰卞搷鈥滄槸鍚﹀悜涓婂睍寮€鈥濆拰鈥滄渶缁堣兘鐣欏嚭澶氬皯鍛煎惛绌洪棿鈥濄€?
     const PANEL_MARGIN = 16;
     const PANEL_GAP = 14;
 
     const COPY = {
         spot: {
-            emptyLabel: '海域尚未落定',
-            emptyHint: '等一片愿意下去的蓝慢慢浮现'
+            emptyLabel: '娴峰煙灏氭湭钀藉畾',
+            emptyHint: '鍏堝喅瀹氾紝杩欎竴娆¤鎶婅嚜宸变氦缁欏摢鐗囪摑'
         },
         date: {
-            emptyLabel: '仍在等一段合适的潮汐',
-            emptyHint: '让天气、光线与节奏更从容一些',
-            filledHint: '这一段潮汐，适合慢慢出发'
+            emptyLabel: '浠嶅湪绛変竴娈靛悎閫傜殑娼睈',
+            emptyHint: '鎶婂嚭鍙戞斁杩涙洿閫傚悎鐨勭獥鍙ｉ噷',
+            filledHint: '杩欎竴娈垫椂闂村凡缁忓啓杩涜绋嬶紝鎺ヤ笅鏉ュ彧绛夌湡姝ｅ嚭鍙?
         },
         people: {
-            emptyLabel: '同行尚未写进这次下潜',
-            emptyHint: '也可以先一个人安静决定这片海'
+            emptyLabel: '鍚岃灏氭湭鍐欒繘杩欐涓嬫綔',
+            emptyHint: '鍐冲畾杩欒稛娴蜂細浠ユ€庢牱鐨勮妭濂忓彂鐢?
         }
     };
 
     /**
-     * readPlannerOptionData(option) - 把海域选项按钮整理成可复用的数据对象
-     * @param {HTMLElement} option - 原始选项按钮
-     * @returns {{value: string, label: string, note: string, description: string}} - 归一化后的选项数据
+     * readPlannerOptionData(option) - 鎶婃捣鍩熼€夐」鎸夐挳鏁寸悊鎴愬彲澶嶇敤鐨勬暟鎹璞?
+     * @param {HTMLElement} option - 鍘熷閫夐」鎸夐挳
+     * @returns {{value: string, label: string, note: string, description: string}} - 褰掍竴鍖栧悗鐨勯€夐」鏁版嵁
      */
     function readPlannerOptionData(option) {
         const strong = option?.querySelector('strong');
@@ -341,11 +483,11 @@ function setupPlannerSummary() {
             value: '',
             label: COPY.spot.emptyLabel,
             note: COPY.spot.emptyHint,
-            description: '先让这一潜停在想象里，慢慢等它靠近。'
+            description: '鍏堣杩欎竴娼滃仠鍦ㄦ兂璞￠噷锛屾參鎱㈢瓑瀹冮潬杩戙€?
         };
 
-    // fieldMap 把每个字段相关的 DOM 和默认文案收成一个表。
-    // 后面打开、关闭、写值、定位时都能复用同一套逻辑，避免三套近似代码散落各处。
+    // fieldMap 鎶婃瘡涓瓧娈电浉鍏崇殑 DOM 鍜岄粯璁ゆ枃妗堟敹鎴愪竴涓〃銆?
+    // 鍚庨潰鎵撳紑銆佸叧闂€佸啓鍊笺€佸畾浣嶆椂閮借兘澶嶇敤鍚屼竴濂楅€昏緫锛岄伩鍏嶄笁濂楄繎浼间唬鐮佹暎钀藉悇澶勩€?
     const fieldMap = {
         spot: {
             input: spotInput,
@@ -384,49 +526,79 @@ function setupPlannerSummary() {
             valueNode: summarySpot,
             metaNode: summarySpotMeta,
             stateNode: summarySpotState,
-            emptyValue: '海域尚未落定',
-            emptyMeta: '这段行程会从哪片蓝开始，还在慢慢浮现。',
-            emptyState: '未落定',
-            filledState: '已收进',
-            filledMeta: '这一片海已经进入行程底稿，接下来只等节奏慢慢靠拢。'
+            emptyValue: '娴峰煙灏氭湭纭',
+            emptyMeta: '鍓嶅線鍝墖娴疯繕鍦ㄦ暣鐞嗛噷锛屽厛璁╄繖娆′笅娼滄參鎱㈡敹鍑烘柟鍚戙€?,
+            emptyState: '寰呯‘璁?,
+            filledState: '宸叉敹浣?,
+            filledMeta: '鍓嶅線鐨勬捣鍩熷凡缁忚惤浣嶏紝杩欎竴娼滅殑鏂瑰悜涔熷紑濮嬪彉寰楁竻妤氥€?
         },
         date: {
             valueNode: summaryDate,
             metaNode: summaryDateMeta,
             stateNode: summaryDateState,
-            emptyValue: '仍在等一段合适的潮汐',
-            emptyMeta: '让天气、光线和身体状态先对上节奏。',
-            emptyState: '待确认',
-            filledState: '已择日',
-            filledMeta: '这段潮汐窗口已经收住，旅程的呼吸感也会更清楚。'
+            emptyValue: '浠嶅湪绛変竴娈靛悎閫傜殑娼睈',
+            emptyMeta: '鍑哄彂鏃堕棿杩樺湪绛変竴娈垫洿鍚堥€傜殑娼睈绐楀彛銆?,
+            emptyState: '寰呯‘璁?,
+            filledState: '宸插啓鍏?,
+            filledMeta: '鍑哄彂鏃堕棿宸茬粡鍐欒繘杩欐涓嬫綔锛屾暣娈靛畨鎺掑紑濮嬫湁浜嗚妭濂忋€?
         },
         people: {
             valueNode: summaryPeople,
             metaNode: summaryPeopleMeta,
             stateNode: summaryPeopleState,
-            emptyValue: '同行尚未写进这次下潜',
-            emptyMeta: '一起下去的人，会决定这趟海的速度与停驻方式。',
-            emptyState: '未写入',
-            filledState: '已同行',
-            filledMeta: '同行节奏已经落位，这趟海会有更清晰的陪伴感。'
+            emptyValue: '鍚岃灏氭湭纭',
+            emptyMeta: '鍚岃浜烘暟杩樻病钀戒笅锛岃繖瓒熸捣浼氭€庢牱鍙戠敓涔熻繕鍦ㄧ‘璁ゃ€?,
+            emptyState: '寰呯‘璁?,
+            filledState: '宸插啓鍏?,
+            filledMeta: '鍚岃浜烘暟宸茬粡鍐欒繘鏉ワ紝杩欎竴娼滅殑鑺傚鍜岄櫔浼存劅涔熸洿鏄庣‘浜嗐€?
         }
     };
 
     let activePanelKey = null;
     let panelPositionFrame = 0;
     let calendarViewDate = null;
+    const summaryPreviousValues = {
+        spot: '',
+        date: '',
+        people: ''
+    };
+    let summaryWasConfirmed = false;
 
     /**
-     * getSpotOptions() - 获取当前海域浮层里的全部选项按钮
-     * @returns {HTMLElement[]} - 当前海域选项按钮数组
+     * pulsePlannerSummaryItem(item) - 鏌愪竴椤瑰唴瀹规洿鏂版椂锛岀粰瀹冧竴涓緢杞荤殑鎻愪寒鍛煎惛銆?     * 杩欎笉鏄己鎻愮ず锛岃€屾槸璁┾€滆繖娆′笅娼滆瀹夐潤鍦版敹浣忊€濊繖浠朵簨鏇村鏄撹鎰熷彈鍒般€?     * @param {HTMLElement | undefined} item - 瀵瑰簲鐨勬憳瑕佸崱鐗?     * @returns {void}
+     */
+    function pulsePlannerSummaryItem(item) {
+        if (!item) {
+            return;
+        }
+
+        item.classList.remove('is-updated');
+        void item.offsetWidth;
+        item.classList.add('is-updated');
+        window.setTimeout(() => item.classList.remove('is-updated'), 960);
+    }
+
+    /**
+     * pulsePlannerSummaryRoot() - 涓夐」閮界‘璁ゅ悗锛岃鏁村紶鈥滃嵆灏嗚繘琛岀殑杩欎竴娼溾€濊交杞讳寒涓€涓嬨€?     * @returns {void}
+     */
+    function pulsePlannerSummaryRoot() {
+        summaryRoot.classList.remove('is-updated-confirmed');
+        void summaryRoot.offsetWidth;
+        summaryRoot.classList.add('is-updated-confirmed');
+        window.setTimeout(() => summaryRoot.classList.remove('is-updated-confirmed'), 1120);
+    }
+
+    /**
+     * getSpotOptions() - 鑾峰彇褰撳墠娴峰煙娴眰閲岀殑鍏ㄩ儴閫夐」鎸夐挳
+     * @returns {HTMLElement[]} - 褰撳墠娴峰煙閫夐」鎸夐挳鏁扮粍
      */
     function getSpotOptions() {
         return Array.from(spotPanel.querySelectorAll('.planner-option[data-option-group="spot"]'));
     }
 
     /**
-     * getConfirmedSpotOptions() - 根据已收进行程的套餐，生成当前允许选择的海域选项
-     * @returns {{mode: string, options: Array<Object>}} - 选项模式和对应选项列表
+     * getConfirmedSpotOptions() - 鏍规嵁宸叉敹杩涜绋嬬殑濂楅锛岀敓鎴愬綋鍓嶅厑璁搁€夋嫨鐨勬捣鍩熼€夐」
+     * @returns {{mode: string, options: Array<Object>}} - 閫夐」妯″紡鍜屽搴旈€夐」鍒楄〃
      */
     function getConfirmedSpotOptions() {
         const bookings = store && typeof store.getConfirmedBookings === 'function'
@@ -452,14 +624,14 @@ function setupPlannerSummary() {
             seen.add(spotKey);
             bookedSpotOptions.push({
                 value: spotKey,
-                label: String(booking.spotName || '未命名海域').trim(),
+                label: String(booking.spotName || '鏈懡鍚嶆捣鍩?).trim(),
                 note: String(
                     booking.spotTagline
-                    || '这片海已经收进行程，接下来可以继续整理这次下潜的节奏。'
+                    || '杩欑墖娴峰凡缁忔敹杩涜绋嬶紝鎺ヤ笅鏉ュ彲浠ョ户缁暣鐞嗚繖娆′笅娼滅殑鑺傚銆?
                 ).trim(),
                 description: String(
                     booking.spotTagline
-                    || '这片海已经收进行程，接下来可以继续整理这次下潜的节奏。'
+                    || '杩欑墖娴峰凡缁忔敹杩涜绋嬶紝鎺ヤ笅鏉ュ彲浠ョ户缁暣鐞嗚繖娆′笅娼滅殑鑺傚銆?
                 ).trim()
             });
         });
@@ -485,10 +657,10 @@ function setupPlannerSummary() {
     }
 
     /**
-     * createSpotOptionMarkup(optionData, isSelected) - 生成单个海域选项按钮的 HTML
-     * @param {{value: string, label: string, note: string, description: string}} optionData - 选项数据
-     * @param {boolean} isSelected - 当前是否为选中项
-     * @returns {string} - 海域选项按钮 HTML
+     * createSpotOptionMarkup(optionData, isSelected) - 鐢熸垚鍗曚釜娴峰煙閫夐」鎸夐挳鐨?HTML
+     * @param {{value: string, label: string, note: string, description: string}} optionData - 閫夐」鏁版嵁
+     * @param {boolean} isSelected - 褰撳墠鏄惁涓洪€変腑椤?
+     * @returns {string} - 娴峰煙閫夐」鎸夐挳 HTML
      */
     function createSpotOptionMarkup(optionData, isSelected) {
         return `
@@ -509,10 +681,10 @@ function setupPlannerSummary() {
     }
 
     /**
-     * renderSpotOptions(options, selectedValue) - 重绘海域浮层的可选项列表
-     * @param {Array<Object>} options - 需要渲染的选项数据
-     * @param {string} selectedValue - 当前应被选中的值
-     * @returns {void} - 无返回值，直接更新浮层选项
+     * renderSpotOptions(options, selectedValue) - 閲嶇粯娴峰煙娴眰鐨勫彲閫夐」鍒楄〃
+     * @param {Array<Object>} options - 闇€瑕佹覆鏌撶殑閫夐」鏁版嵁
+     * @param {string} selectedValue - 褰撳墠搴旇閫変腑鐨勫€?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊娴眰閫夐」
      */
     function renderSpotOptions(options, selectedValue) {
         spotPanel.innerHTML = options
@@ -526,13 +698,14 @@ function setupPlannerSummary() {
     }
 
     /**
-     * syncSpotOptionsFromBookings(draft, isInitial) - 按已确认套餐收缩海域选项，并同步当前字段值
-     * @param {Object|null} draft - 本地保存的 Planner 草稿
-     * @param {boolean} isInitial - 是否为页面初始化阶段
-     * @returns {void} - 无返回值，直接更新海域字段状态
+     * syncSpotOptionsFromBookings(draft, isInitial) - 鎸夊凡纭濂楅鏀剁缉娴峰煙閫夐」锛屽苟鍚屾褰撳墠瀛楁鍊?
+     * @param {Object|null} draft - 鏈湴淇濆瓨鐨?Planner 鑽夌
+     * @param {boolean} isInitial - 鏄惁涓洪〉闈㈠垵濮嬪寲闃舵
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊娴峰煙瀛楁鐘舵€?
      */
     function syncSpotOptionsFromBookings(draft, isInitial) {
         const currentValue = String(spotInput.value || '').trim();
+        const draftValue = String(draft?.spotValue || '').trim();
         const { mode, options } = getConfirmedSpotOptions();
         const availableValues = new Set(options.map((option) => option.value));
         let nextValue = '';
@@ -540,11 +713,10 @@ function setupPlannerSummary() {
         if (mode === 'locked-single') {
             nextValue = options[0]?.value || '';
         } else if (mode === 'booked-only') {
-            nextValue = isInitial
-                ? ''
+            nextValue = availableValues.has(draftValue)
+                ? draftValue
                 : (availableValues.has(currentValue) ? currentValue : '');
         } else {
-            const draftValue = String(draft?.spotValue || '').trim();
             nextValue = availableValues.has(draftValue)
                 ? draftValue
                 : (availableValues.has(currentValue) ? currentValue : '');
@@ -561,9 +733,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * formatPlannerDate(value) - 把原生日期值格式化成 Planner Desk 的展示文案
-     * @param {string} value - 原生日期输入值
-     * @returns {string} - 格式化后的日期文本
+     * formatPlannerDate(value) - 鎶婂師鐢熸棩鏈熷€兼牸寮忓寲鎴?Planner Desk 鐨勫睍绀烘枃妗?
+     * @param {string} value - 鍘熺敓鏃ユ湡杈撳叆鍊?
+     * @returns {string} - 鏍煎紡鍖栧悗鐨勬棩鏈熸枃鏈?
      */
     function formatPlannerDate(value) {
         if (!value) {
@@ -582,17 +754,31 @@ function setupPlannerSummary() {
     }
 
     /**
-     * formatCalendarMonthLabel(date) - 生成日历面板顶部的月份标题
-     * @param {Date} date - 当前日历视图所在月份
-     * @returns {string} - 年月标题文本
+     * isValidPlannerDateValue(value) - 鍒ゆ柇鏈湴鎭㈠鍑烘潵鐨勬棩鏈熸槸鍚﹁繕鏄彲鐢ㄧ殑鍘熺敓鏃ユ湡鍊?     * @param {string} value - 寰呮牎楠岀殑鏃ユ湡
+     * @returns {boolean} - 鍙湁 YYYY-MM-DD 涓旇兘琚?Date 姝ｅ父璇嗗埆鏃舵墠杩斿洖 true
      */
-    function formatCalendarMonthLabel(date) {
-        return `${date.getFullYear()}年${String(date.getMonth() + 1).padStart(2, '0')}月`;
+    function isValidPlannerDateValue(value) {
+        const normalized = String(value || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+            return false;
+        }
+
+        const parsed = new Date(`${normalized}T00:00:00`);
+        return !Number.isNaN(parsed.getTime());
     }
 
     /**
-     * getCalendarDisplayDate() - 获取日历面板当前应展示的基准日期
-     * @returns {Date} - 当前选中日期或今天
+     * formatCalendarMonthLabel(date) - 鐢熸垚鏃ュ巻闈㈡澘椤堕儴鐨勬湀浠芥爣棰?
+     * @param {Date} date - 褰撳墠鏃ュ巻瑙嗗浘鎵€鍦ㄦ湀浠?
+     * @returns {string} - 骞存湀鏍囬鏂囨湰
+     */
+    function formatCalendarMonthLabel(date) {
+        return `${date.getFullYear()}骞?{String(date.getMonth() + 1).padStart(2, '0')}鏈坄;
+    }
+
+    /**
+     * getCalendarDisplayDate() - 鑾峰彇鏃ュ巻闈㈡澘褰撳墠搴斿睍绀虹殑鍩哄噯鏃ユ湡
+     * @returns {Date} - 褰撳墠閫変腑鏃ユ湡鎴栦粖澶?
      */
     function getCalendarDisplayDate() {
         const parsed = dateInput.value
@@ -607,8 +793,8 @@ function setupPlannerSummary() {
     }
 
     /**
-     * syncDateFieldDisplay() - 同步日期字段的主值、辅助说明和激活状态
-     * @returns {void} - 无返回值，直接刷新日期字段显示
+     * syncDateFieldDisplay() - 鍚屾鏃ユ湡瀛楁鐨勪富鍊笺€佽緟鍔╄鏄庡拰婵€娲荤姸鎬?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍒锋柊鏃ユ湡瀛楁鏄剧ず
      */
     function syncDateFieldDisplay() {
         const hasValue = Boolean(dateInput.value);
@@ -622,9 +808,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * isRecommendedPlannerDate(date) - 判断某一天是否属于推荐出发窗口
-     * @param {Date} date - 待判断的日期对象
-     * @returns {boolean} - 是否属于推荐窗口
+     * isRecommendedPlannerDate(date) - 鍒ゆ柇鏌愪竴澶╂槸鍚﹀睘浜庢帹鑽愬嚭鍙戠獥鍙?
+     * @param {Date} date - 寰呭垽鏂殑鏃ユ湡瀵硅薄
+     * @returns {boolean} - 鏄惁灞炰簬鎺ㄨ崘绐楀彛
      */
     function isRecommendedPlannerDate(date) {
         const day = date.getDate();
@@ -632,9 +818,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * getPanelWidth(fieldKey) - 按字段类型计算浮层面板宽度
-     * @param {string} fieldKey - 字段键名
-     * @returns {number} - 面板宽度
+     * getPanelWidth(fieldKey) - 鎸夊瓧娈电被鍨嬭绠楁诞灞傞潰鏉垮搴?
+     * @param {string} fieldKey - 瀛楁閿悕
+     * @returns {number} - 闈㈡澘瀹藉害
      */
     function getPanelWidth(fieldKey) {
         const config = fieldMap[fieldKey];
@@ -644,8 +830,8 @@ function setupPlannerSummary() {
 
         const triggerRect = config.trigger.getBoundingClientRect();
         const maxWidth = window.innerWidth - PANEL_MARGIN * 2;
-        // 先从触发按钮自身宽度推导“理想面板宽度”，
-        // 再用视口宽度减安全边距兜底，避免在窄屏上横向溢出。
+        // 鍏堜粠瑙﹀彂鎸夐挳鑷韩瀹藉害鎺ㄥ鈥滅悊鎯抽潰鏉垮搴︹€濓紝
+        // 鍐嶇敤瑙嗗彛瀹藉害鍑忓畨鍏ㄨ竟璺濆厹搴曪紝閬垮厤鍦ㄧ獎灞忎笂妯悜婧㈠嚭銆?
 
         if (fieldKey === 'spot') {
             return Math.min(Math.max(triggerRect.width + 48, 480), 620, maxWidth);
@@ -659,9 +845,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * positionPanel(fieldKey) - 根据字段位置将浮层稳定定位到视口内
-     * @param {string} fieldKey - 字段键名
-     * @returns {void} - 无返回值，直接写入面板位置
+     * positionPanel(fieldKey) - 鏍规嵁瀛楁浣嶇疆灏嗘诞灞傜ǔ瀹氬畾浣嶅埌瑙嗗彛鍐?
+     * @param {string} fieldKey - 瀛楁閿悕
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍐欏叆闈㈡澘浣嶇疆
      */
     function positionPanel(fieldKey) {
         const config = fieldMap[fieldKey];
@@ -676,8 +862,8 @@ function setupPlannerSummary() {
         config.panel.style.maxWidth = `${window.innerWidth - PANEL_MARGIN * 2}px`;
 
         const measuredHeight = config.panel.offsetHeight || config.panel.scrollHeight || 320;
-        // 先测一次真实高度，再决定是向下展开还是向上展开，
-        // 不然面板可能会直接压到屏幕底部，或者在小屏上被切掉一截。
+        // 鍏堟祴涓€娆＄湡瀹為珮搴︼紝鍐嶅喅瀹氭槸鍚戜笅灞曞紑杩樻槸鍚戜笂灞曞紑锛?
+        // 涓嶇劧闈㈡澘鍙兘浼氱洿鎺ュ帇鍒板睆骞曞簳閮紝鎴栬€呭湪灏忓睆涓婅鍒囨帀涓€鎴€?
         const spaceBelow = window.innerHeight - triggerRect.bottom - PANEL_MARGIN;
         const spaceAbove = triggerRect.top - PANEL_MARGIN;
         const shouldOpenUpward = measuredHeight > spaceBelow && spaceAbove > spaceBelow;
@@ -688,7 +874,7 @@ function setupPlannerSummary() {
 
         config.panel.classList.toggle('opens-upward', shouldOpenUpward);
         if (fieldKey === 'date') {
-            // 日历面板如果太矮会挤坏月份导航和 6 行日期格，所以给它更高的最低可用高度。
+            // 鏃ュ巻闈㈡澘濡傛灉澶煯浼氭尋鍧忔湀浠藉鑸拰 6 琛屾棩鏈熸牸锛屾墍浠ョ粰瀹冩洿楂樼殑鏈€浣庡彲鐢ㄩ珮搴︺€?
             config.panel.style.maxHeight = `${Math.min(measuredHeight, Math.max(360, availableHeight))}px`;
         } else {
             config.panel.style.maxHeight = `${Math.min(measuredHeight, availableHeight)}px`;
@@ -710,8 +896,8 @@ function setupPlannerSummary() {
     }
 
     /**
-     * schedulePanelPosition() - 在下一帧重新计算当前打开浮层的位置
-     * @returns {void} - 无返回值，直接安排定位刷新
+     * schedulePanelPosition() - 鍦ㄤ笅涓€甯ч噸鏂拌绠楀綋鍓嶆墦寮€娴眰鐨勪綅缃?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴瀹夋帓瀹氫綅鍒锋柊
      */
     function schedulePanelPosition() {
         if (!activePanelKey) {
@@ -726,14 +912,14 @@ function setupPlannerSummary() {
             panelPositionFrame = 0;
             positionPanel(activePanelKey);
         });
-        // 定位放到下一帧做，是为了等浏览器先把本轮 class、尺寸和布局变化算完，
-        // 避免读取到旧尺寸，导致浮层“先跳一下再归位”。
+        // 瀹氫綅鏀惧埌涓嬩竴甯у仛锛屾槸涓轰簡绛夋祻瑙堝櫒鍏堟妸鏈疆 class銆佸昂瀵稿拰甯冨眬鍙樺寲绠楀畬锛?
+        // 閬垮厤璇诲彇鍒版棫灏哄锛屽鑷存诞灞傗€滃厛璺充竴涓嬪啀褰掍綅鈥濄€?
     }
 
     /**
-     * renderPlannerCalendar(direction) - 渲染自定义潮汐日历面板
-     * @param {string} direction - 月份切换方向，用于触发切换动画
-     * @returns {void} - 无返回值，直接更新日历视图
+     * renderPlannerCalendar(direction) - 娓叉煋鑷畾涔夋疆姹愭棩鍘嗛潰鏉?
+     * @param {string} direction - 鏈堜唤鍒囨崲鏂瑰悜锛岀敤浜庤Е鍙戝垏鎹㈠姩鐢?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊鏃ュ巻瑙嗗浘
      */
     function renderPlannerCalendar(direction) {
         const draw = () => {
@@ -744,10 +930,10 @@ function setupPlannerSummary() {
             const month = calendarViewDate.getMonth();
             const monthStart = new Date(year, month, 1);
             const startOffset = (monthStart.getDay() + 6) % 7;
-            // JS 的 getDay() 以周日为 0，这里转成“周一开头”的日历逻辑。
+            // JS 鐨?getDay() 浠ュ懆鏃ヤ负 0锛岃繖閲岃浆鎴愨€滃懆涓€寮€澶粹€濈殑鏃ュ巻閫昏緫銆?
             const gridStart = new Date(year, month, 1 - startOffset);
-            // 从网格第一格应该显示的那一天开始画，而不是直接从 1 号开始，
-            // 这样前后月份的补位日期也能完整出现，日历结构会稳定成 6 行 7 列。
+            // 浠庣綉鏍肩涓€鏍煎簲璇ユ樉绀虹殑閭ｄ竴澶╁紑濮嬬敾锛岃€屼笉鏄洿鎺ヤ粠 1 鍙峰紑濮嬶紝
+            // 杩欐牱鍓嶅悗鏈堜唤鐨勮ˉ浣嶆棩鏈熶篃鑳藉畬鏁村嚭鐜帮紝鏃ュ巻缁撴瀯浼氱ǔ瀹氭垚 6 琛?7 鍒椼€?
             const selectedValue = dateInput.value;
             const today = new Date();
             const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -801,9 +987,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * closePanel(fieldKey) - 关闭指定字段的浮层面板并恢复字段状态
-     * @param {string} fieldKey - 需要关闭的字段键名
-     * @returns {void} - 无返回值，直接关闭浮层
+     * closePanel(fieldKey) - 鍏抽棴鎸囧畾瀛楁鐨勬诞灞傞潰鏉垮苟鎭㈠瀛楁鐘舵€?
+     * @param {string} fieldKey - 闇€瑕佸叧闂殑瀛楁閿悕
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍏抽棴娴眰
      */
     function closePanel(fieldKey) {
         const config = fieldMap[fieldKey];
@@ -845,13 +1031,13 @@ function setupPlannerSummary() {
                 floatingLayer.setAttribute('aria-hidden', 'true');
             }
         }, 220);
-        // 这里不立刻 hidden，而是等退场动画播完再藏。
-        // 否则视觉上会像瞬间消失，失去“浮层收回海里”的过渡感。
+        // 杩欓噷涓嶇珛鍒?hidden锛岃€屾槸绛夐€€鍦哄姩鐢绘挱瀹屽啀钘忋€?
+        // 鍚﹀垯瑙嗚涓婁細鍍忕灛闂存秷澶憋紝澶卞幓鈥滄诞灞傛敹鍥炴捣閲屸€濈殑杩囨浮鎰熴€?
     }
 
     /**
-     * closeActivePanel() - 关闭当前处于打开状态的浮层面板
-     * @returns {void} - 无返回值，直接关闭当前浮层
+     * closeActivePanel() - 鍏抽棴褰撳墠澶勪簬鎵撳紑鐘舵€佺殑娴眰闈㈡澘
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍏抽棴褰撳墠娴眰
      */
     function closeActivePanel() {
         if (!activePanelKey) {
@@ -862,9 +1048,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * openPanel(fieldKey) - 打开指定字段的浮层面板，并自动关闭其它面板
-     * @param {string} fieldKey - 需要打开的字段键名
-     * @returns {void} - 无返回值，直接展开浮层
+     * openPanel(fieldKey) - 鎵撳紑鎸囧畾瀛楁鐨勬诞灞傞潰鏉匡紝骞惰嚜鍔ㄥ叧闂叾瀹冮潰鏉?
+     * @param {string} fieldKey - 闇€瑕佹墦寮€鐨勫瓧娈甸敭鍚?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴灞曞紑娴眰
      */
     function openPanel(fieldKey) {
         Object.keys(fieldMap).forEach((key) => {
@@ -886,8 +1072,8 @@ function setupPlannerSummary() {
         if (config.panel.parentElement !== floatingLayer) {
             floatingLayer.appendChild(config.panel);
         }
-        // 把浮层移动到页面最高层承载容器里，而不是留在字段内部。
-        // 这样即使字段父层有 transform / overflow，也不会把浮层截断。
+        // 鎶婃诞灞傜Щ鍔ㄥ埌椤甸潰鏈€楂樺眰鎵胯浇瀹瑰櫒閲岋紝鑰屼笉鏄暀鍦ㄥ瓧娈靛唴閮ㄣ€?
+        // 杩欐牱鍗充娇瀛楁鐖跺眰鏈?transform / overflow锛屼篃涓嶄細鎶婃诞灞傛埅鏂€?
 
         floatingLayer.hidden = false;
         floatingLayer.setAttribute('aria-hidden', 'false');
@@ -909,14 +1095,14 @@ function setupPlannerSummary() {
             config.panel.classList.add('is-open');
             schedulePanelPosition();
         });
-        // 先让浏览器知道“它已经显示了”，下一帧再计算位置和加打开态，
-        // 才能拿到真实尺寸并让透明度/位移动画顺畅发生。
+        // 鍏堣娴忚鍣ㄧ煡閬撯€滃畠宸茬粡鏄剧ず浜嗏€濓紝涓嬩竴甯у啀璁＄畻浣嶇疆鍜屽姞鎵撳紑鎬侊紝
+        // 鎵嶈兘鎷垮埌鐪熷疄灏哄骞惰閫忔槑搴?浣嶇Щ鍔ㄧ敾椤虹晠鍙戠敓銆?
     }
 
     /**
-     * jumpToPlannerField(fieldKey) - 从“已收进行程”的信息块直接带用户跳到对应 Planner 字段
-     * @param {'date'|'people'|'spot'} fieldKey - 需要展开的字段键名
-     * @returns {void} - 无返回值，直接滚动并展开对应浮层
+     * jumpToPlannerField(fieldKey) - 浠庘€滃凡鏀惰繘琛岀▼鈥濈殑淇℃伅鍧楃洿鎺ュ甫鐢ㄦ埛璺冲埌瀵瑰簲 Planner 瀛楁
+     * @param {'date'|'people'|'spot'} fieldKey - 闇€瑕佸睍寮€鐨勫瓧娈甸敭鍚?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴婊氬姩骞跺睍寮€瀵瑰簲娴眰
      */
     function jumpToPlannerField(fieldKey) {
         const config = fieldMap[fieldKey];
@@ -934,10 +1120,10 @@ function setupPlannerSummary() {
     }
 
     /**
-     * setOptionState(fieldKey, option) - 将海域或人数选项写回字段与摘要
-     * @param {string} fieldKey - 字段键名
-     * @param {HTMLElement} option - 当前选中的选项按钮
-     * @returns {void} - 无返回值，直接刷新字段显示
+     * setOptionState(fieldKey, option) - 灏嗘捣鍩熸垨浜烘暟閫夐」鍐欏洖瀛楁涓庢憳瑕?
+     * @param {string} fieldKey - 瀛楁閿悕
+     * @param {HTMLElement} option - 褰撳墠閫変腑鐨勯€夐」鎸夐挳
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍒锋柊瀛楁鏄剧ず
      */
     function setOptionState(fieldKey, option) {
         const config = fieldMap[fieldKey];
@@ -959,8 +1145,8 @@ function setupPlannerSummary() {
     }
 
     /**
-     * getCustomPeopleCount() - 读取当前字段里是否已经存在“非预设人数”的自定义值
-     * @returns {string} - 当前自定义人数，没有则返回空字符串
+     * getCustomPeopleCount() - 璇诲彇褰撳墠瀛楁閲屾槸鍚﹀凡缁忓瓨鍦ㄢ€滈潪棰勮浜烘暟鈥濈殑鑷畾涔夊€?
+     * @returns {string} - 褰撳墠鑷畾涔変汉鏁帮紝娌℃湁鍒欒繑鍥炵┖瀛楃涓?
      */
     function getCustomPeopleCount() {
         const currentValue = String(peopleInput.value || '').trim();
@@ -977,8 +1163,8 @@ function setupPlannerSummary() {
     }
 
     /**
-     * hideCustomPeopleEditor() - 收起自定义人数编辑区，避免它在关闭浮层后残留
-     * @returns {void} - 无返回值，直接更新浮层内部状态
+     * hideCustomPeopleEditor() - 鏀惰捣鑷畾涔変汉鏁扮紪杈戝尯锛岄伩鍏嶅畠鍦ㄥ叧闂诞灞傚悗娈嬬暀
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊娴眰鍐呴儴鐘舵€?
      */
     function hideCustomPeopleEditor() {
         customPeopleBox.hidden = true;
@@ -986,9 +1172,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * showCustomPeopleEditor(prefillValue) - 展开自定义人数输入区，并用已有人数预填
-     * @param {string} prefillValue - 预填的人数值
-     * @returns {void} - 无返回值，直接展开编辑区
+     * showCustomPeopleEditor(prefillValue) - 灞曞紑鑷畾涔変汉鏁拌緭鍏ュ尯锛屽苟鐢ㄥ凡鏈変汉鏁伴濉?
+     * @param {string} prefillValue - 棰勫～鐨勪汉鏁板€?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴灞曞紑缂栬緫鍖?
      */
     function showCustomPeopleEditor(prefillValue) {
         customPeopleBox.hidden = false;
@@ -1001,8 +1187,8 @@ function setupPlannerSummary() {
     }
 
     /**
-     * applyCustomPeopleValue() - 把自定义人数写回字段、摘要和已收进行程
-     * @returns {void} - 无返回值，直接更新当前 Planner 状态
+     * applyCustomPeopleValue() - 鎶婅嚜瀹氫箟浜烘暟鍐欏洖瀛楁銆佹憳瑕佸拰宸叉敹杩涜绋?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊褰撳墠 Planner 鐘舵€?
      */
     function applyCustomPeopleValue() {
         const customValue = String(customPeopleInput.value || '').trim();
@@ -1017,8 +1203,8 @@ function setupPlannerSummary() {
         }
 
         peopleInput.value = String(parsed);
-        peopleInput.dataset.label = `${parsed} 人同行`;
-        peopleInput.dataset.note = `这次下潜按 ${parsed} 人的同行节奏安排。`;
+        peopleInput.dataset.label = `${parsed} 浜哄悓琛宍;
+        peopleInput.dataset.note = `杩欐涓嬫綔鎸?${parsed} 浜虹殑鍚岃鑺傚瀹夋帓銆俙;
         peopleValue.textContent = peopleInput.dataset.label;
         peopleHint.textContent = peopleInput.dataset.note;
         peopleField.classList.add('is-active');
@@ -1034,9 +1220,9 @@ function setupPlannerSummary() {
     }
 
     /**
-     * selectCalendarDate(value) - 选中某一天并同步回写到字段与摘要
-     * @param {string} value - 选中的日期值
-     * @returns {void} - 无返回值，直接更新日期状态
+     * selectCalendarDate(value) - 閫変腑鏌愪竴澶╁苟鍚屾鍥炲啓鍒板瓧娈典笌鎽樿
+     * @param {string} value - 閫変腑鐨勬棩鏈熷€?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊鏃ユ湡鐘舵€?
      */
     function selectCalendarDate(value) {
         dateInput.value = value;
@@ -1052,37 +1238,85 @@ function setupPlannerSummary() {
     }
 
     /**
-     * updatePlannerSummary() - 根据当前字段值刷新左侧摘要区
-     * @returns {void} - 无返回值，直接更新摘要文案
+     * updatePlannerSummary() - 鏍规嵁褰撳墠瀛楁鍊煎埛鏂板乏渚ф憳瑕佸尯
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊鎽樿鏂囨
      */
     function updatePlannerSummary() {
         const spotLabel = spotInput.dataset.label || summaryMetaMap.spot.emptyValue;
         const peopleLabel = peopleInput.dataset.label || summaryMetaMap.people.emptyValue;
         const dateLabel = formatPlannerDate(dateInput.value);
+        const hasSpot = Boolean(spotInput.value);
+        const hasDate = Boolean(dateInput.value);
+        const hasPeople = Boolean(peopleInput.value);
+        const isConfirmed = hasSpot && hasDate && hasPeople;
+
+        const nextValues = {
+            spot: spotLabel,
+            date: dateLabel,
+            people: peopleLabel
+        };
 
         summaryMetaMap.spot.valueNode.textContent = spotLabel;
-        summaryMetaMap.spot.metaNode.textContent = spotInput.value
+        summaryMetaMap.spot.metaNode.textContent = hasSpot
             ? summaryMetaMap.spot.filledMeta
             : summaryMetaMap.spot.emptyMeta;
-        summaryMetaMap.spot.stateNode.textContent = spotInput.value
+        summaryMetaMap.spot.stateNode.textContent = hasSpot
             ? summaryMetaMap.spot.filledState
             : summaryMetaMap.spot.emptyState;
 
         summaryMetaMap.date.valueNode.textContent = dateLabel;
-        summaryMetaMap.date.metaNode.textContent = dateInput.value
+        summaryMetaMap.date.metaNode.textContent = hasDate
             ? summaryMetaMap.date.filledMeta
             : summaryMetaMap.date.emptyMeta;
-        summaryMetaMap.date.stateNode.textContent = dateInput.value
+        summaryMetaMap.date.stateNode.textContent = hasDate
             ? summaryMetaMap.date.filledState
             : summaryMetaMap.date.emptyState;
 
         summaryMetaMap.people.valueNode.textContent = peopleLabel;
-        summaryMetaMap.people.metaNode.textContent = peopleInput.value
+        summaryMetaMap.people.metaNode.textContent = hasPeople
             ? summaryMetaMap.people.filledMeta
             : summaryMetaMap.people.emptyMeta;
-        summaryMetaMap.people.stateNode.textContent = peopleInput.value
+        summaryMetaMap.people.stateNode.textContent = hasPeople
             ? summaryMetaMap.people.filledState
             : summaryMetaMap.people.emptyState;
+
+        summaryItems[0]?.classList.toggle('is-confirmed', hasSpot);
+        summaryItems[1]?.classList.toggle('is-confirmed', hasDate);
+        summaryItems[2]?.classList.toggle('is-confirmed', hasPeople);
+        summaryRoot.classList.toggle('is-confirmed', isConfirmed);
+
+        summaryIntro.textContent = isConfirmed
+            ? '娴峰煙銆佹椂闂翠笌鍚岃鑺傚閮藉凡缁忚鍐欒繘鏉ワ紝杩欎竴娼滄瀹夐潤鍦板仠鍦ㄥ嚭鍙戝墠銆?
+            : '褰撴捣鍩熴€佹椂闂翠笌鍚岃鑺傚琚‘璁や笅鏉ワ紝杩欐涓嬫綔灏变細瀹夐潤鍦板仠鍦ㄨ繖閲岋紝绛夌潃鐪熸鍑哄彂銆?;
+
+        summaryStatusNote.textContent = isConfirmed
+            ? '杩欐涓嬫綔宸茬粡鏈変簡娓呮鐨勮疆寤擄紝鎺ヤ笅鏉ュ彧绛夌湡姝ｅ嚭鍙戙€?
+            : '杩欐涓嬫綔杩樺湪鏁寸悊杞粨锛屽厛鎶婃捣鍩熴€佹椂闂村拰鍚岃鎱㈡參瀹氫笅鏉ャ€?;
+
+        if (summaryPreviousValues.spot && summaryPreviousValues.spot !== nextValues.spot) {
+            pulsePlannerSummaryItem(summaryItems[0]);
+        }
+
+        if (summaryPreviousValues.date && summaryPreviousValues.date !== nextValues.date) {
+            pulsePlannerSummaryItem(summaryItems[1]);
+        }
+
+        if (summaryPreviousValues.people && summaryPreviousValues.people !== nextValues.people) {
+            pulsePlannerSummaryItem(summaryItems[2]);
+        }
+
+        if (isConfirmed && (!summaryWasConfirmed || (
+            summaryPreviousValues.spot !== nextValues.spot
+            || summaryPreviousValues.date !== nextValues.date
+            || summaryPreviousValues.people !== nextValues.people
+        ))) {
+            pulsePlannerSummaryRoot();
+        }
+
+        summaryPreviousValues.spot = nextValues.spot;
+        summaryPreviousValues.date = nextValues.date;
+        summaryPreviousValues.people = nextValues.people;
+        summaryWasConfirmed = isConfirmed;
 
         if (store && typeof store.savePlannerDraft === 'function') {
             store.savePlannerDraft({
@@ -1100,8 +1334,8 @@ function setupPlannerSummary() {
     }
 
     /**
-     * commitPlannerDeskSelection() - 把当前 Planner Desk 的最新选择立即同步到已收进行程
-     * @returns {void} - 无返回值，直接更新共享存储并刷新列表
+     * commitPlannerDeskSelection() - 鎶婂綋鍓?Planner Desk 鐨勬渶鏂伴€夋嫨绔嬪嵆鍚屾鍒板凡鏀惰繘琛岀▼
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊鍏变韩瀛樺偍骞跺埛鏂板垪琛?
      */
     function commitPlannerDeskSelection() {
         syncPlannerSelectionToConfirmedBookings({
@@ -1117,8 +1351,8 @@ function setupPlannerSummary() {
     }
 
     /**
-     * restorePlannerDraft() - 从共享存储中回填 Planner Desk 之前保存的草稿
-     * @returns {void} - 无返回值，直接同步字段当前状态
+     * restorePlannerDraft() - 浠庡叡浜瓨鍌ㄤ腑鍥炲～ Planner Desk 涔嬪墠淇濆瓨鐨勮崏绋?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍚屾瀛楁褰撳墠鐘舵€?
      */
     function restorePlannerDraft() {
         if (!store || typeof store.getPlannerDraft !== 'function') {
@@ -1131,8 +1365,12 @@ function setupPlannerSummary() {
             syncSpotOptionsFromBookings(null, true);
             return;
         }
-        const storedPeople = peopleOptions.find((option) => option.dataset.value === draft.peopleValue)
-            || (draft.peopleValue
+
+        const peopleDraftValue = String(draft.peopleValue || '').trim();
+        const parsedCustomPeople = Number.parseInt(peopleDraftValue, 10);
+        const hasValidCustomPeople = Number.isFinite(parsedCustomPeople) && parsedCustomPeople > 0;
+        const storedPeople = peopleOptions.find((option) => option.dataset.value === peopleDraftValue)
+            || (peopleDraftValue
                 ? peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]')
                 : null)
             || peopleOptions.find((option) => option.dataset.value === '')
@@ -1140,10 +1378,10 @@ function setupPlannerSummary() {
 
         syncSpotOptionsFromBookings(draft, true);
 
-        if (storedPeople && storedPeople.dataset.value === 'custom' && draft.peopleValue) {
-            peopleInput.value = String(draft.peopleValue).trim();
-            peopleInput.dataset.label = draft.peopleLabel || `${draft.peopleValue} 人同行`;
-            peopleInput.dataset.note = draft.peopleNote || `这次下潜按 ${draft.peopleValue} 人的同行节奏安排。`;
+        if (storedPeople && storedPeople.dataset.value === 'custom' && hasValidCustomPeople) {
+            peopleInput.value = String(parsedCustomPeople);
+            peopleInput.dataset.label = draft.peopleLabel || `${parsedCustomPeople} 人同行`;
+            peopleInput.dataset.note = draft.peopleNote || `这次下潜按 ${parsedCustomPeople} 人的同行节奏安排。`;
             peopleValue.textContent = peopleInput.dataset.label;
             peopleHint.textContent = peopleInput.dataset.note;
             peopleField.classList.add('is-active');
@@ -1154,17 +1392,13 @@ function setupPlannerSummary() {
             setOptionState('people', storedPeople);
         }
 
-        if (draft.dateValue) {
-            dateInput.value = draft.dateValue;
-        }
-
+        dateInput.value = isValidPlannerDateValue(draft.dateValue) ? draft.dateValue : '';
         calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
         syncDateFieldDisplay();
     }
-
     const peopleOptions = Array.from(peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]'));
 
-    // 三个字段都采用“再点一次自己就收起”的切换规则，减少手机端多余操作。
+    // 涓変釜瀛楁閮介噰鐢ㄢ€滃啀鐐逛竴娆¤嚜宸卞氨鏀惰捣鈥濈殑鍒囨崲瑙勫垯锛屽噺灏戞墜鏈虹澶氫綑鎿嶄綔銆?
     spotTrigger.addEventListener('click', () => {
         if (activePanelKey === 'spot') {
             closePanel('spot');
@@ -1262,6 +1496,10 @@ function setupPlannerSummary() {
 
     submitButton.addEventListener('click', (event) => {
         event.preventDefault();
+        // 在继续往下进入更深一层之前，再完整收一次当前这一层的行程草稿。
+        // 这样即使用户只是点击按钮离开 trip 页，回来时也能恢复同一份状态。
+        updatePlannerSummary();
+        commitPlannerDeskSelection();
         closeActivePanel();
         scrollToSection(submitButton.dataset.scrollTarget || '#trip-layer', 1640);
     });
@@ -1276,19 +1514,19 @@ function setupPlannerSummary() {
 
         closeActivePanel();
     });
-    // 点击页面空白处时关闭浮层，避免浮层长时间悬在页面上打断阅读。
+    // 鐐瑰嚮椤甸潰绌虹櫧澶勬椂鍏抽棴娴眰锛岄伩鍏嶆诞灞傞暱鏃堕棿鎮湪椤甸潰涓婃墦鏂槄璇汇€?
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             closeActivePanel();
         }
     });
-    // ESC 是最自然的“收起浮层”键盘语义，也补上桌面端可访问性。
+    // ESC 鏄渶鑷劧鐨勨€滄敹璧锋诞灞傗€濋敭鐩樿涔夛紝涔熻ˉ涓婃闈㈢鍙闂€с€?
 
     window.addEventListener('resize', schedulePanelPosition);
     window.addEventListener('scroll', schedulePanelPosition, { passive: true });
-    // 视口变化或页面滚动后，字段按钮的位置会变，所以要重新定位浮层。
-    // 这里不直接关闭，而是尽量让浮层继续跟着目标字段。
+    // 瑙嗗彛鍙樺寲鎴栭〉闈㈡粴鍔ㄥ悗锛屽瓧娈垫寜閽殑浣嶇疆浼氬彉锛屾墍浠ヨ閲嶆柊瀹氫綅娴眰銆?
+    // 杩欓噷涓嶇洿鎺ュ叧闂紝鑰屾槸灏介噺璁╂诞灞傜户缁窡鐫€鐩爣瀛楁銆?
 
     const defaultPeopleOption = peoplePanel.querySelector('.planner-option.is-selected') || peopleOptions[0];
 
@@ -1297,7 +1535,7 @@ function setupPlannerSummary() {
     floatingLayer.appendChild(peoplePanel);
     floatingLayer.hidden = true;
     floatingLayer.setAttribute('aria-hidden', 'true');
-    // 初始化时就先把三个面板搬进统一浮层容器，后面打开时只需要改状态，不再反复找位置。
+    // 鍒濆鍖栨椂灏卞厛鎶婁笁涓潰鏉挎惉杩涚粺涓€娴眰瀹瑰櫒锛屽悗闈㈡墦寮€鏃跺彧闇€瑕佹敼鐘舵€侊紝涓嶅啀鍙嶅鎵句綅缃€?
 
     calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
 
@@ -1316,12 +1554,12 @@ function setupPlannerSummary() {
     };
 }
 
-// 潜前准备系统：
-// 左侧是主题卡片，右侧是详情面板。
-// 它的核心不是“展开收起更多文字”，而是用更平静的节奏把准备事项逐层摊开。
+// 娼滃墠鍑嗗绯荤粺锛?
+// 宸︿晶鏄富棰樺崱鐗囷紝鍙充晶鏄鎯呴潰鏉裤€?
+// 瀹冪殑鏍稿績涓嶆槸鈥滃睍寮€鏀惰捣鏇村鏂囧瓧鈥濓紝鑰屾槸鐢ㄦ洿骞抽潤鐨勮妭濂忔妸鍑嗗浜嬮」閫愬眰鎽婂紑銆?
 class PrepSystem {
     /**
-     * constructor() - 初始化准备系统所需的卡片、面板和默认激活项
+     * constructor() - 鍒濆鍖栧噯澶囩郴缁熸墍闇€鐨勫崱鐗囥€侀潰鏉垮拰榛樿婵€娲婚」
      */
     constructor() {
         this.cards = Array.from(document.querySelectorAll('[data-prep-card]'));
@@ -1341,8 +1579,8 @@ class PrepSystem {
     }
 
     /**
-     * bindEvents() - 绑定准备卡切换和二级帮助面板展开事件
-     * @returns {void} - 无返回值，直接注册事件监听
+     * bindEvents() - 缁戝畾鍑嗗鍗″垏鎹㈠拰浜岀骇甯姪闈㈡澘灞曞紑浜嬩欢
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴娉ㄥ唽浜嬩欢鐩戝惉
      */
     bindEvents() {
         this.cards.forEach((card) => {
@@ -1373,9 +1611,9 @@ class PrepSystem {
     }
 
     /**
-     * open(key) - 打开指定准备主题并刷新右侧详情面板
-     * @param {string} key - 需要打开的准备主题键名
-     * @returns {void} - 无返回值，直接更新卡片和面板状态
+     * open(key) - 鎵撳紑鎸囧畾鍑嗗涓婚骞跺埛鏂板彸渚ц鎯呴潰鏉?
+     * @param {string} key - 闇€瑕佹墦寮€鐨勫噯澶囦富棰橀敭鍚?
+     * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊鍗＄墖鍜岄潰鏉跨姸鎬?
      */
     open(key) {
         if (!key || !PREP_CONTENT[key]) {
@@ -1417,28 +1655,28 @@ class PrepSystem {
                 this.panel.classList.add('is-visible');
             });
         });
-        // 连续两帧 requestAnimationFrame 是为了确保：
-        // 1. 新内容先插入 DOM
-        // 2. 浏览器先完成一次布局
-        // 3. 再触发可见状态，让入场动画稳定生效
+        // 杩炵画涓ゅ抚 requestAnimationFrame 鏄负浜嗙‘淇濓細
+        // 1. 鏂板唴瀹瑰厛鎻掑叆 DOM
+        // 2. 娴忚鍣ㄥ厛瀹屾垚涓€娆″竷灞€
+        // 3. 鍐嶈Е鍙戝彲瑙佺姸鎬侊紝璁╁叆鍦哄姩鐢荤ǔ瀹氱敓鏁?
     }
 }
 
-// 已收进行程区域配置：统一控制空状态文案与缺省字段的盐憩语气。
+// 宸叉敹杩涜绋嬪尯鍩熼厤缃細缁熶竴鎺у埗绌虹姸鎬佹枃妗堜笌缂虹渷瀛楁鐨勭洂鎲╄姘斻€?
 const CONFIRMED_BOOKING_COPY = Object.freeze({
-    emptyDate: '仍在等一段合适的潮汐',
-    emptyPeople: '同行节奏还没写进这一潜',
-    emptyTagline: '这片海已经被收下，接下来只等节奏慢慢靠拢。',
-    emptyNote: '这次下潜已经停进行程里，接下来可以继续整理日期、同行与海况窗口。'
+    emptyDate: '浠嶅湪绛変竴娈靛悎閫傜殑娼睈',
+    emptyPeople: '鍚岃鑺傚杩樻病鍐欒繘杩欎竴娼?,
+    emptyTagline: '杩欑墖娴峰凡缁忚鏀朵笅锛屾帴涓嬫潵鍙瓑鑺傚鎱㈡參闈犳嫝銆?,
+    emptyNote: '杩欐涓嬫綔宸茬粡鍋滆繘琛岀▼閲岋紝鎺ヤ笅鏉ュ彲浠ョ户缁暣鐞嗘棩鏈熴€佸悓琛屼笌娴峰喌绐楀彛銆?
 });
 
 const CONFIRMED_BOOKINGS_PAGE_SIZE = 4;
 let confirmedBookingsPageIndex = 0;
 
 /**
- * escapeHtml(value) - 转义动态文本，避免行程卡片渲染时插入不安全内容
- * @param {*} value - 原始文本值
- * @returns {string} - 转义后的安全字符串
+ * escapeHtml(value) - 杞箟鍔ㄦ€佹枃鏈紝閬垮厤琛岀▼鍗＄墖娓叉煋鏃舵彃鍏ヤ笉瀹夊叏鍐呭
+ * @param {*} value - 鍘熷鏂囨湰鍊?
+ * @returns {string} - 杞箟鍚庣殑瀹夊叏瀛楃涓?
  */
 function escapeHtml(value) {
     return String(value ?? '')
@@ -1450,17 +1688,48 @@ function escapeHtml(value) {
 }
 
 /**
- * getTripStore() - 获取共享的盐憩行程存储实例
- * @returns {Object|null} - 共享存储对象或空值
+ * getTripStore() - 鑾峰彇鍏变韩鐨勭洂鎲╄绋嬪瓨鍌ㄥ疄渚?
+ * @returns {Object|null} - 鍏变韩瀛樺偍瀵硅薄鎴栫┖鍊?
  */
 function getTripStore() {
     return window.YanqiTripStore || null;
 }
 
+let confirmedBookingsTextLayoutController = null;
+
 /**
- * getConfirmedBookingSortValue(booking) - 计算已收进行程卡片的排序值，优先让更早的日期先出现
- * @param {Object} booking - 已确认套餐对象
- * @returns {number} - 用于排序的时间戳，越小越靠前；无日期则排到最后
+ * syncConfirmedBookingsTextLayout() - 鐢?pretext 棰勬祴鈥滃凡鏀惰繘琛岀▼鈥濆崱鐗囬噷鐨勫琛屾枃鏈珮搴︺€? * 杩欓噷浼樺厛绋冲畾鏍囬銆佹捣鍩熷壇鏂囨鍜屽椁愯鏄庯紝閬垮厤涓嶅悓娴峰煙鏂囨湰闀跨煭涓嶄竴鏃跺嚭鐜板崱鐗囬珮搴﹁烦鍔ㄣ€? *
+ * 杩欎竴灞傚彧鍦ㄢ€滃凡鏀惰繘琛岀▼鈥濆尯鎺ュ叆锛屾槸鍥犱负锛? * 1. 瀹冩槸鍔ㄦ€佹覆鏌撳垪琛紝鏂囨湰闀垮害鍙樺寲鏈€澶э紱
+ * 2. 鐢ㄦ埛浼氶绻佷慨鏀规棩鏈?/ 浜烘暟骞惰Е鍙戦噸娓叉煋锛? * 3. 杩欓噷鎻愬墠鎷垮埌鏂囨湰楂樺害锛屾敹鐩婃瘮鍦ㄩ潤鎬佹钀介噷鏇撮珮銆? *
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊褰撳墠鍒楄〃閲岀殑鏂囨湰鍧楁渶灏忛珮搴︺€? */
+function syncConfirmedBookingsTextLayout() {
+    const list = document.getElementById('confirmedBookingsList');
+    const textLayout = window.YanqiTextLayout;
+
+    confirmedBookingsTextLayoutController?.disconnect?.();
+    confirmedBookingsTextLayoutController = null;
+
+    if (!list || !textLayout || typeof textLayout.mountResponsiveBatch !== 'function' || !list.children.length) {
+        return;
+    }
+
+    confirmedBookingsTextLayoutController = textLayout.mountResponsiveBatch(list, [
+        {
+            selector: '.confirmed-booking-spot'
+        },
+        {
+            selector: '.confirmed-booking-tagline'
+        },
+        {
+            selector: '.confirmed-booking-note'
+        }
+    ]);
+}
+
+/**
+ * getConfirmedBookingSortValue(booking) - 璁＄畻宸叉敹杩涜绋嬪崱鐗囩殑鎺掑簭鍊硷紝浼樺厛璁╂洿鏃╃殑鏃ユ湡鍏堝嚭鐜?
+ * @param {Object} booking - 宸茬‘璁ゅ椁愬璞?
+ * @returns {number} - 鐢ㄤ簬鎺掑簭鐨勬椂闂存埑锛岃秺灏忚秺闈犲墠锛涙棤鏃ユ湡鍒欐帓鍒版渶鍚?
  */
 function getConfirmedBookingSortValue(booking) {
     const rawDate = String(booking?.selectedDate || '').trim();
@@ -1473,9 +1742,9 @@ function getConfirmedBookingSortValue(booking) {
 }
 
 /**
- * sortConfirmedBookings(bookings) - 对已收进行程列表做稳定排序，优先展示日期更早的安排
- * @param {Array<Object>} bookings - 原始已确认套餐数组
- * @returns {Array<Object>} - 排序后的套餐数组
+ * sortConfirmedBookings(bookings) - 瀵瑰凡鏀惰繘琛岀▼鍒楄〃鍋氱ǔ瀹氭帓搴忥紝浼樺厛灞曠ず鏃ユ湡鏇存棭鐨勫畨鎺?
+ * @param {Array<Object>} bookings - 鍘熷宸茬‘璁ゅ椁愭暟缁?
+ * @returns {Array<Object>} - 鎺掑簭鍚庣殑濂楅鏁扮粍
  */
 function sortConfirmedBookings(bookings) {
     return [...bookings].sort((left, right) => {
@@ -1493,9 +1762,9 @@ function sortConfirmedBookings(bookings) {
 }
 
 /**
- * getPeopleCountFromSelectionValue(value) - 从同行人数字段中提取可用于价格换算的人数
- * @param {string} value - 原始同行人数值，例如 "2"、"3-5"、"6+"
- * @returns {number} - 可用于估算总价的人数，无法识别时回退为 1
+ * getPeopleCountFromSelectionValue(value) - 浠庡悓琛屼汉鏁板瓧娈典腑鎻愬彇鍙敤浜庝环鏍兼崲绠楃殑浜烘暟
+ * @param {string} value - 鍘熷鍚岃浜烘暟鍊硷紝渚嬪 "2"銆?3-5"銆?6+"
+ * @returns {number} - 鍙敤浜庝及绠楁€讳环鐨勪汉鏁帮紝鏃犳硶璇嗗埆鏃跺洖閫€涓?1
  */
 function getPeopleCountFromSelectionValue(value) {
     const safeValue = String(value || '').trim();
@@ -1508,7 +1777,7 @@ function getPeopleCountFromSelectionValue(value) {
         return Math.max(1, Number.parseInt(exactMatch[1], 10) || 1);
     }
 
-    const rangeMatch = safeValue.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+    const rangeMatch = safeValue.match(/^(\d+)\s*[-鈥揮\s*(\d+)$/);
     if (rangeMatch) {
         return Math.max(1, Number.parseInt(rangeMatch[1], 10) || 1);
     }
@@ -1522,9 +1791,9 @@ function getPeopleCountFromSelectionValue(value) {
 }
 
 /**
- * parseConfirmedBookingPrice(priceText) - 从展示价格中拆出货币符号与数值部分
- * @param {string} priceText - 价格文本，例如 "$2,563"
- * @returns {{currency: string, amount: number, fractionDigits: number}|null} - 可计算的价格对象
+ * parseConfirmedBookingPrice(priceText) - 浠庡睍绀轰环鏍间腑鎷嗗嚭璐у竵绗﹀彿涓庢暟鍊奸儴鍒?
+ * @param {string} priceText - 浠锋牸鏂囨湰锛屼緥濡?"$2,563"
+ * @returns {{currency: string, amount: number, fractionDigits: number}|null} - 鍙绠楃殑浠锋牸瀵硅薄
  */
 function parseConfirmedBookingPrice(priceText) {
     const safeText = String(priceText || '').trim();
@@ -1554,10 +1823,10 @@ function parseConfirmedBookingPrice(priceText) {
 }
 
 /**
- * formatConfirmedBookingAmount(amount, fractionDigits) - 把计算后的价格格式化回展示文本
- * @param {number} amount - 计算后的价格数值
- * @param {number} fractionDigits - 原始价格小数位数
- * @returns {string} - 格式化后的价格字符串
+ * formatConfirmedBookingAmount(amount, fractionDigits) - 鎶婅绠楀悗鐨勪环鏍兼牸寮忓寲鍥炲睍绀烘枃鏈?
+ * @param {number} amount - 璁＄畻鍚庣殑浠锋牸鏁板€?
+ * @param {number} fractionDigits - 鍘熷浠锋牸灏忔暟浣嶆暟
+ * @returns {string} - 鏍煎紡鍖栧悗鐨勪环鏍煎瓧绗︿覆
  */
 function formatConfirmedBookingAmount(amount, fractionDigits) {
     return amount.toLocaleString('en-US', {
@@ -1567,10 +1836,10 @@ function formatConfirmedBookingAmount(amount, fractionDigits) {
 }
 
 /**
- * formatConfirmedBookingCny(amount, fractionDigits) - 把换算后的人民币价格格式化成更适合阅读的文本
- * @param {number} amount - 人民币金额
- * @param {number} fractionDigits - 原价的小数位，用来决定是否保留角分
- * @returns {string} - 格式化后的人民币价格
+ * formatConfirmedBookingCny(amount, fractionDigits) - 鎶婃崲绠楀悗鐨勪汉姘戝竵浠锋牸鏍煎紡鍖栨垚鏇撮€傚悎闃呰鐨勬枃鏈?
+ * @param {number} amount - 浜烘皯甯侀噾棰?
+ * @param {number} fractionDigits - 鍘熶环鐨勫皬鏁颁綅锛岀敤鏉ュ喅瀹氭槸鍚︿繚鐣欒鍒?
+ * @returns {string} - 鏍煎紡鍖栧悗鐨勪汉姘戝竵浠锋牸
  */
 function formatConfirmedBookingCny(amount, fractionDigits) {
     const safeFractionDigits = fractionDigits > 0 ? Math.min(fractionDigits, 2) : 0;
@@ -1582,12 +1851,12 @@ function formatConfirmedBookingCny(amount, fractionDigits) {
 }
 
 /**
- * getConfirmedBookingPriceView(booking) - 根据同行人数返回行程卡片要显示的价格文本
- * @param {Object} booking - 已收进行程对象
- * @returns {{primary: string, secondary: string, cny: string}} - 主价格、人民币参考价与辅助说明
+ * getConfirmedBookingPriceView(booking) - 鏍规嵁鍚岃浜烘暟杩斿洖琛岀▼鍗＄墖瑕佹樉绀虹殑浠锋牸鏂囨湰
+ * @param {Object} booking - 宸叉敹杩涜绋嬪璞?
+ * @returns {{primary: string, secondary: string, cny: string}} - 涓讳环鏍笺€佷汉姘戝竵鍙傝€冧环涓庤緟鍔╄鏄?
  */
 function getConfirmedBookingPriceView(booking) {
-    const USD_TO_CNY_RATE = 10000 / 1451; // 与详情页保持同一套汇率：10000 人民币 ≈ 1451 美元
+    const USD_TO_CNY_RATE = 10000 / 1451; // 涓庤鎯呴〉淇濇寔鍚屼竴濂楁眹鐜囷細10000 浜烘皯甯?鈮?1451 缇庡厓
     const rawPrice = String(booking?.packagePrice || '').trim();
     const parsedPrice = parseConfirmedBookingPrice(rawPrice);
     const peopleCount = getPeopleCountFromSelectionValue(booking?.selectedPeople);
@@ -1603,7 +1872,7 @@ function getConfirmedBookingPriceView(booking) {
     const baseAmount = peopleCount > 1 ? parsedPrice.amount * peopleCount : parsedPrice.amount;
     const showCny = parsedPrice.currency.includes('$') || /USD/i.test(parsedPrice.currency);
     const cnyText = showCny
-        ? `约 ¥${formatConfirmedBookingCny(baseAmount * USD_TO_CNY_RATE, parsedPrice.fractionDigits)}`
+        ? `绾?楼${formatConfirmedBookingCny(baseAmount * USD_TO_CNY_RATE, parsedPrice.fractionDigits)}`
         : '';
 
     if (peopleCount <= 1) {
@@ -1617,8 +1886,8 @@ function getConfirmedBookingPriceView(booking) {
     const pricePrefix = parsedPrice.currency ? `${parsedPrice.currency}` : '';
     const selectionLabel = String(booking?.selectedPeopleLabel || '').trim();
     const secondary = /^\d+$/.test(String(booking?.selectedPeople || '').trim())
-        ? `${peopleCount} 人合计`
-        : `${selectionLabel || `${peopleCount} 人同行`}按 ${peopleCount} 人起算`;
+        ? `${peopleCount} 浜哄悎璁
+        : `${selectionLabel || `${peopleCount} 浜哄悓琛宍}鎸?${peopleCount} 浜鸿捣绠梎;
 
     return {
         primary: `${pricePrefix}${formatConfirmedBookingAmount(baseAmount, parsedPrice.fractionDigits)}`,
@@ -1628,9 +1897,9 @@ function getConfirmedBookingPriceView(booking) {
 }
 
 /**
- * syncPlannerSelectionToConfirmedBookings(selection) - 把当前 Planner Desk 的日期与同行写回已收进行程
- * @param {{spotValue: string, dateValue: string, dateLabel: string, peopleValue: string, peopleLabel: string}} selection - 当前控制台选择结果
- * @returns {Object[]} - 更新后的已收进行程列表
+ * syncPlannerSelectionToConfirmedBookings(selection) - 鎶婂綋鍓?Planner Desk 鐨勬棩鏈熶笌鍚岃鍐欏洖宸叉敹杩涜绋?
+ * @param {{spotValue: string, dateValue: string, dateLabel: string, peopleValue: string, peopleLabel: string}} selection - 褰撳墠鎺у埗鍙伴€夋嫨缁撴灉
+ * @returns {Object[]} - 鏇存柊鍚庣殑宸叉敹杩涜绋嬪垪琛?
  */
 function syncPlannerSelectionToConfirmedBookings(selection) {
     const store = getTripStore();
@@ -1672,9 +1941,9 @@ function syncPlannerSelectionToConfirmedBookings(selection) {
 }
 
 /**
- * buildConfirmedBookingCardMarkup(booking) - 生成单张已收进行程卡片的 HTML
- * @param {Object} booking - 已确认套餐对象
- * @returns {string} - 已收进行程卡片 HTML
+ * buildConfirmedBookingCardMarkup(booking) - 鐢熸垚鍗曞紶宸叉敹杩涜绋嬪崱鐗囩殑 HTML
+ * @param {Object} booking - 宸茬‘璁ゅ椁愬璞?
+ * @returns {string} - 宸叉敹杩涜绋嬪崱鐗?HTML
  */
 function buildConfirmedBookingCardMarkup(booking) {
     const safeTagline = booking.spotTagline || CONFIRMED_BOOKING_COPY.emptyTagline;
@@ -1687,11 +1956,11 @@ function buildConfirmedBookingCardMarkup(booking) {
         <article class="confirmed-booking-card" data-booking-id="${escapeHtml(booking.bookingId)}">
             <div class="confirmed-booking-top">
                 <div class="confirmed-booking-meta">
-                    <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '行程档案')}</p>
-                    <h3 class="confirmed-booking-spot">${escapeHtml(booking.spotName || '未命名海域')}</h3>
+                    <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '琛岀▼妗ｆ')}</p>
+                    <h3 class="confirmed-booking-spot">${escapeHtml(booking.spotName || '鏈懡鍚嶆捣鍩?)}</h3>
                     <p class="confirmed-booking-tagline">${escapeHtml(safeTagline)}</p>
                 </div>
-                <span class="confirmed-booking-chip">${escapeHtml(booking.packageTitle || '未命名套餐')}</span>
+                <span class="confirmed-booking-chip">${escapeHtml(booking.packageTitle || '鏈懡鍚嶅椁?)}</span>
             </div>
 
             <div class="confirmed-booking-body">
@@ -1715,28 +1984,28 @@ function buildConfirmedBookingCardMarkup(booking) {
                     type="button"
                     class="confirmed-booking-detail"
                     data-planner-field-target="date"
-                    aria-label="调整这次下潜的日期"
+                    aria-label="璋冩暣杩欐涓嬫綔鐨勬棩鏈?
                 >
-                    <span class="confirmed-booking-detail-label">日期</span>
+                    <span class="confirmed-booking-detail-label">鏃ユ湡</span>
                     <strong>${escapeHtml(safeDate)}</strong>
                 </button>
                 <button
                     type="button"
                     class="confirmed-booking-detail"
                     data-planner-field-target="people"
-                    aria-label="调整这次下潜的同行人数"
+                    aria-label="璋冩暣杩欐涓嬫綔鐨勫悓琛屼汉鏁?
                 >
-                    <span class="confirmed-booking-detail-label">同行</span>
+                    <span class="confirmed-booking-detail-label">鍚岃</span>
                     <strong>${escapeHtml(safePeople)}</strong>
                 </button>
             </div>
 
             <div class="confirmed-booking-actions">
                 <button type="button" class="confirmed-booking-link" data-detail-href="${escapeHtml(booking.detailHref || `detail.html?id=${booking.spotKey}`)}">
-                    回到这片海
+                    鍥炲埌杩欑墖娴?
                 </button>
                 <button type="button" class="confirmed-booking-remove" data-booking-id="${escapeHtml(booking.bookingId)}">
-                    从行程里移开
+                    浠庤绋嬮噷绉诲紑
                 </button>
             </div>
         </article>
@@ -1744,8 +2013,8 @@ function buildConfirmedBookingCardMarkup(booking) {
 }
 
 /**
- * renderConfirmedBookings() - 读取共享存储并刷新 trip 页“已收进行程”区域
- * @returns {void} - 无返回值，直接更新行程卡片列表
+ * renderConfirmedBookings() - 璇诲彇鍏变韩瀛樺偍骞跺埛鏂?trip 椤碘€滃凡鏀惰繘琛岀▼鈥濆尯鍩?
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鏇存柊琛岀▼鍗＄墖鍒楄〃
  */
 function renderConfirmedBookings() {
     const list = document.getElementById('confirmedBookingsList');
@@ -1760,6 +2029,8 @@ function renderConfirmedBookings() {
     if (!Array.isArray(bookings) || bookings.length === 0) {
         empty.hidden = false;
         list.innerHTML = '';
+        confirmedBookingsTextLayoutController?.disconnect?.();
+        confirmedBookingsTextLayoutController = null;
         confirmedBookingsPageIndex = 0;
         if (switchButton) {
             switchButton.hidden = true;
@@ -1774,6 +2045,7 @@ function renderConfirmedBookings() {
 
     empty.hidden = true;
     list.innerHTML = visibleBookings.map((booking) => buildConfirmedBookingCardMarkup(booking)).join('');
+    syncConfirmedBookingsTextLayout();
 
     if (switchButton) {
         switchButton.hidden = bookings.length <= CONFIRMED_BOOKINGS_PAGE_SIZE;
@@ -1781,8 +2053,8 @@ function renderConfirmedBookings() {
 }
 
 /**
- * setupConfirmedBookingsStage() - 绑定已收进行程区域的跳转与移除行为
- * @returns {void} - 无返回值，直接注册事件并完成初次渲染
+ * setupConfirmedBookingsStage() - 缁戝畾宸叉敹杩涜绋嬪尯鍩熺殑璺宠浆涓庣Щ闄よ涓?
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴娉ㄥ唽浜嬩欢骞跺畬鎴愬垵娆℃覆鏌?
  */
 function setupConfirmedBookingsStage() {
     const stage = document.getElementById('confirmedBookingsStage');
@@ -1837,14 +2109,14 @@ function setupConfirmedBookingsStage() {
     });
 }
 
-// 行程页初始化入口：统一启动导航、摘要卡、准备系统和头像返回逻辑。
+// 琛岀▼椤靛垵濮嬪寲鍏ュ彛锛氱粺涓€鍚姩瀵艰埅銆佹憳瑕佸崱銆佸噯澶囩郴缁熷拰澶村儚杩斿洖閫昏緫銆?
 /**
- * document DOMContentLoaded 回调 - 初始化行程页的导航、摘要卡和准备系统
- * @returns {void} - 无返回值，直接启动页面逻辑
+ * document DOMContentLoaded 鍥炶皟 - 鍒濆鍖栬绋嬮〉鐨勫鑸€佹憳瑕佸崱鍜屽噯澶囩郴缁?
+ * @returns {void} - 鏃犺繑鍥炲€硷紝鐩存帴鍚姩椤甸潰閫昏緫
  */
 document.addEventListener('DOMContentLoaded', () => {
     setupTripScrollLinks();
-    setupBackToTop();
+    new TripSeaGuide();
     setupPlannerSummary();
     setupConfirmedBookingsStage();
     if (window.YanqiTripStore) {
