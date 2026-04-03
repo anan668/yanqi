@@ -2041,9 +2041,25 @@ body.has-overlay-lock {
 
 /* 控制 .review-rating-stars 的布局、视觉和状态表现 */
 .review-rating-stars {
-    color: #f0b43c;
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
     font-size: 0.94rem;
     letter-spacing: 0.08em;
+    line-height: 1;
+    color: rgba(240, 180, 60, 0.24);
+}
+
+.review-rating-stars::after {
+    content: '★★★★★';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--rating-fill, 100%);
+    overflow: hidden;
+    white-space: nowrap;
+    color: #f0b43c;
+    text-shadow: 0 0 12px rgba(240, 180, 60, 0.18);
+    pointer-events: none;
 }
 
 /* 控制 .review-rating-score 的布局、视觉和状态表现 */
@@ -5117,9 +5133,25 @@ body.has-overlay-lock {
 
 /* 控制 .review-detail-rating-stars 的布局、视觉和状态表现 */
 .review-detail-rating-stars {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
     font-size: 1rem;
     letter-spacing: 0.12em;
+    line-height: 1;
+    color: rgba(242, 195, 96, 0.24);
+}
+
+.review-detail-rating-stars::after {
+    content: '★★★★★';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--rating-fill, 100%);
+    overflow: hidden;
+    white-space: nowrap;
     color: #f2c360;
+    text-shadow: 0 0 12px rgba(242, 195, 96, 0.22);
+    pointer-events: none;
 }
 
 /* 控制 .review-detail-rating-copy 的布局、视觉和状态表现 */

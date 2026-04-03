@@ -1859,7 +1859,7 @@ class DetailPage {
             ];
 
         if (this.spotId === 10) {
-            return [
+            return this.applyReviewRatingVariation([
                 {
                     id: 'review-1',
                     user: '第一夜的甲板',
@@ -1941,11 +1941,11 @@ class DetailPage {
                         { key: 'night-at-anchor', caption: '马尔代夫船宿 · 夜泊之前', position: '50% 52%' }
                     ])
                 }
-            ];
+            ]);
         }
 
         if (this.spotId === 9) {
-            return [
+            return this.applyReviewRatingVariation([
                 {
                     id: 'review-1',
                     user: '潮汐边的房间',
@@ -2027,10 +2027,10 @@ class DetailPage {
                         { key: 'sea-under-shade', caption: '马布岛 · 岛上学校', position: '52% 42%' }
                     ])
                 }
-            ];
+            ]);
         }
 
-        return [
+        return this.applyReviewRatingVariation([
             {
                 id: 'review-1',
                 user: '海面以下',
@@ -2108,7 +2108,76 @@ class DetailPage {
                     { key: 'morning-sea', caption: `${name} · 清晨海色`, position: '50% 32%' }
                 ])
             }
-        ];
+        ]);
+    }
+
+    /**
+     * createReviewRatingValues(reviewCount) - 为当前评论列表生成一组轻微浮动的高分评分
+     * @param {number} reviewCount - 当前评论数量
+     * @returns {number[]} - 一组 0 到 5 之间、保留一位小数的评分值
+     */
+    createReviewRatingValues(reviewCount) {
+        const baseRatings = [4.9, 4.8, 4.7, 4.9];
+        const offsets = [-0.1, 0, 0.1];
+        const ratingValues = Array.from({ length: reviewCount }, (_, index) => {
+            const baseRating = baseRatings[index % baseRatings.length];
+            const offset = offsets[Math.floor(Math.random() * offsets.length)];
+            return Math.min(5, Math.max(4.6, Number((baseRating + offset).toFixed(1))));
+        });
+
+        if (
+            reviewCount === baseRatings.length &&
+            ratingValues.every((ratingValue, index) => ratingValue === baseRatings[index])
+        ) {
+            ratingValues[ratingValues.length - 1] = 5.0;
+        }
+
+        return ratingValues;
+    }
+
+    /**
+     * applyReviewRatingVariation(reviews) - 为评论数据补上随机评分数值与展示文案
+     * @param {Array<Object>} reviews - 原始评论数据数组
+     * @returns {Array<Object>} - 带动态评分的新评论数据数组
+     */
+    applyReviewRatingVariation(reviews) {
+        const ratingValues = this.createReviewRatingValues(reviews.length);
+        return reviews.map((review, index) => ({
+            ...review,
+            ratingValue: ratingValues[index],
+            ratingScore: `${ratingValues[index].toFixed(1)} / 5`
+        }));
+    }
+
+    /**
+     * getReviewRatingValue(review) - 从评论数据里提取并钳制实际评分数值
+     * @param {Object} review - 当前评论数据对象
+     * @returns {number} - 0 到 5 之间的评分数值
+     */
+    getReviewRatingValue(review) {
+        const numericScore = Number.parseFloat(review?.ratingValue ?? review?.ratingScore);
+        if (Number.isFinite(numericScore)) {
+            return Math.min(Math.max(numericScore, 0), 5);
+        }
+
+        const fallbackStars = typeof review?.ratingStars === 'string'
+            ? (review.ratingStars.match(/★/g) || []).length
+            : 0;
+
+        return Math.min(Math.max(fallbackStars || 0, 0), 5);
+    }
+
+    /**
+     * createReviewRatingStarsMarkup(review, className) - 按实际评分生成支持小数填充的星级标记
+     * @param {Object} review - 当前评论数据对象
+     * @param {string} className - 星级容器类名
+     * @returns {string} - 星级 HTML 字符串
+     */
+    createReviewRatingStarsMarkup(review, className) {
+        const ratingValue = this.getReviewRatingValue(review);
+        const fillPercentage = ((ratingValue / 5) * 100).toFixed(2);
+
+        return `<span class="${className}" aria-hidden="true" style="--rating-fill: ${fillPercentage}%;">★★★★★</span>`;
     }
 
     // 页面主渲染：把当前潜点的标题、标签、介绍、地图、套餐和评论一次性同步到页面。
@@ -4386,7 +4455,7 @@ class DetailPage {
                             </div>
                         </div>
                         <div class="review-rating">
-                            <span class="review-rating-stars">${review.ratingStars}</span>
+                            ${this.createReviewRatingStarsMarkup(review, 'review-rating-stars')}
                             <span class="review-rating-score">${review.ratingScore}</span>
                         </div>
                     </header>
@@ -4684,7 +4753,7 @@ class DetailPage {
                         </div>
                     </div>
                     <div class="review-detail-rating">
-                        <span class="review-detail-rating-stars">${review.ratingStars}</span>
+                        ${this.createReviewRatingStarsMarkup(review, 'review-detail-rating-stars')}
                         <span class="review-detail-rating-copy">真实体验记录</span>
                     </div>
                 </header>
