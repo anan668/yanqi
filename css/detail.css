@@ -2122,6 +2122,10 @@ body.has-overlay-lock {
     transition: color 220ms ease, transform 220ms ease;
 }
 
+.review-expand[hidden] {
+    display: none !important;
+}
+
 /* .review-expand:hover 鼠标移入时的样式 */
 .review-expand:hover {
     color: #0f3c5e;
@@ -2515,204 +2519,339 @@ body.has-overlay-lock {
 
 /* 控制 .package-group 的布局、视觉和状态表现 */
 .package-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    gap: 14px;
 }
 
 /* 控制 .package-group-title 的布局、视觉和状态表现 */
 .package-group-title {
     margin: 0;
-    font-size: 0.78rem;
-    letter-spacing: 0.24em;
+    font-size: 0.74rem;
+    letter-spacing: 0.32em;
     text-transform: uppercase;
-    color: rgba(33, 86, 120, 0.58);
+    color: rgba(29, 80, 112, 0.48);
 }
 
 /* 控制 .package-card 的布局、视觉和状态表现 */
 .package-card {
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
     background:
-        linear-gradient(160deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.46)),
-        rgba(236, 248, 254, 0.72);
+        radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.84), transparent 28%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.82), rgba(244, 251, 255, 0.56) 42%, rgba(215, 233, 243, 0.44) 100%);
     padding: 18px;
-    border-radius: 22px;
-    border: 1px solid rgba(199, 220, 232, 0.84);
+    border-radius: 26px;
+    border: 1px solid rgba(187, 216, 230, 0.76);
     box-shadow:
-        0 14px 30px rgba(22, 55, 80, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.62);
-    transition: transform 280ms ease, box-shadow 280ms ease, border-color 280ms ease;
+        0 16px 34px rgba(15, 44, 67, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    transition:
+        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        box-shadow 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        border-color 380ms ease,
+        background 520ms ease,
+        filter 420ms ease;
     cursor: pointer;
     opacity: 0;
     animation: fadeInUp 0.64s ease-out forwards;
+}
+
+.package-card > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* .package-card::before 的前置装饰层 */
 .package-card::before {
     content: "";
     position: absolute;
-    inset: -30% -40%;
-    background: linear-gradient(120deg, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0) 62%);
-    transform: translateX(-30%);
+    inset: -22% -20% auto 34%;
+    height: 78%;
+    background:
+        radial-gradient(circle at 36% 34%, rgba(198, 235, 246, 0.5), transparent 42%),
+        radial-gradient(circle at 72% 26%, rgba(121, 190, 218, 0.18), transparent 34%);
+    opacity: 0.56;
+    pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    transition: opacity 520ms ease, transform 760ms cubic-bezier(0.18, 0.78, 0.22, 1);
+}
+
+.package-card::after {
+    content: "";
+    position: absolute;
+    inset: -26% -18%;
+    background:
+        linear-gradient(118deg, rgba(255, 255, 255, 0) 34%, rgba(255, 255, 255, 0.16) 49%, rgba(255, 255, 255, 0) 64%),
+        radial-gradient(circle at 16% 100%, rgba(111, 178, 206, 0.12), transparent 36%);
     opacity: 0;
     pointer-events: none;
-    transition: transform 540ms ease, opacity 280ms ease;
+    transform: translate3d(-8%, 10%, 0) scale(0.98);
+    transition: opacity 480ms ease, transform 760ms cubic-bezier(0.18, 0.78, 0.22, 1);
 }
 
 /* .package-card:hover 鼠标移入时的样式 */
 .package-card:hover {
-    transform: translateY(-4px);
+    transform: translate3d(0, -6px, 0);
     box-shadow:
-        0 18px 34px rgba(22, 55, 80, 0.12),
-        0 0 24px rgba(167, 214, 237, 0.08);
-    border-color: rgba(171, 209, 230, 0.96);
+        0 24px 46px rgba(12, 42, 63, 0.14),
+        0 0 24px rgba(148, 206, 230, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    border-color: rgba(164, 206, 226, 0.88);
+    filter: saturate(1.03);
 }
 
 /* .package-card:focus-visible 聚焦时的样式 */
 .package-card:focus-visible {
     outline: none;
-    transform: translateY(-2px);
-    border-color: rgba(149, 201, 228, 0.96);
+    transform: translate3d(0, -4px, 0);
+    border-color: rgba(150, 202, 227, 0.94);
     box-shadow:
-        0 18px 34px rgba(22, 55, 80, 0.12),
-        0 0 0 1px rgba(173, 216, 236, 0.72),
-        0 0 28px rgba(173, 216, 236, 0.12);
+        0 24px 46px rgba(12, 42, 63, 0.14),
+        0 0 0 1px rgba(173, 216, 236, 0.42),
+        0 0 30px rgba(152, 208, 229, 0.14);
 }
 
 /* .package-card.is-active 在对应状态下的样式 */
 .package-card.is-active {
     opacity: 1;
-    border-color: rgba(149, 201, 228, 0.96);
+    transform: translate3d(0, -8px, 0) scale(1.012);
+    background:
+        radial-gradient(circle at 14% 14%, rgba(214, 241, 250, 0.84), transparent 30%),
+        radial-gradient(circle at 84% 8%, rgba(131, 196, 222, 0.18), transparent 24%),
+        linear-gradient(160deg, rgba(252, 255, 255, 0.92), rgba(234, 247, 253, 0.72) 48%, rgba(211, 232, 242, 0.6) 100%);
+    border-color: rgba(153, 203, 224, 0.9);
     box-shadow:
-        0 18px 34px rgba(22, 55, 80, 0.12),
-        0 0 0 1px rgba(173, 216, 236, 0.72),
-        0 0 28px rgba(173, 216, 236, 0.12);
+        0 24px 48px rgba(9, 35, 54, 0.16),
+        0 0 26px rgba(141, 204, 227, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.package-card:hover::before,
+.package-card:focus-visible::before,
+.package-card.is-active::before {
+    opacity: 1;
+    transform: translate3d(4%, -2%, 0) scale(1.02);
+}
+
+.package-card:hover::after,
+.package-card:focus-visible::after,
+.package-card.is-active::after {
+    opacity: 1;
+    transform: translate3d(12%, -6%, 0) scale(1);
 }
 
 .package-card.is-originating {
     opacity: 0.22 !important;
-    transform: translate3d(0, 0, 0) scale(0.992) !important;
+    transform: translate3d(0, 0, 0) scale(0.994) !important;
     filter: saturate(0.82) brightness(0.98);
     box-shadow:
-        0 10px 22px rgba(22, 55, 80, 0.04),
+        0 12px 24px rgba(22, 55, 80, 0.05),
         0 0 0 1px rgba(173, 216, 236, 0.04) !important;
 }
 
 .itinerary-list.is-modal-open .package-card {
     animation: none !important;
     opacity: 1;
+    transform: none !important;
 }
 
 .itinerary-list.is-modal-open .package-card::before {
+    opacity: 0.28 !important;
+    transform: none !important;
+}
+
+.itinerary-list.is-modal-open .package-card::after {
     opacity: 0 !important;
     transform: none !important;
 }
 
 .itinerary-list.is-modal-open .package-card.is-active {
-    border-color: rgba(199, 220, 232, 0.84);
+    border-color: rgba(166, 209, 230, 0.24);
     box-shadow:
-        0 14px 30px rgba(22, 55, 80, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.62);
-}
-
-/* .package-card:hover::before 的前置装饰层 */
-.package-card:hover::before {
-    opacity: 1;
-    transform: translateX(20%);
+        0 18px 38px rgba(6, 20, 33, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* 控制 .package-card-head 的布局、视觉和状态表现 */
 .package-card-head {
+    display: grid;
+    gap: 16px;
+}
+
+.package-card-topline {
     display: flex;
-    flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 16px;
+    justify-content: space-between;
+    gap: 14px;
 }
 
 /* 控制 .package-card-badge 的布局、视觉和状态表现 */
 .package-card-badge {
     display: inline-flex;
     align-items: center;
-    justify-self: start;
-    min-width: max-content;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-size: 0.76rem;
-    letter-spacing: 0.12em;
+    width: fit-content;
+    padding: 0 12px 8px 0;
+    border-bottom: 1px solid rgba(159, 201, 220, 0.44);
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
     white-space: nowrap;
-    background: rgba(24, 83, 120, 0.12);
-    color: #1c567b;
-    border: 1px solid rgba(171, 209, 230, 0.78);
+    color: #184764;
+    transition: color 320ms ease, border-color 320ms ease;
 }
 
-/* 控制 .package-card-fit 的布局、视觉和状态表现 */
-.package-card-fit {
+.package-card-state-stack {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    min-width: 0;
+    justify-content: flex-end;
     gap: 8px;
-    justify-content: flex-start;
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 16px;
-    background:
-        linear-gradient(180deg, rgba(214, 233, 244, 0.34), rgba(166, 201, 220, 0.18)),
-        rgba(30, 72, 98, 0.18);
-    border: 1px solid rgba(199, 220, 232, 0.58);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
 }
 
-/* 取消上一版那条细竖线，避免视觉上像标签错位或布局 bug。 */
-.package-card-fit::before {
-    content: none;
-}
-
-/* 控制 .package-fit-chip 的布局、视觉和状态表现 */
-.package-fit-chip {
+.package-card-state {
     display: inline-flex;
     align-items: center;
-    flex: 0 1 auto;
-    max-width: 100%;
-    position: relative;
-    padding: 5px 12px 5px 16px;
-    border-radius: 0 999px 999px 0;
-    background: linear-gradient(180deg, rgba(53, 108, 141, 0.92), rgba(32, 78, 108, 0.9));
-    border: 1px solid rgba(174, 214, 232, 0.34);
-    box-shadow:
-        inset 0 1px 0 rgba(240, 248, 252, 0.12),
-        0 10px 22px rgba(7, 26, 39, 0.16);
-    color: #e5f3fa;
-    font-size: 0.74rem;
-    white-space: nowrap;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
-    clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%);
-    cursor: default;
+    min-height: 24px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(174, 211, 228, 0.34);
+    background: rgba(255, 255, 255, 0.24);
+    color: rgba(35, 79, 107, 0.64);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: opacity 320ms ease, transform 420ms cubic-bezier(0.18, 0.78, 0.22, 1), border-color 320ms ease, color 320ms ease, background-color 320ms ease;
 }
 
-/* 左侧的小圆点和切角一起形成“标签牌”感，降低按钮既视感。 */
-.package-fit-chip::before {
+.package-card-audience {
+    display: grid;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, rgba(248, 252, 255, 0.62), rgba(222, 239, 248, 0.34)),
+        rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(191, 219, 232, 0.54);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+    transition: background 360ms ease, border-color 360ms ease, box-shadow 360ms ease;
+}
+
+.package-card-section-label {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    font-size: 0.68rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(59, 95, 119, 0.6);
+    transition: color 320ms ease;
+}
+
+.package-card-audience-copy {
+    margin: 0;
+    color: #173f5a;
+    font-size: 1rem;
+    line-height: 1.6;
+    transition: color 320ms ease;
+}
+
+.package-tag-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.package-tag-cluster-fit {
+    gap: 10px;
+}
+
+.package-plate {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-height: 28px;
+    white-space: nowrap;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition:
+        transform 320ms ease,
+        border-color 320ms ease,
+        background-color 320ms ease,
+        color 320ms ease,
+        box-shadow 320ms ease,
+        opacity 320ms ease;
+}
+
+.package-plate-fit {
+    padding: 7px 14px;
+    clip-path: polygon(11px 0, 100% 0, calc(100% - 11px) 100%, 0 100%);
+    background:
+        linear-gradient(180deg, rgba(236, 248, 253, 0.82), rgba(207, 231, 242, 0.5)),
+        rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(157, 202, 223, 0.56);
+    color: #225977;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.62),
+        0 8px 18px rgba(23, 60, 84, 0.08);
+}
+
+.package-plate-rhythm {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px 6px 18px;
+    border-radius: 13px;
+    background: rgba(18, 76, 106, 0.08);
+    border: 1px solid rgba(162, 204, 223, 0.4);
+    color: #355b72;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.package-plate-rhythm::before {
     content: "";
     position: absolute;
-    left: 7px;
+    left: 8px;
     top: 50%;
     width: 4px;
     height: 4px;
     transform: translateY(-50%);
     border-radius: 50%;
-    background: rgba(220, 240, 248, 0.92);
-    box-shadow: 0 0 0 3px rgba(8, 35, 50, 0.24);
+    background: rgba(73, 121, 146, 0.68);
+    box-shadow: 0 0 0 3px rgba(188, 220, 232, 0.22);
+}
+
+.package-card:hover .package-plate,
+.package-card:hover .package-card-state,
+.package-card:focus-visible .package-plate,
+.package-card:focus-visible .package-card-state {
+    transform: translate3d(0, -1px, 0);
 }
 
 /* 控制 .package-card-title 的布局、视觉和状态表现 */
 .package-card-title {
-    margin: 0 0 8px;
-    font-size: 1.02rem;
+    margin: 0;
+    font-size: 1.14rem;
+    line-height: 1.32;
     color: #17364e;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
     min-height: 1.5em;
+    transition: color 320ms ease;
+}
+
+.package-card-title-wrap {
+    display: grid;
+    gap: 10px;
 }
 
 /* 套餐标题的可见文本层。
@@ -2754,122 +2893,285 @@ body.has-overlay-lock {
 
 /* 控制 .package-card-mood 的布局、视觉和状态表现 */
 .package-card-mood {
-    margin: 0 0 16px;
+    margin: 0;
     color: #4d6d84;
-    line-height: 1.72;
+    line-height: 1.78;
+    transition: color 320ms ease;
 }
 
-/* 控制 .package-card-meta 的布局、视觉和状态表现 */
-.package-card-meta {
+.package-card-archive {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(220, 239, 248, 0.18)),
+        rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(188, 218, 231, 0.48);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.58),
+        0 10px 24px rgba(18, 49, 68, 0.05);
+    transition: background 360ms ease, border-color 360ms ease, box-shadow 360ms ease;
 }
 
-/* 控制 .package-meta-item 的布局、视觉和状态表现 */
-.package-meta-item {
-    min-height: 70px;
-    padding: 10px 12px;
-    border-radius: 16px;
-    background: rgba(244, 250, 255, 0.72);
-    border: 1px solid rgba(200, 220, 232, 0.64);
-}
-
-/* 控制 .package-meta-label 的布局、视觉和状态表现 */
-.package-meta-label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 0.7rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #658297;
-}
-
-/* 控制 .package-meta-value 的布局、视觉和状态表现 */
-.package-meta-value {
-    display: block;
-    color: #36566d;
-    font-size: 0.86rem;
-    line-height: 1.55;
-}
-
-/* 控制 .package-card-footer 的布局、视觉和状态表现 */
-.package-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: nowrap;
-    gap: 16px;
-    position: relative;
-    z-index: 1;
+.package-card-signal {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    align-items: start;
 }
 
 /* 控制 .package-price-wrap 的布局、视觉和状态表现 */
 .package-price-wrap {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
+    display: grid;
+    gap: 6px;
     min-width: 0;
-    gap: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(180, 214, 229, 0.38);
+    transition: border-color 320ms ease;
 }
 
 /* 控制 .package-price-label 的布局、视觉和状态表现 */
 .package-price-label {
-    font-size: 0.74rem;
-    letter-spacing: 0.14em;
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: #688093;
+    color: #6b889a;
+    transition: color 320ms ease;
 }
 
 /* 控制 .package-price-value 的布局、视觉和状态表现 */
 .package-price-value {
-    font-size: 1.26rem;
+    font-size: 1.42rem;
     font-weight: 700;
-    color: #144668;
+    color: #0f4263;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    transition: color 320ms ease;
+}
+
+.package-cadence-stack {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.package-cadence-primary,
+.package-cadence-secondary,
+.package-card-focus-copy,
+.package-card-guidance {
+    margin: 0;
+}
+
+.package-cadence-primary {
+    color: #1c4c67;
+    font-size: 0.94rem;
+    line-height: 1.6;
+    transition: color 320ms ease;
+}
+
+.package-cadence-secondary {
+    color: #648397;
+    font-size: 0.82rem;
+    line-height: 1.64;
+    transition: color 320ms ease;
+}
+
+.package-card-focus {
+    display: grid;
+    gap: 8px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translate3d(0, 8px, 0);
+    border-top: 1px solid transparent;
+    transition:
+        max-height 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        opacity 360ms ease,
+        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        padding-top 360ms ease,
+        border-color 360ms ease;
+}
+
+.package-card-focus-copy {
+    color: #3f6177;
+    font-size: 0.88rem;
+    line-height: 1.72;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 320ms ease;
+}
+
+.package-card.is-active .package-card-focus {
+    max-height: 160px;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    padding-top: 16px;
+    border-top-color: rgba(161, 212, 231, 0.16);
+}
+
+.package-card-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.package-card-guidance {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #57768b;
+    font-size: 0.84rem;
+    line-height: 1.75;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 320ms ease;
 }
 
 /* 控制 .package-card-action 的布局、视觉和状态表现 */
 .package-card-action {
     appearance: none;
     -webkit-appearance: none;
-    border: none;
+    border: 1px solid rgba(136, 189, 212, 0.36);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
     gap: 8px;
-    padding: 10px 14px;
-    border-radius: 999px;
+    padding: 11px 14px;
+    border-radius: 16px;
     cursor: pointer;
-    color: #f5fbff;
-    background: linear-gradient(135deg, #1d5d88 0%, #0f3f63 100%);
-    box-shadow: 0 12px 22px rgba(16, 55, 82, 0.18);
+    color: #1b5678;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(223, 240, 248, 0.22)),
+        rgba(15, 74, 103, 0.06);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.62),
+        0 10px 20px rgba(20, 58, 82, 0.08);
     white-space: nowrap;
     position: relative;
     z-index: 2;
     pointer-events: auto;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 220ms ease, box-shadow 220ms ease;
+    transition:
+        transform 280ms ease,
+        box-shadow 280ms ease,
+        border-color 280ms ease,
+        background-color 280ms ease,
+        color 280ms ease;
 }
 
 /* 控制 .package-card-action svg 的布局、视觉和状态表现 */
 .package-card-action svg {
     width: 16px;
     height: 16px;
-    transition: transform 220ms ease;
+    transition: transform 280ms ease;
 }
 
 /* .package-card-action:hover 鼠标移入时的样式 */
 .package-card-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 28px rgba(16, 55, 82, 0.22);
+    transform: translate3d(0, -2px, 0);
+    border-color: rgba(121, 183, 209, 0.52);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.68),
+        0 14px 26px rgba(16, 55, 82, 0.14);
 }
 
 /* .package-card-action:hover svg 鼠标移入时的样式 */
 .package-card-action:hover svg {
     transform: translateX(3px);
+}
+
+.package-card.is-active .package-card-badge {
+    border-bottom-color: rgba(152, 202, 224, 0.52);
+    color: #123f5d;
+}
+
+.package-card.is-active .package-card-state {
+    background: rgba(240, 250, 255, 0.46);
+    border-color: rgba(145, 198, 222, 0.4);
+    color: rgba(26, 84, 115, 0.78);
+}
+
+.package-card.is-active .package-card-audience {
+    background:
+        linear-gradient(180deg, rgba(250, 254, 255, 0.74), rgba(218, 238, 248, 0.42)),
+        rgba(255, 255, 255, 0.14);
+    border-color: rgba(171, 214, 231, 0.52);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.package-card.is-active .package-card-section-label {
+    color: rgba(70, 111, 136, 0.66);
+}
+
+.package-card.is-active .package-card-audience-copy,
+.package-card.is-active .package-card-title,
+.package-card.is-active .package-price-value,
+.package-card.is-active .package-cadence-primary {
+    color: #123e5a;
+}
+
+.package-card.is-active .package-card-mood,
+.package-card.is-active .package-cadence-secondary,
+.package-card.is-active .package-card-guidance {
+    color: rgba(62, 96, 119, 0.84);
+}
+
+.package-card.is-active .package-card-archive {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(219, 239, 248, 0.26)),
+        rgba(255, 255, 255, 0.08);
+    border-color: rgba(168, 213, 230, 0.44);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.68),
+        0 12px 28px rgba(12, 42, 63, 0.08);
+}
+
+.package-card.is-active .package-price-wrap {
+    border-bottom-color: rgba(164, 210, 229, 0.48);
+}
+
+.package-card.is-active .package-price-label {
+    color: rgba(87, 127, 150, 0.74);
+}
+
+.package-card.is-active .package-plate-fit {
+    background:
+        linear-gradient(180deg, rgba(240, 251, 255, 0.88), rgba(214, 236, 246, 0.56)),
+        rgba(255, 255, 255, 0.18);
+    border-color: rgba(149, 203, 225, 0.56);
+    color: #1b5574;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.76),
+        0 8px 18px rgba(20, 58, 82, 0.08);
+}
+
+.package-card.is-active .package-plate-rhythm {
+    background: rgba(240, 250, 255, 0.48);
+    border-color: rgba(155, 205, 227, 0.38);
+    color: rgba(43, 88, 113, 0.8);
+}
+
+.package-card.is-active .package-plate-rhythm::before {
+    background: rgba(95, 142, 166, 0.74);
+    box-shadow: 0 0 0 3px rgba(177, 215, 231, 0.24);
+}
+
+.package-card.is-active .package-card-action {
+    color: #184d6d;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.64), rgba(223, 240, 248, 0.34)),
+        rgba(255, 255, 255, 0.08);
+    border-color: rgba(135, 193, 218, 0.42);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.78),
+        0 12px 24px rgba(18, 54, 78, 0.1);
 }
 
 /* 控制 .booking-note 的布局、视觉和状态表现 */
@@ -4576,11 +4878,14 @@ body.has-overlay-lock {
     inset: 0;
     z-index: 1600;
     display: grid;
-    place-items: center;
+    justify-items: center;
+    align-items: start;
     padding: 24px;
     background: rgba(3, 14, 24, 0.46);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -4607,9 +4912,13 @@ body.has-overlay-lock {
     width: min(980px, calc(100vw - 40px));
     max-height: 84vh;
     min-height: min(560px, calc(100vh - 72px));
+    margin: max(12px, 4vh) 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     border-radius: 32px;
     background:
         radial-gradient(circle at 18% 14%, rgba(110, 180, 214, 0.12), transparent 28%),
@@ -4619,9 +4928,34 @@ body.has-overlay-lock {
     box-shadow:
         0 34px 78px rgba(2, 14, 23, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(158, 214, 232, 0.42) rgba(255, 255, 255, 0.04);
     transform: translate3d(0, 24px, 0) scale(0.976);
     opacity: 0;
     transition: transform 360ms cubic-bezier(0.2, 0.72, 0.2, 1), opacity 320ms ease;
+}
+
+.review-detail-panel::-webkit-scrollbar {
+    width: 10px;
+}
+
+.review-detail-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 999px;
+    margin: 18px 10px 18px 0;
+}
+
+.review-detail-panel::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(196, 235, 246, 0.54), rgba(95, 172, 198, 0.34));
+    border: 2px solid rgba(10, 34, 49, 0.18);
+}
+
+.review-detail-panel::-webkit-scrollbar-thumb:hover {
+    background:
+        linear-gradient(180deg, rgba(214, 242, 250, 0.64), rgba(111, 189, 215, 0.42));
 }
 
 /* .review-detail-modal.active .review-detail-panel 在对应状态下的样式 */
@@ -4666,12 +5000,14 @@ body.has-overlay-lock {
 .review-detail-body {
     min-height: 0;
     flex: 1;
+    display: block;
+    overflow: visible;
 }
 
 /* 控制 .review-detail-shell 的布局、视觉和状态表现 */
 .review-detail-shell {
-    min-height: 0;
-    height: 100%;
+    min-height: 100%;
+    height: auto;
     display: flex;
     flex-direction: column;
 }
@@ -4766,9 +5102,9 @@ body.has-overlay-lock {
 
 /* 控制 .review-detail-scroll 的布局、视觉和状态表现 */
 .review-detail-scroll {
-    flex: 1;
-    min-height: 0;
-    overflow: auto;
+    flex: none;
+    min-height: auto;
+    overflow: visible;
     padding: 24px 32px 30px;
     display: grid;
     gap: 22px;
@@ -5381,6 +5717,26 @@ body.has-overlay-lock {
         border-radius: 22px;
     }
 
+    .package-card {
+        padding: 16px;
+        gap: 16px;
+        border-radius: 24px;
+    }
+
+    .package-card-audience,
+    .package-card-archive {
+        padding: 14px;
+        border-radius: 20px;
+    }
+
+    .package-card-title {
+        font-size: 1.06rem;
+    }
+
+    .package-card-state-stack {
+        gap: 6px;
+    }
+
 /* 控制 .review-actions 的布局、视觉和状态表现 */
     .review-actions {
         gap: 10px;
@@ -5492,8 +5848,8 @@ body.has-overlay-lock {
         grid-template-columns: 72px minmax(0, 1fr);
     }
 
-/* 控制 .package-card-head, 的布局、视觉和状态表现 */
-    .package-card-head,
+/* 控制 .package-card-topline, 的布局、视觉和状态表现 */
+    .package-card-topline,
     .package-card-footer,
     .package-modal-head,
     .package-modal-actions {
@@ -5501,17 +5857,22 @@ body.has-overlay-lock {
         align-items: flex-start;
     }
 
-/* 控制 .package-card-fit, 的布局、视觉和状态表现 */
-    .package-card-fit,
+/* 控制 .package-card-state-stack, 的布局、视觉和状态表现 */
+    .package-card-state-stack,
     .package-modal-match {
         justify-content: flex-start;
     }
 
-/* 控制 .package-card-meta, 的布局、视觉和状态表现 */
-    .package-card-meta,
+/* 控制 .package-card-signal, 的布局、视觉和状态表现 */
+    .package-card-signal,
     .review-dimensions,
     .review-gallery {
         grid-template-columns: 1fr;
+    }
+
+    .package-card-action {
+        width: 100%;
+        justify-content: space-between;
     }
 
 /* 控制 .review-card 的布局、视觉和状态表现 */
@@ -5555,26 +5916,30 @@ body.has-overlay-lock {
 
 /* 套餐已收进行程状态：让已确认的套餐在当前详情页保持柔和的完成感。 */
 .package-card.is-booked {
-    border-color: rgba(164, 210, 230, 0.4);
+    border-color: rgba(136, 198, 223, 0.44);
     box-shadow:
-        0 16px 26px rgba(10, 43, 64, 0.14),
-        0 0 20px rgba(104, 173, 206, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        0 18px 32px rgba(10, 43, 64, 0.14),
+        0 0 22px rgba(104, 173, 206, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
-.package-fit-chip-booked {
-    color: #f1fbff;
-    background: linear-gradient(180deg, rgba(34, 118, 169, 0.96), rgba(20, 91, 133, 0.92));
-    border-color: rgba(180, 228, 244, 0.4);
+.package-card-state-booked {
+    color: rgba(27, 88, 121, 0.84);
+    background: rgba(219, 241, 250, 0.46);
+    border-color: rgba(130, 193, 221, 0.34);
 }
 
-.package-fit-chip-booked::before {
-    background: rgba(231, 247, 255, 0.92);
-    box-shadow: 0 0 0 3px rgba(169, 219, 240, 0.18);
+.package-card.is-active .package-card-state-booked {
+    color: rgba(24, 82, 112, 0.84);
+    background: rgba(236, 248, 253, 0.58);
+    border-color: rgba(145, 199, 222, 0.42);
 }
 
 .package-card-action.is-booked {
-    background: linear-gradient(135deg, #2f6f96 0%, #184f73 100%);
+    background:
+        linear-gradient(180deg, rgba(233, 246, 252, 0.2), rgba(111, 173, 201, 0.14)),
+        rgba(255, 255, 255, 0.02);
+    border-color: rgba(133, 198, 224, 0.32);
 }
 
 .booking-note-feedback {

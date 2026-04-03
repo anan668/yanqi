@@ -1275,6 +1275,90 @@ function parsePriceValue(priceText) {
 }
 
 /**
+ * getLeadingSentence(text) - 提取一段文案里最适合作为卡片短句的首句
+ * @param {string} text - 原始文案
+ * @returns {string} - 处理后的首句
+ */
+function getLeadingSentence(text) {
+    const normalized = typeof text === 'string' ? text.replace(/\s+/g, ' ').trim() : '';
+    if (!normalized) {
+        return '';
+    }
+
+    const sentenceMatch = normalized.match(/^[^。！？!?]+[。！？!?]?/);
+    return sentenceMatch ? sentenceMatch[0].trim() : normalized;
+}
+
+/**
+ * buildPackageRhythmTags(pkg) - 为套餐卡生成“节奏标记”标签
+ * @param {Object} pkg - 套餐对象
+ * @returns {string[]} - 节奏标签数组
+ */
+function buildPackageRhythmTags(pkg) {
+    const duration = typeof pkg?.duration === 'string' ? pkg.duration.trim() : '';
+    const diveSummary = typeof pkg?.diveSummary === 'string' ? pkg.diveSummary.trim() : '';
+    const staySummary = typeof pkg?.staySummary === 'string' ? pkg.staySummary.trim() : '';
+    const tags = [];
+
+    if (duration) {
+        tags.push(duration);
+    }
+
+    const diveTagRules = [
+        { pattern: /船宿/, label: '船宿' },
+        { pattern: /\d+次船潜/, label: (match) => match[0] },
+        { pattern: /黄昏轻潜/, label: '黄昏轻潜' },
+        { pattern: /体验潜/, label: '体验潜' },
+        { pattern: /岸潜/, label: '岸潜' },
+        { pattern: /进阶点位安排/, label: '进阶点位' },
+        { pattern: /重点窗口追踪/, label: '窗口追踪' }
+    ];
+
+    diveTagRules.some((rule) => {
+        const match = diveSummary.match(rule.pattern);
+        if (!match) {
+            return false;
+        }
+
+        tags.push(typeof rule.label === 'function' ? rule.label(match) : rule.label);
+        return true;
+    });
+
+    if (staySummary.includes('船宿')) {
+        tags.push('船宿');
+    } else if (staySummary.includes('岛上')) {
+        tags.push('岛住');
+    } else if (staySummary.includes('海边')) {
+        tags.push('海边慢住');
+    } else if (staySummary.includes('度假酒店')) {
+        tags.push('度假停住');
+    } else if (staySummary.includes('向导型酒店')) {
+        tags.push('向导型住处');
+    } else if (staySummary.includes('安静酒店')) {
+        tags.push('安静停住');
+    } else if (staySummary.includes('酒店')) {
+        tags.push('酒店停住');
+    }
+
+    return Array.from(new Set(tags.filter(Boolean))).slice(0, 3);
+}
+
+/**
+ * createPackagePlateMarkup(label, variant) - 生成套餐卡内的细分铭牌标签
+ * @param {string} label - 标签文字
+ * @param {string} variant - fit 或 rhythm
+ * @returns {string} - 标签 HTML
+ */
+function createPackagePlateMarkup(label, variant = 'fit') {
+    const text = typeof label === 'string' ? label.trim() : '';
+    if (!text) {
+        return '';
+    }
+
+    return `<span class="package-plate package-plate-${variant}">${text}</span>`;
+}
+
+/**
  * formatPriceValue(value) - 将金额数值格式化为详情页展示价格
  * @param {number} value - 金额数值
  * @returns {string} - 格式化后的价格文本
@@ -3770,64 +3854,96 @@ class DetailPage {
         this.itineraryList.innerHTML = groupedPackages.map((group, groupIndex) => `
             <section class="package-group" aria-label="${group.groupName}">
                 <h4 class="package-group-title">${group.groupName}</h4>
-                ${group.items.map((pkg, itemIndex) => `
-                    <article
-                        class="package-card ${pkg.id === this.selectedPackageId ? 'is-active' : ''} ${bookedPackageIds.has(pkg.id) ? 'is-booked' : ''}"
-                        data-package-id="${pkg.id}"
-                        tabindex="0"
-                        aria-label="${pkg.name}，查看详情"
-                        style="animation-delay: ${(groupIndex * 0.1) + (itemIndex * 0.08)}s"
-                    >
-                        <div class="package-card-head">
-                            <span class="package-card-badge">${pkg.group}</span>
-                            <div class="package-card-fit">
-                                ${pkg.fitTags.map((tag) => `<span class="package-fit-chip">${tag}</span>`).join('')}
-                                ${bookedPackageIds.has(pkg.id) ? '<span class="package-fit-chip package-fit-chip-booked">已收进行程</span>' : ''}
+                ${group.items.map((pkg, itemIndex) => {
+                    const isActive = pkg.id === this.selectedPackageId;
+                    const isBooked = bookedPackageIds.has(pkg.id);
+                    const stateMarkup = isBooked
+                        ? '<div class="package-card-state-stack"><span class="package-card-state package-card-state-booked">已收进行程</span></div>'
+                        : '';
+                    const fitPlates = Array.isArray(pkg.fitTags)
+                        ? pkg.fitTags.map((tag) => createPackagePlateMarkup(tag, 'fit')).join('')
+                        : '';
+                    const rhythmPlates = buildPackageRhythmTags(pkg)
+                        .map((tag) => createPackagePlateMarkup(tag, 'rhythm'))
+                        .join('');
+                    const cadenceStayCopy = [pkg.staySummary, pkg.mealSummary].filter(Boolean).join(' · ');
+                    const focusCopy = getLeadingSentence(pkg.fitReason || pkg.pace || pkg.mood);
+                    const guidanceCopy = getLeadingSentence(pkg.pace || pkg.mood || pkg.fitReason);
+                    const actionCopy = isBooked ? '再看这套安排' : '继续了解';
+
+                    return `
+                        <article
+                            class="package-card ${isActive ? 'is-active' : ''} ${isBooked ? 'is-booked' : ''}"
+                            data-package-id="${pkg.id}"
+                            tabindex="0"
+                            aria-label="${pkg.name}，查看详情"
+                            style="animation-delay: ${(groupIndex * 0.1) + (itemIndex * 0.08)}s"
+                        >
+                            <div class="package-card-head">
+                                <div class="package-card-topline">
+                                    <span class="package-card-badge">${pkg.group}</span>
+                                    ${stateMarkup}
+                                </div>
+
+                                <div class="package-card-audience">
+                                    <span class="package-card-section-label">适合谁</span>
+                                    <p class="package-card-audience-copy">${pkg.audience}</p>
+                                    <div class="package-tag-cluster package-tag-cluster-fit">
+                                        ${fitPlates}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <h4 class="package-card-title" aria-label="${pkg.name}">
-                            <span class="package-card-title-line">${pkg.name}</span>
-                        </h4>
-                        <p class="package-card-mood">${pkg.mood}</p>
-                        <div class="package-card-meta">
-                            <div class="package-meta-item">
-                                <span class="package-meta-label">适合等级</span>
-                                <span class="package-meta-value">${pkg.audience}</span>
+
+                            <div class="package-card-archive">
+                                <div class="package-card-title-wrap">
+                                    <h4 class="package-card-title" aria-label="${pkg.name}">
+                                        <span class="package-card-title-line">${pkg.name}</span>
+                                    </h4>
+                                    <p class="package-card-mood">${pkg.mood}</p>
+                                </div>
+
+                                <div class="package-tag-cluster package-tag-cluster-rhythm">
+                                    ${rhythmPlates}
+                                </div>
+
+                                <div class="package-card-signal">
+                                    <div class="package-price-wrap">
+                                        <span class="package-price-label">这一程起于</span>
+                                        <span class="package-price-value" data-price-target="${pkg.price}">¥0</span>
+                                    </div>
+
+                                    <div class="package-cadence-stack">
+                                        <span class="package-card-section-label">进入方式</span>
+                                        <p class="package-cadence-primary">${pkg.diveSummary}</p>
+                                        <p class="package-cadence-secondary">${cadenceStayCopy}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="package-meta-item">
-                                <span class="package-meta-label">行程时长</span>
-                                <span class="package-meta-value">${pkg.duration}</span>
+
+                            <div class="package-card-focus">
+                                <span class="package-card-section-label">当前海流</span>
+                                <p class="package-card-focus-copy">${focusCopy}</p>
                             </div>
-                            <div class="package-meta-item">
-                                <span class="package-meta-label">潜水安排</span>
-                                <span class="package-meta-value">${pkg.diveSummary}</span>
+
+                            <div class="package-card-footer">
+                                <p class="package-card-guidance">${guidanceCopy}</p>
+                                <button class="package-card-action ${isBooked ? 'is-booked' : ''}" type="button" data-package-id="${pkg.id}">
+                                    ${actionCopy}
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path
+                                            d="M5 12h14M13 6l6 6-6 6"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2.2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                    </svg>
+                                </button>
                             </div>
-                            <div class="package-meta-item">
-                                <span class="package-meta-label">住宿 / 餐食</span>
-                                <span class="package-meta-value">${pkg.staySummary} · ${pkg.mealSummary}</span>
-                            </div>
-                        </div>
-                        <div class="package-card-footer">
-                            <div class="package-price-wrap">
-                                <span class="package-price-label">起</span>
-                                <span class="package-price-value" data-price-target="${pkg.price}">¥0</span>
-                            </div>
-                            <button class="package-card-action ${bookedPackageIds.has(pkg.id) ? 'is-booked' : ''}" type="button" data-package-id="${pkg.id}">
-                                查看详情
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path
-                                        d="M5 12h14M13 6l6 6-6 6"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2.2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </article>
-                `).join('')}
+                        </article>
+                    `;
+                }).join('')}
             </section>
         `).join('');
 
@@ -3866,12 +3982,34 @@ class DetailPage {
 
         this.setupPackageCardTitleReveal();
         this.setupPackagePriceObserver();
+        this.syncPackageCardSelection();
 
         if (this.bookingNote && !this.bookingNote.classList.contains('is-success')) {
             this.bookingNote.innerHTML = `
                 <p>先打开套餐详情，再决定是否预订。盐憩更在意你是否适合这一次下潜，而不是让你仓促下单。</p>
             `;
         }
+    }
+
+    /**
+     * syncPackageCardSelection(packageId) - 只更新套餐卡的当前激活态，不重渲染整组卡片
+     * @param {string|null} packageId - 当前需要高亮的套餐 ID
+     * @returns {void} - 无返回值，直接切换卡片 class
+     */
+    syncPackageCardSelection(packageId = this.selectedPackageId) {
+        if (!this.itineraryList) {
+            return;
+        }
+
+        const targetId = packageId || this.selectedPackageId;
+        if (!targetId) {
+            return;
+        }
+
+        this.selectedPackageId = targetId;
+        this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
+            card.classList.toggle('is-active', card.dataset.packageId === targetId);
+        });
     }
 
     // 评论区渲染：根据当前筛选项输出评论卡、图片组和查看详情入口。
@@ -4060,6 +4198,96 @@ class DetailPage {
                 </div>
             </article>
         `).join('');
+
+        this.syncReviewExpandButtons();
+    }
+
+    /**
+     * syncReviewExpandButtons() - 根据摘要是否真的溢出决定是否显示“展开全文”
+     * @returns {void} - 无返回值，直接同步评论卡按钮状态
+     */
+    syncReviewExpandButtons() {
+        if (!this.reviewsSection) {
+            return;
+        }
+
+        const reviewCards = Array.from(this.reviewsSection.querySelectorAll('.review-card'));
+        if (reviewCards.length === 0) {
+            return;
+        }
+
+        reviewCards.forEach((card) => {
+            const summary = card.querySelector('.review-summary');
+            const expandButton = card.querySelector('.review-expand');
+            if (!summary || !expandButton) {
+                return;
+            }
+
+            const wasExpanded = card.classList.contains('is-expanded');
+            if (wasExpanded) {
+                card.classList.remove('is-expanded');
+            }
+
+            const isOverflowing = this.isReviewSummaryOverflowing(summary);
+            expandButton.hidden = !isOverflowing;
+            expandButton.setAttribute('aria-hidden', String(!isOverflowing));
+
+            if (!isOverflowing) {
+                card.classList.remove('is-expanded');
+                expandButton.textContent = '展开全文';
+                return;
+            }
+
+            if (wasExpanded) {
+                card.classList.add('is-expanded');
+            }
+            expandButton.textContent = card.classList.contains('is-expanded') ? '收起全文' : '展开全文';
+        });
+    }
+
+    /**
+     * isReviewSummaryOverflowing(summaryElement) - 用未截断副本测量评论摘要是否真的超过折叠高度
+     * @param {HTMLElement} summaryElement - 当前评论摘要元素
+     * @returns {boolean} - 是否需要显示“展开全文”
+     */
+    isReviewSummaryOverflowing(summaryElement) {
+        if (!summaryElement) {
+            return false;
+        }
+
+        const computedStyle = window.getComputedStyle(summaryElement);
+        const lineHeight = Number.parseFloat(computedStyle.lineHeight);
+        const clampLineCount = Number.parseInt(computedStyle.getPropertyValue('-webkit-line-clamp'), 10) || 4;
+        const clampedHeight = lineHeight > 0
+            ? lineHeight * clampLineCount
+            : summaryElement.getBoundingClientRect().height;
+
+        if (!clampedHeight) {
+            return false;
+        }
+
+        const clone = summaryElement.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.style.position = 'absolute';
+        clone.style.visibility = 'hidden';
+        clone.style.pointerEvents = 'none';
+        clone.style.zIndex = '-1';
+        clone.style.left = '0';
+        clone.style.top = '0';
+        clone.style.height = 'auto';
+        clone.style.minHeight = '0';
+        clone.style.maxHeight = 'none';
+        clone.style.overflow = 'visible';
+        clone.style.display = 'block';
+        clone.style.webkitLineClamp = 'unset';
+        clone.style.webkitBoxOrient = 'initial';
+        clone.style.width = `${summaryElement.getBoundingClientRect().width}px`;
+
+        document.body.appendChild(clone);
+        const naturalHeight = clone.getBoundingClientRect().height;
+        clone.remove();
+
+        return naturalHeight - clampedHeight > 2;
     }
 
     /**
@@ -4873,6 +5101,15 @@ class DetailPage {
         this.reviewDetailModal.classList.add('active');
         this.reviewDetailModal.setAttribute('aria-hidden', 'false');
         this.syncOverlayLock();
+        this.reviewDetailModal.scrollTop = 0;
+        const detailPanel = this.reviewDetailModal.querySelector('.review-detail-panel');
+        if (detailPanel) {
+            detailPanel.scrollTop = 0;
+        }
+        const detailScroll = this.reviewDetailBody.querySelector('.review-detail-scroll');
+        if (detailScroll) {
+            detailScroll.scrollTop = 0;
+        }
         // 先把详情内容写进去再显示弹层，
         // 可以避免弹层先亮出来、内容后补上的“空壳闪一下”问题。
     }
@@ -5650,6 +5887,28 @@ class DetailPage {
                 this.closeBookingModal();
             }
         });
+
+        let reviewExpandSyncFrame = 0;
+        const requestReviewExpandSync = () => {
+            if (reviewExpandSyncFrame) {
+                return;
+            }
+
+            reviewExpandSyncFrame = window.requestAnimationFrame(() => {
+                reviewExpandSyncFrame = 0;
+                this.syncReviewExpandButtons();
+            });
+        };
+
+        window.addEventListener('resize', requestReviewExpandSync);
+        if (document.fonts?.ready) {
+            document.fonts.ready.then(() => {
+                requestReviewExpandSync();
+            }).catch(() => {});
+        }
+        window.setTimeout(() => {
+            requestReviewExpandSync();
+        }, 180);
     }
 
     /**
@@ -5672,6 +5931,7 @@ class DetailPage {
         }
 
         this.selectedPackageId = pkg.id;
+        this.syncPackageCardSelection(pkg.id);
         this.bookingModalBody.innerHTML = this.createPackageModalMarkup(pkg);
         this.bookingModal.classList.remove('is-closing');
         this.bookingModal.setAttribute('aria-hidden', 'false');
