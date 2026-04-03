@@ -176,125 +176,24 @@ function setupTripScrollLinks() {
 }
 
 /**
- * TripSeaGuide - trip 椤垫捣鍥惧瑙堛€? * 杩欏浜や簰娌跨敤棣栭〉鐨勨€滄捣鍥惧瑙堚€濊瑷€锛岀敤涓€缁勬偓娴叆鍙ｆ浛浠ｆ櫘閫氬洖椤舵寜閽紝
- * 甯敤鎴峰湪鈥滃凡鏀惰繘琛岀▼鐨勬捣 / 琛岀▼鏀舵潫鍙?/ 鍗冲皢杩涜鐨勮繖涓€娼?/ Planning Notes / 鍑哄彂鍓嶅噯澶団€濅箣闂村揩閫熷垏鎹€? */
-class TripSeaGuide {
-    /**
-     * constructor() - 鍒濆鍖?trip 椤垫捣鍥惧瑙堥渶瑕佺殑 DOM 寮曠敤鍜屽唴閮ㄧ姸鎬?     */
-    constructor() {
-        this.guide = document.getElementById('tripSeaGuide');
-        this.trigger = document.getElementById('tripSeaGuideTrigger');
-        this.panel = document.getElementById('tripSeaGuidePanel');
-        this.entries = Array.from(document.querySelectorAll('#tripSeaGuide .sea-guide-entry'));
-        this.isOpen = false;
-        this.updateRaf = 0;
-
-        if (this.guide && this.trigger && this.panel && this.entries.length) {
-            this.init();
-        }
+ * setupBackToTop() - 初始化行程页返回顶部按钮的显示与点击行为
+ * @returns {void} - 无返回值，直接注册滚动和点击事件
+ */
+function setupBackToTop() {
+    const button = document.getElementById('back-to-top');
+    if (!button) {
+        return;
     }
 
-    /**
-     * getOffset() - 璁＄畻 trip 椤垫粴鍔ㄦ椂闇€瑕侀伩寮€鐨勫浐瀹氬鑸珮搴?     * @returns {number} 椤甸潰婊氬姩鍋忕Щ閲?     */
-    getOffset() {
-        const navbar = document.querySelector('.navbar');
-        return (navbar ? navbar.offsetHeight : 72) + 18;
-    }
+    window.addEventListener('scroll', () => {
+        button.classList.toggle('visible', window.pageYOffset > 300);
+    });
 
-    /**
-     * getProbeTarget(selector) - 鑾峰彇鐢ㄤ簬鍒ゆ柇褰撳墠鎵€鍦ㄦ捣灞傜殑鎺㈤拡鍏冪礌
-     * @param {string} selector - 娴峰浘瀵艰鏉＄洰鎸囧悜鐨勭洰鏍囬€夋嫨鍣?     * @returns {Element|null} 褰撳墠鏉＄洰瀵瑰簲鐨勬帰閽堝厓绱?     */
-    getProbeTarget(selector) {
-        const target = selector ? document.querySelector(selector) : null;
-        if (!target) {
-            return null;
-        }
-
-        if (selector === '#trip-top') {
-            return target.querySelector('.trip-hero-shell') || target;
-        }
-
-        if (selector === '#tripFooter') {
-            return target.querySelector('.footer-shell') || target;
-        }
-
-        return target;
-    }
-
-    /**
-     * setOpen(isOpen) - 鍒囨崲琛岀▼娴峰浘瀵艰鐨勫睍寮€涓庢敹璧风姸鎬?     * @param {boolean} isOpen - 鏄惁灞曞紑娴峰浘瀵艰闈㈡澘
-     */
-    setOpen(isOpen) {
-        this.isOpen = Boolean(isOpen);
-        this.guide.classList.toggle('is-open', this.isOpen);
-        this.trigger.setAttribute('aria-expanded', String(this.isOpen));
-        this.panel.setAttribute('aria-hidden', String(!this.isOpen));
-    }
-
-    /**
-     * scrollToTarget(selector) - 骞虫粦婊氬姩鍒?trip 椤垫寚瀹氬尯鍧?     * @param {string} selector - 鐩爣 section 閫夋嫨鍣?     */
-    scrollToTarget(selector) {
-        if (!selector) {
+    button.addEventListener('click', () => {
+        if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
+            window.OceanScroll.animateTo(0, { duration: 1760 });
             return;
         }
-
-        scrollToSection(selector, 1620);
-    }
-
-    /**
-     * getCurrentKey() - 鏍规嵁褰撳墠婊氬姩浣嶇疆鍒ゆ柇 trip 椤垫鍦ㄥ仠鐣欏湪鍝竴灞?     * @returns {string} 褰撳墠鏉＄洰鐨?key
-     */
-    getCurrentKey() {
-        if (!this.entries.length) {
-            return '';
-        }
-
-        const probeY = window.scrollY + this.getOffset() + Math.min(window.innerHeight * 0.24, 220);
-        let currentKey = this.entries[0].dataset.key || '';
-
-        this.entries.forEach((entry) => {
-            const target = this.getProbeTarget(entry.dataset.target);
-            if (!target) {
-                return;
-            }
-
-            const sectionTop = target.getBoundingClientRect().top + window.scrollY - this.getOffset();
-            if (probeY >= sectionTop - 24) {
-                currentKey = entry.dataset.key || currentKey;
-            }
-        });
-
-        return currentKey;
-    }
-
-    /**
-     * updateState() - 鍚屾 trip 椤垫捣鍥惧瑙堢殑鏄鹃殣銆佹繁灞傜姸鎬佷笌褰撳墠鏉＄洰楂樹寒
-     */
-    updateState() {
-        const scrollTop = window.scrollY || window.pageYOffset || 0;
-        const isVisible = scrollTop > 72;
-        const isDeep = scrollTop > Math.max(window.innerHeight * 0.92, 840);
-        const currentKey = this.getCurrentKey();
-
-        this.guide.classList.toggle('is-visible', isVisible);
-        this.guide.classList.toggle('is-deep', isDeep);
-        this.guide.setAttribute('aria-hidden', String(!isVisible));
-
-        this.entries.forEach((entry) => {
-            const isCurrent = entry.dataset.key === currentKey;
-            entry.classList.toggle('is-current', isCurrent);
-            entry.setAttribute('aria-current', isCurrent ? 'true' : 'false');
-        });
-    }
-
-    /**
-     * init() - 缁戝畾 trip 椤垫捣鍥惧瑙堢殑灞曞紑銆佸叧闂€佹粴鍔ㄩ珮浜拰鐐瑰嚮璺宠浆閫昏緫
-     */
-    init() {
-        const requestStateUpdate = () => {
-            if (this.updateRaf) {
-                return;
-            }
 
             this.updateRaf = window.requestAnimationFrame(() => {
                 this.updateRaf = 0;
@@ -449,8 +348,8 @@ function setupPlannerSummary() {
         },
         date: {
             emptyLabel: '仍在等一段合适的潮汐',
-            emptyHint: '把出发放进更适合的窗口里',
-            filledHint: '这一段时间已经写进行程，接下来只等真正出发。'
+            emptyHint: '让天气、光线与节奏更从容一些',
+            filledHint: '这一段潮汐，适合慢慢出发'
         },
         people: {
             emptyLabel: '同行尚未写进这次下潜',
@@ -463,6 +362,67 @@ function setupPlannerSummary() {
      * @param {HTMLElement} option - 鍘熷閫夐」鎸夐挳
      * @returns {{value: string, label: string, note: string, description: string}} - 褰掍竴鍖栧悗鐨勯€夐」鏁版嵁
      */
+    function readPlannerDraftValue(draft, fieldKey) {
+        const nextValue = String(draft?.[fieldKey] || '').trim();
+        if (nextValue) {
+            return nextValue;
+        }
+
+        return String(draft?.[`${fieldKey}Value`] || '').trim();
+    }
+
+    function buildCustomPeopleLabel(value) {
+        return `${value} 人同行`;
+    }
+
+    function buildCustomPeopleNote(value) {
+        return `这次下潜按 ${value} 人的同行节奏安排。`;
+    }
+
+    function applyCustomPeopleState(value, label, note) {
+        const safeValue = String(value || '').trim();
+        const customOption = peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]');
+        if (!customOption) {
+            return;
+        }
+
+        peopleInput.value = safeValue;
+        peopleInput.dataset.label = label || buildCustomPeopleLabel(safeValue);
+        peopleInput.dataset.note = note || buildCustomPeopleNote(safeValue);
+        peopleValue.textContent = peopleInput.dataset.label;
+        peopleHint.textContent = peopleInput.dataset.note;
+        peopleField.classList.toggle('is-active', Boolean(safeValue));
+
+        peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]').forEach((item) => {
+            item.classList.toggle('is-selected', item === customOption);
+        });
+    }
+
+    function buildPlannerDraftPayload() {
+        const hasDate = Boolean(dateInput.value);
+        const dateLabel = hasDate ? formatPlannerDate(dateInput.value) : '';
+
+        return {
+            spot: spotInput.value,
+            spotLabel: spotInput.dataset.label || COPY.spot.emptyLabel,
+            spotNote: spotInput.dataset.note || COPY.spot.emptyHint,
+            date: dateInput.value,
+            dateLabel,
+            dateNote: hasDate ? COPY.date.filledHint : COPY.date.emptyHint,
+            people: peopleInput.value,
+            peopleLabel: peopleInput.dataset.label || COPY.people.emptyLabel,
+            peopleNote: peopleInput.dataset.note || COPY.people.emptyHint
+        };
+    }
+
+    function persistPlannerDraft() {
+        if (!store || typeof store.savePlannerDraft !== 'function') {
+            return null;
+        }
+
+        return store.savePlannerDraft(buildPlannerDraftPayload());
+    }
+
     function readPlannerOptionData(option) {
         const strong = option?.querySelector('strong');
         const small = option?.querySelector('small');
@@ -557,36 +517,6 @@ function setupPlannerSummary() {
     let activePanelKey = null;
     let panelPositionFrame = 0;
     let calendarViewDate = null;
-    const summaryPreviousValues = {
-        spot: '',
-        date: '',
-        people: ''
-    };
-    let summaryWasConfirmed = false;
-
-    /**
-     * pulsePlannerSummaryItem(item) - 鏌愪竴椤瑰唴瀹规洿鏂版椂锛岀粰瀹冧竴涓緢杞荤殑鎻愪寒鍛煎惛銆?     * 杩欎笉鏄己鎻愮ず锛岃€屾槸璁┾€滆繖娆′笅娼滆瀹夐潤鍦版敹浣忊€濊繖浠朵簨鏇村鏄撹鎰熷彈鍒般€?     * @param {HTMLElement | undefined} item - 瀵瑰簲鐨勬憳瑕佸崱鐗?     * @returns {void}
-     */
-    function pulsePlannerSummaryItem(item) {
-        if (!item) {
-            return;
-        }
-
-        item.classList.remove('is-updated');
-        void item.offsetWidth;
-        item.classList.add('is-updated');
-        window.setTimeout(() => item.classList.remove('is-updated'), 960);
-    }
-
-    /**
-     * pulsePlannerSummaryRoot() - 涓夐」閮界‘璁ゅ悗锛岃鏁村紶鈥滃嵆灏嗚繘琛岀殑杩欎竴娼溾€濊交杞讳寒涓€涓嬨€?     * @returns {void}
-     */
-    function pulsePlannerSummaryRoot() {
-        summaryRoot.classList.remove('is-updated-confirmed');
-        void summaryRoot.offsetWidth;
-        summaryRoot.classList.add('is-updated-confirmed');
-        window.setTimeout(() => summaryRoot.classList.remove('is-updated-confirmed'), 1120);
-    }
 
     /**
      * getSpotOptions() - 鑾峰彇褰撳墠娴峰煙娴眰閲岀殑鍏ㄩ儴閫夐」鎸夐挳
@@ -705,18 +635,20 @@ function setupPlannerSummary() {
      */
     function syncSpotOptionsFromBookings(draft, isInitial) {
         const currentValue = String(spotInput.value || '').trim();
-        const draftValue = String(draft?.spotValue || '').trim();
         const { mode, options } = getConfirmedSpotOptions();
         const availableValues = new Set(options.map((option) => option.value));
+        const storedValue = availableValues.has(draftValue) ? draftValue : '';
+        const liveValue = availableValues.has(currentValue) ? currentValue : '';
         let nextValue = '';
 
         if (mode === 'locked-single') {
             nextValue = options[0]?.value || '';
         } else if (mode === 'booked-only') {
-            nextValue = availableValues.has(draftValue)
-                ? draftValue
+            nextValue = isInitial
+                ? ''
                 : (availableValues.has(currentValue) ? currentValue : '');
         } else {
+            const draftValue = String(draft?.spotValue || '').trim();
             nextValue = availableValues.has(draftValue)
                 ? draftValue
                 : (availableValues.has(currentValue) ? currentValue : '');
@@ -1280,44 +1212,6 @@ function setupPlannerSummary() {
             ? summaryMetaMap.people.filledState
             : summaryMetaMap.people.emptyState;
 
-        summaryItems[0]?.classList.toggle('is-confirmed', hasSpot);
-        summaryItems[1]?.classList.toggle('is-confirmed', hasDate);
-        summaryItems[2]?.classList.toggle('is-confirmed', hasPeople);
-        summaryRoot.classList.toggle('is-confirmed', isConfirmed);
-
-        summaryIntro.textContent = isConfirmed
-            ? '海域、时间与同行节奏都已经被写进来，这一潜正安静地停在出发前。'
-            : '当海域、时间与同行节奏被确认下来，这次下潜就会安静地停在这里，等着真正出发。';
-
-        summaryStatusNote.textContent = isConfirmed
-            ? '这次下潜已经有了清楚的轮廓，接下来只等真正出发。'
-            : '这次下潜还在整理轮廓，先把海域、时间和同行慢慢定下来。';
-
-        if (summaryPreviousValues.spot && summaryPreviousValues.spot !== nextValues.spot) {
-            pulsePlannerSummaryItem(summaryItems[0]);
-        }
-
-        if (summaryPreviousValues.date && summaryPreviousValues.date !== nextValues.date) {
-            pulsePlannerSummaryItem(summaryItems[1]);
-        }
-
-        if (summaryPreviousValues.people && summaryPreviousValues.people !== nextValues.people) {
-            pulsePlannerSummaryItem(summaryItems[2]);
-        }
-
-        if (isConfirmed && (!summaryWasConfirmed || (
-            summaryPreviousValues.spot !== nextValues.spot
-            || summaryPreviousValues.date !== nextValues.date
-            || summaryPreviousValues.people !== nextValues.people
-        ))) {
-            pulsePlannerSummaryRoot();
-        }
-
-        summaryPreviousValues.spot = nextValues.spot;
-        summaryPreviousValues.date = nextValues.date;
-        summaryPreviousValues.people = nextValues.people;
-        summaryWasConfirmed = isConfirmed;
-
         if (store && typeof store.savePlannerDraft === 'function') {
             store.savePlannerDraft({
                 spotValue: spotInput.value,
@@ -1365,34 +1259,38 @@ function setupPlannerSummary() {
             syncSpotOptionsFromBookings(null, true);
             return;
         }
-
-        const peopleDraftValue = String(draft.peopleValue || '').trim();
-        const parsedCustomPeople = Number.parseInt(peopleDraftValue, 10);
-        const hasValidCustomPeople = Number.isFinite(parsedCustomPeople) && parsedCustomPeople > 0;
-        const storedPeople = peopleOptions.find((option) => option.dataset.value === peopleDraftValue)
-            || (peopleDraftValue
+        const storedPeople = peopleOptions.find((option) => option.dataset.value === draft.peopleValue)
+            || (draft.peopleValue
                 ? peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]')
                 : null)
             || peopleOptions.find((option) => option.dataset.value === '')
             || peopleOptions[0];
+        let restoredPeopleFromDraft = false;
 
-        syncSpotOptionsFromBookings(draft, true);
+        syncSpotOptionsFromBookings({
+            ...draft,
+            spot: storedSpotValue,
+            spotValue: storedSpotValue
+        }, true);
 
-        if (storedPeople && storedPeople.dataset.value === 'custom' && hasValidCustomPeople) {
-            peopleInput.value = String(parsedCustomPeople);
-            peopleInput.dataset.label = draft.peopleLabel || `${parsedCustomPeople} 人同行`;
-            peopleInput.dataset.note = draft.peopleNote || `这次下潜按 ${parsedCustomPeople} 人的同行节奏安排。`;
+        if (storedPeople && storedPeople.dataset.value === 'custom' && draft.peopleValue) {
+            peopleInput.value = String(draft.peopleValue).trim();
+            peopleInput.dataset.label = draft.peopleLabel || `${draft.peopleValue} 人同行`;
+            peopleInput.dataset.note = draft.peopleNote || `这次下潜按 ${draft.peopleValue} 人的同行节奏安排。`;
             peopleValue.textContent = peopleInput.dataset.label;
             peopleHint.textContent = peopleInput.dataset.note;
             peopleField.classList.add('is-active');
             peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]').forEach((item) => {
                 item.classList.toggle('is-selected', item === storedPeople);
             });
-        } else if (storedPeople) {
+        } else if (!restoredPeopleFromDraft && storedPeople) {
             setOptionState('people', storedPeople);
         }
 
-        dateInput.value = isValidPlannerDateValue(draft.dateValue) ? draft.dateValue : '';
+        if (draft.dateValue) {
+            dateInput.value = draft.dateValue;
+        }
+
         calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
         syncDateFieldDisplay();
     }
@@ -1496,10 +1394,6 @@ function setupPlannerSummary() {
 
     submitButton.addEventListener('click', (event) => {
         event.preventDefault();
-        // 在继续往下进入更深一层之前，再完整收一次当前这一层的行程草稿。
-        // 这样即使用户只是点击按钮离开 trip 页，回来时也能恢复同一份状态。
-        updatePlannerSummary();
-        commitPlannerDeskSelection();
         closeActivePanel();
         scrollToSection(submitButton.dataset.scrollTarget || '#trip-layer', 1640);
     });

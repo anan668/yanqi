@@ -116,6 +116,66 @@
             : safeValue;
     }
 
+    function normalizePlannerDateValue(value) {
+        const safeValue = normalizeText(value);
+        if (!safeValue || !/^\d{4}-\d{2}-\d{2}$/.test(safeValue)) {
+            return '';
+        }
+
+        const parsed = new Date(`${safeValue}T00:00:00`);
+        if (Number.isNaN(parsed.getTime())) {
+            return '';
+        }
+
+        const normalized = [
+            parsed.getFullYear(),
+            String(parsed.getMonth() + 1).padStart(2, '0'),
+            String(parsed.getDate()).padStart(2, '0')
+        ].join('-');
+
+        return normalized === safeValue ? safeValue : '';
+    }
+
+    function normalizePlannerPeopleValue(value) {
+        const safeValue = normalizeText(value);
+        if (!safeValue) {
+            return '';
+        }
+
+        const exactMatch = safeValue.match(/^(\d+)$/);
+        if (exactMatch) {
+            const count = Number.parseInt(exactMatch[1], 10);
+            return Number.isFinite(count) && count > 0 ? String(count) : '';
+        }
+
+        const rangeMatch = safeValue.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+        if (rangeMatch) {
+            const start = Number.parseInt(rangeMatch[1], 10);
+            const end = Number.parseInt(rangeMatch[2], 10);
+            return Number.isFinite(start) && Number.isFinite(end) && start > 0 && end >= start
+                ? `${start}-${end}`
+                : '';
+        }
+
+        const plusMatch = safeValue.match(/^(\d+)\s*\+$/);
+        if (plusMatch) {
+            const count = Number.parseInt(plusMatch[1], 10);
+            return Number.isFinite(count) && count > 0 ? `${count}+` : '';
+        }
+
+        return '';
+    }
+
+    function pickPlannerDraftValue(source, primaryKey, legacyKey, normalizer) {
+        const normalize = typeof normalizer === 'function' ? normalizer : normalizeText;
+        const primaryValue = normalize(source?.[primaryKey]);
+        if (primaryValue) {
+            return primaryValue;
+        }
+
+        return normalize(source?.[legacyKey]);
+    }
+
     /**
      * normalizePlannerDraft(draft) - 统一 Planner Desk 草稿数据结构
      * @param {Object} draft - 原始草稿对象
@@ -123,15 +183,21 @@
      */
     function normalizePlannerDraft(draft) {
         const source = draft && typeof draft === 'object' ? draft : {};
+        const spot = pickPlannerDraftValue(source, 'spot', 'spotValue', normalizeText);
+        const date = pickPlannerDraftValue(source, 'date', 'dateValue', normalizePlannerDateValue);
+        const people = pickPlannerDraftValue(source, 'people', 'peopleValue', normalizePlannerPeopleValue);
 
         return {
-            spotValue: normalizeText(source.spotValue),
+            spot,
+            spotValue: spot,
             spotLabel: sanitizeReadableText(source.spotLabel, ''),
             spotNote: sanitizeReadableText(source.spotNote, ''),
-            dateValue: normalizeText(source.dateValue),
+            date,
+            dateValue: date,
             dateLabel: sanitizeReadableText(source.dateLabel, ''),
             dateNote: sanitizeReadableText(source.dateNote, ''),
-            peopleValue: normalizeText(source.peopleValue),
+            people,
+            peopleValue: people,
             peopleLabel: sanitizeReadableText(source.peopleLabel, ''),
             peopleNote: sanitizeReadableText(source.peopleNote, ''),
             updatedAt: normalizeText(source.updatedAt)
