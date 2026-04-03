@@ -1,13 +1,13 @@
 ﻿/* ============================================
-   Trip Page Logic - trip.js
+   行程页脚本逻辑 - trip.js
    ============================================
    职责：
-   1. 驱动 Planner Desk 的海域、日期、人数选择与浮层交互。
+   1. 驱动行程控制台的海域、日期、人数选择与浮层交互。
    2. 实时联动摘要区、已收进行程、准备系统和跨页导航。
-   3. 把 trip 页组织成“继续安排行程”的连续体验，而不是普通表单页。
+   3. 把行程页组织成“继续安排行程”的连续体验，而不是普通表单页。
    阅读顺序：
    1. 页面滚动与导航
-   2. Planner Desk 主控
+   2. 行程控制台主控
    3. 准备系统
    4. 已收进行程渲染
    5. DOMContentLoaded 初始化
@@ -205,7 +205,7 @@ function setupBackToTop() {
     });
 }
 
-// 行程页海图导览：把“回到浅层 / 看已收进行程 / 跳到 Planner Desk”收成一组浮层导览入口。
+// 行程页海图导览：把“回到浅层 / 看已收进行程 / 跳到行程控制台”收成一组浮层导览入口。
 class TripSeaGuide {
     /**
      * constructor() - 初始化行程页海图导览的 DOM 引用和内部状态
@@ -362,14 +362,14 @@ class TripSeaGuide {
     }
 }
 
-// Planner Desk 主控逻辑。
+// 行程控制台主控逻辑。
 // 这个函数同时负责。
 // 1. 管理海域 / 日期 / 人数三个字段的当前。
 // 2. 控制三个浮层的打开、关闭和定位
 // 3. 把字段结果实时回写到左侧摘要。
 // 4. 在桌面端与移动端之间维持一致的交互逻辑
 /**
- * setupPlannerSummary() - 监听 Planner Desk 输入并实时更新摘要卡片
+ * setupPlannerSummary() - 监听行程控制台输入并实时更新摘要卡片
  * @returns {void} - 无返回值，直接绑定表单输入事件
  */
 function setupPlannerSummary() {
@@ -469,6 +469,7 @@ function setupPlannerSummary() {
     // 这些值会同时影响“是否向上展开”和“最终能留出多少呼吸空间”。
     const PANEL_MARGIN = 16;
     const PANEL_GAP = 14;
+    const PROGRESSIVE_ORDER = ['spot', 'date', 'people'];
 
     const COPY = {
         spot: {
@@ -484,6 +485,16 @@ function setupPlannerSummary() {
             emptyLabel: '同行尚未写进这次下潜',
             emptyHint: '决定这趟海会以怎样的节奏发生'
         }
+    };
+    const LOCKED_HINTS = {
+        date: '\u5148\u8ba9\u6d77\u57df\u843d\u4f4d\uff0c\u51fa\u53d1\u7684\u6f6e\u6c50\u7a97\u53e3\u624d\u4f1a\u6162\u6162\u6d6e\u51fa\u6765',
+        people: '\u5148\u628a\u51fa\u53d1\u65f6\u95f4\u5199\u8fdb\u6765\uff0c\u540c\u884c\u7684\u8282\u594f\u518d\u7ee7\u7eed\u5f20\u5f00'
+    };
+    const SUMMARY_PROGRESS_COPY = {
+        spot: '\u5148\u9009\u4e00\u7247\u6d77\uff0c\u65e5\u671f\u4e0e\u540c\u884c\u624d\u4f1a\u4ece\u96fe\u91cc\u6162\u6162\u663e\u51fa\u6765\u3002',
+        date: '\u6d77\u57df\u5df2\u7ecf\u843d\u4f4d\uff0c\u4e0b\u4e00\u6b65\u628a\u51fa\u53d1\u65f6\u95f4\u653e\u8fdb\u66f4\u5408\u9002\u7684\u6f6e\u6c50\u91cc\u3002',
+        people: '\u6f6e\u6c50\u7a97\u53e3\u5df2\u7ecf\u6253\u5f00\uff0c\u518d\u628a\u540c\u884c\u8282\u594f\u5199\u8fdb\u6765\uff0c\u8fd9\u4e00\u6f5c\u5c31\u5b8c\u6574\u4e86\u3002',
+        confirmed: '\u6d77\u57df\uff0c\u65f6\u95f4\u4e0e\u540c\u884c\u90fd\u5df2\u5199\u8fdb\u6765\uff0c\u8fd9\u4e00\u6f5c\u5df2\u7ecf\u88ab\u5b89\u9759\u5730\u6536\u4f4f\u4e86\u3002'
     };
 
     /**
@@ -646,6 +657,160 @@ function setupPlannerSummary() {
     let activePanelKey = null;
     let panelPositionFrame = 0;
     let calendarViewDate = null;
+    let autoAdvanceTimer = 0;
+
+    function getRequiredFieldKey(fieldKey) {
+        return String(fieldMap[fieldKey]?.field?.dataset?.plannerRequires || '').trim();
+    }
+
+    function getFieldSelectionValue(fieldKey) {
+        if (fieldKey === 'date') {
+            return String(dateInput.value || '').trim();
+        }
+
+        return String(fieldMap[fieldKey]?.input?.value || '').trim();
+    }
+
+    function isFieldComplete(fieldKey) {
+        return Boolean(getFieldSelectionValue(fieldKey));
+    }
+
+    function isFieldUnlocked(fieldKey) {
+        const requiredFieldKey = getRequiredFieldKey(fieldKey);
+        return requiredFieldKey ? isFieldComplete(requiredFieldKey) : true;
+    }
+
+    function resolvePlannerFieldKey(fieldKey) {
+        let nextKey = fieldKey;
+
+        while (nextKey) {
+            if (isFieldUnlocked(nextKey)) {
+                return nextKey;
+            }
+
+            nextKey = getRequiredFieldKey(nextKey);
+        }
+
+        return 'spot';
+    }
+
+    function getNextFieldKey(fieldKey) {
+        const index = PROGRESSIVE_ORDER.indexOf(fieldKey);
+        return index >= 0 ? (PROGRESSIVE_ORDER[index + 1] || '') : '';
+    }
+
+    function clearPendingAutoAdvance() {
+        if (!autoAdvanceTimer) {
+            return;
+        }
+
+        window.clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = 0;
+    }
+
+    function prepareFieldPanel(fieldKey) {
+        if (fieldKey !== 'date') {
+            return;
+        }
+
+        const activeDate = getCalendarDisplayDate();
+        calendarViewDate = new Date(activeDate.getFullYear(), activeDate.getMonth(), 1);
+        renderPlannerCalendar();
+    }
+
+    function resetDateFieldValue() {
+        const hadValue = Boolean(dateInput.value);
+        if (!hadValue) {
+            syncDateFieldDisplay();
+            return false;
+        }
+
+        dateInput.value = '';
+        calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
+        syncDateFieldDisplay();
+        renderPlannerCalendar();
+        return true;
+    }
+
+    function resetPeopleFieldValue() {
+        const hadValue = Boolean(String(peopleInput.value || '').trim());
+        const emptyOption = peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value=""]');
+        if (!emptyOption) {
+            return false;
+        }
+
+        setOptionState('people', emptyOption);
+        hideCustomPeopleEditor();
+        return hadValue;
+    }
+
+    function syncProgressivePlannerState() {
+        let didReset = false;
+
+        if (!isFieldComplete('spot')) {
+            didReset = resetDateFieldValue() || didReset;
+            didReset = resetPeopleFieldValue() || didReset;
+        } else if (!isFieldComplete('date')) {
+            didReset = resetPeopleFieldValue() || didReset;
+        }
+
+        Object.keys(fieldMap).forEach((key) => {
+            const config = fieldMap[key];
+            const unlocked = isFieldUnlocked(key);
+
+            config.field.classList.toggle('is-ready', unlocked);
+            config.field.classList.toggle('is-locked', !unlocked);
+            config.trigger.setAttribute('aria-disabled', String(!unlocked));
+
+            if (unlocked) {
+                config.trigger.removeAttribute('tabindex');
+            } else {
+                config.trigger.setAttribute('tabindex', '-1');
+            }
+        });
+
+        if (!isFieldUnlocked('date') && !isFieldComplete('date')) {
+            dateHint.textContent = LOCKED_HINTS.date;
+        } else {
+            syncDateFieldDisplay();
+        }
+
+        if (!isFieldUnlocked('people') && !isFieldComplete('people')) {
+            peopleHint.textContent = LOCKED_HINTS.people;
+        } else if (isFieldComplete('people')) {
+            peopleHint.textContent = peopleInput.dataset.note || COPY.people.emptyHint;
+        } else {
+            peopleHint.textContent = COPY.people.emptyHint;
+        }
+
+        if (activePanelKey) {
+            const availableFieldKey = resolvePlannerFieldKey(activePanelKey);
+            if (availableFieldKey !== activePanelKey) {
+                closePanel(activePanelKey);
+            }
+        }
+
+        return didReset;
+    }
+
+    function queueAutoAdvance(fieldKey) {
+        const nextFieldKey = getNextFieldKey(fieldKey);
+        if (!nextFieldKey || !isFieldUnlocked(nextFieldKey) || isFieldComplete(nextFieldKey)) {
+            return;
+        }
+
+        clearPendingAutoAdvance();
+        autoAdvanceTimer = window.setTimeout(() => {
+            autoAdvanceTimer = 0;
+
+            if (!isFieldUnlocked(nextFieldKey) || isFieldComplete(nextFieldKey)) {
+                return;
+            }
+
+            openPanel(nextFieldKey);
+            fieldMap[nextFieldKey]?.trigger?.focus({ preventScroll: true });
+        }, 280);
+    }
 
     /**
      * getSpotOptions() - 获取当前海域浮层里的全部选项按钮
@@ -790,7 +955,7 @@ function setupPlannerSummary() {
     }
 
     /**
-     * formatPlannerDate(value) - 把原生日期值格式化。Planner Desk 的展示文案
+     * formatPlannerDate(value) - 把原生日期值格式化为行程控制台的展示文案
      * @param {string} value - 原生日期输入值
      * @returns {string} - 格式化后的日期文本
      */
@@ -1097,6 +1262,8 @@ function setupPlannerSummary() {
      * @returns {void} - 无返回值，直接关闭当前浮层
      */
     function closeActivePanel() {
+        clearPendingAutoAdvance();
+
         if (!activePanelKey) {
             return;
         }
@@ -1110,13 +1277,17 @@ function setupPlannerSummary() {
      * @returns {void} - 无返回值，直接展开浮层
      */
     function openPanel(fieldKey) {
+        const targetFieldKey = resolvePlannerFieldKey(fieldKey);
+        clearPendingAutoAdvance();
+        prepareFieldPanel(targetFieldKey);
+
         Object.keys(fieldMap).forEach((key) => {
-            if (key !== fieldKey && !fieldMap[key].panel.hidden) {
+            if (key !== targetFieldKey && !fieldMap[key].panel.hidden) {
                 closePanel(key);
             }
         });
 
-        const config = fieldMap[fieldKey];
+        const config = fieldMap[targetFieldKey];
         if (!config) {
             return;
         }
@@ -1137,8 +1308,8 @@ function setupPlannerSummary() {
         config.field.classList.add('is-open', 'is-active');
         config.trigger.setAttribute('aria-expanded', 'true');
         config.panel.hidden = false;
-        activePanelKey = fieldKey;
-        if (fieldKey === 'people') {
+        activePanelKey = targetFieldKey;
+        if (targetFieldKey === 'people') {
             const existingCustomCount = getCustomPeopleCount();
             if (existingCustomCount) {
                 showCustomPeopleEditor(existingCustomCount);
@@ -1148,7 +1319,7 @@ function setupPlannerSummary() {
         }
 
         window.requestAnimationFrame(() => {
-            positionPanel(fieldKey);
+            positionPanel(targetFieldKey);
             config.panel.classList.add('is-open');
             schedulePanelPosition();
         });
@@ -1162,7 +1333,8 @@ function setupPlannerSummary() {
      * @returns {void} - 无返回值，直接滚动并展开对应浮层
      */
     function jumpToPlannerField(fieldKey) {
-        const config = fieldMap[fieldKey];
+        const targetFieldKey = resolvePlannerFieldKey(fieldKey);
+        const config = fieldMap[targetFieldKey];
         if (!config) {
             return;
         }
@@ -1171,7 +1343,7 @@ function setupPlannerSummary() {
         scrollToSection('#plannerDeskControl', 1320);
 
         window.setTimeout(() => {
-            openPanel(fieldKey);
+            openPanel(targetFieldKey);
             config.trigger?.focus({ preventScroll: true });
         }, 360);
     }
@@ -1270,6 +1442,7 @@ function setupPlannerSummary() {
             item.classList.toggle('is-selected', item === customOption);
         });
 
+        syncProgressivePlannerState();
         updatePlannerSummary();
         commitPlannerDeskSelection();
         hideCustomPeopleEditor();
@@ -1287,11 +1460,15 @@ function setupPlannerSummary() {
         const selectedDate = new Date(`${value}T00:00:00`);
         calendarViewDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
 
-        syncDateFieldDisplay();
+        syncProgressivePlannerState();
         updatePlannerSummary();
         commitPlannerDeskSelection();
         renderPlannerCalendar();
         closePanel('date');
+
+        if (!peopleInput.value) {
+            queueAutoAdvance('date');
+        }
     }
 
     /**
@@ -1337,6 +1514,14 @@ function setupPlannerSummary() {
             ? summaryMetaMap.people.filledState
             : summaryMetaMap.people.emptyState;
 
+        summaryStatusNote.textContent = isConfirmed
+            ? SUMMARY_PROGRESS_COPY.confirmed
+            : hasDate
+                ? SUMMARY_PROGRESS_COPY.people
+                : hasSpot
+                    ? SUMMARY_PROGRESS_COPY.date
+                    : SUMMARY_PROGRESS_COPY.spot;
+
         if (store && typeof store.savePlannerDraft === 'function') {
             store.savePlannerDraft({
                 spotValue: spotInput.value,
@@ -1353,7 +1538,7 @@ function setupPlannerSummary() {
     }
 
     /**
-     * commitPlannerDeskSelection() - 把当。Planner Desk 的最新选择立即同步到已收进行程
+     * commitPlannerDeskSelection() - 把当前行程控制台的最新选择立即同步到已收进行程
      * @returns {void} - 无返回值，直接更新共享存储并刷新列表
      */
     function commitPlannerDeskSelection() {
@@ -1370,7 +1555,7 @@ function setupPlannerSummary() {
     }
 
     /**
-     * restorePlannerDraft() - 从共享存储中回填 Planner Desk 之前保存的草稿
+     * restorePlannerDraft() - 从共享存储中回填行程控制台之前保存的草稿
      * @returns {void} - 无返回值，直接同步字段当前状态
      */
     function restorePlannerDraft() {
@@ -1413,6 +1598,7 @@ function setupPlannerSummary() {
 
         calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
         syncDateFieldDisplay();
+        syncProgressivePlannerState();
     }
     const peopleOptions = Array.from(peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]'));
 
@@ -1441,18 +1627,18 @@ function setupPlannerSummary() {
             return;
         }
 
-        const activeDate = getCalendarDisplayDate();
-        calendarViewDate = new Date(activeDate.getFullYear(), activeDate.getMonth(), 1);
-        renderPlannerCalendar();
         openPanel('date');
     });
 
     dateInput.addEventListener('change', () => {
-        calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
-        syncDateFieldDisplay();
+        prepareFieldPanel('date');
+        syncProgressivePlannerState();
         updatePlannerSummary();
         commitPlannerDeskSelection();
-        renderPlannerCalendar();
+
+        if (dateInput.value) {
+            queueAutoAdvance('date');
+        }
     });
 
     calendarPrev.addEventListener('click', () => {
@@ -1481,9 +1667,14 @@ function setupPlannerSummary() {
         }
 
         setOptionState('spot', option);
+        syncProgressivePlannerState();
         updatePlannerSummary();
         commitPlannerDeskSelection();
         closePanel('spot');
+
+        if (spotInput.value && !dateInput.value) {
+            queueAutoAdvance('spot');
+        }
     });
 
     peopleOptions.forEach((option) => {
@@ -1494,6 +1685,7 @@ function setupPlannerSummary() {
             }
 
             setOptionState('people', option);
+            syncProgressivePlannerState();
             updatePlannerSummary();
             commitPlannerDeskSelection();
             hideCustomPeopleEditor();
@@ -1558,10 +1750,12 @@ function setupPlannerSummary() {
     setOptionState('people', defaultPeopleOption);
     restorePlannerDraft();
     renderPlannerCalendar();
+    syncProgressivePlannerState();
     updatePlannerSummary();
 
     window.addEventListener('yanqi:confirmed-bookings-updated', () => {
         syncSpotOptionsFromBookings(null, false);
+        syncProgressivePlannerState();
         updatePlannerSummary();
     });
 
@@ -1913,7 +2107,7 @@ function getConfirmedBookingPriceView(booking) {
 }
 
 /**
- * syncPlannerSelectionToConfirmedBookings(selection) - 把当前 Planner Desk 的日期与同行写回已收进行程
+ * syncPlannerSelectionToConfirmedBookings(selection) - 把当前行程控制台的日期与同行写回已收进行程
  * @param {{spotValue: string, dateValue: string, dateLabel: string, peopleValue: string, peopleLabel: string}} selection - 当前控制台选择结果
  * @returns {Object[]} - 更新后的已收进行程列表
  */
@@ -2029,7 +2223,7 @@ function buildConfirmedBookingCardMarkup(booking) {
 }
 
 /**
- * renderConfirmedBookings() - 读取共享存储并刷。trip 页“已收进行程”区。
+ * renderConfirmedBookings() - 读取共享存储并刷新行程页“已收进行程”区。
  * @returns {void} - 无返回值，直接更新行程卡片列表
  */
 function renderConfirmedBookings() {
@@ -2146,4 +2340,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 

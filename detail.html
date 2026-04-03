@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
     详情页 / detail.html
     这一页负责把用户真正带进一片具体海域，承接英雄区、套餐预订、地图说明、评论和相关推荐。
-    阅读顺序建议：导航 -> Hero -> 正文与地图 -> 套餐与评论 -> 相关推荐 -> 反馈层与脚本入口。
+    阅读顺序建议：导航 -> 首屏 -> 正文与地图 -> 套餐与评论 -> 相关推荐 -> 反馈层与脚本入口。
 -->
 <html lang="zh-CN">
 <head>
@@ -21,7 +21,7 @@
     <div class="depth-gauge left" aria-hidden="true">
         <div class="gauge-current" id="leftGaugeCurrent">0m</div>
         <div class="gauge-markers" id="leftGaugeMarkers">
-            <!-- 刻度由 JS 动态生成 -->
+            <!-- 刻度由脚本动态生成 -->
         </div>
     </div>
 
@@ -29,7 +29,7 @@
     <div class="depth-gauge right" aria-hidden="true">
         <div class="gauge-current" id="rightGaugeCurrent">0m</div>
         <div class="gauge-markers" id="rightGaugeMarkers">
-            <!-- 刻度由 JS 动态生成 -->
+            <!-- 刻度由脚本动态生成 -->
         </div>
     </div>
 
@@ -54,7 +54,7 @@
 
     <!-- 页面主舞台：承载详情页主体内容，并作为相关推荐切换时的统一动画容器。 -->
     <div class="page-stage" id="pageStage">
-        <!-- 详情 Hero：
+        <!-- 详情 ??：
              这是进入某一片具体海域后的第一眼。
              图片是情绪入口，标题和标签负责快速交代这片海的难度、深度和季节。 -->
         <section class="detail-hero" id="detailHero">
@@ -129,7 +129,7 @@
                          不直接写死静态图片，而交给 JS 按当前潜点生成对应的地图 / 海图内容。 -->
                     <h2 id="spotMapSection">潜点位置</h2>
                     <div class="map-container" id="mapContainer">
-                        <!-- 海域定位台由 JS 动态生成 -->
+                        <!-- 海域定位台由脚本动态生成 -->
                     </div>
 
                     <!-- 用户评价区：
@@ -142,8 +142,9 @@
                         </div>
                         <div class="reviews-filters" id="reviewsFilters"></div>
                     </div>
+                    <p id="reviewsLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
                     <div class="reviews-section" id="reviewsSection">
-                        <!-- 评价会由 JS 动态生成 -->
+                        <!-- 评价会由脚本动态生成 -->
                     </div>
                 </article>
 
@@ -160,20 +161,20 @@
 
                         <div class="booking-match" id="packageMatchTags"></div>
 
-                        <div class="booking-copy" id="bookingCopy">
+                        <div class="booking-copy" id="bookingCopy" data-reading-guide-key="overview">
                             <p class="booking-kicker">
-                                <span class="booking-kicker-line">Dive Match</span>
+                                <span class="booking-kicker-line">Sea Dossier</span>
                             </p>
-                            <h3 class="booking-title" aria-label="按下潜能力匹配这次行程">
-                                <span class="booking-title-line">按下潜能力匹配这次行程</span>
+                            <h3 class="booking-title" aria-label="当前阅读区块：潜点介绍">
+                                <span class="booking-title-line">潜点介绍</span>
                             </h3>
                             <p class="booking-intro">
-                                <span class="booking-intro-line">不是先决定价格，而是先确认自己适合怎样进入这片海。根据证书等级、近期下潜经验和想要的节奏，去看更合适的套餐层级。</span>
+                                <span class="booking-intro-line">先把这片海的流向、难度与进入方式读清，再决定要用怎样的节奏靠近。</span>
                             </p>
                         </div>
 
                         <div class="itinerary-list" id="itineraryList">
-                            <!-- 行程卡片会由 JS 动态生成 -->
+                            <!-- 行程卡片会由脚本动态生成 -->
                         </div>
 
                         <div class="booking-note" id="bookingNote">
@@ -198,8 +199,9 @@
             </p>
         </div>
 
+        <p id="relatedLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
         <div class="related-grid" id="relatedGrid">
-            <!-- 相邻海域舞台会由 JS 动态生成 -->
+            <!-- 相邻海域舞台会由脚本动态生成 -->
         </div>
     </div>
 </section>
@@ -424,5 +426,7 @@
     <script src="js/detail.js"></script>
 </body>
 </html>
+
+
 
 

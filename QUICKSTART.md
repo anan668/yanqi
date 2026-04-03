@@ -1,4 +1,4 @@
-# 盐憩快速开始
+﻿# 盐憩快速开始
 
 这份文档只负责一件事：让你用最短时间跑起项目并知道先看哪里。
 
@@ -34,11 +34,11 @@ http://localhost:8000
 
 1. `index.html` 登录门厅
 2. 进入 `home.html`
-3. 浏览 Hero、热门潜点、Dive Match
+3. 浏览 首屏、热门潜点、潜水匹配
 4. 进入 `detail.html`
 5. 确认一个套餐
 6. 打开 `trip.html`
-7. 查看 Planner Desk 和“已收进行程”
+7. 查看 行程控制台 和“已收进行程”
 
 ## 3. 最快理解代码路径
 
@@ -60,3 +60,13 @@ http://localhost:8000
 - [YANQI_PRESENTATION.md](./YANQI_PRESENTATION.md)：展示提纲
 - [YANQI_5MIN_SPEECH.md](./YANQI_5MIN_SPEECH.md)：五分钟演讲稿
 - [YANQI_HANDOFF.md](./YANQI_HANDOFF.md)：续接说明
+
+## 5. 注释入口
+
+- 核心脚本和样式文件现在都带了中文文件头说明，先看文件顶部会最快进入状态。
+- 想看页面节奏与深度切换：先读 `js/depth-manager.js`
+- 想看首页模块组织：先读 `js/home.js` 和 `css/home.css`
+- 想看行程联动：先读 `js/trip.js` 和 `js/yanqi-trip-store.js`
+- 想看详情页完整交互：先读 `js/detail.js`
+
+

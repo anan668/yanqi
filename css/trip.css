@@ -1,18 +1,18 @@
 ﻿/* ============================================
-   Trip Page Styles - trip.css
+   行程页样式 - trip.css
    ============================================
    作用：
-   1. 负责 trip 页 Hero、Planner Desk、摘要区、已收进行程和准备系统的完整视觉结构。
+   1. 负责行程页首屏、行程控制台、摘要区、已收进行程和准备系统的完整视觉结构。
    2. 把行程页做成更深、更静、更私密的规划空间，而不是普通预订表单页。
    3. 配合行程脚本承接浮层、摘要联动、卡片状态和移动端收束。
    阅读顺序：
-   1. Hero
-   2. Planner Desk 与摘要区
+   1. 首屏
+   2. 行程控制台与摘要区
    3. 已收进行程
    4. 准备系统与响应式
 */
 
-/* 文件导读：trip 页的样式重点不是“字段长什么样”，而是整块控制台如何维持深海、安静和可持续操作的节奏。 */
+/* 文件导读：行程页的样式重点不是“字段长什么样”，而是整块控制台如何维持深海、安静和可持续操作的节奏。 */
 /* 行程页整体背景与页面层级 */
 .trip-page {
     padding-top: 70px;
@@ -27,7 +27,7 @@
     min-height: 100vh;
 }
 
-/* Hero 外层海域：这是 trip 页进入“规划层”后的第一块深海背景，情绪比首页更深、更静。 */
+/* 首屏外层海域：这是行程页进入“规划层”后的第一块深海背景，情绪比首页更深、更静。 */
 /* 这一层负责给首屏上半部分铺出更沉静的深海氛围，而不是普通页面头图。 */
 .trip-hero {
     position: relative;
@@ -41,7 +41,7 @@
         linear-gradient(180deg, rgba(14, 52, 76, 0.96) 0%, rgba(10, 36, 54, 0.98) 38%, rgba(8, 27, 42, 1) 100%);
 }
 
-/* Hero 顶层流光：纯装饰层，用很慢的亮带漂移去模拟海流，不承接任何点击。 */
+/* 首屏 顶层流光：纯装饰层，用很慢的亮带漂移去模拟海流，不承接任何点击。 */
 .trip-hero::before {
     content: "";
     position: absolute;
@@ -50,13 +50,13 @@
         radial-gradient(circle at 22% 22%, rgba(211, 236, 250, 0.16) 0%, rgba(211, 236, 250, 0) 18%),
         radial-gradient(circle at 74% 34%, rgba(112, 182, 214, 0.1) 0%, rgba(112, 182, 214, 0) 20%),
         linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 28%, rgba(143, 210, 238, 0.06) 54%, rgba(255, 255, 255, 0) 82%);
-    opacity: 0.8; /* 保留存在感，但不盖过正文和 Planner Desk。 */
+    opacity: 0.8; /* 保留存在感，但不盖过正文和行程控制台。 */
     mix-blend-mode: screen; /* 用 screen 混合模式把亮带融进背景，保住海流发光感。 */
     animation: trip-hero-current 24s ease-in-out infinite alternate; /* 慢速漂移，保持“海在呼吸”的感。*/
     pointer-events: none; /* 纯装饰层，避免挡住按钮和链接点击 */
 }
 
-/* Hero 底部雾层：用模糊渐变把首屏自然接到下方内容，而不是硬切到下一段。 */
+/* 首屏 底部雾层：用模糊渐变把首屏自然接到下方内容，而不是硬切到下一段。 */
 .trip-hero::after {
     content: "";
     position: absolute;
@@ -69,7 +69,7 @@
     pointer-events: none;
 }
 
-/* Hero 内容限宽壳层：把大屏内容收在可控宽度里，避免文字和 Planner Desk 被拉得过散。 */
+/* 首屏内容限宽壳层：把大屏内容收在可控宽度里，避免文字和行程控制台 被拉得过散。 */
 .trip-hero-shell {
     position: relative;
     z-index: 1;
@@ -77,8 +77,8 @@
     margin: 0 auto;
 }
 
-/* Hero 内部主舞台。
-   这是文案区和 Planner Desk 共同所在的玻璃舱。
+/* 首屏 内部主舞台。
+   这是文案区和行程控制台共同所在的玻璃舱。
    这里既要有雾感，也要足够稳，才能让“安排行程”像在海里慢慢展开。 */
 .trip-hero-stage {
     position: relative;
@@ -102,7 +102,7 @@
     animation: trip-hero-stage-rise 1100ms cubic-bezier(0.16, 0.82, 0.2, 1) forwards, trip-hero-breath 12s ease-in-out 1.2s infinite;
 }
 
-/* Hero 主舞台内层装饰：
+/* 首屏 主舞台内层装饰：
    before 提供柔和高光，after 提供一层更克制的内边框。
    让整块玻璃舱看起来更有厚度，而不是一张平面卡片。 */
 .trip-hero-stage::before,
@@ -128,8 +128,8 @@
     -webkit-mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.92), transparent 76%);
 }
 
-/* Hero 文案区：
-   和右下方 Planner Desk 分组摆放。
+/* 首屏 文案区：
+   和右下方的行程控制台分组摆放。
    这里控制文字本身的最大阅读宽度，避免长句子拖得太长。 */
 .trip-hero-copy {
     position: relative;
@@ -138,7 +138,7 @@
     margin-bottom: 34px;
 }
 
-/* Hero 与分区通用 kicker：这些英文小标题负责建立“档案标签感”，帮助层级更清楚。 */
+/* 首屏 与分区通用 kicker：这些英文小标题负责建立“档案标签感”，帮助层级更清楚。 */
 .trip-hero-kicker,
 .trip-section-kicker {
     margin: 0 0 12px;
@@ -148,7 +148,7 @@
     color: rgba(196, 223, 240, 0.62);
 }
 
-/* Hero 主标题：
+/* 首屏 主标题：
    标题字号用 clamp 跟着屏幕变化，避免手机太大、桌面又显得偏小。 */
 .trip-hero-title {
     margin: 0 0 18px;
@@ -160,7 +160,7 @@
     text-shadow: 0 10px 24px rgba(4, 14, 24, 0.24);
 }
 
-/* Hero 副文案：
+/* 首屏 副文案：
    这里控制正文说明的阅读宽度和行距，让长句子仍然有呼吸感。 */
 .trip-hero-subtitle {
     margin: 0 0 26px;
@@ -170,7 +170,7 @@
     color: rgba(219, 234, 243, 0.82);
 }
 
-/* Hero 动作区：
+/* 首屏 动作区：
    两个入口并排放置，形成“继续下潜 / 回到上一层”的并行选择。 */
 .trip-hero-actions {
     display: flex;
@@ -178,7 +178,7 @@
     gap: 12px;
 }
 
-/* Hero 文案分层入场：让 kicker、标题、副文案和按钮依次显现，而不是一次全部出现。 */
+/* 首屏 文案分层入场：让 kicker、标题、副文案和按钮依次显现，而不是一次全部出现。 */
 .trip-hero-kicker,
 .trip-hero-title,
 .trip-hero-subtitle,
@@ -205,8 +205,8 @@
     animation-delay: 520ms;
 }
 
-/* Planner Desk 主容器：
-   这里不是普通搜索栏，而是 trip 页核心的行程安排面板。 */
+/* 行程控制台主容器：
+   这里不是普通搜索栏，而是 行程页核心的行程安排面板。 */
 .trip-page-planner {
     position: relative;
     z-index: 2;
@@ -215,12 +215,12 @@
     background: transparent;
 }
 
-/* 去掉继承下来的 ::after 装饰，避免 Planner Desk 重复叠一层无关光效。 */
+/* 去掉继承下来的 ::after 装饰，避免行程控制台重复叠一层无关光效。 */
 .trip-page-planner::after {
     content: none;
 }
 
-/* Planner Desk 双栏结构：左侧是摘要回读，右侧是可操作字段；用 grid areas 明确空间角色。 */
+/* 行程控制台双栏结构：左侧是摘要回读，右侧是可操作字段；用 grid areas 明确空间角色。 */
 .trip-page-planner .trip-planner-shell {
     position: relative;
     z-index: 2;
@@ -231,7 +231,7 @@
         "search"
         "summary";
     grid-template-columns: minmax(0, 1fr);
-    /* trip 页先读当前行程，再看已经收进来的海，最后继续整理控制台。 */
+    /* 行程页先读当前行程，再看已经收进来的海，最后继续整理控制台。 */
     gap: 28px;
     align-items: start;
     max-width: none;
@@ -246,12 +246,12 @@
 }
 
 /* 旧版文案区占位：
-   这里保留选择器但直接隐藏，避免影响当前双栏 Planner Desk 结构。 */
+   这里保留选择器但直接隐藏，避免影响当前双栏行程控制台结构。 */
 .trip-page-planner .trip-planner-copy {
     display: none;
 }
 
-/* Planner Desk 控制台：
+/* 行程控制台：
    这里用 grid 把“海域 / 日期 / 人数 / 提交动作”排成一块有层次的操作台。
    不直接用普通表单纵排，是为了保留海图式的空间感。 */
 .trip-page-planner .trip-search-bar {
@@ -333,7 +333,7 @@
     pointer-events: none; /* 默认不拦截页面点击，只有真正打开的浮层自己接管交互。 */
 }
 
-/* 设置 Planner Desk 字段舱的玻璃外观、边框和交互层次。 */
+/* 设置行程控制台字段舱的玻璃外观、边框和交互层次。 */
 .planner-field {
     position: relative;
     min-height: 132px;
@@ -375,7 +375,7 @@
     animation-delay: 1140ms;
 }
 
-/* 给 Planner Desk 字段舱加一层很轻的潮光扫过层，增强玻璃表面的流动感。 */
+/* 给行程控制台字段舱加一层很轻的潮光扫过层，增强玻璃表面的流动感。 */
 .planner-field::before {
     content: "";
     position: absolute;
@@ -388,8 +388,21 @@
     pointer-events: none;
 }
 
+.planner-field::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 18% 14%, rgba(222, 239, 247, 0.14) 0%, rgba(222, 239, 247, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 360ms ease;
+}
+
 /* 字段 hover 或展开时轻微上浮，并增强边缘高光，像这一格海流被选中。 */
-.planner-field:hover,
+.planner-field:not(.is-locked):hover,
 .planner-field.is-open,
 .planner-field.is-active {
     z-index: 18;
@@ -402,20 +415,76 @@
 }
 
 /* 字段 hover 或展开时显示扫光，让当前操作区域比旁边更清晰一点。 */
-.planner-field:hover::before,
+.planner-field:not(.is-locked):hover::before,
 .planner-field.is-open::before,
 .planner-field.is-active::before {
     opacity: 1;
     transform: translateX(0);
 }
 
+.planner-field.is-locked {
+    border-color: rgba(205, 229, 242, 0.06);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(120, 160, 184, 0.04) 100%),
+        rgba(9, 28, 43, 0.36);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 14px 24px rgba(4, 15, 24, 0.08);
+}
+
+.planner-field.is-locked::after {
+    opacity: 0.86;
+    animation: planner-field-mist-breath 7.6s ease-in-out infinite;
+}
+
+.planner-field.is-locked .planner-field-trigger {
+    filter: saturate(0.76);
+}
+
+.planner-field.is-locked .planner-field-label {
+    color: rgba(190, 214, 226, 0.44);
+}
+
+.planner-field.is-locked .planner-field-value {
+    color: rgba(221, 234, 242, 0.72);
+}
+
+.planner-field.is-locked .planner-field-note {
+    color: rgba(198, 216, 227, 0.5);
+}
+
 /* 字段标题标签：告诉用户这一格是在整理海域、时间还是同行。 */
 .planner-field-label {
     margin: 0 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-size: 0.72rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: rgba(194, 221, 236, 0.58);
+}
+
+.planner-field[data-planner-step] .planner-field-label::before {
+    content: attr(data-planner-step);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(205, 229, 242, 0.08);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    color: rgba(208, 228, 239, 0.52);
+}
+
+.planner-field.is-locked[data-planner-step] .planner-field-label::before {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(205, 229, 242, 0.05);
+    color: rgba(189, 211, 223, 0.42);
 }
 
 /* 将字段主体做成无默认按钮样式的深海信息展示面 */
@@ -823,7 +892,7 @@
     color: rgba(204, 223, 235, 0.68);
 }
 
-/* Planner Desk 主行动按钮：承担“继续把这次下潜往下排”的动作。 */
+/* 行程控制台主行动按钮：承担“继续把这次下潜往下排”的动作。 */
 .planner-submit-btn {
     grid-area: action;
     position: relative;
@@ -908,7 +977,7 @@
     transform: translateY(1px);
 }
 
-/* Planner Desk 舞台入场动画：从轻微下沉和模糊中慢慢浮现。 */
+/* 行程控制台舞台入场动画：从轻微下沉和模糊中慢慢浮现。 */
 @keyframes trip-hero-stage-rise {
     0% {
         opacity: 0;
@@ -983,6 +1052,19 @@
         opacity: 1;
         transform: translate3d(0, 0, 0);
         filter: blur(0);
+    }
+}
+
+@keyframes planner-field-mist-breath {
+    0%,
+    100% {
+        opacity: 0.72;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    50% {
+        opacity: 0.94;
+        transform: translate3d(0, -2px, 0) scale(1.015);
     }
 }
 
@@ -1663,12 +1745,12 @@
     margin-top: 14px;
 }
 
-/* trip 页 footer：给首屏和页脚之间留出更自然的收束空间。 */
+/* 行程页 footer：给首屏和页脚之间留出更自然的收束空间。 */
 .trip-page .footer {
     padding-top: 70px;
 }
 
-/* 中屏断点：开始把 trip 页从大舞台收成更适合平板阅读的结构。 */
+/* 中屏断点：开始把 行程页从大舞台收成更适合平板阅读的结构。 */
 @media (max-width: 980px) {
     /* 先把大块区域改成单列，避免横向内容过挤。 */
     .trip-focus-grid,
@@ -1676,7 +1758,7 @@
         grid-template-columns: 1fr;
     }
 
-    /* Hero 舞台在中屏下收紧内边距和圆角，保持完整但不过重。 */
+    /* 首屏 舞台在中屏下收紧内边距和圆角，保持完整但不过重。 */
     .trip-hero-stage {
         padding: 30px;
         border-radius: 32px;
@@ -1724,9 +1806,9 @@
     }
 }
 
-/* 小屏断点：继续收紧首屏留白，保证 Hero 和功能区不贴边。 */
+/* 小屏断点：继续收紧首屏留白，保证 首屏 和功能区不贴边。 */
 @media (max-width: 768px) {
-    /* 手机前的过渡断点：先压缩 Hero 左右边距。 */
+    /* 手机前的过渡断点：先压缩 首屏 左右边距。 */
     .trip-hero {
         padding-left: var(--spacing-md);
         padding-right: var(--spacing-md);
@@ -1740,10 +1822,10 @@
     }
 }
 
-/* 手机端 Planner Desk：
+/* 手机端行程控制台：
    重点不是缩得更小，而是保留完整可读性和点击空间。 */
 @media (max-width: 600px) {
-    /* 手机端 Hero 按钮改纵向堆叠，避免横向挤压。 */
+    /* 手机端 首屏 按钮改纵向堆叠，避免横向挤压。 */
     .trip-hero-actions {
         flex-direction: column;
     }
@@ -1802,7 +1884,7 @@
         min-height: 42px; /* 手机上把单元格高度收一点，这样整个月更容易在一屏里看完 */
     }
 
-    /* 手机端进一步收紧 Hero / 焦点卡 / 准备卡的内边距和圆角。 */
+    /* 手机端进一步收紧 首屏 / 焦点卡 / 准备卡的内边距和圆角。 */
     .trip-hero-stage,
     .trip-focus-card,
     .trip-prep-card {
@@ -1900,7 +1982,7 @@
     color: rgba(194, 221, 236, 0.58);
 }
 
-/* 已收进行程区域：让 detail 页确认过的套餐，以更安静的海域档案方式停留在 trip 页里。 */
+/* 已收进行程区域：让 行程页确认过的套餐，以更安静的海域档案方式停留在 行程页里。 */
 .confirmed-bookings-stage {
     grid-area: confirmed;
     position: relative;
@@ -2259,4 +2341,9 @@
         justify-content: center;
     }
 }
+
+
+
+
+
 

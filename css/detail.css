@@ -1,13 +1,13 @@
 ﻿/* ============================================
-   Detail Page Styles - detail.css
+   详情页样式 - detail.css
    ============================================
    作用：
-   1. 负责详情页 Hero、正文、地图、套餐、评论、推荐与页脚的整体视觉结构。
+   1. 负责详情页首屏、正文、地图、套餐、评论、推荐与页脚的整体视觉结构。
    2. 让详情页看起来像“进入一片海”，而不是普通景点详情模板。
    3. 配合详情页脚本承接弹层、反馈层和切换动画的视觉状态。
    阅读顺序：
    1. 页面骨架
-   2. Hero 与正文
+   2. 首屏与正文
    3. 套餐、评论和地图
    4. 推荐区、页脚、弹层与响应式
 */
@@ -15,6 +15,8 @@
 /* 文件导读：详情页是全站信息最密的一层，先抓区域分层，再看每个模块的细节样式。 */
 .detail-page {
     --detail-safe-side: 106px;
+    --detail-sidebar-stick-top: 94px;
+    --detail-sidebar-stick-bottom: 28px;
     /* 给正文、相关推荐和页脚额外留出左右“安全边”。
        这样内容不会和两侧固定深度计、悬浮导览挤在一起。 */
     padding-top: 0;
@@ -284,7 +286,7 @@ body.has-overlay-lock {
         filter 0.92s ease;
 }
 
-/* Hero 醒来后，标题单位依次清晰、上浮，形成更安静的潜入式显现 */
+/* 首屏 醒来后，标题单位依次清晰、上浮，形成更安静的潜入式显现 */
 .detail-hero.detail-hero-awakened .detail-title-unit {
     opacity: 1;
     filter: blur(0);
@@ -366,6 +368,7 @@ body.has-overlay-lock {
 .content-wrapper {
     display: grid;
     grid-template-columns: minmax(0, 1.14fr) minmax(270px, 320px);
+    align-items: start;
     gap: var(--spacing-2xl);
     margin-bottom: var(--spacing-2xl);
 }
@@ -2308,11 +2311,19 @@ body.has-overlay-lock {
 .booking-sidebar {
     grid-column: 2;
     grid-row: 1;
+    position: sticky;
+    top: var(--detail-sidebar-stick-top);
+    align-self: start;
 }
 
 /* 控制 .booking-sticky 的布局、视觉和状态表现 */
 .booking-sticky {
     position: static;
+    max-height: calc(100vh - var(--detail-sidebar-stick-top) - var(--detail-sidebar-stick-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(110, 159, 184, 0.42) transparent;
     background:
         linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.42)),
         rgba(231, 245, 252, 0.68);
@@ -2324,6 +2335,23 @@ body.has-overlay-lock {
     border: 1px solid rgba(198, 220, 232, 0.78);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+}
+
+.booking-sticky::-webkit-scrollbar {
+    width: 7px;
+}
+
+.booking-sticky::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.booking-sticky::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(133, 182, 205, 0.42), rgba(84, 133, 161, 0.28));
+}
+
+.booking-sticky::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(123, 175, 200, 0.58), rgba(77, 128, 158, 0.42));
 }
 
 /* 控制 .price-badge 的布局、视觉和状态表现 */
@@ -2411,7 +2439,7 @@ body.has-overlay-lock {
     margin-bottom: 18px;
 }
 
-/* Dive Match 文案作为套餐侧栏的第一层说明。
+/* 潜水匹配文案作为套餐侧栏的第一层说明。
    这里不再是整句一起淡入，而是像有人在安静地把文字一行一行敲出来。 */
 .booking-kicker-line,
 .booking-title-line,
@@ -5433,11 +5461,17 @@ body.has-overlay-lock {
     .booking-sidebar {
         grid-column: 1;
         grid-row: auto;
+        position: static;
+        top: auto;
     }
     
 /* 控制 .booking-sticky 的布局、视觉和状态表现 */
     .booking-sticky {
         position: static;
+        top: auto;
+        max-height: none;
+        overflow: visible;
+        scrollbar-width: auto;
     }
 
 /* 控制 .review-card 的布局、视觉和状态表现 */
@@ -6186,3 +6220,4 @@ body.has-overlay-lock {
         max-width: 160px;
     }
 }
+

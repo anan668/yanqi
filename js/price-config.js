@@ -1,11 +1,11 @@
 /* ============================================
-   Shared Price Config - price-config.js
+   共享价格配置 - price-config.js
    ============================================
-   Responsibilities:
-   1. Keep Home and Detail pages on the same RMB display system.
-   2. Centralize price version, amount parsing, and RMB formatting.
-   3. Hold the current destination base prices used by cards and package builders.
-   4. Expose one stable global API for any page that needs price rendering.
+   职责：
+   1. 让首页和详情页共用同一套人民币展示规则。
+   2. 集中管理价格版本、金额解析和人民币格式化逻辑。
+   3. 维护卡片与套餐构建会用到的海域参考起价。
+   4. 向需要展示价格的页面暴露一套稳定的全局接口。
 */
 (function attachYanqiPriceConfig(window) {
     const PRICE_CONFIG = Object.freeze({
@@ -28,9 +28,9 @@
     });
 
     /**
-     * extractCurrencyAmount(priceText) - Read the numeric amount from a price string.
-     * @param {string} priceText - Source price text such as "¥3,980"
-     * @returns {number} - Parsed positive amount, or 0 when parsing fails
+     * extractCurrencyAmount(priceText) - 从价格文本里提取可计算的金额数值
+     * @param {string} priceText - 原始价格文本，例如 "¥3,980"
+     * @returns {number} - 成功时返回正数金额，失败时返回 0
      */
     function extractCurrencyAmount(priceText) {
         const numeric = Number(String(priceText || '').replace(/[^\d.]/g, ''));
@@ -38,9 +38,9 @@
     }
 
     /**
-     * formatPrice(value) - Format a numeric amount into the shared RMB display style.
-     * @param {number} value - Raw amount
-     * @returns {string} - Formatted RMB text
+     * formatPrice(value) - 把金额数值格式化为项目统一的人民币展示文案
+     * @param {number} value - 原始金额
+     * @returns {string} - 格式化后的人民币文本
      */
     function formatPrice(value) {
         const safeValue = Math.max(0, Math.round(Number(value) || 0));
@@ -48,9 +48,9 @@
     }
 
     /**
-     * normalizePriceText(priceText) - Normalize any supported source price text into shared RMB text.
-     * @param {string} priceText - Source price text
-     * @returns {string} - Shared RMB display text, or original text when unavailable
+     * normalizePriceText(priceText) - 把不同来源的价格文本整理成统一的人民币展示格式
+     * @param {string} priceText - 原始价格文本
+     * @returns {string} - 转换后的人民币文本；无法识别时返回原文本
      */
     function normalizePriceText(priceText) {
         const amount = extractCurrencyAmount(priceText);
@@ -60,9 +60,9 @@
     }
 
     /**
-     * getDestinationBasePrice(spotId) - Read the configured base price for a destination.
-     * @param {number|string} spotId - Destination id
-     * @returns {number} - Base RMB amount, or 0 when unavailable
+     * getDestinationBasePrice(spotId) - 读取某个海域当前配置的参考起价
+     * @param {number|string} spotId - 海域 id
+     * @returns {number} - 可用时返回人民币金额；没有配置时返回 0
      */
     function getDestinationBasePrice(spotId) {
         const normalizedId = Number.parseInt(spotId, 10);
@@ -72,10 +72,10 @@
     }
 
     /**
-     * getDestinationPriceText(spotId, fallbackPriceText) - Format the configured destination base price as RMB text.
-     * @param {number|string} spotId - Destination id
-     * @param {string} fallbackPriceText - Fallback text when the id is not configured
-     * @returns {string} - Formatted RMB price text
+     * getDestinationPriceText(spotId, fallbackPriceText) - 读取海域起价并输出统一的人民币展示文本
+     * @param {number|string} spotId - 海域 id
+     * @param {string} fallbackPriceText - 当前 id 没有配置时使用的兜底价格文本
+     * @returns {string} - 当前海域应展示的人民币价格文本
      */
     function getDestinationPriceText(spotId, fallbackPriceText = '') {
         const basePrice = getDestinationBasePrice(spotId);

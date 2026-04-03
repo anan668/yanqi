@@ -1,9 +1,9 @@
 ﻿/* ============================================
-   Shared Trip Store - yanqi-trip-store.js
+   共享行程存储 - yanqi-trip-store.js
    ============================================
    职责：
-   1. 统一管理 trip 页与 detail 页共享的本地存储数据。
-   2. 标准化 Planner Desk 草稿和已确认套餐的数据结构。
+   1. 统一管理行程页与详情页共享的本地存储数据。
+   2. 标准化行程控制台草稿和已确认套餐的数据结构。
    3. 提供读取、写入、更新、删除等稳定接口，避免多页面各写一套存储逻辑。
    阅读顺序：
    1. 存储 key 与基础工具
@@ -181,7 +181,7 @@
     }
 
     /**
-     * normalizePlannerDraft(draft) - 统一 Planner Desk 草稿数据结构
+     * normalizePlannerDraft(draft) - 统一行程控制台草稿数据结构
      * @param {Object} draft - 原始草稿对象
      * @returns {Object} - 标准化后的草稿对象
      */
@@ -330,7 +330,7 @@
     }
 
     /**
-     * getPlannerDraft() - 读取当前 Planner Desk 草稿
+     * getPlannerDraft() - 读取当前行程控制台草稿
      * @returns {Object} - 标准化后的草稿对象
      */
     function getPlannerDraft() {
@@ -338,7 +338,7 @@
     }
 
     /**
-     * savePlannerDraft(draft) - 保存当前 Planner Desk 草稿
+     * savePlannerDraft(draft) - 保存当前行程控制台草稿
      * @param {Object} draft - 需要保存的草稿对象
      * @returns {Object} - 标准化并已写入的草稿对象
      */
@@ -432,3 +432,4 @@
         removeConfirmedBooking
     });
 }(window));
+

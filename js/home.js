@@ -1,8 +1,8 @@
 ﻿/* ============================================
-   Home Page Logic - home.js
+   首页脚本逻辑 - home.js
    ============================================
    职责：
-   1. 驱动首页 Hero、热门潜点、目的地展台、Dive Match 和海图导览。
+   1. 驱动首页首屏、热门潜点、目的地展台、潜水匹配和海图导览。
    2. 管理首页数据渲染、滚动联动、模块切换和返回顶部等交互。
    3. 把首页维持成“先看海、再被海吸引”的入口体验。
    阅读顺序：
@@ -160,6 +160,39 @@ function applyHeroHotspotsStageSize(shell, size) {
     shell.style.setProperty('--hero-hotspots-stage-width', `${Math.round(nextSize.width)}px`);
     shell.style.setProperty('--hero-hotspots-stage-height', `${Math.round(nextSize.height)}px`);
     shell.style.setProperty('--hero-hotspots-stage-shift-x', `${Math.round(nextSize.shiftX)}px`);
+}
+
+/**
+ * createBufferedLiveAnnouncer(target, delay) - 为读屏摘要创建合并更新的播报器
+ * @param {HTMLElement|null} target - 隐藏 live 区域节点
+ * @param {number} delay - 合并等待时长
+ * @returns {(message: string) => void} - 可反复调用的摘要播报函数
+ */
+function createBufferedLiveAnnouncer(target, delay = 320) {
+    let timer = 0;
+
+    return (message) => {
+        if (!target) {
+            return;
+        }
+
+        const nextMessage = String(message || '').trim();
+        if (!nextMessage) {
+            return;
+        }
+
+        if (timer) {
+            window.clearTimeout(timer);
+        }
+
+        timer = window.setTimeout(() => {
+            target.textContent = '';
+            window.requestAnimationFrame(() => {
+                target.textContent = nextMessage;
+            });
+            timer = 0;
+        }, delay);
+    };
 }
 
 // 热门潜点数据：用于竹签滚动推荐区的卡片渲染、价格展示和详情页跳转。
@@ -380,7 +413,7 @@ const destinationsData = [
     }
 ];
 
-// 潜水匹配推荐数据：按能力、节奏和海况偏好组织首页新增的 Dive Match 模块。
+// 潜水匹配推荐数据：按能力、节奏和海况偏好组织首页新增的潜水匹配模块。
 const destinationById = new Map(destinationsData.map((item) => [item.id, item]));
 const DIVE_MATCH_STORAGE_KEY = 'yanqi_dive_match_state';
 const DIVE_MATCH_QUERY_KEY = 'match';
@@ -1481,12 +1514,14 @@ class CuratedWatersStage {
         this.intro = this.section ? this.section.querySelector('.curated-waters-intro') : null;
         this.stage = document.getElementById('curatedWatersStage');
         this.mainCard = document.getElementById('curatedMainCard');
+        this.liveSummary = document.getElementById('curatedLiveSummary');
         this.sampleCloud = document.getElementById('destinationsGrid');
         this.currentIndex = 0;
         this.switchTimer = 0;
         this.phaseRaf = 0;
         this.hasUserSelected = true;
         this.sampleCardsObserver = null;
+        this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
 
         if (!this.section || !this.shell || !this.intro || !this.mainCard || !this.sampleCloud) {
             return;
@@ -1724,6 +1759,10 @@ class CuratedWatersStage {
         this.currentIndex = nextIndex;
         this.syncActiveSample();
         this.preloadNearby(nextIndex);
+
+        if (!immediate) {
+            this.announceSummary(`已切换到${dest.name}，适合${dest.level}，最佳季节${dest.season}。`);
+        }
     }
 
     /**
@@ -1898,22 +1937,24 @@ class CuratedWatersStage {
     }
 }
 
-// Dive Match 主舞台：
+// 潜水匹配主舞台：
 // 这块会根据用户能力 / 节奏偏好切换推荐内容，
 // 同时把当前选择同步给深度计，让首页滚动深度出现更细的层次变化。
 class DiveMatchStage {
     /**
-     * constructor() - 初始化首页 Dive Match 模块的 DOM 引用和初始分类状态
+     * constructor() - 初始化首页潜水匹配模块的 DOM 引用和初始分类状态
      */
     constructor() {
         this.section = document.getElementById('dive-match');
         this.stage = document.getElementById('diveMatchStage');
         this.filters = document.getElementById('diveMatchFilters');
         this.display = document.getElementById('diveMatchDisplay');
+        this.liveSummary = document.getElementById('diveMatchLiveSummary');
         this.activeKey = getDiveMatchKeyFromLocation() || readStoredDiveMatchKey() || DIVE_MATCH_DEFAULT_KEY;
         this.switchTimer = 0;
         this.focusTimer = 0;
         this.shouldAutoFocus = window.location.hash === '#dive-match' || Boolean(getDiveMatchKeyFromLocation());
+        this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
 
         if (this.section && this.stage && this.filters && this.display) {
             this.init();
@@ -1922,7 +1963,7 @@ class DiveMatchStage {
 
     /**
      * init() - 渲染分类标签、首屏内容并绑定模块交互
-     * @returns {void} - 无返回值，直接启动 Dive Match 模块
+     * @returns {void} - 无返回值，直接启动潜水匹配模块
      */
     init() {
         this.renderFilters();
@@ -2037,7 +2078,7 @@ class DiveMatchStage {
         const enterClass = immediate ? '' : (goingDeeper ? 'from-deeper is-entering' : 'from-shallower is-entering');
         const leaveClass = goingDeeper ? 'to-deeper' : 'to-shallower';
         // 这里用深浅方向而不是左右方向，
-        // 是因为 Dive Match 的切换更像“往更深一层 / 回到更浅一层”。
+        // 是因为潜水匹配的切换更像“往更深一层 / 回到更浅一层”。
         const nextSurface = this.createMatchSurface(nextMatch, enterClass);
 
         if (this.switchTimer) {
@@ -2081,6 +2122,10 @@ class DiveMatchStage {
         if (syncDepth) {
             this.syncDepth();
         }
+
+        if (!immediate) {
+            this.announceSummary(`已切换到${nextMatch.label}，推荐${nextMatch.cards.length}片海域。`);
+        }
     }
 
     /**
@@ -2107,7 +2152,7 @@ class DiveMatchStage {
     }
 
     /**
-     * scheduleAutoFocus() - 当从详情页带分类返回时，自动滚到 Dive Match 并激活对应内容
+     * scheduleAutoFocus() - 当从详情页带分类返回时，自动滚到潜水匹配并激活对应内容
      * @returns {void} - 无返回值，直接安排自动聚焦滚动
      */
     scheduleAutoFocus() {
@@ -2247,7 +2292,7 @@ function scrollToSection(targetSelector) {
             const depthTwelveRatio = 0.5;
             topOverride = featuredThreshold + ((diveMatchThreshold - featuredThreshold) * depthTwelveRatio);
         }
-        // 这里不是简单滚到 featured 顶部，而是取它和下一层 Dive Match 之间的中间落点，
+        // 这里不是简单滚到 featured 顶部，而是取它和下一层潜水匹配之间的中间落点，
         // 让深度计更自然地停在“约 -12m”附近的层次上。
     } else if (targetSelector === '#dive-match') {
         const diveMatchStage = target.querySelector('#diveMatchStage');
@@ -2368,9 +2413,9 @@ function setupHomeNavState() {
     window.setTimeout(updateNavState, 60);
 }
 
-// 英雄区入场：控制首页 Hero 的渐进式开场状态。
+// 英雄区入场：控制首页首屏的渐进式开场状态。
 /**
- * setupHeroImmersion() - 初始化首页 Hero 的沉浸式入场状态
+ * setupHeroImmersion() - 初始化首页首屏的沉浸式入场状态
  * @returns {void} - 无返回值，直接更新首页首屏状态
  */
 function setupHeroImmersion() {
@@ -2387,7 +2432,7 @@ function setupHeroImmersion() {
 
 // 英雄区离场动画：点击首页关键入口时，先让当前首屏做失焦和下潜式退场，再执行后续动作。
 /**
- * runHeroDeparture(callback, options) - 播放 Hero 离场动画并在适当时机执行后续操作
+ * runHeroDeparture(callback, options) - 播放首屏离场动画并在适当时机执行后续操作
  * @param {Function} callback - 离场后需要执行的回调函数
  * @param {Object} options - 离场配置项
  * @returns {void} - 无返回值，直接驱动离场流程
@@ -2418,9 +2463,9 @@ function runHeroDeparture(callback, options = {}) {
     }
 }
 
-// Hero 离场：点击入口时先播放轻微失焦与下潜感，再执行实际跳转。
+// 首屏离场：点击入口时先播放轻微失焦与下潜感，再执行实际跳转。
 /**
- * setupHeroActions() - 绑定 Hero 区域内主要按钮和今日海域卡片的交互
+ * setupHeroActions() - 绑定首屏区域内主要按钮和今日海域卡片的交互
  * @returns {void} - 无返回值，直接注册交互事件
  */
 function setupHeroActions() {
@@ -2527,24 +2572,53 @@ function setupHeroHotspotsStageResize() {
         return;
     }
 
+    const hudValue = document.getElementById('heroHotspotsStageHudValue');
+    const hudHint = document.getElementById('heroHotspotsStageHudHint');
+    const resetButton = document.getElementById('heroHotspotsStageReset');
     const desktopQuery = window.matchMedia('(min-width: 1180px)');
     let resizeState = null;
+    let hasCustomSize = Boolean(safeReadHeroHotspotsStageSize());
+
+    const readCurrentStageSize = () => {
+        const rect = heroHotspotsStageShell.getBoundingClientRect();
+        return {
+            width: rect.width,
+            height: rect.height
+        };
+    };
+
+    const syncStageHud = (size = null) => {
+        heroHotspotsStageShell.dataset.stageSizeMode = hasCustomSize ? 'custom' : 'default';
+
+        if (!hudValue || !hudHint || !resetButton || !desktopQuery.matches) {
+            return;
+        }
+
+        const nextSize = size || readCurrentStageSize();
+        hudValue.textContent = `${Math.round(nextSize.width)} x ${Math.round(nextSize.height)}`;
+        hudHint.textContent = hasCustomSize ? '已记住本次观察尺度' : '当前为默认舞台';
+        resetButton.disabled = !hasCustomSize;
+    };
 
     const syncDesktopState = () => {
         if (desktopQuery.matches) {
             const saved = safeReadHeroHotspotsStageSize();
+            hasCustomSize = Boolean(saved);
             if (saved) {
                 applyHeroHotspotsStageSize(heroHotspotsStageShell, saved);
             }
+            syncStageHud();
             return;
         }
 
         resizeState = null;
+        hasCustomSize = Boolean(safeReadHeroHotspotsStageSize());
         heroHotspotsStageShell.classList.remove('is-resizing');
         document.body.classList.remove('is-resizing-hero-hotspots');
         heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-width');
         heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-height');
         heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-shift-x');
+        syncStageHud();
     };
 
     const stopResize = () => {
@@ -2557,6 +2631,7 @@ function setupHeroHotspotsStageResize() {
             height: resizeState.height,
             shiftX: resizeState.shiftX
         };
+        const state = resizeState;
 
         resizeState = null;
         heroHotspotsStageShell.classList.remove('is-resizing');
@@ -2564,7 +2639,16 @@ function setupHeroHotspotsStageResize() {
         window.removeEventListener('pointermove', onPointerMove);
         window.removeEventListener('pointerup', stopResize);
         window.removeEventListener('pointercancel', stopResize);
-        safeSaveHeroHotspotsStageSize(finalSize);
+
+        if (state.hadCustomSize || state.hasMoved) {
+            hasCustomSize = true;
+            safeSaveHeroHotspotsStageSize(finalSize);
+            syncStageHud(finalSize);
+            return;
+        }
+
+        hasCustomSize = false;
+        syncStageHud();
     };
 
     const onPointerMove = (event) => {
@@ -2596,10 +2680,18 @@ function setupHeroHotspotsStageResize() {
         }
 
         const clamped = clampHeroHotspotsStageSize(heroHotspotsStageShell, nextWidth, nextHeight, nextShiftX);
-        resizeState.width = clamped.width;
-        resizeState.height = clamped.height;
-        resizeState.shiftX = clamped.shiftX;
+        resizeState.hasMoved =
+            resizeState.hasMoved ||
+            Math.abs(clamped.width - resizeState.startWidth) > 0.5 ||
+            Math.abs(clamped.height - resizeState.startHeight) > 0.5 ||
+            Math.abs(clamped.shiftX - resizeState.startShiftX) > 0.5;
         applyHeroHotspotsStageSize(heroHotspotsStageShell, clamped);
+        const actualSize = readCurrentStageSize();
+        resizeState.width = actualSize.width;
+        resizeState.height = actualSize.height;
+        resizeState.shiftX = clamped.shiftX;
+        hasCustomSize = resizeState.hadCustomSize || resizeState.hasMoved;
+        syncStageHud(actualSize);
     };
 
     resizeHandles.forEach((handle) => {
@@ -2621,7 +2713,9 @@ function setupHeroHotspotsStageResize() {
                 startShiftX: parseFloat(getComputedStyle(heroHotspotsStageShell).getPropertyValue('--hero-hotspots-stage-shift-x')) || 0,
                 width: rect.width,
                 height: rect.height,
-                shiftX: parseFloat(getComputedStyle(heroHotspotsStageShell).getPropertyValue('--hero-hotspots-stage-shift-x')) || 0
+                shiftX: parseFloat(getComputedStyle(heroHotspotsStageShell).getPropertyValue('--hero-hotspots-stage-shift-x')) || 0,
+                hasMoved: false,
+                hadCustomSize: hasCustomSize
             };
 
             heroHotspotsStageShell.classList.add('is-resizing');
@@ -2638,7 +2732,21 @@ function setupHeroHotspotsStageResize() {
         }
 
         clearHeroHotspotsStageSize(heroHotspotsStageShell);
+        hasCustomSize = false;
+        syncStageHud();
     });
+
+    if (resetButton) {
+        resetButton.addEventListener('click', () => {
+            if (!desktopQuery.matches || !hasCustomSize) {
+                return;
+            }
+
+            clearHeroHotspotsStageSize(heroHotspotsStageShell);
+            hasCustomSize = false;
+            syncStageHud();
+        });
+    }
 
     desktopQuery.addEventListener('change', syncDesktopState);
     window.addEventListener('resize', () => {
@@ -2650,7 +2758,19 @@ function setupHeroHotspotsStageResize() {
         if (saved) {
             applyHeroHotspotsStageSize(heroHotspotsStageShell, saved);
         }
+
+        hasCustomSize = Boolean(saved);
+        syncStageHud();
     });
+
+    if (window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+            if (desktopQuery.matches) {
+                syncStageHud();
+            }
+        });
+        resizeObserver.observe(heroHotspotsStageShell);
+    }
 
     syncDesktopState();
 }
@@ -2877,7 +2997,7 @@ class HomeSeaGuide {
     }
 }
 
-// 页面初始化：创建首页主要组件，并绑定头像退出、Hero、故事区等交互。
+// 页面初始化：创建首页主要组件，并绑定头像退出、首屏、故事区等交互。
 /**
  * document DOMContentLoaded 回调 - 初始化首页的主要组件和页面级交互
  * @returns {void} - 无返回值，直接启动首页逻辑
@@ -2904,5 +3024,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+
 
 

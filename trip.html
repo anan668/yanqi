@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
     行程页 / trip.html
-    这一页是比首页更深一层的规划空间，负责承接 Planner Desk、摘要区、已收进行程和潜前准备系统。
-    阅读顺序建议：Hero -> Planner Desk -> 摘要卡 -> 已收进行程 -> 准备系统 -> 底部浮层与脚本入口。
+    这一页是比首页更深一层的规划空间，负责承接行程控制台、摘要区、已收进行程和潜前准备系统。
+    阅读顺序建议：首屏 -> 行程控制台 -> 摘要卡 -> 已收进行程 -> 准备系统 -> 底部浮层与脚本入口。
 -->
 <html lang="zh-CN">
 <head>
@@ -64,12 +64,12 @@
                         </div>
                     </div>
 
-                    <!-- Planner Desk 主区域：
-                         这是 trip 页真正的安排行程核心。
+                    <!-- 行程控制台主区域：
+                         这是行程页真正的安排行程核心。
                          外层保留为 section，既能承接英雄区文案，也方便后续被页内滚动和深度计定位。 -->
                     <section class="trip-planner-section trip-page-planner" id="trip-planner">
                         <div class="trip-planner-shell">
-                            <!-- 已收进行程：显示在 detail 页确认过的套餐，让 trip 页像一份被慢慢收住的行程档案。 -->
+                            <!-- 已收进行程：显示在行程页确认过的套餐，让行程页像一份被慢慢收住的行程档案。 -->
                             <section class="confirmed-bookings-stage" id="confirmedBookingsStage" aria-labelledby="confirmedBookingsTitle">
                                 <div class="confirmed-bookings-head">
                                     <div class="confirmed-bookings-copy">
@@ -92,9 +92,9 @@
                                 <div class="confirmed-bookings-list" id="confirmedBookingsList"></div>
                             </section>
 
-                            <!-- Planner 交互控制台：
-                                 这一层看起来像搜索栏，但实际上是 trip 页的三段式安排行程面板。
-                                 JS 会在这里监听按钮点击，再把真正的浮层挂到页面顶层容器。 -->
+                            <!-- 行程交互控制台：
+                                 这一层看起来像搜索栏，但实际上是行程页的三段式安排行程面板。
+                                 脚本会在这里监听按钮点击，再把真正的浮层挂到页面顶层容器。 -->
                             <div class="search-bar trip-search-bar planner-desk-control" id="plannerDeskControl">
                                 <div class="planner-console-head">
                                     <p class="planner-console-kicker">Trip Console</p>
@@ -107,7 +107,7 @@
 
                                 <!-- 海域字段：
                                       视觉上留成较大卡片，因为它承担“先决定去哪片海”的主决策。 -->
-                                <article class="planner-field planner-field-select" data-planner-field="spot">
+                                <article class="planner-field planner-field-select" data-planner-field="spot" data-planner-step="01">
                                     <p class="planner-field-label">海域</p>
                                     <button type="button" class="planner-field-trigger" id="plannerSpotTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="plannerSpotPanel">
                                         <span class="planner-field-value" id="plannerSpotValue">海域尚未落定</span>
@@ -166,7 +166,7 @@
                                 <!-- 日期字段：
                                      表面是按钮，真正的日期选择发生在后面的自定义潮汐日历浮层里。
                                      原生 input[type="date"] 这里只作为数据存储与系统能力兜底。 -->
-                                <article class="planner-field planner-field-date" data-planner-field="date">
+                                <article class="planner-field planner-field-date" data-planner-field="date" data-planner-step="02" data-planner-requires="spot">
                                     <p class="planner-field-label">出发时间</p>
                                     <button type="button" class="planner-field-trigger" id="plannerDateTrigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="plannerDatePanel">
                                         <span class="planner-field-value" id="plannerDateValue">仍在等一段合适的潮汐</span>
@@ -177,7 +177,7 @@
 
                                 <!-- 人数字段：
                                      结构和海域字段一致，但信息更短，所以后面会走更紧凑的浮层尺寸规则。 -->
-                                <article class="planner-field planner-field-select" data-planner-field="people">
+                                <article class="planner-field planner-field-select" data-planner-field="people" data-planner-step="03" data-planner-requires="date">
                                     <p class="planner-field-label">同行人数</p>
                                     <button type="button" class="planner-field-trigger" id="plannerPeopleTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="plannerPeoplePanel">
                                         <span class="planner-field-value" id="plannerPeopleValue">同行尚未写进这次下潜</span>
@@ -645,9 +645,9 @@
         </nav>
     </div>
 
-    <!-- Planner 顶层浮层容器：
+    <!-- 行程顶层浮层容器：
          所有下拉面板最终都会挂到这里。
-         这样可以脱离 Hero 和 Planner Desk 自己的布局上下文，保证定位、层级和裁切都更稳定。 -->
+         这样可以脱离首屏和行程控制台自己的布局上下文，保证定位、层级和裁切都更稳定。 -->
     <div class="planner-floating-layer" id="plannerFloatingLayer" hidden aria-hidden="true">
         <!-- 日期浮层：
              这是唯一常驻在顶层容器里的自定义日历。
@@ -674,7 +674,7 @@
                 <span>六</span>
                 <span>日</span>
             </div>
-            <!-- 日期格子由 JS 动态生成：
+            <!-- 日期格子由脚本动态生成：
                  这样可以同时标记“今天 / 推荐窗口 / 当前选中日期”，
                  也便于切月时做轻量动画。 -->
             <div class="planner-calendar-grid" id="plannerCalendarGrid"></div>
@@ -688,3 +688,5 @@
     <script src="js/trip.js"></script>
 </body>
 </html>
+
+

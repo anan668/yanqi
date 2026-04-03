@@ -1,5 +1,5 @@
 ﻿/* ============================================
-   Login Page Styles - login.css
+   登录页样式 - login.css
    ============================================
    作用：
    1. 搭建登录页“潜前门厅”的背景、玻璃卡、品牌门厅和认证表单。
@@ -64,6 +64,161 @@
     height: var(--login-stage-height);
     min-height: 590px;
     margin: 0 auto;
+}
+
+/* login-stage-hud：
+   给潜前门厅补一层轻量的尺度反馈。它像漂在门厅上沿的小型仪表，
+   告诉用户当前门厅大小，并提供回到默认尺度的入口。 */
+.login-stage-hud {
+    position: fixed;
+    left: calc(var(--depth-gauge-side, 3px) + 74px + 18px);
+    bottom: max(20px, var(--depth-gauge-bottom, 20px));
+    z-index: 1100;
+    display: grid;
+    width: min(220px, calc(100vw - 132px));
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 24px;
+    border: 1px solid rgba(213, 238, 248, 0.16);
+    background:
+        linear-gradient(180deg, rgba(244, 250, 254, 0.16) 0%, rgba(170, 208, 225, 0.04) 100%),
+        rgba(8, 27, 42, 0.66);
+    box-shadow:
+        0 16px 32px rgba(2, 12, 22, 0.24),
+        0 0 24px rgba(111, 178, 208, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px) saturate(136%);
+    -webkit-backdrop-filter: blur(18px) saturate(136%);
+    pointer-events: none;
+    opacity: 0;
+    filter: blur(12px);
+    transform: translate3d(0, 12px, 0);
+    transition:
+        opacity 0.52s ease,
+        transform 0.72s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.72s ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease;
+}
+
+.login-page.is-entered .login-stage-hud {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    transition-delay: 280ms;
+}
+
+body.page-transition-active .login-stage-hud {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.login-stage-hud-copy {
+    position: relative;
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding-left: 12px;
+}
+
+.login-stage-hud-copy::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(175, 221, 238, 0.56);
+    box-shadow: 0 0 14px rgba(143, 210, 233, 0.32);
+    transform: translateY(-50%);
+    transition: background-color 220ms ease, box-shadow 220ms ease;
+}
+
+.login-stage-hud-label,
+.login-stage-hud-hint {
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.login-stage-hud-label {
+    color: rgba(201, 226, 238, 0.62);
+}
+
+.login-stage-hud-value {
+    color: #f4fbff;
+    font-size: 0.84rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    text-shadow: 0 8px 20px rgba(2, 16, 28, 0.24);
+}
+
+.login-stage-hud-hint {
+    color: rgba(198, 223, 234, 0.52);
+}
+
+.login-stage-reset {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid rgba(211, 236, 247, 0.16);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(243, 251, 255, 0.14), rgba(129, 178, 201, 0.1));
+    color: rgba(239, 248, 252, 0.88);
+    min-height: 36px;
+    width: 100%;
+    padding: 0 14px;
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    pointer-events: auto;
+    cursor: pointer;
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background 220ms ease,
+        color 220ms ease,
+        opacity 220ms ease,
+        box-shadow 220ms ease;
+}
+
+.login-stage-reset:hover,
+.login-stage-reset:focus-visible {
+    transform: translate3d(0, -1px, 0);
+    border-color: rgba(220, 240, 248, 0.28);
+    background: linear-gradient(180deg, rgba(243, 251, 255, 0.2), rgba(129, 178, 201, 0.16));
+    color: #f8fdff;
+    box-shadow:
+        0 10px 22px rgba(4, 18, 30, 0.18),
+        0 0 0 1px rgba(221, 241, 249, 0.08);
+}
+
+.login-stage-reset:focus-visible {
+    outline: none;
+}
+
+.login-stage-reset:disabled {
+    opacity: 0.54;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+.login-stage-shell[data-stage-size-mode="custom"] .login-stage-hud {
+    border-color: rgba(209, 236, 247, 0.24);
+    box-shadow:
+        0 16px 32px rgba(2, 12, 22, 0.24),
+        0 0 28px rgba(98, 166, 194, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.login-stage-shell[data-stage-size-mode="custom"] .login-stage-hud-copy::before {
+    background: rgba(189, 235, 248, 0.88);
+    box-shadow: 0 0 18px rgba(159, 223, 242, 0.4);
+}
+
+.login-stage-shell[data-stage-size-mode="custom"] .login-stage-hud-hint {
+    color: rgba(216, 240, 248, 0.7);
 }
 
 /* login-stage-glow：
@@ -1337,6 +1492,10 @@
         display: none;
     }
 
+    .login-stage-hud {
+        display: none;
+    }
+
 /* 左右双栏在平板下仍保留，但比例继续偏向表单区。*/
     .card-layout {
         grid-template-columns: 30% 70%;
@@ -1372,6 +1531,10 @@
     }
 
     .login-stage-resize-layer {
+        display: none;
+    }
+
+    .login-stage-hud {
         display: none;
     }
 

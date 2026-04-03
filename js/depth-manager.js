@@ -1,5 +1,5 @@
 ﻿/* ============================================
-   Depth Manager - depth-manager.js
+   深度总控 - depth-manager.js
    ============================================
    职责：
    1. 统一管理整站深度计、页面默认深度和滚动深浅变化。
@@ -24,7 +24,7 @@
         detail: -30
     });
 
-    // 首页分层深度：随着浏览从 Hero 进入不同 section，深度计会缓慢下潜到更深一层。
+    // 首页分层深度：随着浏览从首屏进入不同 section，深度计会缓慢下潜到更深一层。
     // 这些停靠点不是硬跳，而是后面通过滚动插值平滑过渡成连续的下潜曲线。
     const HOME_SECTION_DEPTH_STOPS = Object.freeze([
         { selector: '#hero-home', depth: PAGE_DEPTH_MAP.home },
@@ -37,6 +37,10 @@
     const MIN_DEPTH = -32;
     const MAX_DEPTH = 0;
     const STEP = 1;
+    const PAGE_GAUGE_VISUAL_MAX_DEPTH_MAP = Object.freeze({
+        home: 48,
+        trip: 48
+    });
 
     // 行程页与详情页的滚动深度停靠点：
     // 它们会沿着各自的主要区块继续下潜，让深度计不只是跨页时变化，
@@ -59,7 +63,7 @@
             { selector: '#detailFooter', depth: MIN_DEPTH }
         ])
     });
-    const DETAIL_GAUGE_DEFAULT_MAX_DEPTH = 60;
+    const DETAIL_GAUGE_DEFAULT_MAX_DEPTH = 72;
     const DETAIL_GAUGE_FOCUS_RATIO = 0.46;
     const DETAIL_GAUGE_MIN_ENTRY_DEPTH = Math.abs(PAGE_DEPTH_MAP.detail);
     const DETAIL_GAUGE_MIN_DEEP_DEPTH = 50;
@@ -142,6 +146,20 @@
         }
 
         return PAGE_SCROLL_DEPTH_STOP_MAP[pageId] || [];
+    }
+
+    /**
+     * getPageGaugeVisualMinDepth(pageId) - 获取普通页面深度计可视刻度带的最深边界
+     * @param {string} pageId - 页面标识
+     * @returns {number} - 当前页面刻度带应延展到的最深层
+     */
+    function getPageGaugeVisualMinDepth(pageId) {
+        const configuredMaxDepth = PAGE_GAUGE_VISUAL_MAX_DEPTH_MAP[pageId];
+        const visualMaxDepth = Number.isFinite(configuredMaxDepth)
+            ? Math.max(configuredMaxDepth, Math.abs(MIN_DEPTH))
+            : Math.abs(MIN_DEPTH);
+
+        return -visualMaxDepth;
     }
 
     /**
@@ -272,43 +290,78 @@
 
     /**
      * resolveTransitionTimingConfig(rawConfig) - 合并外部覆盖配置并生成当前生效的过渡时序表
+     * 这里可以把它理解成“过渡节奏总表”的整理器：
+     * 1. 先把外部传进来的原始配置拆成 general / loginHome / oceanNav 三组；
+     * 2. 再逐项做数值兜底和范围限制，避免异常值把整站过渡节奏拉坏；
+     * 3. 最后冻结结果，保证后续读取到的都是一份稳定配置。
+     *
+     * 对阅读代码的人来说，最重要的是记住三组配置分别服务哪一段体验：
+     * - `general`：绝大多数页面切换共用的基础节奏；
+     * - `loginHome`：登录门厅沉入首页这一段专属节奏；
+     * - `oceanNav`：首页与行程页之间“下潜 / 上浮”的专属节奏。
+     *
      * @param {Object|null} rawConfig - 外部注入的时序配置
      * @returns {Object} - 已清洗且冻结的过渡时序对象
      */
     function resolveTransitionTimingConfig(rawConfig) {
+        // 先保证最外层一定是对象；如果外部没传或类型不对，就回退为空对象再走默认值。
         const source = rawConfig && typeof rawConfig === 'object' ? rawConfig : {};
+        // 三组子配置分别单独读取，这样某一组缺失时不会影响另外两组。
         const generalSource = source.general && typeof source.general === 'object' ? source.general : {};
         const loginHomeSource = source.loginHome && typeof source.loginHome === 'object' ? source.loginHome : {};
         const oceanNavSource = source.oceanNav && typeof source.oceanNav === 'object' ? source.oceanNav : {};
 
         return Object.freeze({
             general: Object.freeze({
+                // 当前页面完全离场需要多久。
                 exitPageMs: readTimingNumber(generalSource.exitPageMs, DEFAULT_TRANSITION_TIMINGS.general.exitPageMs, 320, 3200),
+                // 离场动画开始后，提前多少毫秒真正执行页面跳转。
                 exitNavigateLeadMs: readTimingNumber(generalSource.exitNavigateLeadMs, DEFAULT_TRANSITION_TIMINGS.general.exitNavigateLeadMs, 80, 720),
+                // 新页面浮现完成需要多久。
                 enterPageMs: readTimingNumber(generalSource.enterPageMs, DEFAULT_TRANSITION_TIMINGS.general.enterPageMs, 280, 2800),
+                // 离场时海洋遮罩要额外加深多少。
                 overlayBoost: readTimingNumber(generalSource.overlayBoost, DEFAULT_TRANSITION_TIMINGS.general.overlayBoost, 0, 0.45),
+                // 浏览器前进 / 后退恢复页面时，遮罩要额外补多少层次。
                 pageshowOverlayBoost: readTimingNumber(generalSource.pageshowOverlayBoost, DEFAULT_TRANSITION_TIMINGS.general.pageshowOverlayBoost, 0, 0.35),
+                // 这次导航状态在多长时间内仍算“新鲜”，可用于恢复过渡状态。
                 navFreshMs: readTimingNumber(generalSource.navFreshMs, DEFAULT_TRANSITION_TIMINGS.general.navFreshMs, 1000, 30000)
             }),
             loginHome: Object.freeze({
+                // 门厅专属蓝层压下来的时长。
                 blueMs: readTimingNumber(loginHomeSource.blueMs, DEFAULT_TRANSITION_TIMINGS.loginHome.blueMs, 420, 4000),
+                // 气泡开始出现前的等待时间。
                 bubbleDelayMs: readTimingNumber(loginHomeSource.bubbleDelayMs, DEFAULT_TRANSITION_TIMINGS.loginHome.bubbleDelayMs, 0, 2400),
+                // 页面开始位移、像继续下潜那样滑入的起始时间点。
                 slideStartMs: readTimingNumber(loginHomeSource.slideStartMs, DEFAULT_TRANSITION_TIMINGS.loginHome.slideStartMs, 180, 4200),
+                // 视觉动作建立后，真正执行页面跳转的时间点。
                 navigateMs: readTimingNumber(loginHomeSource.navigateMs, DEFAULT_TRANSITION_TIMINGS.loginHome.navigateMs, 240, 4600),
+                // 深度计同步沉入首页默认深度的时长。
                 depthMs: readTimingNumber(loginHomeSource.depthMs, DEFAULT_TRANSITION_TIMINGS.loginHome.depthMs, 320, 4200),
+                // 门厅蓝层允许达到的最高透明度。
                 blueOpacity: readTimingNumber(loginHomeSource.blueOpacity, DEFAULT_TRANSITION_TIMINGS.loginHome.blueOpacity, 0, 0.92),
+                // 首页加载完成后，整页恢复清晰度和呼吸感的时长。
                 entryMs: readTimingNumber(loginHomeSource.entryMs, DEFAULT_TRANSITION_TIMINGS.loginHome.entryMs, 320, 3600),
+                // 首页入场时蓝层退去的时长。
                 entryBlueMs: readTimingNumber(loginHomeSource.entryBlueMs, DEFAULT_TRANSITION_TIMINGS.loginHome.entryBlueMs, 240, 3600),
+                // 气泡开始淡出的时间点，避免它们停留过晚。
                 bubbleFadeStartMs: readTimingNumber(loginHomeSource.bubbleFadeStartMs, DEFAULT_TRANSITION_TIMINGS.loginHome.bubbleFadeStartMs, 0, 2400),
+                // 生成的气泡数量，最后会四舍五入成整数。
                 bubbleCount: Math.round(readTimingNumber(loginHomeSource.bubbleCount, DEFAULT_TRANSITION_TIMINGS.loginHome.bubbleCount, 0, 48))
             }),
             oceanNav: Object.freeze({
+                // 首页继续下潜到行程页时，旧页面离场需要多久。
                 diveExitMs: readTimingNumber(oceanNavSource.diveExitMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.diveExitMs, 420, 3600),
+                // 行程页作为更深海层浮现出来的时长。
                 diveEnterMs: readTimingNumber(oceanNavSource.diveEnterMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.diveEnterMs, 320, 3200),
+                // 行程页上浮回首页时，旧页面离场需要多久。
                 surfaceExitMs: readTimingNumber(oceanNavSource.surfaceExitMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.surfaceExitMs, 420, 3600),
+                // 首页重新显现出来的时长。
                 surfaceEnterMs: readTimingNumber(oceanNavSource.surfaceEnterMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.surfaceEnterMs, 320, 3200),
+                // 首页与行程页之间真正触发跳转前的预留时差。
                 navigateLeadMs: readTimingNumber(oceanNavSource.navigateLeadMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.navigateLeadMs, 80, 860),
+                // 海层导航专用的遮罩加深量。
                 overlayBoost: readTimingNumber(oceanNavSource.overlayBoost, DEFAULT_TRANSITION_TIMINGS.oceanNav.overlayBoost, 0, 0.45),
+                // 浏览器恢复页面时的海层遮罩加强量。
                 pageshowOverlayBoost: readTimingNumber(oceanNavSource.pageshowOverlayBoost, DEFAULT_TRANSITION_TIMINGS.oceanNav.pageshowOverlayBoost, 0, 0.35)
             })
         });
@@ -857,7 +910,7 @@
 
             return {
                 maxDepth: MAX_DEPTH,
-                minDepth: MIN_DEPTH
+                minDepth: getPageGaugeVisualMinDepth(this.pageId)
             };
         }
 
@@ -948,7 +1001,7 @@
             const { start, end } = this.getDetailLogicalRange();
             // 详情页内部继续下潜时，用更深的代表海层放大变化；
             // 但当用户离开详情页上浮到别的页面时，直接回接逻辑深度，
-            // 这样 detail -> home / trip 的深度动画就不会在 30m 附近被截断。
+            // 这样 trip -> home / detail 的深度动画就不会在 30m 附近被截断。
             if (logicalDepth > start) {
                 return clamp(Math.abs(logicalDepth), 0, profile.gaugeMaxDepth);
             }
@@ -1388,7 +1441,7 @@
             sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(this.currentDepth)));
         }
 
-        // 页面滚动深度：首页按 section 和 Dive Match 细分层次，
+        // 页面滚动深度：首页按 section 和潜水匹配细分层次，
         // trip / detail 则沿主要区块继续下潜，让页面内部阅读也有海层推进感。
         /**
          * hasScrollDepthConfig(pageId) - 判断当前页面是否配置了滚动驱动的深度停靠点
@@ -1400,7 +1453,7 @@
         }
 
         /**
-         * setHomeDiveMatchDepth(depth) - 接收首页 Dive Match 当前分类的细分深度并平滑推进深度计
+         * setHomeDiveMatchDepth(depth) - 接收首页潜水匹配当前分类的细分深度并平滑推进深度计
          * @param {number} depth - 当前匹配分类对应的目标深度
          * @returns {void} - 无返回值，直接刷新首页滚动深度目标
          */
@@ -1620,7 +1673,7 @@
         }
 
         /**
-         * computeHomeScrollDepth() - 根据首页 section 与 Dive Match 舞台位置计算当前应显示的深度
+         * computeHomeScrollDepth() - 根据首页 section 与潜水匹配舞台位置计算当前应显示的深度
          * @returns {number} - 当前滚动位置对应的首页目标深度
          */
         computeHomeScrollDepth() {
@@ -2404,3 +2457,4 @@
     window.YanqiDepthTransitionConfigResolved = TRANSITION_TIMINGS;
     window.DepthManager = new DepthManager();
 })();
+

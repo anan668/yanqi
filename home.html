@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
     首页 / home.html
-    这一页是盐憩最浅的一层海面入口，负责先吸引用户，再慢慢把浏览节奏引向目的地、Dive Match 和品牌故事。
-    阅读顺序建议：导航 -> Hero -> 热门潜点 -> 目的地展台 -> Dive Match -> 品牌故事 -> 页脚 -> 海图导览。
+    这一页是盐憩最浅的一层海面入口，负责先吸引用户，再慢慢把浏览节奏引向目的地、潜水匹配和品牌故事。
+    阅读顺序建议：导航 -> 首屏 -> 热门潜点 -> 目的地展台 -> 潜水匹配 -> 品牌故事 -> 页脚 -> 海图导览。
 -->
 <html lang="zh-CN">
 <head>
@@ -40,7 +40,7 @@
     <div class="depth-gauge left" aria-hidden="true">
         <div class="gauge-current" id="leftGaugeCurrent">0m</div>
         <div class="gauge-markers" id="leftGaugeMarkers">
-            <!-- 刻度由 JS 动态生成 -->
+            <!-- 刻度由脚本动态生成 -->
         </div>
     </div>
 
@@ -48,11 +48,11 @@
     <div class="depth-gauge right" aria-hidden="true">
         <div class="gauge-current" id="rightGaugeCurrent">0m</div>
         <div class="gauge-markers" id="rightGaugeMarkers">
-            <!-- 刻度由 JS 动态生成 -->
+            <!-- 刻度由脚本动态生成 -->
         </div>
     </div>
 
-    <!-- 页面主舞台：承载首页所有主要 section，并作为跨页面过渡动画的整体移动容器。 -->
+    <!-- 页面主舞台：承载首页所有主要区块，并作为跨页面过渡动画的整体移动容器。 -->
     <div class="page-stage" id="pageStage">
         <!-- 英雄区：
              首页最浅的一层海面入口。
@@ -73,7 +73,7 @@
                 <span class="hero-plankton hero-plankton-five"></span>
                 <span class="hero-plankton hero-plankton-six"></span>
             </div>
-            <!-- Hero 文案与今日海域卡片：负责首页首屏的品牌开场和两个主要行动入口。 -->
+            <!-- ?? 文案与今日海域卡片：负责首页首屏的品牌开场和两个主要行动入口。 -->
             <div class="hero-content">
                 <h1 class="hero-title hero-stage-copy">下一次下潜，从哪里开始？</h1>
                 <p class="hero-subtitle hero-stage-copy">探索全球最美的潜点，与海洋生命亲密接触</p>
@@ -85,6 +85,21 @@
                         <button type="button" class="hero-hotspots-resize-handle is-south" data-hotspots-resize-direction="s" tabindex="-1" aria-hidden="true"></button>
                         <button type="button" class="hero-hotspots-resize-handle is-south-west" data-hotspots-resize-direction="sw" tabindex="-1" aria-hidden="true"></button>
                         <button type="button" class="hero-hotspots-resize-handle is-south-east" data-hotspots-resize-direction="se" tabindex="-1" aria-hidden="true"></button>
+                    </div>
+                    <div class="hero-hotspots-stage-hud" id="heroHotspotsStageHud">
+                        <div class="hero-hotspots-stage-hud-copy">
+                            <span class="hero-hotspots-stage-hud-label">当前尺寸</span>
+                            <strong class="hero-hotspots-stage-hud-value" id="heroHotspotsStageHudValue">--</strong>
+                            <span class="hero-hotspots-stage-hud-hint" id="heroHotspotsStageHudHint">默认舞台</span>
+                        </div>
+                        <button
+                            type="button"
+                            class="hero-hotspots-stage-reset"
+                            id="heroHotspotsStageReset"
+                            aria-label="重置今日海域舞台到默认尺寸"
+                        >
+                            重置舞台
+                        </button>
                     </div>
 
                     <section class="hero-hotspots-shell today-sea-card" id="hot-spots" aria-labelledby="heroHotspotsTitle">
@@ -112,7 +127,7 @@
 
                         <div class="bamboo-cards-wrapper hero-bamboo-cards-wrapper">
                             <div class="bamboo-cards-content" id="bambooCardsContent">
-                                <!-- 热门潜点卡片会由 JS 动态生成 -->
+                                <!-- 热门潜点卡片会由脚本动态生成 -->
                             </div>
                         </div>
 
@@ -150,12 +165,13 @@
                      左侧主卡是当前主角，右侧样本卡是切换入口。
                      这样的分组是为了让“看海域”更像在翻看同一片海图，而不是普通卡片列表。 -->
                 <div class="curated-waters-stage curated-reveal" id="curatedWatersStage">
-                    <article class="curated-main-card" id="curatedMainCard" aria-live="polite">
-                        <!-- 主舞台卡片由 JS 动态生成 -->
+                    <p id="curatedLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+                    <article class="curated-main-card" id="curatedMainCard">
+                        <!-- 主舞台卡片由脚本动态生成 -->
                     </article>
 
                     <div class="curated-sample-cloud" id="destinationsGrid" aria-label="海域样本卡">
-                        <!-- 海域样本卡由 JS 动态生成 -->
+                        <!-- 海域样本卡由脚本动态生成 -->
                     </div>
                 </div>
             </div>
@@ -170,16 +186,17 @@
                     <p class="dive-match-subtitle">从等级、经验到潜水节奏，慢慢找到此刻更适合你的那一潜。</p>
                 </header>
 
-                <!-- Dive Match 舞台：
+                <!-- 潜水匹配舞台：
                      顶部标签负责切换“适合谁”，下方展示层负责输出对应的大卡和推荐海域。
                      这块会和深度计联动，不同匹配分类会把首页深度推进到不同海层。 -->
                 <div class="dive-match-stage dive-match-reveal" id="diveMatchStage">
                     <div class="dive-match-rail" id="diveMatchFilters" aria-label="潜水匹配分类">
-                        <!-- 潜水匹配分类标签由 JS 动态生成 -->
+                        <!-- 潜水匹配分类标签由脚本动态生成 -->
                     </div>
 
-                    <div class="dive-match-display" id="diveMatchDisplay" aria-live="polite">
-                        <!-- 潜水匹配大卡与推荐档案卡由 JS 动态生成 -->
+                    <p id="diveMatchLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+                    <div class="dive-match-display" id="diveMatchDisplay">
+                        <!-- 潜水匹配大卡与推荐档案卡由脚本动态生成 -->
                     </div>
                 </div>
             </div>
@@ -368,4 +385,6 @@
     <script src="js/home.js"></script>
 </body>
 </html>
+
+
 

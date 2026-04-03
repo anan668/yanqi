@@ -1,4 +1,4 @@
-# 盐憩
+﻿# 盐憩
 
 > 一个把“潜水旅行”做成海层体验的前端网页项目。
 
@@ -75,6 +75,17 @@
 10. `js/yanqi-trip-store.js`
 11. `detail.html`
 12. `js/detail.js`
+
+## 注释阅读说明
+
+这次已经把项目里核心源码和样式文件的文件头说明统一改成了中文，阅读时可以直接把每个文件开头当成“小导览”来用。
+
+- 文件头通常会先说明：这个文件负责什么、建议按什么顺序读。
+- 函数注释里保留英文函数名，是为了方便你在代码里快速定位；真正需要先看的，是后面的中文解释。
+- 如果你想调页面切换节奏，优先看 `js/depth-manager.js` 里 `resolveTransitionTimingConfig()` 那一段。
+- 如果你想调价格展示逻辑，优先看 `js/price-config.js` 里的共享价格工具说明。
+
+阅读时最推荐的方式是：先看文件头，再看常量区，再看类或主函数，最后回到 `DOMContentLoaded` 或初始化入口把整条链路串起来。
 
 ## 快速运行
 
@@ -189,10 +200,10 @@ http://localhost:8000
 
 这里的重点系统包括：
 
-- Hero 区的入口氛围
+- 首屏区的入口氛围
 - 热门潜点横向浏览
-- `Curated Waters` 目的地展台
-- `Dive Match` 适配推荐
+- `精选海域展台` 目的地展台
+- 潜水匹配 适配推荐
 - 首页海图导览
 
 `js/home.js` 里几个值得重点看的类和模块：
@@ -207,7 +218,7 @@ http://localhost:8000
 - 先看页面结构，再看数据，再看类
 - 先理解“用户在首页会经历什么”，再去读每个方法
 
-### 4. Planner Desk 系统
+### 4. 行程控制台 系统
 
 主要文件：
 
@@ -326,7 +337,7 @@ http://localhost:8000
 
 | key | 用途 | 主要读写文件 |
 | --- | --- | --- |
-| `YANQI_PLANNER_DRAFT` | 保存 Planner Desk 的海域、日期、人数草稿 | `js/trip.js`、`js/yanqi-trip-store.js` |
+| `YANQI_PLANNER_DRAFT` | 保存行程控制台的海域、日期、人数草稿 | `js/trip.js`、`js/yanqi-trip-store.js` |
 | `YANQI_CONFIRMED_BOOKINGS` | 保存详情页确认后的“已收进行程”套餐 | `js/detail.js`、`js/trip.js`、`js/yanqi-trip-store.js` |
 | `YANQI_CONTACT_MESSAGES` | 保存联系页演示版留言 | `js/info-pages.js` |
 | `yanqi_email` / `yanqi_password` / `yanqi_accounts` | 登录页前端演示版账号信息 | `js/auth.js` |
@@ -348,8 +359,8 @@ http://localhost:8000
 | 文件 | 作用 | 建议怎么读 |
 | --- | --- | --- |
 | `index.html` | 登录 / 注册门厅页面骨架 | 先看整体分区，再对照 `css/login.css` 和 `js/auth.js` |
-| `home.html` | 首页骨架，承载 Hero、热门潜点、目的地、Dive Match、故事和页脚 | 先看 section 顺序，再看每个 section 对应的 CSS 和 JS |
-| `trip.html` | 行程页骨架，承载 Planner Desk、摘要、已收进行程、准备系统 | 先找字段，再找摘要，再看底部卡片区 |
+| `home.html` | 首页骨架，承载 首屏、热门潜点、目的地、潜水匹配、故事和页脚 | 先看 section 顺序，再看每个 section 对应的 CSS 和 JS |
+| `trip.html` | 行程页骨架，承载 行程控制台、摘要、已收进行程、准备系统 | 先找字段，再找摘要，再看底部卡片区 |
 | `detail.html` | 详情页骨架，承载海域内容、套餐、评论、地图和推荐 | 先看页面区块，再看 `DetailPage` 如何逐块接管 |
 | `contact.html` | 联系页，包含联络方式和演示版留言表单 | 先读结构，再看 `info-pages.js` 如何绑定 |
 | `terms.html` | 用户协议页 | 可作为信息页模板看待 |
@@ -361,8 +372,8 @@ http://localhost:8000
 | --- | --- | --- |
 | `css/global.css` | 全站变量、reset、公共导航和公共基线 | 看变量命名、共用色彩、基础组件 |
 | `css/login.css` | 登录门厅专属样式 | 看品牌门厅、玻璃卡、登录注册切换氛围 |
-| `css/home.css` | 首页样式 | 看 Hero、目的地展台、品牌叙事如何被组织 |
-| `css/trip.css` | 行程页样式 | 看 Planner Desk、摘要区和深海控制台感 |
+| `css/home.css` | 首页样式 | 看 首屏、目的地展台、品牌叙事如何被组织 |
+| `css/trip.css` | 行程页样式 | 看 行程控制台、摘要区和深海控制台感 |
 | `css/detail.css` | 详情页样式 | 看英雄区、套餐区、地图区和推荐区层次 |
 | `css/depth-gauge.css` | 深度计样式 | 看固定布局、刻度生成配合、空间语言 |
 | `css/page-transition.css` | 当前主过渡样式 | 看遮罩层和海层切换效果 |
@@ -397,7 +408,7 @@ http://localhost:8000
 1. 打开 `home.html`
 2. 只看大 section
 3. 打开 `trip.html`
-4. 看 Planner Desk 和 summary 的对应关系
+4. 看 行程控制台 和 summary 的对应关系
 5. 打开 `detail.html`
 6. 看英雄区、套餐区、评论区、地图区的顺序
 
@@ -410,8 +421,8 @@ http://localhost:8000
 做法：
 
 1. 看 `css/global.css` 的变量
-2. 看 `css/home.css` 里 Hero 的组织方式
-3. 看 `css/trip.css` 里 Planner Desk 的材质和层次
+2. 看 `css/home.css` 里 首屏 的组织方式
+3. 看 `css/trip.css` 里 行程控制台 的材质和层次
 4. 看 `css/detail.css` 如何把页面做得像进入海域
 
 ### 第三轮：只看交互
@@ -466,7 +477,7 @@ http://localhost:8000
 - key 统一
 - 数据结构统一
 - 旧数据与新数据可以一起兼容
-- trip 页和 detail 页不用重复写一套存储代码
+- 行程页和详情页不用重复写一套存储代码
 
 ### 3. 为什么要把复杂页面交给类来管理
 
@@ -518,7 +529,7 @@ http://localhost:8000
 - `css/home.css`
 - `js/home.js`
 
-### 想改 Planner Desk 字段或摘要联动
+### 想改 行程控制台 字段或摘要联动
 
 看：
 
@@ -584,3 +595,6 @@ http://localhost:8000
 “这些结构有没有一起把‘下潜’这件事讲出来？”
 
 如果你带着这个问题去读代码，这个仓库会比普通页面模板更有意思。
+
+
+

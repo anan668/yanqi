@@ -1,5 +1,5 @@
 ﻿/* ============================================
-   Login Page Logic - auth.js
+   登录页脚本逻辑 - auth.js
    ============================================
    职责：
    1. 处理登录 / 注册切换、表单验证和前端演示账号逻辑。
@@ -882,22 +882,51 @@ function setupLoginStageResize(nodes) {
         return;
     }
 
+    const hudValue = document.getElementById('loginStageHudValue');
+    const hudHint = document.getElementById('loginStageHudHint');
+    const resetButton = document.getElementById('loginStageReset');
     const desktopQuery = window.matchMedia('(min-width: 981px)');
     let resizeState = null;
+    let hasCustomSize = Boolean(safeReadLoginStageSize());
+
+    const readCurrentStageSize = () => {
+        const rect = loginStageShell.getBoundingClientRect();
+        return {
+            width: rect.width,
+            height: rect.height
+        };
+    };
+
+    const syncStageHud = (size = null) => {
+        loginStageShell.dataset.stageSizeMode = hasCustomSize ? 'custom' : 'default';
+
+        if (!hudValue || !hudHint || !resetButton || !desktopQuery.matches) {
+            return;
+        }
+
+        const nextSize = size || readCurrentStageSize();
+        hudValue.textContent = `${Math.round(nextSize.width)} x ${Math.round(nextSize.height)}`;
+        hudHint.textContent = hasCustomSize ? '已记住本次门厅尺度' : '当前为默认门厅';
+        resetButton.disabled = !hasCustomSize;
+    };
 
     const syncDesktopState = () => {
         if (desktopQuery.matches) {
             const saved = safeReadLoginStageSize();
+            hasCustomSize = Boolean(saved);
             if (saved) {
                 applyLoginStageSize(loginStageShell, saved);
             }
+            syncStageHud();
             return;
         }
 
+        resizeState = null;
         loginStageShell.classList.remove('is-resizing');
         document.body.classList.remove('is-resizing-login-stage');
         loginStageShell.style.removeProperty('--login-stage-width');
         loginStageShell.style.removeProperty('--login-stage-height');
+        syncStageHud();
     };
 
     const stopResize = () => {
@@ -909,6 +938,7 @@ function setupLoginStageResize(nodes) {
             width: resizeState.width,
             height: resizeState.height
         };
+        const state = resizeState;
 
         resizeState = null;
         loginStageShell.classList.remove('is-resizing');
@@ -916,7 +946,16 @@ function setupLoginStageResize(nodes) {
         window.removeEventListener('pointermove', onPointerMove);
         window.removeEventListener('pointerup', stopResize);
         window.removeEventListener('pointercancel', stopResize);
-        safeSaveLoginStageSize(finalSize);
+
+        if (state.hadCustomSize || state.hasMoved) {
+            hasCustomSize = true;
+            safeSaveLoginStageSize(finalSize);
+            syncStageHud(finalSize);
+            return;
+        }
+
+        hasCustomSize = false;
+        syncStageHud();
     };
 
     const onPointerMove = (event) => {
@@ -945,9 +984,15 @@ function setupLoginStageResize(nodes) {
         }
 
         const clamped = clampLoginStageSize(loginStageShell, nextWidth, nextHeight);
+        resizeState.hasMoved =
+            resizeState.hasMoved ||
+            Math.abs(clamped.width - resizeState.startWidth) > 0.5 ||
+            Math.abs(clamped.height - resizeState.startHeight) > 0.5;
         resizeState.width = clamped.width;
         resizeState.height = clamped.height;
+        hasCustomSize = resizeState.hadCustomSize || resizeState.hasMoved;
         applyLoginStageSize(loginStageShell, clamped);
+        syncStageHud(clamped);
     };
 
     resizeHandles.forEach((handle) => {
@@ -965,7 +1010,9 @@ function setupLoginStageResize(nodes) {
                 startWidth: rect.width,
                 startHeight: rect.height,
                 width: rect.width,
-                height: rect.height
+                height: rect.height,
+                hasMoved: false,
+                hadCustomSize: hasCustomSize
             };
 
             loginStageShell.classList.add('is-resizing');
@@ -982,7 +1029,21 @@ function setupLoginStageResize(nodes) {
         }
 
         clearLoginStageSize(loginStageShell);
+        hasCustomSize = false;
+        syncStageHud();
     });
+
+    if (resetButton) {
+        resetButton.addEventListener('click', () => {
+            if (!desktopQuery.matches || !hasCustomSize) {
+                return;
+            }
+
+            clearLoginStageSize(loginStageShell);
+            hasCustomSize = false;
+            syncStageHud();
+        });
+    }
 
     desktopQuery.addEventListener('change', syncDesktopState);
     window.addEventListener('resize', () => {
@@ -994,7 +1055,19 @@ function setupLoginStageResize(nodes) {
         if (saved) {
             applyLoginStageSize(loginStageShell, saved);
         }
+
+        hasCustomSize = Boolean(saved);
+        syncStageHud();
     });
+
+    if (window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+            if (desktopQuery.matches) {
+                syncStageHud();
+            }
+        });
+        resizeObserver.observe(loginStageShell);
+    }
 
     syncDesktopState();
 }

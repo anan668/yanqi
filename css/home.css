@@ -1,14 +1,14 @@
 ﻿/* ============================================
-   Home Page Styles - home.css
+   首页样式 - home.css
    ============================================
    作用：
-   1. 负责首页 Hero、热门潜点、目的地展台、Dive Match、故事区与页脚的完整视觉风格。
+   1. 负责首页首屏、热门潜点、目的地展台、潜水匹配、故事区与页脚的完整视觉风格。
    2. 把首页维持在“海面入口”这层较浅、较亮、较开放的海域气质里。
    3. 用留白、雾感、舞台化布局和 reveal 节奏建立首页的吸引力。
    阅读顺序：
-   1. Hero
+   1. 首屏
    2. 热门潜点
-   3. 目的地展台与 Dive Match
+   3. 目的地展台与潜水匹配
    4. 故事区、页脚与响应式
 */
 
@@ -21,24 +21,24 @@
 }
 
 /* ============================================
-   Hero Section
+   首屏区
    ============================================ */
 
-/* 控制首页 Hero 区的背景层次、留白和整体舞台。 */
+/* 制制首页首屏区的背景层次、留白和整体舞台。 */
 .hero-section {
     background:
         radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 36%),
         linear-gradient(180deg, #eff9ff 0%, #cceafb 34%, #92c7e3 72%, #6ea9cb 100%);
     padding: calc(var(--spacing-2xl) + 12px) var(--spacing-lg) calc(var(--spacing-2xl) + 20px);
     /* 顶部和底部在全站大间距基础上再加一点，
-       是为了让首页 Hero 像“海面入口”一样更开阔，不会贴着导航或下一段内容。 */
+       是为了让首页首屏 像“海面入口”一样更开阔，不会贴着导航或下一段内容。 */
     text-align: center;
     color: #153955;
     position: relative;
     overflow: hidden;
 }
 
-/* .hero-section::before：补一层顶部水光和雾感，让 Hero 更像海面入口。 */
+/* .hero-section::before：补一层顶部水光和雾感，让 首屏 更像海面入口。 */
 .hero-section::before {
     content: '';
     position: absolute;
@@ -52,7 +52,7 @@
     pointer-events: none;
 }
 
-/* .hero-section::after：在底部接一层雾化过渡，帮助 Hero 自然衔接下个区块。 */
+/* .hero-section::after：在底部接一层雾化过渡，帮助 首屏 自然衔接下个区块。 */
 .hero-section::after {
     content: "";
     position: absolute;
@@ -67,7 +67,7 @@
     z-index: 0;
 }
 
-/* 控制 Hero 主文案容器的宽度、层级和入场动画 */
+/* 制制 首屏 主文案容器的宽度、层级和入场动画 */
 .hero-content {
     max-width: 1400px;
     margin: 0 auto;
@@ -180,7 +180,7 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
-/* 控制今日推荐目的地卡片的可点击区域和互动反馈 */
+/* 制制今日推荐目的地卡片的可点击区域和互动反馈 */
 .today-sea-spot-link {
     appearance: none;
     text-align: left;
@@ -289,7 +289,7 @@
     gap: 12px;
 }
 
-/* 设置 Hero 操作按钮的外观、圆角和悬停过渡 */
+/* 设置 首屏 操作按钮的外观、圆角和悬停过渡 */
 .sea-action {
     appearance: none;
     border: none;
@@ -310,7 +310,7 @@
     transform: translateY(-2px);
 }
 
-/* 设置 Hero 操作按钮的外观、圆角和悬停过渡 */
+/* 设置 首屏 操作按钮的外观、圆角和悬停过渡 */
 .sea-action-primary {
     color: #f7fcff;
     background: linear-gradient(135deg, #18476c 0%, #2f7099 100%);
@@ -323,7 +323,7 @@
     box-shadow: 0 18px 34px rgba(19, 74, 111, 0.24);
 }
 
-/* 设置 Hero 操作按钮的外观、圆角和悬停过渡 */
+/* 设置 首屏 操作按钮的外观、圆角和悬停过渡 */
 .sea-action-secondary {
     color: #18476c;
     background: rgba(255, 255, 255, 0.22);
@@ -353,10 +353,10 @@
 }
 
 /* ============================================
-   Hero Immersion Upgrade
+   首屏沉浸升级
    ============================================ */
 
-/* Hero 沉浸版舞台：把首页首屏升级成更完整的海面入口。 */
+/* 首屏 沉浸版舞台：把首页首屏升级成更完整的海面入口。 */
 .hero-section {
     min-height: clamp(528px, 68vh, 720px);
     display: flex;
@@ -370,7 +370,7 @@
     transition: filter 540ms ease, transform 680ms cubic-bezier(0.18, 0.78, 0.22, 1);
 }
 
-/* .hero-section::before：沉浸版 Hero 的上层雾光，负责补足浅层水光。 */
+/* .hero-section::before：沉浸版 首屏 的上层雾光，负责补足浅层水光。 */
 .hero-section::before {
     background:
         radial-gradient(circle at 50% 2%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 32%),
@@ -387,7 +387,7 @@
     filter: blur(0);
 }
 
-/* .hero-section::after：沉浸版 Hero 的底部海雾衔接层。 */
+/* .hero-section::after：沉浸版 首屏 的底部海雾衔接层。 */
 .hero-section::after {
     bottom: -66px;
     height: 156px;
@@ -522,7 +522,7 @@
 }
 
 
-/* Hero 首屏标题、副文案和今日海域卡片的统一入场前状态。 */
+/* 首屏标题、副文案和今日海域卡片的统一入场前状态。 */
 .hero-title,
 .hero-subtitle,
 .today-sea-card {
@@ -535,7 +535,7 @@
         filter 1.05s ease;
 }
 
-/* Hero 唤醒后，让主标题先一步显现。 */
+/* 首屏 唤醒后，让主标题先一步显现。 */
 .home-page.hero-awakened .hero-title {
     opacity: 1;
     filter: blur(0);
@@ -543,7 +543,7 @@
     transition-delay: 340ms;
 }
 
-/* Hero 唤醒后，让副标题跟着变清晰。 */
+/* 首屏 唤醒后，让副标题跟着变清晰。 */
 .home-page.hero-awakened .hero-subtitle {
     opacity: 1;
     filter: blur(0);
@@ -551,7 +551,7 @@
     transition-delay: 560ms;
 }
 
-/* Hero 唤醒后，最后再托起今日海域卡片，形成更完整的首屏节奏。 */
+/* 首屏 唤醒后，最后再托起今日海域卡片，形成更完整的首屏节奏。 */
 .home-page.hero-awakened .today-sea-card {
     opacity: 1;
     filter: blur(0);
@@ -560,7 +560,7 @@
     animation: hero-card-breathe 8.8s ease-in-out 2.3s infinite;
 }
 
-/* Hero 主标题：控制宽度、亮度和阴影层次。 */
+/* 首屏 主标题：制制宽度、亮度和阴影层次。 */
 .hero-title {
     max-width: 760px;
     margin-bottom: 18px;
@@ -570,7 +570,7 @@
         0 18px 42px rgba(4, 21, 34, 0.22);
 }
 
-/* Hero 副标题：控制阅读宽度和更柔和的浅海色。 */
+/* 首屏 副标题：制制阅读宽度和更柔和的浅海色。 */
 .hero-subtitle {
     max-width: 640px;
     margin-bottom: 34px;
@@ -597,7 +597,7 @@
     overflow: hidden;
 }
 
-/* Hero 热门潜点舞台外壳：给滚动卡片区一层独立的观察窗。 */
+/* 首屏 热门潜点舞台外壳：给滚动卡片区一层独立的观察窗。 */
 .hero-hotspots-shell {
     width: min(100%, 1380px);
     max-width: none;
@@ -607,7 +607,7 @@
     isolation: isolate;
 }
 
-/* Hero 热门潜点标题区的默认隐藏状态。 */
+/* 首屏 热门潜点标题区的默认隐藏状态。 */
 .hero-hotspots-head {
     position: relative;
     z-index: 1;
@@ -626,7 +626,7 @@
         filter 0.84s ease;
 }
 
-/* Hero 唤醒后，让热门潜点标题区进入可见状态。 */
+/* 首屏 唤醒后，让热门潜点标题区进入可见状态。 */
 .home-page.hero-awakened .hero-hotspots-head {
     opacity: 1;
     filter: blur(0);
@@ -634,7 +634,11 @@
     transition-delay: 980ms;
 }
 
-/* Hero 热门潜点英文 kicker：建立轻量档案感。 */
+.hero-hotspots-head {
+    flex: 0 0 auto;
+}
+
+/* 首屏 热门潜点英文 kicker：建立轻量档案感。 */
 .hero-hotspots-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -643,7 +647,7 @@
     color: rgba(188, 222, 238, 0.58);
 }
 
-/* Hero 热门潜点标题文案容器：控制两层文案的对齐和宽度。 */
+/* 首屏 热门潜点标题文案容器：制制两层文案的对齐和宽度。 */
 .hero-hotspots-copy {
     display: grid;
     gap: 10px;
@@ -651,7 +655,7 @@
     max-width: 620px;
 }
 
-/* Hero 热门潜点主标题：作为这块观察窗的视觉锚点。 */
+/* 首屏 热门潜点主标题：作为这块观察窗的视觉锚点。 */
 .hero-hotspots-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -662,7 +666,7 @@
     text-shadow: 0 10px 28px rgba(4, 22, 34, 0.22);
 }
 
-/* Hero 热门潜点副文案：负责补足阅读节奏和场景气氛。 */
+/* 首屏 热门潜点副文案：负责补足阅读节奏和场景气氛。 */
 .hero-hotspots-subtitle {
     margin: 0;
     max-width: 560px;
@@ -672,10 +676,12 @@
     margin-inline: auto;
 }
 
-/* Hero 竹简滚动容器：承接热门海域卡片和左右流向按钮。 */
+/* 首屏 竹简滚动容器：承接热门海域卡片和左右流向按钮。 */
 .hero-bamboo-scroll-container {
     position: relative;
     z-index: 1;
+    flex: 0 0 auto;
+    width: 100%;
     align-items: stretch;
     gap: 18px;
     padding: 8px 6px 12px;
@@ -703,7 +709,7 @@
     pointer-events: none;
 }
 
-/* Hero 唤醒后，让滚动舞台整体慢慢浮现。 */
+/* 首屏 唤醒后，让滚动舞台整体慢慢浮现。 */
 .home-page.hero-awakened .hero-bamboo-scroll-container {
     opacity: 1;
     filter: blur(0);
@@ -712,7 +718,7 @@
 }
 
 
-/* 今日海域卡片的深海玻璃版本：统一 Hero 内的视觉厚度。 */
+/* 今日海域卡片的深海玻璃版本：统一 首屏 内的视觉厚度。 */
 .today-sea-card {
     position: relative;
     width: min(100%, 860px);
@@ -732,7 +738,7 @@
     overflow: hidden;
 }
 
-/* Hero 热门潜点舞台外壳：限制宽度并给滚动区留出缓冲。 */
+/* 首屏 热门潜点舞台外壳：限制宽度并给滚动区留出缓冲。 */
 .hero-hotspots-shell {
     width: min(100%, 1380px);
     max-width: none;
@@ -742,7 +748,7 @@
     isolation: isolate;
 }
 
-/* Hero 热门潜点标题区：默认先模糊、下沉，等待首屏唤醒。 */
+/* 首屏 热门潜点标题区：默认先模糊、下沉，等待首屏唤醒。 */
 .hero-hotspots-head {
     position: relative;
     z-index: 1;
@@ -761,7 +767,7 @@
         filter 0.84s ease;
 }
 
-/* Hero 唤醒后，让标题区恢复清晰和稳定位置。 */
+/* 首屏 唤醒后，让标题区恢复清晰和稳定位置。 */
 .home-page.hero-awakened .hero-hotspots-head {
     opacity: 1;
     filter: blur(0);
@@ -769,7 +775,7 @@
     transition-delay: 980ms;
 }
 
-/* Hero 热门潜点英文小标：维持轻量的 Journal 感。 */
+/* 首屏 热门潜点英文小标：维持轻量的日志感。 */
 .hero-hotspots-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -778,7 +784,7 @@
     color: rgba(188, 222, 238, 0.58);
 }
 
-/* Hero 热门潜点标题文案容器：让标题和副文案保持居中节奏。 */
+/* 首屏 热门潜点标题文案容器：让标题和副文案保持居中节奏。 */
 .hero-hotspots-copy {
     display: grid;
     gap: 10px;
@@ -786,7 +792,7 @@
     max-width: 620px;
 }
 
-/* Hero 热门潜点主标题：用 serif 字体强化海域观察台的仪式感。 */
+/* 首屏 热门潜点主标题：用 serif 字体强化海域观察台的仪式感。 */
 .hero-hotspots-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -797,7 +803,7 @@
     text-shadow: 0 10px 28px rgba(4, 22, 34, 0.22);
 }
 
-/* Hero 热门潜点副文案：控制阅读宽度和更柔和的气氛色。 */
+/* 首屏 热门潜点副文案：制制阅读宽度和更柔和的气氛色。 */
 .hero-hotspots-subtitle {
     margin: 0;
     max-width: 560px;
@@ -807,7 +813,7 @@
     margin-inline: auto;
 }
 
-/* Hero 竹简滚动容器：作为卡片轨道的统一舞台。 */
+/* 首屏 竹简滚动容器：作为卡片轨道的统一舞台。 */
 .hero-bamboo-scroll-container {
     position: relative;
     z-index: 1;
@@ -838,27 +844,28 @@
     pointer-events: none;
 }
 
-/* Hero 唤醒后，让竹简滚动舞台完整显现。 */
+/* 首屏 唤醒后，让竹简滚动舞台完整显现。 */
 .home-page.hero-awakened .hero-bamboo-scroll-container {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
     transition-delay: 1120ms;
 }
-/* Hero 内的卡片轨道留更舒服的呼吸空间。 */
+/* 首屏 内的卡片轨道留更舒服的呼吸空间。 */
 .hero-bamboo-cards-wrapper {
     padding: 14px 0 16px;
+    min-height: 0;
     position: relative;
     isolation: isolate;
 }
 
-/* 压低轨道内边距，避免 Hero 内卡片显得太松散 */
+/* 压低轨道内边距，避免 首屏 内卡片显得太松散 */
 .hero-hotspots-shell .bamboo-cards-content {
     padding: 8px 2px;
     gap: 14px;
 }
 
-/* Hero 内的热门卡片改成更深海、更柔和的玻璃卡，不再像普通列表卡。 */
+/* 首屏 内的热门卡片改成更深海、更柔和的玻璃卡，不再像普通列表卡。 */
 .hero-hotspots-shell .bamboo-card {
     --card-scale: 0.986;
     flex: 0 0 336px;
@@ -877,7 +884,7 @@
     filter: blur(0) saturate(0.98) brightness(0.98);
 }
 
-/* Hero 内卡片悬停时只轻轻上浮并提亮边缘 */
+/* 首屏 内卡片悬停时只轻轻上浮并提亮边缘 */
 .hero-hotspots-shell .bamboo-card:hover {
     --lift-y: -6px;
     --card-scale: 1.002;
@@ -889,7 +896,7 @@
     filter: blur(0) saturate(1.01) brightness(1);
 }
 
-/* Hero 内的激活卡片用更克制的潮汐描边来提示当前聚焦项 */
+/* 首屏 内的激活卡片用更克制的潮汐描边来提示当前聚焦项 */
 .hero-hotspots-shell .bamboo-card.active {
     --card-scale: 1.026;
     box-shadow:
@@ -900,12 +907,12 @@
     filter: blur(0) saturate(1.03) brightness(1);
 }
 
-/* 调整 Hero 内卡片图片比例，让海面与潜点画面更舒展。 */
+/* 调整 首屏 内卡片图片比例，让海面与潜点画面更舒展。 */
 .hero-hotspots-shell .bamboo-card-image {
     height: 210px;
 }
 
-/* Hero 内卡片底部内容层改成更深海的雾面玻璃 */
+/* 首屏 内卡片底部内容层改成更深海的雾面玻璃 */
 .hero-hotspots-shell .bamboo-card-content {
     margin-top: -30px;
     padding: calc(var(--spacing-lg) + 12px) 22px 20px;
@@ -919,20 +926,20 @@
     -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
-/* Hero 内卡片标题用更亮的冷白蓝，强化海域名称识别。 */
+/* 首屏 内卡片标题用更亮的冷白蓝，强化海域名称识别。 */
 .hero-hotspots-shell .bamboo-card-title {
     color: #f2fbff;
     font-size: 1.08rem;
     letter-spacing: 0.03em;
 }
 
-/* Hero 内卡片副文案压成更轻、更安静的辅助信息。 */
+/* 首屏 内卡片副文案压成更轻、更安静的辅助信息。 */
 .hero-hotspots-shell .bamboo-card-tagline {
     color: rgba(208, 230, 240, 0.76);
     line-height: 1.6;
 }
 
-/* Hero 内价格和评分区域也切到更冷静的浅海色。 */
+/* 首屏 内价格和评分区域也切到更冷静的浅海色。 */
 .hero-hotspots-shell .bamboo-card-footer {
     border-top-color: rgba(214, 234, 244, 0.1);
 }
@@ -945,14 +952,15 @@
     color: rgba(255, 226, 150, 0.92);
 }
 
-/* Hero 内底部按钮最后再出现，形成更完整的首屏节奏。 */
+/* 首屏 内底部按钮最后再出现，形成更完整的首屏节奏。 */
 .hero-hotspots-actions {
     position: relative;
     z-index: 1;
+    flex: 0 0 auto;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
-    margin-top: 26px;
+    margin-top: auto;
     padding-top: 20px;
 }
 
@@ -1054,7 +1062,7 @@
         hero-hotspots-breathe 9.6s ease-in-out 1.5s infinite alternate;
 }
 
-/* 大屏桌面端放宽 Hero 内的今日海域舞台。
+/* 大屏桌面端放宽 首屏 内的今日海域舞台。
    只在宽屏下扩展可视窗口，减少左右空位浪费，让轨道能多露出相邻海域内容。 */
 @media (min-width: 1600px) {
     .hero-content {
@@ -1101,6 +1109,10 @@
     .hero-hotspots-resize-layer {
         display: none;
     }
+
+    .hero-hotspots-stage-hud {
+        display: none;
+    }
 }
 
 @keyframes hero-hotspots-breathe {
@@ -1132,22 +1144,172 @@
     position: relative;
     width: var(--hero-hotspots-stage-width);
     max-width: min(100%, 1460px);
-    height: var(--hero-hotspots-stage-height);
+    height: var(--hero-hotspots-stage-height, auto);
     margin: 0 auto;
     transform: translate3d(var(--hero-hotspots-stage-shift-x), 0, 0);
 }
 
 /* 让真正的今日海域舞台跟随外壳尺寸伸缩，避免外层变大后内部仍卡在旧宽度。 */
 .hero-hotspots-stage-shell > .hero-hotspots-shell {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     max-width: none;
     min-height: 100%;
-    height: 100%;
+    height: auto;
+}
+
+/* hero-hotspots-stage-hud：
+   给可缩放舞台补一层轻量状态反馈。它像漂在水面上的仪表签，告诉用户当前尺度，
+   也提供回到默认观察窗的入口。 */
+.hero-hotspots-stage-hud {
+    position: absolute;
+    top: -22px;
+    right: 28px;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(213, 239, 250, 0.16);
+    background:
+        linear-gradient(180deg, rgba(247, 252, 255, 0.18) 0%, rgba(196, 229, 242, 0.05) 100%),
+        rgba(6, 30, 46, 0.62);
+    box-shadow:
+        0 18px 38px rgba(4, 18, 30, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    pointer-events: none;
+    opacity: 0;
+    filter: blur(12px);
+    transform: translate3d(0, 12px, 0);
+    transition:
+        opacity 0.52s ease,
+        transform 0.72s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.72s ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease;
+}
+
+.home-page.hero-awakened .hero-hotspots-stage-hud {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    transition-delay: 1160ms;
+}
+
+.hero-hotspots-stage-hud-copy {
+    position: relative;
+    display: grid;
+    gap: 3px;
+    min-width: 128px;
+    padding-left: 12px;
+}
+
+.hero-hotspots-stage-hud-copy::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(173, 217, 234, 0.58);
+    box-shadow: 0 0 14px rgba(140, 208, 231, 0.32);
+    transform: translateY(-50%);
+    transition: background-color 220ms ease, box-shadow 220ms ease;
+}
+
+.hero-hotspots-stage-hud-label,
+.hero-hotspots-stage-hud-hint {
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.hero-hotspots-stage-hud-label {
+    color: rgba(198, 224, 236, 0.62);
+}
+
+.hero-hotspots-stage-hud-value {
+    color: #f1fbff;
+    font-size: 0.84rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    text-shadow: 0 8px 20px rgba(2, 16, 28, 0.24);
+}
+
+.hero-hotspots-stage-hud-hint {
+    color: rgba(196, 223, 235, 0.52);
+}
+
+.hero-hotspots-stage-reset {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid rgba(211, 236, 247, 0.16);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(243, 251, 255, 0.14), rgba(129, 178, 201, 0.1));
+    color: rgba(239, 248, 252, 0.88);
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    pointer-events: auto;
+    cursor: pointer;
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background 220ms ease,
+        color 220ms ease,
+        opacity 220ms ease,
+        box-shadow 220ms ease;
+}
+
+.hero-hotspots-stage-reset:hover,
+.hero-hotspots-stage-reset:focus-visible {
+    transform: translate3d(0, -1px, 0);
+    border-color: rgba(220, 240, 248, 0.28);
+    background: linear-gradient(180deg, rgba(243, 251, 255, 0.2), rgba(129, 178, 201, 0.16));
+    color: #f8fdff;
+    box-shadow:
+        0 10px 22px rgba(4, 18, 30, 0.18),
+        0 0 0 1px rgba(221, 241, 249, 0.08);
+}
+
+.hero-hotspots-stage-reset:focus-visible {
+    outline: none;
+}
+
+.hero-hotspots-stage-reset:disabled {
+    opacity: 0.54;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+.hero-hotspots-stage-shell[data-stage-size-mode="custom"] .hero-hotspots-stage-hud {
+    border-color: rgba(209, 236, 247, 0.24);
+    box-shadow:
+        0 18px 38px rgba(4, 18, 30, 0.24),
+        0 0 26px rgba(86, 156, 182, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.hero-hotspots-stage-shell[data-stage-size-mode="custom"] .hero-hotspots-stage-hud-copy::before {
+    background: rgba(186, 234, 248, 0.88);
+    box-shadow: 0 0 18px rgba(157, 223, 242, 0.4);
+}
+
+.hero-hotspots-stage-shell[data-stage-size-mode="custom"] .hero-hotspots-stage-hud-hint {
+    color: rgba(216, 240, 248, 0.7);
 }
 
 /* hero-hotspots-resize-layer：
    这一层只负责接住拖拽动作。默认几乎隐身，只在 hover 或拖拽时轻轻露出，
-   不抢 Hero 舞台本身的视觉注意力。 */
+   不抢 首屏 舞台本身的视觉注意力。 */
 .hero-hotspots-resize-layer {
     position: absolute;
     inset: -10px;
@@ -1406,7 +1568,7 @@
     gap: 14px;
 }
 
-/* 设置 Hero 操作按钮的外观、圆角和悬停过渡 */
+/* 设置 首屏 操作按钮的外观、圆角和悬停过渡 */
 .sea-action {
     min-height: 50px;
     padding: 0.94rem 1.58rem;
@@ -1423,7 +1585,7 @@
     transform: translateY(-3px);
 }
 
-/* 设置 Hero 操作按钮的外观、圆角和悬停过渡 */
+/* 设置 首屏 操作按钮的外观、圆角和悬停过渡 */
 .sea-action-primary {
     background: linear-gradient(135deg, #143d5d 0%, #24648b 100%);
     box-shadow:
@@ -1439,7 +1601,7 @@
         0 0 28px rgba(137, 201, 232, 0.18);
 }
 
-/* 设置 Hero 操作按钮的外观、圆角和悬停过渡 */
+/* 设置 首屏 操作按钮的外观、圆角和悬停过渡 */
 .sea-action-secondary {
     color: #eef7fd;
     background: rgba(255, 255, 255, 0.08);
@@ -1459,7 +1621,7 @@
     filter: saturate(0.92);
 }
 
-/* 控制 Hero 主文案容器的宽度、层级和入场动画 */
+/* 制制 首屏 主文案容器的宽度、层级和入场动画 */
 .hero-section.is-diving-out .hero-content {
     opacity: 0.78;
     filter: blur(8px);
@@ -1618,7 +1780,7 @@
     color: rgba(233, 244, 251, 0.82);
 }
 
-/* 控制搜索栏区域的布局、玻璃材质和输入分布 */
+/* 制制搜索栏区域的布局、玻璃材质和输入分布 */
 .search-bar {
     display: flex;
     gap: var(--spacing-md);
@@ -1637,12 +1799,12 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 
-/* 控制搜索栏区域的布局、玻璃材质和输入分布 */
+/* 制制搜索栏区域的布局、玻璃材质和输入分布 */
 .trip-search-bar {
     align-self: stretch;
 }
 
-/* 设置搜索输入控件的尺寸、颜色和磨砂玻璃效果 */
+/* 设置搜索输入制件的尺寸、颜色和磨砂玻璃效果 */
 .search-input,
 .search-select {
     flex: 1;
@@ -1657,18 +1819,18 @@
     transition: all var(--transition-fast);
 }
 
-/* 设置搜索输入控件的尺寸、颜色和磨砂玻璃效果 */
+/* 设置搜索输入制件的尺寸、颜色和磨砂玻璃效果 */
 .search-input::placeholder,
 .search-select {
     color: #5e7890;
 }
 
-/* 设置搜索输入控件的尺寸、颜色和磨砂玻璃效果 */
+/* 设置搜索输入制件的尺寸、颜色和磨砂玻璃效果 */
 .search-input[type="date"] {
     color: #12324d;
 }
 
-/* 设置搜索输入控件的尺寸、颜色和磨砂玻璃效果 */
+/* 设置搜索输入制件的尺寸、颜色和磨砂玻璃效果 */
 .search-input[type="date"]::-webkit-datetime-edit,
 .search-input[type="date"]::-webkit-datetime-edit-text,
 .search-input[type="date"]::-webkit-datetime-edit-month-field,
@@ -1677,12 +1839,12 @@
     color: #12324d;
 }
 
-/* 设置搜索输入控件的尺寸、颜色和磨砂玻璃效果 */
+/* 设置搜索输入制件的尺寸、颜色和磨砂玻璃效果 */
 .search-input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(17%) sepia(23%) saturate(1087%) hue-rotate(165deg) brightness(94%) contrast(94%);
 }
 
-/* 设置搜索输入控件的尺寸、颜色和磨砂玻璃效果 */
+/* 设置搜索输入制件的尺寸、颜色和磨砂玻璃效果 */
 .search-select option {
     color: #12324d;
     background: #f8fcff;
@@ -1817,7 +1979,7 @@
 }
 
 /* ============================================
-   Bamboo Scroll Recommendation Section
+   竹简推荐区
    ============================================ */
 
 /* .bamboo-scroll-section 的主要视觉与布局效果 */
@@ -2278,7 +2440,7 @@
    Featured Destinations - Curated Waters
    ============================================ */
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .featured-destinations {
     position: relative;
     overflow: hidden;
@@ -2314,13 +2476,13 @@
 }
 
 /* 精选目的地在滚动过程中会把“舞台建立进度”和“左侧收束进度”写进 CSS 变量。
-   这样 Hero 进入这层时，不需要靠硬切类名，也能得到更像海流缓慢推进的连续过渡。 */
+   这样 首屏 进入这层时，不需要靠硬切类名，也能得到更像海流缓慢推进的连续过渡。 */
 .featured-destinations {
     --curated-stage-progress: 0;
     --curated-left-progress: 0;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-shell {
     position: relative;
     z-index: 1;
@@ -2336,7 +2498,7 @@
         align-items 1.32s ease;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-reveal {
     opacity: 0;
     transform: translate3d(0, 34px, 0);
@@ -2359,7 +2521,7 @@
     transition-delay: 180ms;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-intro {
     position: relative;
     grid-column: 1 / -1;
@@ -2386,7 +2548,7 @@
     background: linear-gradient(90deg, rgba(233, 247, 255, 0.74), rgba(233, 247, 255, 0));
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-kicker {
     margin: 0 0 16px;
     font-size: 0.72rem;
@@ -2395,7 +2557,7 @@
     color: rgba(230, 244, 255, 0.62);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -2404,7 +2566,7 @@
     color: #f5fbff;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-subtitle {
     margin: 18px 0 0;
     font-size: 1.08rem;
@@ -2417,7 +2579,7 @@
         transform 1.24s cubic-bezier(0.18, 0.86, 0.22, 1);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-lead {
     margin: 22px 0 0;
     font-size: 0.96rem;
@@ -2430,7 +2592,7 @@
         transform 1.3s cubic-bezier(0.18, 0.86, 0.22, 1);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-stage {
     position: relative;
     grid-column: 1 / -1;
@@ -2511,14 +2673,14 @@
     z-index: 0;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-card {
     position: relative;
     z-index: 1;
     min-height: clamp(598px, 56vw, 712px);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface {
     position: absolute;
     inset: 0;
@@ -2545,12 +2707,12 @@
         filter 0.7s ease;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.from-right {
     transform: translate3d(54px, 0, 0) scale(0.988);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.from-left {
     transform: translate3d(-54px, 0, 0) scale(0.988);
 }
@@ -2562,26 +2724,26 @@
     transform: translate3d(0, 0, 0) scale(1);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-leaving.to-left {
     opacity: 0;
     filter: blur(16px);
     transform: translate3d(-48px, -8px, 0) scale(0.984);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-leaving.to-right {
     opacity: 0;
     filter: blur(16px);
     transform: translate3d(48px, -8px, 0) scale(0.984);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-resting {
     animation: curated-main-breathe 6.4s ease-in-out infinite;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-media {
     position: relative;
     min-height: 100%;
@@ -2621,7 +2783,7 @@
     z-index: 3;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-image {
     width: 100%;
     height: 100%;
@@ -2637,7 +2799,7 @@
     filter: saturate(1) contrast(1.04) brightness(0.96);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-copy {
     position: relative;
     z-index: 2;
@@ -2648,7 +2810,7 @@
     padding-right: 4px;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-copy > * {
     opacity: 0;
     transform: translate3d(0, 16px, 0);
@@ -2698,7 +2860,7 @@
     transition-delay: 500ms;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -2707,14 +2869,14 @@
     color: rgba(224, 242, 255, 0.58);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-heading {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-name {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -2723,7 +2885,7 @@
     color: #f7fbff;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-english {
     margin: 0;
     font-size: 0.95rem;
@@ -2732,7 +2894,7 @@
     color: rgba(212, 231, 243, 0.66);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-atmosphere {
     margin: 0;
     font-size: 0.98rem;
@@ -2740,14 +2902,14 @@
     color: rgba(229, 242, 252, 0.88);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-facts {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-fact {
     min-height: 88px;
     padding: 14px 14px 12px;
@@ -2761,7 +2923,7 @@
         0 12px 24px rgba(4, 18, 29, 0.14);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-fact-label {
     display: block;
     margin-bottom: 10px;
@@ -2771,7 +2933,7 @@
     color: rgba(213, 230, 242, 0.56);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-fact-value {
     display: block;
     font-size: 0.92rem;
@@ -2779,14 +2941,14 @@
     color: rgba(244, 249, 255, 0.9);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-conditions {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-condition {
     display: inline-flex;
     align-items: center;
@@ -2799,7 +2961,7 @@
     line-height: 1;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-worth {
     margin: 2px 0 0;
     display: flex;
@@ -2809,7 +2971,7 @@
     border-top: 1px solid rgba(241, 249, 255, 0.1);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-worth-label {
     font-size: 0.74rem;
     letter-spacing: 0.22em;
@@ -2817,14 +2979,14 @@
     color: rgba(216, 234, 246, 0.56);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-worth-text {
     font-size: 0.96rem;
     line-height: 1.76;
     color: rgba(240, 248, 255, 0.9);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-detail-button {
     all: unset;
     width: fit-content;
@@ -2851,7 +3013,7 @@
         opacity 0.48s ease;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-detail-button svg {
     width: 18px;
     height: 18px;
@@ -2873,18 +3035,18 @@
     transform: translate3d(4px, 0, 0);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-waters-stage.is-shifted .curated-main-card {
     min-height: clamp(620px, 58vw, 748px);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout {
     grid-template-columns: 1fr;
     padding: 0;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-main-media {
     width: calc(100% + 88px);
     height: 100%;
@@ -2892,7 +3054,7 @@
     border-radius: 0;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-main-image {
     object-position: left center;
     transform: scale(1.08);
@@ -2905,7 +3067,7 @@
     filter: saturate(1.02) contrast(1.06) brightness(0.94);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-main-copy {
     position: absolute;
     top: 50%;
@@ -2929,35 +3091,35 @@
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-main-facts {
     width: 100%;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-main-fact {
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
         rgba(9, 38, 58, 0.4);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-main-conditions {
     justify-content: center;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-main-worth {
     align-items: center;
     width: 100%;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-main-surface.is-shifted-layout .curated-detail-button {
     align-self: center;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-cloud {
     position: relative;
     z-index: 1;
@@ -2981,7 +3143,7 @@
     filter: blur(0);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-card {
     all: unset;
     position: relative;
@@ -3088,7 +3250,7 @@
     transform: scaleX(1);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-image-wrap {
     position: relative;
     display: block;
@@ -3105,7 +3267,7 @@
     background: linear-gradient(180deg, rgba(7, 28, 44, 0.02), rgba(7, 28, 44, 0.28));
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-image {
     width: 100%;
     height: 100%;
@@ -3114,27 +3276,27 @@
     transition: transform 0.55s ease;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-copy {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-name {
     font-size: 1rem;
     font-weight: 700;
     color: #f4fbff;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-keyword {
     font-size: 0.9rem;
     color: rgba(231, 244, 252, 0.84);
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .curated-sample-meta {
     font-size: 0.8rem;
     letter-spacing: 0.08em;
@@ -3170,10 +3332,10 @@
 }
 
 /* ============================================
-   Dive Match
+   潜水匹配
    ============================================ */
 
-/* Dive Match：做成比精选目的地更深一层的匹配海域档案。 */
+/* 潜水匹配：做成比精选目的地更深一层的匹配海域档案。 */
 .dive-match {
     position: relative;
     overflow: hidden;
@@ -3184,7 +3346,7 @@
         linear-gradient(180deg, #10344f 0%, #0b2941 44%, #0a2237 100%);
 }
 
-/* Dive Match 顶部一层柔和雾面过渡，让它从精选目的地平滑接进来。 */
+/* 潜水匹配顶部一层柔和雾面过渡，让它从精选目的地平滑接进来。 */
 .dive-match::before {
     content: "";
     position: absolute;
@@ -3196,7 +3358,7 @@
     z-index: 0;
 }
 
-/* Dive Match 底部留一层更深的海流过渡，为后面的盐憩故事衔接深度。 */
+/* 潜水匹配底部留一层更深的海流过渡，为后面的盐憩故事衔接深度。 */
 .dive-match::after {
     content: "";
     position: absolute;
@@ -3208,7 +3370,7 @@
     z-index: 0;
 }
 
-/* 控制 Dive Match 模块整体宽度、左右关系和留白 */
+/* 制制 潜水匹配模块整体宽度、左右关系和留白 */
 .dive-match-shell {
     position: relative;
     z-index: 1;
@@ -3218,7 +3380,7 @@
     gap: 34px;
 }
 
-/* 统一 Dive Match 标题区的显现前状态。 */
+/* 统一潜水匹配标题区的显现前状态。 */
 .dive-match-reveal {
     opacity: 0;
     transform: translate3d(0, 34px, 0);
@@ -3236,12 +3398,12 @@
     filter: blur(0);
 }
 
-/* 控制模块标题区的最大宽度和叙事节奏 */
+/* 制制模块标题区的最大宽度和叙事节奏 */
 .dive-match-intro {
     max-width: 860px;
 }
 
-/* 设置 Dive Match 英文 kicker 的轻量品牌感 */
+/* 设置潜水匹配英文 kicker 的轻量品牌感 */
 .dive-match-kicker {
     margin: 0 0 16px;
     font-size: 0.72rem;
@@ -3700,7 +3862,7 @@
    Why Yanqi
    ============================================ */
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层次。 */
+/* 制制盐憩故事区的品牌叙事排版和卡片层次。 */
 .why-yanqi {
     padding: var(--spacing-2xl) var(--spacing-lg);
     position: relative;
@@ -3752,7 +3914,7 @@
     align-items: start;
 }
 
-/* 故事区引导文案：控制标题、副文案和说明的宽度。 */
+/* 故事区引导文案：制制标题、副文案和说明的宽度。 */
 .story-intro {
     max-width: 520px;
     align-self: center;
@@ -3944,7 +4106,7 @@
     }
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .bamboo-scroll-section .section-title,
 .featured-destinations .section-title,
 .why-yanqi .section-title {
@@ -3953,7 +4115,7 @@
     z-index: 1;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .bamboo-scroll-section .section-subtitle,
 .featured-destinations .section-subtitle,
 .why-yanqi .section-subtitle {
@@ -3971,13 +4133,13 @@
     color: #426785;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .featured-destinations .section-title,
 .why-yanqi .section-title {
     color: #f5fbff;
 }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .featured-destinations .section-subtitle,
 .why-yanqi .section-subtitle {
     color: rgba(240, 248, 255, 0.82);
@@ -3987,7 +4149,7 @@
    Footer
    ============================================ */
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer {
     position: relative;
     overflow: hidden;
@@ -4021,7 +4183,7 @@
     pointer-events: none;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-shell {
     position: relative;
     z-index: 1;
@@ -4029,14 +4191,14 @@
     margin: 0 auto;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-brand-stage {
     max-width: 720px;
     margin: 0 auto 52px;
     text-align: center;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-overline {
     margin: 0 0 14px;
     font-size: 0.72rem;
@@ -4045,7 +4207,7 @@
     color: rgba(196, 223, 240, 0.62);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-brand {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -4056,7 +4218,7 @@
     text-shadow: 0 0 24px rgba(176, 216, 238, 0.12);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-whisper {
     margin: 16px 0 12px;
     font-size: clamp(1.05rem, 1.6vw, 1.2rem);
@@ -4064,7 +4226,7 @@
     color: rgba(239, 248, 253, 0.94);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-murmur {
     margin: 0;
     font-size: 0.98rem;
@@ -4072,7 +4234,7 @@
     color: rgba(184, 208, 223, 0.7);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-middle {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(280px, 360px);
@@ -4081,19 +4243,19 @@
     margin-bottom: 34px;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-nav {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 28px;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-nav-group {
     min-width: 0;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-nav-title {
     margin: 0 0 18px;
     font-size: 0.92rem;
@@ -4102,7 +4264,7 @@
     color: #f4fbff;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-nav-list {
     list-style: none;
     margin: 0;
@@ -4112,7 +4274,7 @@
     gap: 12px;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-link {
     position: relative;
     display: inline-flex;
@@ -4148,7 +4310,7 @@
     transform: scaleX(1);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-companion {
     padding: 24px 24px 22px;
     border-radius: 28px;
@@ -4163,7 +4325,7 @@
     -webkit-backdrop-filter: blur(18px) saturate(130%);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-companion-title {
     margin: 0 0 12px;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -4172,21 +4334,21 @@
     color: #f4fbff;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-companion-copy {
     margin: 0 0 18px;
     line-height: 1.8;
     color: rgba(194, 217, 232, 0.72);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-social-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px 12px;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-social-link {
     display: inline-flex;
     align-items: center;
@@ -4208,14 +4370,14 @@
     box-shadow: 0 10px 18px rgba(9, 26, 39, 0.12);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-social-mark {
     color: rgba(171, 208, 229, 0.74);
     font-size: 0.92rem;
     line-height: 1;
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-bottom {
     display: flex;
     flex-wrap: wrap;
@@ -4225,7 +4387,7 @@
     border-top: 1px solid rgba(188, 221, 241, 0.12);
 }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
 .footer-bottom p {
     margin: 0;
     font-size: 0.84rem;
@@ -4237,7 +4399,7 @@
    Sea Guide
    ============================================ */
 
-/* 首页海图导览外层：控制悬浮位置、显隐和更深层时的强调状态。 */
+/* 首页海图导览外层：制制悬浮位置、显隐和更深层时的强调状态。 */
 .sea-guide-home {
     position: fixed;
     right: 26px;
@@ -4344,7 +4506,7 @@
     flex: 0 0 auto;
 }
 
-/* 控制海图导览 SVG 图标尺寸 */
+/* 制制海图导览 SVG 图标尺寸 */
 .sea-guide-home .sea-guide-trigger-icon svg {
     width: 100%;
     height: 100%;
@@ -4554,7 +4716,7 @@
 
 /* 当前屏幕条件下的响应式样。*/
 @media (max-width: 900px) {
-/* 平板下继续控制 Hero 区的背景层次、留白和整体舞台。 */
+/* 平板下继续制制首屏区的背景层次、留白和整体舞台。 */
     .hero-section {
         min-height: 520px;
         padding-top: calc(var(--spacing-2xl) + 18px);
@@ -4611,22 +4773,22 @@
         padding: 24px;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer {
         padding-top: 56px;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer-middle {
         grid-template-columns: 1fr;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer-nav {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer-companion {
         max-width: 560px;
     }
@@ -4658,21 +4820,21 @@
         margin-left: 0;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-waters-shell {
         grid-template-columns: 1fr;
         gap: 32px;
         align-items: start;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-waters-intro {
         grid-column: 1 / -1;
         max-width: 100%;
         transform: none;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-waters-stage {
         grid-column: 1 / -1;
         grid-template-columns: 1fr;
@@ -4700,34 +4862,34 @@
         display: none;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-card {
         min-height: 680px;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-surface {
         grid-template-columns: 1.02fr 0.98fr;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-surface.is-shifted-layout .curated-main-copy {
         width: min(520px, calc(100% - 40px));
         padding: 22px 22px 24px;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-facts {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-sample-cloud {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         padding-right: 0;
     }
 
-/* Dive Match 在平板尺寸下改成单列舞台，避免左侧引导卡和右侧推荐卡过挤。 */
+/* 潜水匹配在平板尺寸下改成单列舞台，避免左侧引导卡和右侧推荐卡过挤。 */
     .dive-match-stage {
         padding: 24px 20px;
     }
@@ -4753,12 +4915,12 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-/* 控制搜索栏区域的布局、玻璃材质和输入分布 */
+/* 制制搜索栏区域的布局、玻璃材质和输入分布 */
     .search-bar {
         flex-direction: column;
     }
 
-/* 设置搜索输入控件的尺寸、颜色和磨砂玻璃效果 */
+/* 设置搜索输入制件的尺寸、颜色和磨砂玻璃效果 */
     .search-input,
     .search-select {
         min-width: unset;
@@ -4769,7 +4931,7 @@
         flex-direction: column;
     }
 
-/* 在移动端收紧按钮尺寸，避免漂浮控件挤压卡片滚动区。 */
+/* 在移动端收紧按钮尺寸，避免漂浮制件挤压卡片滚动区。 */
     .scroll-arrow {
         width: 52px;
         height: 52px;
@@ -4779,7 +4941,7 @@
 
 /* 当前屏幕条件下的响应式样。*/
 @media (max-width: 600px) {
-/* 手机端继续收紧 Hero 区的留白和整体舞台。 */
+/* 手机端继续收紧首屏区的留白和整体舞台。 */
     .hero-section {
         min-height: 500px;
         padding: calc(var(--spacing-xl) + 10px) var(--spacing-md) var(--spacing-xl);
@@ -4888,7 +5050,7 @@
         max-width: 100%;
     }
 
-/* 小屏下 Dive Match 标签改成更紧凑的两列漂浮铭牌。 */
+/* 小屏下潜水匹配标签改成更紧凑的两列漂浮铭牌。 */
     .dive-match-rail {
         gap: 10px;
     }
@@ -4916,7 +5078,7 @@
         flex-direction: column;
     }
 
-/* 设置 Hero 操作按钮的外观、圆角和悬停过渡 */
+/* 设置 首屏 操作按钮的外观、圆角和悬停过渡 */
     .sea-action {
         width: 100%;
     }
@@ -4932,28 +5094,28 @@
         border-radius: 24px;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer {
         padding: 48px var(--spacing-md) 26px;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer-brand-stage {
         margin-bottom: 40px;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer-nav {
         grid-template-columns: 1fr;
         gap: 24px;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer-social-list {
         grid-template-columns: 1fr;
     }
 
-/* 控制页脚区域的布局、层次和收束氛围 */
+/* 制制页脚区域的布局、层次和收束氛围 */
     .footer-bottom {
         flex-direction: column;
         align-items: flex-start;
@@ -4970,34 +5132,34 @@
         border-radius: 24px;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .featured-destinations {
         padding: 72px var(--spacing-md);
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-waters-title {
         font-size: 1.8rem;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-waters-subtitle,
     .curated-waters-lead {
         max-width: 100%;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-waters-stage {
         padding: 14px;
         border-radius: 30px;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-card {
         min-height: 760px;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-surface {
         grid-template-columns: 1fr;
         gap: 18px;
@@ -5005,19 +5167,19 @@
         border-radius: 26px;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-surface.is-shifted-layout {
         padding: 0;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-surface.is-shifted-layout .curated-main-media {
         width: 100%;
         margin-left: 0;
         min-height: 100%;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-surface.is-shifted-layout .curated-main-copy {
         top: 50%;
         width: calc(100% - 28px);
@@ -5025,22 +5187,22 @@
         transform: translate(-50%, -50%);
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-media {
         min-height: 280px;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-facts {
         grid-template-columns: 1fr;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-main-name {
         font-size: 1.9rem;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-sample-cloud {
         grid-auto-flow: column;
         grid-auto-columns: minmax(220px, 72vw);
@@ -5052,12 +5214,12 @@
         scrollbar-width: none;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-sample-cloud::-webkit-scrollbar {
         display: none;
     }
 
-/* 控制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
+/* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
     .curated-sample-card {
         min-height: 188px;
         transform: translate3d(0, 24px, 0) scale(0.97);
@@ -5100,6 +5262,10 @@
         padding: 13px 14px;
     }
 }
+
+
+
+
 
 
 

@@ -1,8 +1,8 @@
 ﻿/* ============================================
-   Detail Page Logic - detail.js
+   详情页脚本逻辑 - detail.js
    ============================================
    职责：
-   1. 驱动详情页 Hero、套餐、评论、地图、推荐与反馈层的整体交互。
+   1. 驱动详情页首屏、套餐、评论、地图、推荐与反馈层的整体交互。
    2. 管理海域数据渲染、价格展示、详情页内切换和套餐确认流程。
    3. 把“进入一片海”这件事收成一套完整的页面体验。
    阅读顺序：
@@ -102,6 +102,39 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+/**
+ * createBufferedLiveAnnouncer(target, delay) - 为详情页动态区域创建合并摘要播报器
+ * @param {HTMLElement|null} target - 隐藏 live 区域节点
+ * @param {number} delay - 合并等待时长
+ * @returns {(message: string) => void} - 可重复调用的播报函数
+ */
+function createBufferedLiveAnnouncer(target, delay = 320) {
+    let timer = 0;
+
+    return (message) => {
+        if (!target) {
+            return;
+        }
+
+        const nextMessage = String(message || '').trim();
+        if (!nextMessage) {
+            return;
+        }
+
+        if (timer) {
+            window.clearTimeout(timer);
+        }
+
+        timer = window.setTimeout(() => {
+            target.textContent = '';
+            window.requestAnimationFrame(() => {
+                target.textContent = nextMessage;
+            });
+            timer = 0;
+        }, delay);
+    };
 }
 
 // 潜点主数据：这里集中定义每个潜点的文案、图片、套餐、评论与相关推荐信息。
@@ -1169,7 +1202,7 @@ const HOME_DIVE_MATCH_LINK_MAP = Object.freeze({
 });
 
 /**
- * buildHomeDiveMatchUrl(matchKey) - 构建跳回首页 Dive Match 模块的目标地址
+ * buildHomeDiveMatchUrl(matchKey) - 构建跳回首页潜水匹配模块的目标地址
  * @param {string} matchKey - 首页匹配分类键名
  * @returns {string} - 带分类状态的首页地址
  */
@@ -1178,7 +1211,7 @@ function buildHomeDiveMatchUrl(matchKey) {
 }
 
 /**
- * resolveDiveMatchKey(tag) - 把详情页里的能力标签映射到首页 Dive Match 分类
+ * resolveDiveMatchKey(tag) - 把详情页里的能力标签映射到首页潜水匹配分类
  * @param {string} tag - 当前展示的标签文案
  * @returns {string} - 可跳转的首页匹配分类键名
  */
@@ -1565,7 +1598,9 @@ class DetailPage {
         this.bookingNote = document.getElementById('bookingNote');
         this.reviewsFilters = document.getElementById('reviewsFilters');
         this.reviewsSection = document.getElementById('reviewsSection');
+        this.reviewsLiveSummary = document.getElementById('reviewsLiveSummary');
         this.spotReviewsHeading = document.getElementById('spotReviews');
+        this.spotMapHeading = document.getElementById('spotMapSection');
         this.reviewsStage = document.querySelector('.reviews-stage');
         this.bookingModal = document.getElementById('bookingModal');
         this.bookingModalBody = document.getElementById('bookingModalBody');
@@ -1599,6 +1634,7 @@ class DetailPage {
         this.detailFooterNextLink = document.getElementById('detailFooterNextLink');
         this.detailFooterNextName = document.getElementById('detailFooterNextName');
         this.detailFooterNextCopy = document.getElementById('detailFooterNextCopy');
+        this.relatedLiveSummary = document.getElementById('relatedLiveSummary');
         this.activeSeaView = 'location';
         this.routeAnimationPlayed = false;
         this.seaAtlasResizeStorageKey = 'yanqi_sea_atlas_size';
@@ -1619,6 +1655,12 @@ class DetailPage {
         this.packageTitleObserver = null;
         this.bookingCopyTypeTimers = [];
         this.bookingCopyTypingActive = false;
+        this.bookingCopySwapTimers = [];
+        this.bookingCopySwapVersion = 0;
+        this.activeBookingGuideKey = this.bookingCopy?.dataset.readingGuideKey || 'overview';
+        this.hasRenderedReviews = false;
+        this.announceReviewsSummary = createBufferedLiveAnnouncer(this.reviewsLiveSummary);
+        this.announceRelatedSummary = createBufferedLiveAnnouncer(this.relatedLiveSummary);
         this.init();
     }
 
@@ -2126,6 +2168,7 @@ class DetailPage {
         this.renderReviews();
         this.renderRelatedSpots();
         this.renderFooter();
+        this.syncBookingReadingGuide({ force: true, immediate: true });
         this.setupHeroCopyReveal();
         this.resetBookingCopyReveal();
         this.resetIntroReveal();
@@ -2409,7 +2452,7 @@ class DetailPage {
     }
 
     /**
-     * runBookingCopyTypewriter() - 依次触发 Dive Match 文案的逐字敲出。
+     * runBookingCopyTypewriter() - 依次触发潜水匹配文案的逐字敲出。
      * 顺序是：kicker -> 标题 -> 说明文案。
      * @returns {Promise<void>} - 所有文案敲完后结束
      */
@@ -2444,7 +2487,7 @@ class DetailPage {
     }
 
     /**
-     * setupBookingCopyReveal() - 让套餐侧栏里的 Dive Match 文案在进入视口时以逐字敲出的方式建立。
+     * setupBookingCopyReveal() - 让套餐侧栏里的潜水匹配文案在进入视口时以逐字敲出的方式建立。
      * @returns {void} - 无返回值，直接注册观察器或降级显示
      */
     setupBookingCopyReveal() {
@@ -2478,7 +2521,7 @@ class DetailPage {
     }
 
     /**
-     * resetBookingCopyReveal() - 详情内容重渲染后重置 Dive Match 文案显形状态，并在当前视口条件下重新触发
+     * resetBookingCopyReveal() - 详情内容重渲染后重置潜水匹配文案显形状态，并在当前视口条件下重新触发
      * @returns {void} - 无返回值，直接更新当前显形状态
      */
     resetBookingCopyReveal() {
@@ -2501,6 +2544,230 @@ class DetailPage {
     }
 
     /**
+     * queueBookingCopySwapTimeout() - 统一登记侧栏陪读文案切换时用到的定时器，便于快速滚动时整批取消。
+     * @param {Function} callback - 到时后要执行的回调
+     * @param {number} delay - 延迟毫秒数
+     * @returns {number} - 当前定时器 id
+     */
+    queueBookingCopySwapTimeout(callback, delay) {
+        const timer = window.setTimeout(() => {
+            this.bookingCopySwapTimers = this.bookingCopySwapTimers.filter((id) => id !== timer);
+            callback();
+        }, delay);
+
+        this.bookingCopySwapTimers.push(timer);
+        return timer;
+    }
+
+    /**
+     * clearBookingCopySwapTimers() - 清空陪读文案切换过程中遗留的定时器，避免边界滚动时出现旧状态回写。
+     * @returns {void} - 无返回值，直接清理定时器
+     */
+    clearBookingCopySwapTimers() {
+        this.bookingCopySwapTimers.forEach((timer) => window.clearTimeout(timer));
+        this.bookingCopySwapTimers = [];
+    }
+
+    /**
+     * getBookingReadingGuideCopy() - 为当前阅读区块生成右侧 sticky 文案。
+     * @param {string} sectionKey - 当前左侧正文所在区块 key
+     * @returns {{ key: string, kicker: string, title: string, intro: string }} - 对应的陪读引导文案
+     */
+    getBookingReadingGuideCopy(sectionKey) {
+        const spotName = this.spotData?.name || '这片海';
+        const guideCopyMap = {
+            overview: {
+                key: 'overview',
+                kicker: 'Sea Dossier',
+                title: '潜点介绍',
+                intro: `先把${spotName}的流向、难度与进入方式读清，再决定要用怎样的节奏靠近。`
+            },
+            map: {
+                key: 'map',
+                kicker: 'Sea Bearing',
+                title: '地图',
+                intro: `先沿着地图确认${spotName}落在海上的哪一侧，再想象这一次会从哪一道海流慢慢进入。`
+            },
+            reviews: {
+                key: 'reviews',
+                kicker: 'Travel Echoes',
+                title: '评价',
+                intro: `先听听去过的人怎样记住${spotName}，再判断这片海是不是此刻更适合你的那一片蓝。`
+            },
+            related: {
+                key: 'related',
+                kicker: 'Neighboring Waters',
+                title: '相邻海域',
+                intro: '如果这片蓝还没有收住，就顺着相邻海域继续平移，看看哪一段水色更贴近你现在的呼吸。'
+            }
+        };
+
+        return guideCopyMap[sectionKey] || guideCopyMap.overview;
+    }
+
+    /**
+     * getBookingReadingGuideSections() - 收集会驱动右侧陪读文案切换的正文区块。
+     * @returns {Array<{ key: string, element: Element }>} - 当前可参与联动的区块定义
+     */
+    getBookingReadingGuideSections() {
+        return [
+            { key: 'overview', element: this.introSection },
+            { key: 'map', element: this.spotMapHeading || this.mapContainer },
+            { key: 'reviews', element: this.spotReviewsHeading || this.reviewsStage || this.reviewsSection },
+            { key: 'related', element: this.relatedSection }
+        ].filter(({ element }) => element);
+    }
+
+    /**
+     * getCurrentBookingReadingGuideKey() - 根据当前滚动位置判断正文更接近哪一个区块。
+     * @returns {string} - 当前应在右侧显示的陪读区块 key
+     */
+    getCurrentBookingReadingGuideKey() {
+        const sections = this.getBookingReadingGuideSections();
+        if (!sections.length) {
+            return 'overview';
+        }
+
+        const probeY = window.scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.24, 220);
+        let currentKey = sections[0].key;
+
+        sections.forEach(({ key, element }) => {
+            const sectionTop = element.getBoundingClientRect().top + window.scrollY - this.getSeaGuideOffset();
+            if (probeY >= sectionTop - 42) {
+                currentKey = key;
+            }
+        });
+
+        return currentKey;
+    }
+
+    /**
+     * setBookingCopyLineText() - 同步某一行陪读文案的展示文本和后续逐字显形用到的原文缓存。
+     * @param {string} selector - 目标行的选择器
+     * @param {string} text - 需要显示的文本
+     * @returns {void} - 无返回值，直接写回 DOM
+     */
+    setBookingCopyLineText(selector, text) {
+        if (!this.bookingCopy) {
+            return;
+        }
+
+        const line = this.bookingCopy.querySelector(selector);
+        if (!line) {
+            return;
+        }
+
+        const nextText = String(text ?? '').trim();
+        line.dataset.text = nextText;
+        line.textContent = nextText;
+    }
+
+    /**
+     * writeBookingReadingGuideCopy() - 把当前区块对应的陪读文案写入右侧 sticky 侧栏。
+     * @param {{ key: string, kicker: string, title: string, intro: string }} guideCopy - 需要写入的文案对象
+     * @returns {void} - 无返回值，直接更新侧栏文本
+     */
+    writeBookingReadingGuideCopy(guideCopy) {
+        if (!this.bookingCopy || !guideCopy) {
+            return;
+        }
+
+        this.bookingCopy.dataset.readingGuideKey = guideCopy.key;
+        this.setBookingCopyLineText('.booking-kicker-line', guideCopy.kicker);
+        this.setBookingCopyLineText('.booking-title-line', guideCopy.title);
+        this.setBookingCopyLineText('.booking-intro-line', guideCopy.intro);
+
+        const bookingTitle = this.bookingCopy.querySelector('.booking-title');
+        if (bookingTitle) {
+            bookingTitle.setAttribute('aria-label', `当前阅读区块：${guideCopy.title}`);
+        }
+    }
+
+    /**
+     * syncBookingReadingGuide() - 让右侧 sticky 侧栏随着左侧阅读区块更新引导文案。
+     * 首次进入保持当前逐字显形，后续区块切换只做轻微淡出淡入，避免阅读中闪烁。
+     * @param {{ force?: boolean, immediate?: boolean }} [options={}] - 是否强制刷新、是否跳过过渡
+     * @returns {void} - 无返回值，直接同步侧栏文案
+     */
+    syncBookingReadingGuide(options = {}) {
+        if (!this.bookingCopy) {
+            return;
+        }
+
+        const { force = false, immediate = false } = options;
+        const nextKey = this.getCurrentBookingReadingGuideKey();
+        if (!force && nextKey === this.activeBookingGuideKey) {
+            return;
+        }
+
+        const nextGuideCopy = this.getBookingReadingGuideCopy(nextKey);
+        const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+        this.activeBookingGuideKey = nextGuideCopy.key;
+        this.clearBookingCopySwapTimers();
+        this.bookingCopySwapVersion += 1;
+        const transitionVersion = this.bookingCopySwapVersion;
+
+        if (this.bookingCopyTypingActive) {
+            this.clearBookingCopyTypeTimers();
+            this.bookingCopyTypingActive = false;
+        }
+
+        if (immediate || prefersReducedMotion) {
+            this.writeBookingReadingGuideCopy(nextGuideCopy);
+            this.bookingCopy.style.transition = 'none';
+            this.bookingCopy.style.opacity = '1';
+            this.bookingCopy.style.transform = 'translate3d(0, 0, 0)';
+            this.bookingCopy.style.filter = 'blur(0px)';
+
+            window.requestAnimationFrame(() => {
+                if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
+                    return;
+                }
+
+                this.bookingCopy.style.removeProperty('transition');
+                this.bookingCopy.style.removeProperty('will-change');
+            });
+            return;
+        }
+
+        this.bookingCopy.classList.add('is-typed');
+        this.bookingCopy.style.willChange = 'opacity, transform, filter';
+        this.bookingCopy.style.transition = 'opacity 180ms ease, transform 180ms ease, filter 180ms ease';
+        this.bookingCopy.style.opacity = '0.32';
+        this.bookingCopy.style.transform = 'translate3d(0, 10px, 0)';
+        this.bookingCopy.style.filter = 'blur(8px)';
+
+        this.queueBookingCopySwapTimeout(() => {
+            if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
+                return;
+            }
+
+            this.writeBookingReadingGuideCopy(nextGuideCopy);
+            this.bookingCopy.style.transition =
+                'opacity 380ms ease, transform 560ms cubic-bezier(0.18, 0.78, 0.22, 1), filter 460ms ease';
+
+            window.requestAnimationFrame(() => {
+                if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
+                    return;
+                }
+
+                this.bookingCopy.style.opacity = '1';
+                this.bookingCopy.style.transform = 'translate3d(0, 0, 0)';
+                this.bookingCopy.style.filter = 'blur(0px)';
+            });
+
+            this.queueBookingCopySwapTimeout(() => {
+                if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
+                    return;
+                }
+
+                this.bookingCopy.style.removeProperty('will-change');
+            }, 620);
+        }, 150);
+    }
+
+    /**
      * getDetailHeroTitleUnits(titleText) - 把详情页主标题拆成适合缓慢显形的最小片段
      * @param {string} titleText - 当前潜点标题
      * @returns {string[]} - 用于逐段显现的标题单元
@@ -2519,8 +2786,8 @@ class DetailPage {
     }
 
     /**
-     * setupHeroCopyReveal() - 把详情页 Hero 文案做成“被海慢慢照亮”的缓慢显形
-     * @returns {void} - 无返回值，直接重写 Hero 标题结构并触发显形状态
+     * setupHeroCopyReveal() - 把详情页首屏文案做成“被海慢慢照亮”的缓慢显形
+     * @returns {void} - 无返回值，直接重写首屏标题结构并触发显形状态
      */
     setupHeroCopyReveal() {
         const hero = document.getElementById('detailHero');
@@ -4200,6 +4467,16 @@ class DetailPage {
         `).join('');
 
         this.syncReviewExpandButtons();
+
+        const activeFilter = filters.find((filter) => filter.key === this.activeReviewFilter) || filters[0];
+        if (this.hasRenderedReviews) {
+            const summary = visibleReviews.length
+                ? `已切换到${activeFilter.label}，共${visibleReviews.length}条评价。`
+                : `已切换到${activeFilter.label}，暂无可见评价。`;
+            this.announceReviewsSummary(summary);
+        } else {
+            this.hasRenderedReviews = true;
+        }
     }
 
     /**
@@ -5173,7 +5450,7 @@ class DetailPage {
         this.reviewLightbox.classList.add('active');
         this.reviewLightbox.setAttribute('aria-hidden', 'false');
         this.syncOverlayLock();
-        // Lightbox 和评论详情层共用同一套背景锁定逻辑，
+        // 看图层和评论详情层共用同一套背景锁定逻辑，
         // 这样不管用户是看文字还是看照片，页面主体都不会抢走焦点。
     }
 
@@ -5406,6 +5683,7 @@ class DetailPage {
             this.relatedGrid.classList.add('is-entering', flowClass);
             this.bindRelatedStageInteractions();
             this.syncRelatedTextLayout();
+            this.announceRelatedSummary(`已切换到相邻海域${relatedSpots[targetIndex].name}。`);
 
             this.relatedStageSwitchTimer = 0;
 
@@ -5732,7 +6010,12 @@ class DetailPage {
                     return;
                 }
 
-                this.activeReviewFilter = filterButton.dataset.filter || 'all';
+                const nextFilter = filterButton.dataset.filter || 'all';
+                if (nextFilter === this.activeReviewFilter) {
+                    return;
+                }
+
+                this.activeReviewFilter = nextFilter;
                 this.renderReviews();
             });
         }
@@ -5951,10 +6234,11 @@ class DetailPage {
         });
     }
 
-    // Detail sea guide: controls the floating map guide, section sync, and calm cross-section scrolling.
+    // 详情页海图导览：
+    // 负责悬浮导览、正文区块同步高亮，以及在不同内容层之间做平缓移动。
     /**
-     * getSeaGuideOffset() - Calculate the top offset used by the floating sea guide scroll logic.
-     * @returns {number} - Scroll offset that avoids the fixed navbar.
+     * getSeaGuideOffset() - 计算海图导览滚动定位时需要避开的顶部导航偏移量
+     * @returns {number} - 用于滚动定位的顶部偏移值
      */
     getSeaGuideOffset() {
         const navbar = document.querySelector('.navbar');
@@ -6036,6 +6320,8 @@ class DetailPage {
      * @returns {void} - 无返回值，直接更新导览状态
      */
     updateSeaGuideState() {
+        this.syncBookingReadingGuide();
+
         if (!this.seaGuide || !this.seaGuideEntries.length) {
             return;
         }
@@ -6384,5 +6670,6 @@ class DetailPage {
 document.addEventListener('DOMContentLoaded', function () {
     new DetailPage();
 });
+
 
 

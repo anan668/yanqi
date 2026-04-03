@@ -62,7 +62,6 @@
                     <button type="button" class="login-stage-resize-handle is-south-west" data-resize-direction="sw" tabindex="-1" aria-hidden="true"></button>
                     <button type="button" class="login-stage-resize-handle is-north-west" data-resize-direction="nw" tabindex="-1" aria-hidden="true"></button>
                 </div>
-
                 <div class="glass-card">
                     <div class="card-layout">
                         <aside class="login-side fade-in-up" style="animation-delay: 0s">
@@ -182,6 +181,21 @@
                 </div>
             </div>
         </main>
+        <div class="login-stage-hud" id="loginStageHud">
+            <div class="login-stage-hud-copy">
+                <span class="login-stage-hud-label">当前尺寸</span>
+                <strong class="login-stage-hud-value" id="loginStageHudValue">--</strong>
+                <span class="login-stage-hud-hint" id="loginStageHudHint">默认门厅</span>
+            </div>
+            <button
+                type="button"
+                class="login-stage-reset"
+                id="loginStageReset"
+                aria-label="重置潜前门厅到默认尺寸"
+            >
+                重置舞台
+            </button>
+        </div>
     </div>
 
     <script src="js/depth-manager.js"></script>
