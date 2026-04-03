@@ -1650,12 +1650,34 @@
         }
 
         /**
+         * computeDetailScrollDepth() - 按详情页整页滚动进度线性计算当前逻辑深度
+         * @returns {number} - 详情页当前应显示的目标深度
+         */
+        computeDetailScrollDepth() {
+            const { start, end } = this.getDetailLogicalRange();
+            const documentHeight = Math.max(
+                document.documentElement?.scrollHeight || 0,
+                document.body?.scrollHeight || 0
+            );
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const scrollLimit = Math.max(documentHeight - viewportHeight, 1);
+            const scrollY = clamp(window.scrollY || window.pageYOffset || 0, 0, scrollLimit);
+            const progress = clamp(scrollY / scrollLimit, 0, 1);
+
+            return start + (end - start) * progress;
+        }
+
+        /**
          * computePageScrollDepth() - 计算当前页面滚动位置对应的目标深度
          * @returns {number} - 当前页面应显示的目标深度
          */
         computePageScrollDepth() {
             if (this.pageId === 'home') {
                 return this.computeHomeScrollDepth();
+            }
+
+            if (this.pageId === 'detail') {
+                return this.computeDetailScrollDepth();
             }
 
             return this.computeScrollDepthFromStops();
@@ -1729,6 +1751,23 @@
             }
 
             const baselineDepth = clamp(this.currentDepth, MIN_DEPTH, MAX_DEPTH);
+            // 登录门厅已经接近海面时，不再让交互反馈去改动真实深度值，
+            // 避免 0m 与 -1m 之间来回跳字，看起来像深度计抖动。
+            if (Math.abs(baselineDepth) <= 1.2) {
+                if (this.interactionAnimationId) {
+                    cancelAnimationFrame(this.interactionAnimationId);
+                    this.interactionAnimationId = 0;
+                    this.renderDepth(this.currentDepth);
+                }
+
+                if (this.interactionResetTimerId) {
+                    window.clearTimeout(this.interactionResetTimerId);
+                    this.interactionResetTimerId = 0;
+                }
+
+                return;
+            }
+
             const safeIntensity = clamp(readNumber(intensity) ?? 1, 0.8, 1.4);
             const amplitude = clamp(1.05 * safeIntensity, 0.9, 1.9);
             const targetDepth = clamp(baselineDepth - amplitude, MIN_DEPTH, MAX_DEPTH);
