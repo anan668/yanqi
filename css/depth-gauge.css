@@ -18,6 +18,7 @@ body {
     --depth-gauge-top: 20px;
     --depth-gauge-bottom: 20px;
     --depth-gauge-side: 3px;
+    --depth-gauge-step-size: 18px;
 }
 
 /* 深度计外层：用 fixed 固定在视口两边，让它始终像整站海层语言，而不是某个 section 内部组件。 */
@@ -70,15 +71,29 @@ body {
     flex: 1;
     width: 100%;
     margin: 14px 0 6px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+/* 全站刻度带包装层：所有页面都使用同一套滚动式刻度带，保证跨页观感连贯。 */
+.gauge-scale-tape {
+    position: absolute;
+    inset: 0 0 auto 0;
+    display: block;
+    will-change: transform;
+}
+
+.gauge-scale-spacer {
+    width: 100%;
 }
 
 /* 控制深度刻度线、标签和当前刻度的视觉状态 */
 .depth-marker {
     display: grid;
     width: 100%;
+    height: var(--depth-gauge-step-size);
+    min-height: var(--depth-gauge-step-size);
     align-items: center;
     column-gap: 8px;
     opacity: 0.24; /* 默认只保留很轻的存在感，避免刻度线把页面两侧压得太重 */

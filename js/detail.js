@@ -1998,6 +1998,7 @@ class DetailPage {
         this.renderTag('difficultyTag', '难度', this.spotData.difficulty);
         this.renderTag('depthTag', '深度', this.spotData.depth);
         this.renderTag('seasonTag', '最佳季节', this.spotData.season);
+        this.syncDepthGaugeProfile();
 
         const heroImage = document.querySelector('.hero-image');
         if (heroImage) {
@@ -2045,6 +2046,18 @@ class DetailPage {
         this.resetBookingCopyReveal();
         this.resetIntroReveal();
         this.resetReviewsReveal();
+    }
+
+    /**
+     * syncDepthGaugeProfile() - 把当前潜点的深度范围同步给详情页深度计
+     * @returns {void} - 无返回值，直接刷新详情页深度计显示档位
+     */
+    syncDepthGaugeProfile() {
+        if (!window.DepthManager || typeof window.DepthManager.setDetailGaugeProfile !== 'function') {
+            return;
+        }
+
+        window.DepthManager.setDetailGaugeProfile(this.spotData.depth);
     }
 
     /**
@@ -4050,30 +4063,54 @@ class DetailPage {
     }
 
     /**
+     * getReviewsRevealTargets() - 收集评论区可用于触发显现的关键节点
+     * @returns {HTMLElement[]} - 去重后的评论区触发节点列表
+     */
+    getReviewsRevealTargets() {
+        return [this.spotReviewsHeading, this.reviewsStage, this.reviewsSection]
+            .filter((node, index, list) => node && list.indexOf(node) === index);
+    }
+
+    /**
+     * markReviewsVisible() - 把评论标题、引导区和评论列表统一切到已显现状态
+     * @returns {void} - 无返回值，直接更新评论区 class
+     */
+    markReviewsVisible() {
+        this.spotReviewsHeading?.classList.add('is-visible');
+        this.reviewsStage?.classList.add('is-visible');
+        this.reviewsSection?.classList.add('is-visible');
+    }
+
+    /**
+     * isReviewsRevealTargetInView(target) - 判断某个评论区触发节点是否已经进入当前视口带
+     * @param {HTMLElement|null} target - 待检查的评论区节点
+     * @returns {boolean} - 当前节点是否应立即显示
+     */
+    isReviewsRevealTargetInView(target) {
+        if (!target) {
+            return false;
+        }
+
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top < viewportHeight * 0.9 && rect.bottom > viewportHeight * 0.12;
+    }
+
+    /**
      * setupReviewsReveal() - 监听评论区进入视口后，再让“用户评价”标题、引导区和评论卡按层次显现。
      * 这样用户先知道自己在读别人的回声，再进入具体评论，而不是一整段内容同时挤出来。
      * @returns {void} - 无返回值，直接注册评论区显现逻辑
      */
     setupReviewsReveal() {
-        if (!this.spotReviewsHeading && !this.reviewsStage && !this.reviewsSection) {
+        const targets = this.getReviewsRevealTargets();
+        if (targets.length === 0) {
             return;
         }
 
         this.reviewsRevealObserver?.disconnect();
 
-        const markVisible = () => {
-            this.spotReviewsHeading?.classList.add('is-visible');
-            this.reviewsStage?.classList.add('is-visible');
-            this.reviewsSection?.classList.add('is-visible');
-        };
-
         if (!('IntersectionObserver' in window)) {
-            markVisible();
-            return;
-        }
-
-        const target = this.reviewsStage || this.spotReviewsHeading || this.reviewsSection;
-        if (!target) {
+            this.markReviewsVisible();
             return;
         }
 
@@ -4083,15 +4120,17 @@ class DetailPage {
                     return;
                 }
 
-                markVisible();
-                this.reviewsRevealObserver?.unobserve(entry.target);
+                this.markReviewsVisible();
+                this.reviewsRevealObserver?.disconnect();
             });
         }, {
-            threshold: 0.16,
-            rootMargin: '0px 0px -10% 0px'
+            threshold: 0.08,
+            rootMargin: '0px 0px -6% 0px'
         });
 
-        this.reviewsRevealObserver.observe(target);
+        targets.forEach((target) => {
+            this.reviewsRevealObserver?.observe(target);
+        });
     }
 
     /**
@@ -4106,19 +4145,10 @@ class DetailPage {
 
         this.setupReviewsReveal();
 
-        const target = this.reviewsStage || this.spotReviewsHeading || this.reviewsSection;
-        if (!target) {
-            return;
-        }
-
-        const rect = target.getBoundingClientRect();
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        if (rect.top < viewportHeight * 0.86 && rect.bottom > viewportHeight * 0.16) {
+        if (this.getReviewsRevealTargets().some((target) => this.isReviewsRevealTargetInView(target))) {
             window.requestAnimationFrame(() => {
-                this.spotReviewsHeading?.classList.add('is-visible');
-                this.reviewsStage?.classList.add('is-visible');
-                this.reviewsSection?.classList.add('is-visible');
-                this.reviewsRevealObserver?.unobserve(target);
+                this.markReviewsVisible();
+                this.reviewsRevealObserver?.disconnect();
             });
         }
     }

@@ -52,12 +52,27 @@
         ]),
         detail: Object.freeze([
             { selector: '#detailHero', depth: PAGE_DEPTH_MAP.detail },
-            { selector: '#spotOverview', depth: -31 },
-            { selector: '#spotMapSection', depth: -31.35 },
-            { selector: '#spotReviews', depth: -31.6 },
-            { selector: '#relatedSpots', depth: -31.85 },
+            { selector: '#spotOverview', depth: -30.18 },
+            { selector: '#spotMapSection', depth: -30.72 },
+            { selector: '#spotReviews', depth: -31.22 },
+            { selector: '#relatedSpots', depth: -31.66 },
             { selector: '#detailFooter', depth: MIN_DEPTH }
         ])
+    });
+    const DETAIL_GAUGE_DEFAULT_MAX_DEPTH = 60;
+    const DETAIL_GAUGE_FOCUS_RATIO = 0.46;
+    const DETAIL_GAUGE_MIN_ENTRY_DEPTH = Math.abs(PAGE_DEPTH_MAP.detail);
+    const DETAIL_GAUGE_MIN_DEEP_DEPTH = 50;
+    const DETAIL_GAUGE_STEP_SIZE_FALLBACK = 18;
+    const DETAIL_GAUGE_STEP_SIZE_MIN = 16;
+    const DETAIL_GAUGE_STEP_SIZE_MAX = 24;
+    const DETAIL_GAUGE_DEFAULT_PROFILE = Object.freeze({
+        minDepth: 6,
+        maxDepth: 40,
+        focusDepth: 28,
+        surfaceDepth: 24,
+        deepDepth: 34,
+        gaugeMaxDepth: DETAIL_GAUGE_DEFAULT_MAX_DEPTH
     });
 
     const STORAGE_KEY_CURRENT = 'yanqi_depth_current';
@@ -127,6 +142,132 @@
         }
 
         return PAGE_SCROLL_DEPTH_STOP_MAP[pageId] || [];
+    }
+
+    /**
+     * roundToStep(value, step) - 按指定步长对数值做就近取整
+     * @param {number} value - 原始数值
+     * @param {number} step - 需要对齐的步长
+     * @returns {number} - 对齐后的数值
+     */
+    function roundToStep(value, step = 1) {
+        const safeStep = Math.max(Number(step) || 1, 1);
+        return Math.round(value / safeStep) * safeStep;
+    }
+
+    /**
+     * parseDepthRangeText(depthText) - 从潜点深度文本中提取最浅层与最深层
+     * @param {string} depthText - 潜点深度文本，如 5-40m
+     * @returns {{minDepth:number,maxDepth:number}|null} - 解析后的深度范围
+     */
+    function parseDepthRangeText(depthText) {
+        const text = String(depthText || '');
+        const matches = text.match(/\d+(?:\.\d+)?/g);
+        if (!matches || matches.length === 0) {
+            return null;
+        }
+
+        const first = Number(matches[0]);
+        const last = Number(matches[matches.length - 1]);
+
+        if (!Number.isFinite(first)) {
+            return null;
+        }
+
+        let minDepth = first;
+        let maxDepth = Number.isFinite(last) ? last : first;
+
+        if (matches.length === 1 && /\+/.test(text)) {
+            maxDepth = Math.max(maxDepth, minDepth + 12);
+        }
+
+        if (maxDepth < minDepth) {
+            const swap = minDepth;
+            minDepth = maxDepth;
+            maxDepth = swap;
+        }
+
+        return {
+            minDepth: clamp(minDepth, 0, 120),
+            maxDepth: clamp(maxDepth, 0, 140)
+        };
+    }
+
+    /**
+     * createDetailGaugeProfile(source) - 根据潜点深度信息生成详情页深度计滚动带配置
+     * @param {string|Object|null} source - 深度文本或显式配置对象
+     * @returns {Object} - 详情页深度计显示配置
+     */
+    function createDetailGaugeProfile(source) {
+        const parsedRange = typeof source === 'string'
+            ? parseDepthRangeText(source)
+            : null;
+        const sourceObject = source && typeof source === 'object' && !Array.isArray(source)
+            ? source
+            : {};
+
+        const baseMinDepth = parsedRange?.minDepth ?? clamp(readNumber(sourceObject.minDepth) ?? DETAIL_GAUGE_DEFAULT_PROFILE.minDepth, 0, 120);
+        const baseMaxDepth = parsedRange?.maxDepth ?? clamp(readNumber(sourceObject.maxDepth) ?? DETAIL_GAUGE_DEFAULT_PROFILE.maxDepth, baseMinDepth + 1, 140);
+        const range = Math.max(baseMaxDepth - baseMinDepth, 8);
+        const computedGaugeMaxDepth = Math.max(
+            DETAIL_GAUGE_DEFAULT_MAX_DEPTH,
+            roundToStep(baseMaxDepth + 12, 10)
+        );
+        // 详情页显示的“当前海层”更偏向这片海的代表观察层，
+        // 不直接等于潜点最浅层，避免从首页底部进入详情时反而像上浮。
+        const computedFocusDepth = clamp(
+            roundToStep(Math.max(baseMinDepth + range * 0.74, DETAIL_GAUGE_MIN_ENTRY_DEPTH), 2),
+            DETAIL_GAUGE_MIN_ENTRY_DEPTH,
+            computedGaugeMaxDepth - 4
+        );
+        const driftSpan = clamp(roundToStep(range * 0.12, 1), 3, 5);
+        const computedSurfaceDepth = clamp(
+            roundToStep(computedFocusDepth - driftSpan, 1),
+            Math.max(DETAIL_GAUGE_MIN_ENTRY_DEPTH - 4, 8),
+            Math.max(computedFocusDepth - 1, 5)
+        );
+        const computedDeepDepth = clamp(
+            roundToStep(
+                Math.max(
+                    baseMaxDepth + 8,
+                    computedFocusDepth + 14,
+                    computedFocusDepth + driftSpan,
+                    DETAIL_GAUGE_MIN_DEEP_DEPTH
+                ),
+                1
+            ),
+            computedFocusDepth + 4,
+            computedGaugeMaxDepth - 2
+        );
+
+        const focusDepth = clamp(
+            roundToStep(readNumber(sourceObject.focusDepth) ?? computedFocusDepth, 1),
+            Math.max(DETAIL_GAUGE_MIN_ENTRY_DEPTH, computedSurfaceDepth + 1),
+            computedDeepDepth - 1
+        );
+        const surfaceDepth = clamp(
+            roundToStep(readNumber(sourceObject.surfaceDepth) ?? computedSurfaceDepth, 1),
+            Math.max(DETAIL_GAUGE_MIN_ENTRY_DEPTH - 4, 8),
+            focusDepth - 1
+        );
+        const deepDepth = clamp(
+            roundToStep(readNumber(sourceObject.deepDepth) ?? computedDeepDepth, 1),
+            focusDepth + 4,
+            computedGaugeMaxDepth - 2
+        );
+        const gaugeMaxDepth = Math.max(
+            DETAIL_GAUGE_DEFAULT_MAX_DEPTH,
+            roundToStep(readNumber(sourceObject.gaugeMaxDepth) ?? computedGaugeMaxDepth, 10)
+        );
+
+        return Object.freeze({
+            minDepth: baseMinDepth,
+            maxDepth: baseMaxDepth,
+            focusDepth: focusDepth,
+            surfaceDepth: surfaceDepth,
+            deepDepth: deepDepth,
+            gaugeMaxDepth: gaugeMaxDepth
+        });
     }
 
     /**
@@ -459,6 +600,12 @@
                 entryDuration: readNumber(parsed.entryDuration),
                 depthDuration: readNumber(parsed.depthDuration),
                 animatedOnSource: Boolean(parsed.animatedOnSource),
+                continueDepthOnEntry: Boolean(parsed.continueDepthOnEntry),
+                entryStartDepth: clamp(
+                    readNumber(parsed.entryStartDepth) ?? fromDepth,
+                    MIN_DEPTH,
+                    MAX_DEPTH
+                ),
                 at: readNumber(parsed.at) ?? 0
             };
         } catch (error) {
@@ -535,8 +682,10 @@
      * @param {number} depth - 当前深度值
      * @returns {string} - 格式化后的深度文本
      */
-    function formatDepth(depth) {
-        return `${Math.round(depth)}m`;
+    function formatDepth(depth, options = {}) {
+        const shouldUseAbsolute = Boolean(options.absolute);
+        const displayValue = shouldUseAbsolute ? Math.abs(depth) : depth;
+        return `${Math.round(displayValue)}m`;
     }
 
     // 主控制器：负责初始化深度计、拦截导航、播放入场离场动画，并在 pageshow 时恢复状态。
@@ -567,6 +716,11 @@
             this.pageScrollSyncTimerId = 0;
             this.pageScrollTargetDepth = null;
             this.homeDiveMatchDepth = null;
+            this.detailGaugeProfile = this.pageId === 'detail'
+                ? { ...DETAIL_GAUGE_DEFAULT_PROFILE }
+                : null;
+            this.detailGaugeStepSize = null;
+            this.detailGaugeLayoutReady = false;
 
             this.rootElement = document.documentElement;
             this.body = document.body;
@@ -580,6 +734,8 @@
 
             this.ensureSpecialOverlayLayers();
             this.buildMarkersIfNeeded();
+            this.refreshDetailGaugeViewportLayout();
+            this.setupGaugeViewportSync();
 
             const incomingState = this.consumeIncomingNavState();
             if (incomingState && incomingState.specialTransition === SPECIAL_TRANSITION_LOGIN_HOME) {
@@ -592,15 +748,23 @@
                     this.schedulePageScrollDepthSync(LOGIN_HOME_SPECIAL.entryMs + 200);
                 }
             } else if (incomingState && incomingState.animatedOnSource) {
-                this.currentDepth = incomingState.toDepth;
+                const shouldContinueDepthOnEntry = Boolean(
+                    incomingState.continueDepthOnEntry
+                    && Math.abs(incomingState.entryStartDepth - incomingState.toDepth) > 0.05
+                );
+                this.currentDepth = shouldContinueDepthOnEntry
+                    ? incomingState.entryStartDepth
+                    : incomingState.toDepth;
                 this.overlayBoost = incomingState.overlayBoost;
                 this.renderDepth(this.currentDepth);
                 this.startEntryTransition(incomingState.visualDirection, {
-                    animateDepth: false,
+                    animateDepth: shouldContinueDepthOnEntry,
                     entryClass: incomingState.entryClass,
+                    startDepth: incomingState.entryStartDepth,
                     targetDepth: incomingState.toDepth,
                     overlayBoostStart: incomingState.overlayBoost,
-                    duration: incomingState.entryDuration
+                    duration: incomingState.entryDuration,
+                    depthDuration: incomingState.depthDuration
                 });
                 // 进入带滚动深度的页面时，也等通用入场动画收完，再把后续深浅变化交给页面内部区块。
                 if (this.hasScrollDepthConfig()) {
@@ -660,6 +824,222 @@
             this.bubbleContainer = bubbleContainer;
         }
 
+        /**
+         * setupGaugeViewportSync() - 在窗口尺寸变化时同步深度计滚动带布局，保证所有页面都使用同一观察位
+         * @returns {void} - 无返回值，直接注册全站深度计布局同步
+         */
+        setupGaugeViewportSync() {
+            window.addEventListener('resize', () => {
+                this.refreshDetailGaugeViewportLayout();
+                this.renderDepth(this.currentDepth);
+            }, { passive: true });
+        }
+
+        /**
+         * isDetailGaugeMode() - 判断当前页面是否启用了详情页滚动刻度带模式
+         * @returns {boolean} - 是否为详情页滚动刻度带模式
+         */
+        isDetailGaugeMode() {
+            return this.pageId === 'detail';
+        }
+
+        /**
+         * getGaugeDepthBounds() - 获取当前页面深度计可视刻度带的上下界
+         * @returns {{maxDepth:number,minDepth:number}} - 当前页面刻度带的深度范围
+         */
+        getGaugeDepthBounds() {
+            if (this.isDetailGaugeMode()) {
+                return {
+                    maxDepth: 0,
+                    minDepth: -(this.detailGaugeProfile?.gaugeMaxDepth || DETAIL_GAUGE_DEFAULT_MAX_DEPTH)
+                };
+            }
+
+            return {
+                maxDepth: MAX_DEPTH,
+                minDepth: MIN_DEPTH
+            };
+        }
+
+        /**
+         * formatGaugeMarkerLabel(depth) - 根据当前页面模式生成刻度标签文案
+         * @param {number} depth - 当前刻度深度值
+         * @returns {string} - 当前刻度对应的标签文本
+         */
+        formatGaugeMarkerLabel(depth) {
+            return `${depth}m`;
+        }
+
+        /**
+         * getDetailGaugeStepSize() - 读取当前页面滚动刻度带每 1m 对应的视觉步长
+         * @returns {number} - 当前深度计刻度步长像素值
+         */
+        getDetailGaugeStepSize() {
+            if (this.detailGaugeLayoutReady && Number.isFinite(this.detailGaugeStepSize)) {
+                return clamp(this.detailGaugeStepSize, DETAIL_GAUGE_STEP_SIZE_MIN, DETAIL_GAUGE_STEP_SIZE_MAX);
+            }
+
+            this.detailGaugeStepSize = this.measureDetailGaugeStepSize();
+            return this.detailGaugeStepSize;
+        }
+
+        /**
+         * measureDetailGaugeStepSize() - 计算当前页面刻度带每 1m 的视觉步距，让全站深度计拥有一致的舒展节奏
+         * @returns {number} - 当前应使用的详情页刻度步距
+         */
+        measureDetailGaugeStepSize() {
+            const referenceContainer = [this.leftMarkersContainer, this.rightMarkersContainer]
+                .find((container) => container && container.clientHeight > 0);
+
+            if (referenceContainer) {
+                const visibleRange = Math.abs(MIN_DEPTH) + 2;
+                const derivedStep = referenceContainer.clientHeight / Math.max(visibleRange, 1);
+                return clamp(derivedStep, DETAIL_GAUGE_STEP_SIZE_MIN, DETAIL_GAUGE_STEP_SIZE_MAX);
+            }
+
+            if (!this.body) {
+                return DETAIL_GAUGE_STEP_SIZE_FALLBACK;
+            }
+
+            const rawValue = window.getComputedStyle(this.body).getPropertyValue('--depth-gauge-step-size');
+            return clamp(
+                parseFloat(rawValue) || DETAIL_GAUGE_STEP_SIZE_FALLBACK,
+                DETAIL_GAUGE_STEP_SIZE_MIN,
+                DETAIL_GAUGE_STEP_SIZE_MAX
+            );
+        }
+
+        /**
+         * getRenderedGaugeDepth(depth) - 把逻辑深度转换为当前深度计真正需要渲染的刻度深度
+         * @param {number} depth - 页面逻辑深度
+         * @returns {number} - 用于刻度高亮与滚动带平移的渲染深度
+         */
+        getRenderedGaugeDepth(depth) {
+            const safeDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
+            if (!this.isDetailGaugeMode()) {
+                return safeDepth;
+            }
+
+            return -this.getDetailGaugeDisplayDepth(safeDepth);
+        }
+
+        /**
+         * getDetailLogicalRange() - 获取详情页逻辑滚动深度的起止范围
+         * @returns {{start:number,end:number}} - 详情页逻辑深度映射区间
+         */
+        getDetailLogicalRange() {
+            const detailStops = getScrollDepthStopConfig('detail');
+            const startDepth = detailStops[0]?.depth ?? PAGE_DEPTH_MAP.detail;
+            const endDepth = detailStops[detailStops.length - 1]?.depth ?? MIN_DEPTH;
+
+            return {
+                start: startDepth,
+                end: endDepth
+            };
+        }
+
+        /**
+         * getDetailGaugeDisplayDepth(logicalDepth) - 把详情页逻辑深度映射为真实潜深显示值
+         * @param {number} logicalDepth - 当前详情页逻辑深度
+         * @returns {number} - 对应的详情页显示深度
+         */
+        getDetailGaugeDisplayDepth(logicalDepth) {
+            const profile = this.detailGaugeProfile || DETAIL_GAUGE_DEFAULT_PROFILE;
+            const { start, end } = this.getDetailLogicalRange();
+            // 详情页内部继续下潜时，用更深的代表海层放大变化；
+            // 但当用户离开详情页上浮到别的页面时，直接回接逻辑深度，
+            // 这样 detail -> home / trip 的深度动画就不会在 30m 附近被截断。
+            if (logicalDepth > start) {
+                return clamp(Math.abs(logicalDepth), 0, profile.gaugeMaxDepth);
+            }
+
+            const progress = Math.abs(end - start) < 0.001
+                ? 0
+                : clamp((logicalDepth - start) / (end - start), 0, 1);
+
+            return clamp(
+                profile.focusDepth + (profile.deepDepth - profile.focusDepth) * progress,
+                0,
+                profile.gaugeMaxDepth
+            );
+        }
+
+        /**
+         * refreshDetailGaugeViewportLayout() - 刷新当前页面滚动刻度带的顶部和底部留白，确保当前层级停在统一观察位
+         * @returns {void} - 无返回值，直接同步滚动刻度带布局
+         */
+        refreshDetailGaugeViewportLayout() {
+            this.detailGaugeLayoutReady = false;
+            this.detailGaugeStepSize = this.getDetailGaugeStepSize();
+            if (this.body) {
+                this.body.style.setProperty('--depth-gauge-step-size', `${this.detailGaugeStepSize.toFixed(2)}px`);
+            }
+
+            let didSyncLayout = false;
+            [this.leftMarkersContainer, this.rightMarkersContainer].forEach((container) => {
+                didSyncLayout = this.syncDetailGaugeContainerLayout(container) || didSyncLayout;
+            });
+
+            this.detailGaugeLayoutReady = didSyncLayout;
+        }
+
+        /**
+         * syncDetailGaugeContainerLayout(container) - 同步单侧深度计刻度带的上下留白高度
+         * @param {HTMLElement|null} container - 单侧深度计刻度容器
+         * @returns {boolean} - 当前容器是否成功完成布局同步
+         */
+        syncDetailGaugeContainerLayout(container) {
+            if (!container) {
+                return false;
+            }
+
+            const tape = container.querySelector('.gauge-scale-tape');
+            const topSpacer = tape?.querySelector('.gauge-scale-spacer-top');
+            const bottomSpacer = tape?.querySelector('.gauge-scale-spacer-bottom');
+            if (!tape || !topSpacer || !bottomSpacer) {
+                return false;
+            }
+
+            const viewportHeight = container.clientHeight || 0;
+            if (!viewportHeight) {
+                return false;
+            }
+
+            const stepSize = this.getDetailGaugeStepSize();
+            const focusY = viewportHeight * DETAIL_GAUGE_FOCUS_RATIO;
+            const topSpacerHeight = Math.max(focusY - stepSize / 2, 0);
+            const bottomSpacerHeight = Math.max(viewportHeight - focusY - stepSize / 2, 0);
+
+            topSpacer.style.height = `${topSpacerHeight.toFixed(2)}px`;
+            bottomSpacer.style.height = `${bottomSpacerHeight.toFixed(2)}px`;
+            return true;
+        }
+
+        /**
+         * updateDetailGaugeTapePosition(container, currentDepth) - 平移当前页面刻度带，让当前深度经过统一的固定海层观察位
+         * @param {HTMLElement|null} container - 单侧深度计刻度容器
+         * @param {number} currentDepth - 当前应显示的刻度深度
+         * @returns {void} - 无返回值，直接更新刻度带 transform
+         */
+        updateDetailGaugeTapePosition(container, currentDepth) {
+            if (!container) {
+                return;
+            }
+
+            if (!this.detailGaugeLayoutReady) {
+                this.refreshDetailGaugeViewportLayout();
+            }
+
+            const tape = container.querySelector('.gauge-scale-tape');
+            if (!tape) {
+                return;
+            }
+
+            const stepSize = this.getDetailGaugeStepSize();
+            const offset = -Math.abs(currentDepth) * stepSize;
+            tape.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+        }
+
         // 刻度初始化：在左右两侧深度计容器中生成完整刻度，保证跨页面样式一致。
         /**
          * buildMarkersIfNeeded() - 在左右深度计容器中初始化刻度结构
@@ -671,6 +1051,7 @@
                 return;
             }
 
+            this.detailGaugeLayoutReady = false;
             this.buildMarkers(this.leftMarkersContainer, 'left');
             this.buildMarkers(this.rightMarkersContainer, 'right');
         }
@@ -708,8 +1089,9 @@
          */
         buildMarkers(container, side) {
             const fragment = document.createDocumentFragment();
+            const gaugeBounds = this.getGaugeDepthBounds();
 
-            for (let depth = MAX_DEPTH; depth >= MIN_DEPTH; depth -= STEP) {
+            for (let depth = gaugeBounds.maxDepth; depth >= gaugeBounds.minDepth; depth -= STEP) {
                 const marker = document.createElement('div');
                 const isMajor = Math.abs(depth) % 10 === 0;
                 const isMedium = !isMajor && Math.abs(depth) % 5 === 0;
@@ -726,7 +1108,7 @@
                 if (isMajor) {
                     const label = document.createElement('span');
                     label.className = 'depth-marker-label';
-                    label.textContent = `${depth}m`;
+                    label.textContent = this.formatGaugeMarkerLabel(depth);
 
                     marker.appendChild(label);
                 }
@@ -741,8 +1123,20 @@
                 fragment.appendChild(marker);
             }
 
+            const tape = document.createElement('div');
+            tape.className = 'gauge-scale-tape';
+            const topSpacer = document.createElement('div');
+            topSpacer.className = 'gauge-scale-spacer gauge-scale-spacer-top';
+
+            const bottomSpacer = document.createElement('div');
+            bottomSpacer.className = 'gauge-scale-spacer gauge-scale-spacer-bottom';
+
+            tape.appendChild(topSpacer);
+            tape.appendChild(fragment);
+            tape.appendChild(bottomSpacer);
+
             container.innerHTML = '';
-            container.appendChild(fragment);
+            container.appendChild(tape);
         }
 
         // 动画清理：统一停止当前深度、覆盖层、交互 wobble 和特殊登录过渡。
@@ -928,7 +1322,8 @@
          */
         renderDepth(depth) {
             const safeDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
-            const depthText = formatDepth(safeDepth);
+            const renderedGaugeDepth = this.getRenderedGaugeDepth(safeDepth);
+            const depthText = formatDepth(renderedGaugeDepth);
 
             if (this.leftCurrent) {
                 this.leftCurrent.textContent = depthText;
@@ -938,8 +1333,10 @@
                 this.rightCurrent.textContent = depthText;
             }
 
-            this.updateMarkersForContainer(this.leftMarkersContainer, safeDepth);
-            this.updateMarkersForContainer(this.rightMarkersContainer, safeDepth);
+            this.updateMarkersForContainer(this.leftMarkersContainer, renderedGaugeDepth);
+            this.updateMarkersForContainer(this.rightMarkersContainer, renderedGaugeDepth);
+            this.updateDetailGaugeTapePosition(this.leftMarkersContainer, renderedGaugeDepth);
+            this.updateDetailGaugeTapePosition(this.rightMarkersContainer, renderedGaugeDepth);
             this.setOverlayState(safeDepth, this.overlayBoost);
         }
 
@@ -1024,6 +1421,28 @@
             this.pageScrollFrameId = requestAnimationFrame(() => {
                 this.stepPageScrollDepth();
             });
+        }
+
+        /**
+         * setDetailGaugeProfile(source) - 根据当前潜点的真实深度范围重设详情页深度计显示档位
+         * @param {string|Object|null} source - 潜点深度文本或显式配置对象
+         * @returns {void} - 无返回值，直接刷新详情页滚动刻度带
+         */
+        setDetailGaugeProfile(source) {
+            if (!this.isDetailGaugeMode()) {
+                return;
+            }
+
+            const nextProfile = createDetailGaugeProfile(source);
+            const previousGaugeMaxDepth = this.detailGaugeProfile?.gaugeMaxDepth || DETAIL_GAUGE_DEFAULT_MAX_DEPTH;
+            this.detailGaugeProfile = { ...nextProfile };
+
+            if (previousGaugeMaxDepth !== nextProfile.gaugeMaxDepth) {
+                this.buildMarkersIfNeeded();
+            }
+
+            this.refreshDetailGaugeViewportLayout();
+            this.renderDepth(this.currentDepth);
         }
 
         /**
@@ -1132,7 +1551,7 @@
             const scrollY = window.scrollY || window.pageYOffset || 0;
             // 每个区块都会换算成一个滚动阈值，滚动位置落在哪两个阈值之间，
             // 深度计就在这两层之间缓慢过渡。
-            const points = this.pageScrollDepthStops.map((stop, index) => {
+            const rawPoints = this.pageScrollDepthStops.map((stop, index) => {
                 if (index === 0) {
                     return {
                         selector: stop.selector,
@@ -1150,6 +1569,29 @@
                     )
                 };
             });
+            const points = this.pageId === 'detail'
+                ? rawPoints.reduce((normalizedPoints, point, index) => {
+                    if (index === 0) {
+                        normalizedPoints.push(point);
+                        return normalizedPoints;
+                    }
+
+                    const previousPoint = normalizedPoints[normalizedPoints.length - 1];
+                    const minGap = Math.max(window.innerHeight * 0.18, 170);
+                    const maxGap = Math.max(window.innerHeight * 0.56, 520);
+                    const preferredThreshold = clamp(
+                        point.threshold,
+                        previousPoint.threshold + minGap,
+                        previousPoint.threshold + maxGap
+                    );
+
+                    normalizedPoints.push({
+                        ...point,
+                        threshold: preferredThreshold
+                    });
+                    return normalizedPoints;
+                }, [])
+                : rawPoints;
 
             let baseDepth = points[0].depth;
 
@@ -1243,14 +1685,16 @@
             );
             const delta = targetDepth - this.currentDepth;
 
-            if (Math.abs(delta) <= 0.05) {
+            const settleThreshold = this.pageId === 'detail' ? 0.035 : 0.05;
+            if (Math.abs(delta) <= settleThreshold) {
                 this.currentDepth = targetDepth;
                 this.renderDepth(targetDepth);
                 sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(targetDepth)));
                 return;
             }
 
-            const nextDepth = this.currentDepth + delta * 0.1;
+            const responseFactor = this.pageId === 'detail' ? 0.14 : 0.1;
+            const nextDepth = this.currentDepth + delta * responseFactor;
             this.currentDepth = clamp(nextDepth, MIN_DEPTH, MAX_DEPTH);
             this.renderDepth(this.currentDepth);
             sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(this.currentDepth)));
@@ -1790,6 +2234,8 @@
                 entryClass: transitionConfig.entryClass,
                 entryDuration: transitionConfig.entryDuration,
                 depthDuration: transitionConfig.entryDuration + 80,
+                continueDepthOnEntry: this.pageId === 'detail' && toPage !== 'detail',
+                entryStartDepth: Math.round(fromDepth),
                 animatedOnSource: true,
                 at: Date.now()
             };
@@ -1808,8 +2254,11 @@
             }
 
             this.navigateTimerId = window.setTimeout(() => {
+                const departureDepth = this.getCurrentDepth();
+                navState.fromDepth = Math.round(departureDepth);
+                navState.entryStartDepth = Math.round(departureDepth);
                 sessionStorage.setItem(STORAGE_KEY_NAV, JSON.stringify(navState));
-                sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(toDepth)));
+                sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(departureDepth)));
                 window.location.href = rawUrl;
             }, transitionConfig.exitDuration - transitionConfig.navigateLeadMs);
         }
