@@ -11,11 +11,9 @@
    3. `DetailPage` 类
    4. 页面初始化与跨页联动
 */
-// 汇率与展示倍率：统一控制详情页里所有价格从基础值到最终显示值的换算规则。
-// 当前基准按“10000 人民币 ≈ 1451 美元”统一，同时保留盐憩套餐展示用的价格层级倍率。
-const USD_PER_CNY = 0.1451;
-const DISPLAY_PRICE_MULTIPLIER = 2.84;
-const PRICE_DISPLAY_VERSION = '2026-03-16-rate-1451-v2.84';
+// 共享价格配置：详情页与首页共用同一套人民币展示规则。
+const sharedPriceTools = window.YanqiPriceConfig || null;
+const PRICE_DISPLAY_VERSION = sharedPriceTools?.PRICE_DISPLAY_VERSION || '';
 
 // 价格工具：负责从原始价格文本里提取数值，并统一转换为当前展示货币格式。
 /**
@@ -24,28 +22,43 @@ const PRICE_DISPLAY_VERSION = '2026-03-16-rate-1451-v2.84';
  * @returns {number} - 提取后的金额数值
  */
 function extractCurrencyAmount(priceText) {
-    const numeric = Number(String(priceText || '').replace(/[^\d]/g, ''));
-    return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+    return sharedPriceTools && typeof sharedPriceTools.extractCurrencyAmount === 'function'
+        ? sharedPriceTools.extractCurrencyAmount(priceText)
+        : 0;
 }
 
 /**
- * formatUsdPriceValue(value) - 把金额数值格式化为美元文本
+ * formatDisplayPriceValue(value) - 把金额数值格式化为人民币文本
  * @param {number} value - 需要格式化的金额
- * @returns {string} - 美元格式价格字符串
+ * @returns {string} - 人民币格式价格字符串
  */
-function formatUsdPriceValue(value) {
-    const safeValue = Math.max(0, Math.round(value));
-    return `$${safeValue.toLocaleString('en-US')}`;
+function formatDisplayPriceValue(value) {
+    return sharedPriceTools && typeof sharedPriceTools.formatPrice === 'function'
+        ? sharedPriceTools.formatPrice(value)
+        : `¥${Math.max(0, Math.round(Number(value) || 0)).toLocaleString('zh-CN')}`;
 }
 
 /**
- * convertCurrencyTextToUsd(priceText) - 将原始价格文本转换为美元价格文本
+ * normalizeDisplayPriceText(priceText) - 将原始价格文本整理为共享人民币价格文本
  * @param {string} priceText - 原始价格文本
- * @returns {string} - 转换后的美元价格文本
+ * @returns {string} - 转换后的人民币价格文本
  */
-function convertCurrencyTextToUsd(priceText) {
-    const amount = extractCurrencyAmount(priceText);
-    return amount > 0 ? formatUsdPriceValue(amount * USD_PER_CNY * DISPLAY_PRICE_MULTIPLIER) : priceText;
+function normalizeDisplayPriceText(priceText) {
+    return sharedPriceTools && typeof sharedPriceTools.normalizePriceText === 'function'
+        ? sharedPriceTools.normalizePriceText(priceText)
+        : String(priceText || '');
+}
+
+/**
+ * getSpotBasePriceText(spotId, fallbackPriceText) - 获取详情页当前海域的统一起价文本
+ * @param {number|string} spotId - 潜点 id
+ * @param {string} fallbackPriceText - 兜底价格文本
+ * @returns {string} - 当前海域起价文本
+ */
+function getSpotBasePriceText(spotId, fallbackPriceText) {
+    return sharedPriceTools && typeof sharedPriceTools.getDestinationPriceText === 'function'
+        ? sharedPriceTools.getDestinationPriceText(spotId, fallbackPriceText)
+        : normalizeDisplayPriceText(fallbackPriceText);
 }
 
 /**
@@ -59,17 +72,17 @@ function convertSpotPriceDisplay(spots) {
             spotId,
             {
                 ...spot,
-                priceFrom: convertCurrencyTextToUsd(spot.priceFrom),
+                priceFrom: getSpotBasePriceText(spotId, spot.priceFrom),
                 itineraries: Array.isArray(spot.itineraries)
                     ? spot.itineraries.map((item) => ({
                         ...item,
-                        price: convertCurrencyTextToUsd(item.price)
+                        price: normalizeDisplayPriceText(item.price)
                     }))
                     : [],
                 related: Array.isArray(spot.related)
                     ? spot.related.map((item) => ({
                         ...item,
-                        price: convertCurrencyTextToUsd(item.price)
+                        price: getSpotBasePriceText(item.id, item.price)
                     }))
                     : []
             }
@@ -1267,7 +1280,7 @@ function parsePriceValue(priceText) {
  * @returns {string} - 格式化后的价格文本
  */
 function formatPriceValue(value) {
-    return formatUsdPriceValue(value);
+    return formatDisplayPriceValue(value);
 }
 
 /**
@@ -1575,7 +1588,7 @@ class DetailPage {
                 diveSummary: '2次船潜 + 1次体验潜 / 岸潜',
                 staySummary: '安静海边酒店',
                 mealSummary: '含早餐与欢迎晚餐',
-                price: formatPriceValue(basePrice * 0.92),
+                price: formatPriceValue(basePrice),
                 highlights: [
                     `更适合第一次来 ${name} 的潜水者，节奏留得更松一些。`,
                     '酒店与出海之间的切换更轻，潜后有充足休息时间。',
@@ -1605,7 +1618,7 @@ class DetailPage {
                 diveSummary: '3次船潜 + 1次黄昏轻潜',
                 staySummary: '岛上度假酒店',
                 mealSummary: '含早餐与两次晚餐',
-                price: formatPriceValue(basePrice * 1.06),
+                price: formatPriceValue(basePrice * 1.18),
                 highlights: [
                     '适合已经有 OW，但不想把行程排得太满的人。',
                     `会把 ${season} 的较稳窗口优先用在体验更完整的蓝水和海面时段。`,
@@ -1636,7 +1649,7 @@ class DetailPage {
                 diveSummary: '4次船潜 + 进阶点位安排',
                 staySummary: '高效潜水向导型酒店',
                 mealSummary: '含早餐与船上午餐',
-                price: formatPriceValue(basePrice * 1.22),
+                price: formatPriceValue(basePrice * 1.36),
                 highlights: [
                     '更适合已经有 AOW，且近 12 个月有下潜记录的潜水员。',
                     '会优先安排更能体现当地海况和水下层次的主潜点。',
@@ -1667,7 +1680,7 @@ class DetailPage {
                 diveSummary: '5次船潜 + 重点窗口追踪',
                 staySummary: '靠近出海点的安静酒店',
                 mealSummary: '含早餐、欢迎晚餐与潜后补给',
-                price: formatPriceValue(basePrice * 1.38),
+                price: formatPriceValue(basePrice * 1.58),
                 highlights: [
                     '给已经熟悉自身用气、节奏和海况应对的人准备。',
                     '会根据当天窗口灵活调整点位，把更值得下去的时段留给主潜。',
@@ -3783,8 +3796,8 @@ class DetailPage {
                         </div>
                         <div class="package-card-footer">
                             <div class="package-price-wrap">
-                                <span class="package-price-label">From</span>
-                                <span class="package-price-value" data-price-target="${pkg.price}">$0</span>
+                                <span class="package-price-label">起</span>
+                                <span class="package-price-value" data-price-target="${pkg.price}">¥0</span>
                             </div>
                             <button class="package-card-action ${bookedPackageIds.has(pkg.id) ? 'is-booked' : ''}" type="button" data-package-id="${pkg.id}">
                                 查看详情

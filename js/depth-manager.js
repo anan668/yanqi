@@ -38,50 +38,147 @@
     const MAX_DEPTH = 0;
     const STEP = 1;
 
+    // 行程页与详情页的滚动深度停靠点：
+    // 它们会沿着各自的主要区块继续下潜，让深度计不只是跨页时变化，
+    // 也能在页面内部随着阅读和安排慢慢往更深一层走。
+    const PAGE_SCROLL_DEPTH_STOP_MAP = Object.freeze({
+        trip: Object.freeze([
+            { selector: '#trip-top', depth: PAGE_DEPTH_MAP.trip },
+            { selector: '#plannerDeskControl', depth: -28 },
+            { selector: '#plannerSummary', depth: -29 },
+            { selector: '#trip-layer', depth: -30 },
+            { selector: '#trip-prep', depth: -31 },
+            { selector: '#tripFooter', depth: MIN_DEPTH }
+        ]),
+        detail: Object.freeze([
+            { selector: '#detailHero', depth: PAGE_DEPTH_MAP.detail },
+            { selector: '#spotOverview', depth: -31 },
+            { selector: '#spotMapSection', depth: -31.35 },
+            { selector: '#spotReviews', depth: -31.6 },
+            { selector: '#relatedSpots', depth: -31.85 },
+            { selector: '#detailFooter', depth: MIN_DEPTH }
+        ])
+    });
+
     const STORAGE_KEY_CURRENT = 'yanqi_depth_current';
     const STORAGE_KEY_NAV = 'yanqi_depth_nav';
     const STORAGE_KEY_HOME_ENTRY_DEPTH = 'YANQI_HOME_ENTRY_DEPTH';
 
-    // 页面切换动画的全局时间配置（滑出/滑入时长、覆盖层系数、导航刷新间隔等）。
-    // 这里统一规定离场多久、提前多久真正跳转、入场多久，以及遮罩层额外加深多少。
-    // 这样首页、行程页、详情页都能共用一套“下潜 / 上浮”的节奏，不会每页各跑各的。
-    // 如果这里的时间被打乱，整站的海层切换就会失去统一感。
-    const TRANSITION = Object.freeze({
-        exitPageMs: 1120,
-        exitNavigateLeadMs: 180,
-        enterPageMs: 880,
-        overlayBoost: 0.23,
-        pageshowOverlayBoost: 0.18,
-        navFreshMs: 10000
+    // 统一过渡时序配置：
+    // 1. general 控制整站默认切页节奏
+    // 2. loginHome 控制登录门厅沉入首页的专用阶段时序
+    // 3. oceanNav 控制首页与行程页之间的潜浮节奏
+    // 如需整体调快 / 调慢，优先改这里，或在脚本加载前挂 window.YANQI_DEPTH_TRANSITION_CONFIG 覆盖。
+    const DEFAULT_TRANSITION_TIMINGS = Object.freeze({
+        general: Object.freeze({
+            exitPageMs: 1120,
+            exitNavigateLeadMs: 180,
+            enterPageMs: 880,
+            overlayBoost: 0.23,
+            pageshowOverlayBoost: 0.18,
+            navFreshMs: 10000
+        }),
+        loginHome: Object.freeze({
+            blueMs: 1260,
+            bubbleDelayMs: 320,
+            slideStartMs: 1580,
+            navigateMs: 1860,
+            depthMs: 1740,
+            blueOpacity: 0.78,
+            entryMs: 1460,
+            entryBlueMs: 1320,
+            bubbleFadeStartMs: 320,
+            bubbleCount: 16
+        }),
+        oceanNav: Object.freeze({
+            diveExitMs: 1460,
+            diveEnterMs: 1280,
+            surfaceExitMs: 1520,
+            surfaceEnterMs: 1340,
+            navigateLeadMs: 240,
+            overlayBoost: 0.2,
+            pageshowOverlayBoost: 0.14
+        })
     });
-
-    // 登录页进入首页的特殊过渡配置：控制变蓝、气泡、下潜滑动和入场恢复的独立节奏。
     const SPECIAL_TRANSITION_LOGIN_HOME = 'login-home-ocean';
     const NAV_TRANSITION_OCEAN = 'ocean-layer-nav';
-    const LOGIN_HOME_SPECIAL = Object.freeze({
-        blueMs: 1260,
-        bubbleDelayMs: 320,
-        slideStartMs: 1580,
-        navigateMs: 1860,
-        depthMs: 1740,
-        blueOpacity: 0.78,
-        entryMs: 1460,
-        entryBlueMs: 1320,
-        bubbleFadeStartMs: 320,
-        bubbleCount: 16
-    });
-    // 首页和行程页之间的专用潜浮配置：
-    // home -> trip 更像继续下潜，所以节奏更深、更慢；
-    // trip -> home 更像上浮回入口，所以会把海水层从深蓝慢慢推回更浅一点。
-    const OCEAN_NAV = Object.freeze({
-        diveExitMs: 1460,
-        diveEnterMs: 1280,
-        surfaceExitMs: 1520,
-        surfaceEnterMs: 1340,
-        navigateLeadMs: 240,
-        overlayBoost: 0.2,
-        pageshowOverlayBoost: 0.14
-    });
+
+    /**
+     * readTimingNumber(value, fallbackValue, min, max) - 读取并约束时序配置数值
+     * @param {*} value - 原始配置值
+     * @param {number} fallbackValue - 兜底值
+     * @param {number} min - 最小允许值
+     * @param {number} max - 最大允许值
+     * @returns {number} - 清洗后的安全数值
+     */
+    function readTimingNumber(value, fallbackValue, min, max) {
+        const parsed = readNumber(value);
+        return clamp(parsed ?? fallbackValue, min, max);
+    }
+
+    /**
+     * getScrollDepthStopConfig(pageId) - 读取某个页面可用的滚动深度停靠点配置
+     * @param {string} pageId - 页面标识
+     * @returns {Array<Object>} - 对应页面的滚动深度配置
+     */
+    function getScrollDepthStopConfig(pageId) {
+        if (pageId === 'home') {
+            return HOME_SECTION_DEPTH_STOPS;
+        }
+
+        return PAGE_SCROLL_DEPTH_STOP_MAP[pageId] || [];
+    }
+
+    /**
+     * resolveTransitionTimingConfig(rawConfig) - 合并外部覆盖配置并生成当前生效的过渡时序表
+     * @param {Object|null} rawConfig - 外部注入的时序配置
+     * @returns {Object} - 已清洗且冻结的过渡时序对象
+     */
+    function resolveTransitionTimingConfig(rawConfig) {
+        const source = rawConfig && typeof rawConfig === 'object' ? rawConfig : {};
+        const generalSource = source.general && typeof source.general === 'object' ? source.general : {};
+        const loginHomeSource = source.loginHome && typeof source.loginHome === 'object' ? source.loginHome : {};
+        const oceanNavSource = source.oceanNav && typeof source.oceanNav === 'object' ? source.oceanNav : {};
+
+        return Object.freeze({
+            general: Object.freeze({
+                exitPageMs: readTimingNumber(generalSource.exitPageMs, DEFAULT_TRANSITION_TIMINGS.general.exitPageMs, 320, 3200),
+                exitNavigateLeadMs: readTimingNumber(generalSource.exitNavigateLeadMs, DEFAULT_TRANSITION_TIMINGS.general.exitNavigateLeadMs, 80, 720),
+                enterPageMs: readTimingNumber(generalSource.enterPageMs, DEFAULT_TRANSITION_TIMINGS.general.enterPageMs, 280, 2800),
+                overlayBoost: readTimingNumber(generalSource.overlayBoost, DEFAULT_TRANSITION_TIMINGS.general.overlayBoost, 0, 0.45),
+                pageshowOverlayBoost: readTimingNumber(generalSource.pageshowOverlayBoost, DEFAULT_TRANSITION_TIMINGS.general.pageshowOverlayBoost, 0, 0.35),
+                navFreshMs: readTimingNumber(generalSource.navFreshMs, DEFAULT_TRANSITION_TIMINGS.general.navFreshMs, 1000, 30000)
+            }),
+            loginHome: Object.freeze({
+                blueMs: readTimingNumber(loginHomeSource.blueMs, DEFAULT_TRANSITION_TIMINGS.loginHome.blueMs, 420, 4000),
+                bubbleDelayMs: readTimingNumber(loginHomeSource.bubbleDelayMs, DEFAULT_TRANSITION_TIMINGS.loginHome.bubbleDelayMs, 0, 2400),
+                slideStartMs: readTimingNumber(loginHomeSource.slideStartMs, DEFAULT_TRANSITION_TIMINGS.loginHome.slideStartMs, 180, 4200),
+                navigateMs: readTimingNumber(loginHomeSource.navigateMs, DEFAULT_TRANSITION_TIMINGS.loginHome.navigateMs, 240, 4600),
+                depthMs: readTimingNumber(loginHomeSource.depthMs, DEFAULT_TRANSITION_TIMINGS.loginHome.depthMs, 320, 4200),
+                blueOpacity: readTimingNumber(loginHomeSource.blueOpacity, DEFAULT_TRANSITION_TIMINGS.loginHome.blueOpacity, 0, 0.92),
+                entryMs: readTimingNumber(loginHomeSource.entryMs, DEFAULT_TRANSITION_TIMINGS.loginHome.entryMs, 320, 3600),
+                entryBlueMs: readTimingNumber(loginHomeSource.entryBlueMs, DEFAULT_TRANSITION_TIMINGS.loginHome.entryBlueMs, 240, 3600),
+                bubbleFadeStartMs: readTimingNumber(loginHomeSource.bubbleFadeStartMs, DEFAULT_TRANSITION_TIMINGS.loginHome.bubbleFadeStartMs, 0, 2400),
+                bubbleCount: Math.round(readTimingNumber(loginHomeSource.bubbleCount, DEFAULT_TRANSITION_TIMINGS.loginHome.bubbleCount, 0, 48))
+            }),
+            oceanNav: Object.freeze({
+                diveExitMs: readTimingNumber(oceanNavSource.diveExitMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.diveExitMs, 420, 3600),
+                diveEnterMs: readTimingNumber(oceanNavSource.diveEnterMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.diveEnterMs, 320, 3200),
+                surfaceExitMs: readTimingNumber(oceanNavSource.surfaceExitMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.surfaceExitMs, 420, 3600),
+                surfaceEnterMs: readTimingNumber(oceanNavSource.surfaceEnterMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.surfaceEnterMs, 320, 3200),
+                navigateLeadMs: readTimingNumber(oceanNavSource.navigateLeadMs, DEFAULT_TRANSITION_TIMINGS.oceanNav.navigateLeadMs, 80, 860),
+                overlayBoost: readTimingNumber(oceanNavSource.overlayBoost, DEFAULT_TRANSITION_TIMINGS.oceanNav.overlayBoost, 0, 0.45),
+                pageshowOverlayBoost: readTimingNumber(oceanNavSource.pageshowOverlayBoost, DEFAULT_TRANSITION_TIMINGS.oceanNav.pageshowOverlayBoost, 0, 0.35)
+            })
+        });
+    }
+
+    const TRANSITION_TIMINGS = resolveTransitionTimingConfig(
+        window.YANQI_DEPTH_TRANSITION_CONFIG || window.YanqiDepthTransitionConfig || null
+    );
+    const TRANSITION = TRANSITION_TIMINGS.general;
+    const LOGIN_HOME_SPECIAL = TRANSITION_TIMINGS.loginHome;
+    const OCEAN_NAV = TRANSITION_TIMINGS.oceanNav;
 
     // 基础数学与路径工具：负责数值约束、URL 解析、页面识别和深度方向判断。
     /**
@@ -463,12 +560,12 @@
             this.interactionResetTimerId = 0;
             this.specialTransitionMode = null;
             this.specialTimers = [];
-            // 首页滚动深度状态：记录 section 深度停靠点、是否已启用滚动联动，以及当前缓动目标。
-            this.homeScrollDepthStops = [];
-            this.homeScrollDepthEnabled = false;
-            this.homeScrollFrameId = 0;
-            this.homeScrollSyncTimerId = 0;
-            this.homeScrollTargetDepth = null;
+            // 页面滚动深度状态：记录当前页面的区块停靠点、是否已启用滚动联动，以及当前缓动目标。
+            this.pageScrollDepthStops = [];
+            this.pageScrollDepthEnabled = false;
+            this.pageScrollFrameId = 0;
+            this.pageScrollSyncTimerId = 0;
+            this.pageScrollTargetDepth = null;
             this.homeDiveMatchDepth = null;
 
             this.rootElement = document.documentElement;
@@ -492,7 +589,7 @@
                 this.startLoginHomeEntryTransition(incomingState);
                 // 登录页专用过渡结束后，再把首页深度交给滚动 section 接管，避免刚入场就和滚动逻辑抢状态。
                 if (this.pageId === 'home') {
-                    this.scheduleHomeScrollDepthSync(LOGIN_HOME_SPECIAL.entryMs + 200);
+                    this.schedulePageScrollDepthSync(LOGIN_HOME_SPECIAL.entryMs + 200);
                 }
             } else if (incomingState && incomingState.animatedOnSource) {
                 this.currentDepth = incomingState.toDepth;
@@ -505,9 +602,9 @@
                     overlayBoostStart: incomingState.overlayBoost,
                     duration: incomingState.entryDuration
                 });
-                // 其他页面进入首页时，也等通用入场动画收完，再启用首页分层深度。
-                if (this.pageId === 'home') {
-                    this.scheduleHomeScrollDepthSync((readNumber(incomingState.entryDuration) ?? TRANSITION.enterPageMs) + 200);
+                // 进入带滚动深度的页面时，也等通用入场动画收完，再把后续深浅变化交给页面内部区块。
+                if (this.hasScrollDepthConfig()) {
+                    this.schedulePageScrollDepthSync((readNumber(incomingState.entryDuration) ?? TRANSITION.enterPageMs) + 200);
                 }
             } else {
                 this.overlayBoost = 0;
@@ -528,13 +625,16 @@
                         this.animateDepth(initialHomeDepth, this.targetDepth, 1680);
                     }, 180);
                     // 首次直接进入首页时，先完成 0m -> 首页浅层深度的入场，再启动滚动驱动的继续下潜。
-                    this.scheduleHomeScrollDepthSync(2060);
+                    this.schedulePageScrollDepthSync(2060);
                 } else {
                     this.finishDepth(this.targetDepth);
+                    if (this.hasScrollDepthConfig()) {
+                        this.schedulePageScrollDepthSync(140);
+                    }
                 }
             }
 
-            this.setupHomeScrollDepth();
+            this.setupPageScrollDepth();
             this.setupPageShowHandler();
             this.setupSpecialTransitionAbortHandler();
             this.bindTrackedLinks();
@@ -685,14 +785,14 @@
                 this.cleanupTimerId = 0;
             }
 
-            if (this.homeScrollFrameId) {
-                cancelAnimationFrame(this.homeScrollFrameId);
-                this.homeScrollFrameId = 0;
+            if (this.pageScrollFrameId) {
+                cancelAnimationFrame(this.pageScrollFrameId);
+                this.pageScrollFrameId = 0;
             }
 
-            if (this.homeScrollSyncTimerId) {
-                window.clearTimeout(this.homeScrollSyncTimerId);
-                this.homeScrollSyncTimerId = 0;
+            if (this.pageScrollSyncTimerId) {
+                window.clearTimeout(this.pageScrollSyncTimerId);
+                this.pageScrollSyncTimerId = 0;
             }
         }
 
@@ -891,12 +991,17 @@
             sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(this.currentDepth)));
         }
 
-        // 首页滚动深度：根据 section 所在位置持续计算当前海层，让浏览过程像继续下潜。
-        // 这一组方法只在 home 页启用，不会影响第一页到第二页的专用过渡。
+        // 页面滚动深度：首页按 section 和 Dive Match 细分层次，
+        // trip / detail 则沿主要区块继续下潜，让页面内部阅读也有海层推进感。
         /**
-         * setupHomeScrollDepth() - 注册首页 section 分层深度的滚动监听和初始化引用
-         * @returns {void} - 无返回值，直接准备首页滚动深度逻辑
+         * hasScrollDepthConfig(pageId) - 判断当前页面是否配置了滚动驱动的深度停靠点
+         * @param {string} pageId - 页面标识，默认使用当前页面
+         * @returns {boolean} - 当前页面是否支持滚动深度联动
          */
+        hasScrollDepthConfig(pageId = this.pageId) {
+            return getScrollDepthStopConfig(pageId).length > 0;
+        }
+
         /**
          * setHomeDiveMatchDepth(depth) - 接收首页 Dive Match 当前分类的细分深度并平滑推进深度计
          * @param {number} depth - 当前匹配分类对应的目标深度
@@ -906,28 +1011,32 @@
             const safeDepth = readNumber(depth);
             this.homeDiveMatchDepth = safeDepth === null ? null : clamp(safeDepth, MIN_DEPTH, MAX_DEPTH);
 
-            if (this.pageId !== 'home' || !this.homeScrollDepthEnabled) {
+            if (this.pageId !== 'home' || !this.pageScrollDepthEnabled) {
                 return;
             }
 
-            this.homeScrollTargetDepth = this.computeHomeScrollDepth();
+            this.pageScrollTargetDepth = this.computePageScrollDepth();
 
-            if (this.homeScrollFrameId) {
+            if (this.pageScrollFrameId) {
                 return;
             }
 
-            this.homeScrollFrameId = requestAnimationFrame(() => {
-                this.stepHomeScrollDepth();
+            this.pageScrollFrameId = requestAnimationFrame(() => {
+                this.stepPageScrollDepth();
             });
         }
 
-        setupHomeScrollDepth() {
-            if (this.pageId !== 'home') {
+        /**
+         * setupPageScrollDepth() - 注册当前页面的滚动深度停靠点，并绑定滚动/尺寸变化监听
+         * @returns {void} - 无返回值，直接准备页面滚动深度逻辑
+         */
+        setupPageScrollDepth() {
+            if (!this.hasScrollDepthConfig()) {
                 return;
             }
 
             // 把 selector 配置解析成真实 DOM，后续计算时直接使用元素位置。
-            this.homeScrollDepthStops = HOME_SECTION_DEPTH_STOPS
+            this.pageScrollDepthStops = getScrollDepthStopConfig(this.pageId)
                 .map((stop) => {
                     const element = document.querySelector(stop.selector);
                     if (!element) {
@@ -942,39 +1051,39 @@
                 })
                 .filter(Boolean);
 
-            if (this.homeScrollDepthStops.length === 0) {
+            if (this.pageScrollDepthStops.length === 0) {
                 return;
             }
 
-            // 首页滚动和 resize 都会影响 section 在视口中的位置，所以两者都需要触发深度重算。
+            // 页面滚动和 resize 都会影响区块在视口中的位置，所以两者都需要触发深度重算。
             window.addEventListener('scroll', () => {
-                this.queueHomeScrollDepthUpdate();
+                this.queuePageScrollDepthUpdate();
             }, { passive: true });
 
             window.addEventListener('resize', () => {
-                this.queueHomeScrollDepthUpdate();
+                this.queuePageScrollDepthUpdate();
             }, { passive: true });
         }
 
         /**
-         * scheduleHomeScrollDepthSync(delayMs) - 在首页入场结束后延迟启用 section 深度联动
+         * schedulePageScrollDepthSync(delayMs) - 在页面入场结束后延迟启用滚动深度联动
          * @param {number} delayMs - 延迟启用的毫秒数
          * @returns {void} - 无返回值，直接登记启用时机
          */
-        scheduleHomeScrollDepthSync(delayMs = 0) {
-            if (this.pageId !== 'home') {
+        schedulePageScrollDepthSync(delayMs = 0) {
+            if (!this.hasScrollDepthConfig()) {
                 return;
             }
 
-            if (this.homeScrollSyncTimerId) {
-                window.clearTimeout(this.homeScrollSyncTimerId);
-                this.homeScrollSyncTimerId = 0;
+            if (this.pageScrollSyncTimerId) {
+                window.clearTimeout(this.pageScrollSyncTimerId);
+                this.pageScrollSyncTimerId = 0;
             }
 
             const enable = () => {
-                this.homeScrollDepthEnabled = true;
-                this.homeScrollSyncTimerId = 0;
-                this.queueHomeScrollDepthUpdate();
+                this.pageScrollDepthEnabled = true;
+                this.pageScrollSyncTimerId = 0;
+                this.queuePageScrollDepthUpdate();
             };
 
             if (delayMs <= 0) {
@@ -982,47 +1091,48 @@
                 return;
             }
 
-            this.homeScrollDepthEnabled = false;
-            this.homeScrollSyncTimerId = window.setTimeout(enable, delayMs);
+            this.pageScrollDepthEnabled = false;
+            this.pageScrollSyncTimerId = window.setTimeout(enable, delayMs);
         }
 
         /**
-         * queueHomeScrollDepthUpdate() - 请求下一帧刷新首页 section 驱动的目标深度
+         * queuePageScrollDepthUpdate() - 请求下一帧刷新当前页面滚动驱动的目标深度
          * @returns {void} - 无返回值，直接排队执行深度同步
          */
-        queueHomeScrollDepthUpdate() {
+        queuePageScrollDepthUpdate() {
             if (
-                this.pageId !== 'home' ||
-                !this.homeScrollDepthEnabled ||
+                !this.hasScrollDepthConfig() ||
+                !this.pageScrollDepthEnabled ||
                 this.isNavigating ||
                 this.specialTransitionMode
             ) {
                 return;
             }
 
-            this.homeScrollTargetDepth = this.computeHomeScrollDepth();
+            this.pageScrollTargetDepth = this.computePageScrollDepth();
 
-            if (this.homeScrollFrameId) {
+            if (this.pageScrollFrameId) {
                 return;
             }
 
-            this.homeScrollFrameId = requestAnimationFrame(() => {
-                this.stepHomeScrollDepth();
+            this.pageScrollFrameId = requestAnimationFrame(() => {
+                this.stepPageScrollDepth();
             });
         }
 
         /**
-         * computeHomeScrollDepth() - 根据首页各 section 的滚动位置计算当前应显示的深度
-         * @returns {number} - 当前滚动位置对应的目标深度
+         * computeScrollDepthFromStops() - 根据当前页面停靠点插值计算基础深度
+         * @returns {number} - 当前滚动位置对应的基础深度
          */
-        computeHomeScrollDepth() {
-            if (this.homeScrollDepthStops.length === 0) {
+        computeScrollDepthFromStops() {
+            if (this.pageScrollDepthStops.length === 0) {
                 return this.targetDepth;
             }
 
             const scrollY = window.scrollY || window.pageYOffset || 0;
-            // 每个 section 都会换算成一个滚动阈值，滚动位置落在哪两个阈值之间，就在那两层深度之间缓慢过渡。
-            const points = this.homeScrollDepthStops.map((stop, index) => {
+            // 每个区块都会换算成一个滚动阈值，滚动位置落在哪两个阈值之间，
+            // 深度计就在这两层之间缓慢过渡。
+            const points = this.pageScrollDepthStops.map((stop, index) => {
                 if (index === 0) {
                     return {
                         selector: stop.selector,
@@ -1064,31 +1174,61 @@
                 }
             }
 
+            return baseDepth;
+        }
+
+        /**
+         * computeHomeScrollDepth() - 根据首页 section 与 Dive Match 舞台位置计算当前应显示的深度
+         * @returns {number} - 当前滚动位置对应的首页目标深度
+         */
+        computeHomeScrollDepth() {
+            const baseDepth = this.computeScrollDepthFromStops();
+
             if (this.homeDiveMatchDepth === null) {
                 return baseDepth;
             }
 
-            const diveMatchPoint = points.find((point) => point.selector === '#dive-match');
-            if (!diveMatchPoint || scrollY <= diveMatchPoint.threshold) {
+            const diveMatchStop = this.pageScrollDepthStops.find((stop) => stop.selector === '#dive-match');
+            if (!diveMatchStop || !diveMatchStop.element) {
                 return baseDepth;
             }
 
-            const blendRange = Math.max(window.innerHeight * 0.22, 160);
-            const blendProgress = clamp((scrollY - diveMatchPoint.threshold) / blendRange, 0, 1);
-            const easedBlend = easeInOutCubic(blendProgress);
-            return baseDepth + (this.homeDiveMatchDepth - baseDepth) * easedBlend;
+            const rect = diveMatchStop.element.getBoundingClientRect();
+            const focusY = window.innerHeight * 0.48;
+            const sectionMid = rect.top + Math.max(rect.height * 0.42, 120);
+            const fadeDistance = Math.max(window.innerHeight * 0.54, rect.height * 0.65, 240);
+            const influence = clamp(1 - (Math.abs(sectionMid - focusY) / fadeDistance), 0, 1);
+
+            if (influence <= 0.001) {
+                return baseDepth;
+            }
+
+            const easedInfluence = easeInOutCubic(influence);
+            return baseDepth + (this.homeDiveMatchDepth - baseDepth) * easedInfluence;
         }
 
         /**
-         * stepHomeScrollDepth() - 以缓和阻尼方式把首页深度显示推进到当前 section 目标深度
+         * computePageScrollDepth() - 计算当前页面滚动位置对应的目标深度
+         * @returns {number} - 当前页面应显示的目标深度
+         */
+        computePageScrollDepth() {
+            if (this.pageId === 'home') {
+                return this.computeHomeScrollDepth();
+            }
+
+            return this.computeScrollDepthFromStops();
+        }
+
+        /**
+         * stepPageScrollDepth() - 以缓和阻尼方式把当前页面深度显示推进到滚动目标深度
          * @returns {void} - 无返回值，直接更新深度计显示
          */
-        stepHomeScrollDepth() {
-            this.homeScrollFrameId = 0;
+        stepPageScrollDepth() {
+            this.pageScrollFrameId = 0;
 
             if (
-                this.pageId !== 'home' ||
-                !this.homeScrollDepthEnabled ||
+                !this.hasScrollDepthConfig() ||
+                !this.pageScrollDepthEnabled ||
                 this.isNavigating ||
                 this.specialTransitionMode
             ) {
@@ -1097,7 +1237,7 @@
 
             // 这里不用 animateDepth 做固定时长动画，而是每帧按差值推进，形成更像水下阻尼的深度变化。
             const targetDepth = clamp(
-                this.homeScrollTargetDepth ?? this.computeHomeScrollDepth(),
+                this.pageScrollTargetDepth ?? this.computePageScrollDepth(),
                 MIN_DEPTH,
                 MAX_DEPTH
             );
@@ -1115,8 +1255,8 @@
             this.renderDepth(this.currentDepth);
             sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(this.currentDepth)));
 
-            this.homeScrollFrameId = requestAnimationFrame(() => {
-                this.stepHomeScrollDepth();
+            this.pageScrollFrameId = requestAnimationFrame(() => {
+                this.stepPageScrollDepth();
             });
         }
 
@@ -1575,6 +1715,14 @@
         }
 
         /**
+         * getTransitionTimings() - 读取当前生效的整站过渡时序配置
+         * @returns {Object} - 已解析完成的过渡时序对象
+         */
+        getTransitionTimings() {
+            return TRANSITION_TIMINGS;
+        }
+
+        /**
          * navigateTo(rawUrl) - 接管站内跨页面跳转并按深度逻辑播放对应离场动画
          * @param {string} rawUrl - 目标页面地址
          * @returns {void} - 无返回值，直接决定导航方式并执行跳转
@@ -1693,8 +1841,8 @@
                 if (visualDirection === 'none') {
                     this.overlayBoost = 0;
                     this.finishDepth(this.targetDepth);
-                    if (this.pageId === 'home') {
-                        this.scheduleHomeScrollDepthSync(0);
+                    if (this.hasScrollDepthConfig()) {
+                        this.schedulePageScrollDepthSync(0);
                     }
                     return;
                 }
@@ -1712,8 +1860,8 @@
                     depthDuration: pageshowConfig.entryDuration + 80
                 });
 
-                if (this.pageId === 'home') {
-                    this.scheduleHomeScrollDepthSync(pageshowConfig.entryDuration + 200);
+                if (this.hasScrollDepthConfig()) {
+                    this.schedulePageScrollDepthSync(pageshowConfig.entryDuration + 200);
                 }
             });
         }
@@ -1764,5 +1912,7 @@
     }
 
     // 挂载全局单例：让首页、详情页、登录页和行程页都能共用同一套深度逻辑。
+    window.YanqiDepthTransitionDefaults = DEFAULT_TRANSITION_TIMINGS;
+    window.YanqiDepthTransitionConfigResolved = TRANSITION_TIMINGS;
     window.DepthManager = new DepthManager();
 })();

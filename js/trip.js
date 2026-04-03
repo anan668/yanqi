@@ -1814,7 +1814,7 @@ function getPeopleCountFromSelectionValue(value) {
 
 /**
  * parseConfirmedBookingPrice(priceText) - 从展示价格中拆出货币符号与数值部分。
- * @param {string} priceText - 价格文本，例如 "$2,563"
+ * @param {string} priceText - 价格文本，例如 "¥3,980"
  * @returns {{currency: string, amount: number, fractionDigits: number}|null} - 可计算的价格对象
  */
 function parseConfirmedBookingPrice(priceText) {
@@ -1858,7 +1858,7 @@ function formatConfirmedBookingAmount(amount, fractionDigits) {
 }
 
 /**
- * formatConfirmedBookingCny(amount, fractionDigits) - 把换算后的人民币价格格式化成更适合阅读的文本
+ * formatConfirmedBookingCny(amount, fractionDigits) - 把人民币金额格式化成更适合阅读的文本
  * @param {number} amount - 人民币金额
  * @param {number} fractionDigits - 原价的小数位，用来决定是否保留角分
  * @returns {string} - 格式化后的人民币价格
@@ -1875,10 +1875,9 @@ function formatConfirmedBookingCny(amount, fractionDigits) {
 /**
  * getConfirmedBookingPriceView(booking) - 根据同行人数返回行程卡片要显示的价格文本
  * @param {Object} booking - 已收进行程对象
- * @returns {{primary: string, secondary: string, cny: string}} - 主价格、人民币参考价与辅助说明
+ * @returns {{primary: string, secondary: string, cny: string}} - 主价格与辅助说明
  */
 function getConfirmedBookingPriceView(booking) {
-    const USD_TO_CNY_RATE = 10000 / 1451; // 与详情页保持同一套汇率：10000 人民币约等于 1451 美元。
     const rawPrice = String(booking?.packagePrice || '').trim();
     const parsedPrice = parseConfirmedBookingPrice(rawPrice);
     const peopleCount = getPeopleCountFromSelectionValue(booking?.selectedPeople);
@@ -1892,29 +1891,24 @@ function getConfirmedBookingPriceView(booking) {
     }
 
     const baseAmount = peopleCount > 1 ? parsedPrice.amount * peopleCount : parsedPrice.amount;
-    const showCny = parsedPrice.currency.includes('$') || /USD/i.test(parsedPrice.currency);
-    const cnyText = showCny
-        ? `约 ¥${formatConfirmedBookingCny(baseAmount * USD_TO_CNY_RATE, parsedPrice.fractionDigits)}`
-        : '';
-
     if (peopleCount <= 1) {
         return {
             primary: rawPrice,
             secondary: '',
-            cny: cnyText
+            cny: ''
         };
     }
 
-    const pricePrefix = parsedPrice.currency ? `${parsedPrice.currency}` : '';
+    const pricePrefix = parsedPrice.currency || '¥';
     const selectionLabel = String(booking?.selectedPeopleLabel || '').trim();
     const secondary = /^\d+$/.test(String(booking?.selectedPeople || '').trim())
         ? `${peopleCount} 人合计`
         : `${selectionLabel || `${peopleCount} 人同行`} · 按 ${peopleCount} 人起算`;
 
     return {
-        primary: `${pricePrefix}${formatConfirmedBookingAmount(baseAmount, parsedPrice.fractionDigits)}`,
+        primary: `${pricePrefix}${formatConfirmedBookingCny(baseAmount, parsedPrice.fractionDigits)}`,
         secondary,
-        cny: cnyText
+        cny: ''
     };
 }
 

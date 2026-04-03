@@ -170,8 +170,8 @@ http://localhost:8000
 
 其中：
 
-- `page-transition.css` + `depth-manager.js` 是当前主系统
-- `transitions.css` + `transition.js` 更偏旧版兼容和保留实现
+- `page-transition.css` + `depth-manager.js` 是当前唯一启用的跨页过渡主系统
+- `transitions.css` + `transition.js` 只保留兼容壳和历史参考，不再负责主过渡节奏
 
 它们共同服务一件事：
 
@@ -366,7 +366,7 @@ http://localhost:8000
 | `css/detail.css` | 详情页样式 | 看英雄区、套餐区、地图区和推荐区层次 |
 | `css/depth-gauge.css` | 深度计样式 | 看固定布局、刻度生成配合、空间语言 |
 | `css/page-transition.css` | 当前主过渡样式 | 看遮罩层和海层切换效果 |
-| `css/transitions.css` | 较早版本的过渡样式保留 | 看旧逻辑如何与新系统并存 |
+| `css/transitions.css` | 较早版本的过渡样式保留 | 作为历史参考，了解早期固定时长方案 |
 | `css/info-pages.css` | 联系页 / 协议页 / 隐私页通用样式 | 看说明页如何维持品牌统一 |
 
 ### `js/` 目录
@@ -382,7 +382,7 @@ http://localhost:8000
 | `js/info-pages.js` | 信息页导航和联系表单逻辑 | 看轻页面的交互脚本怎么写得干净 |
 | `js/ocean-scroll.js` | 平滑滚动工具 | 看可复用小工具脚本的写法 |
 | `js/text-layout-adapter.js` | 文本高度预测和布局适配 | 看偏工程化的小工具如何封装 |
-| `js/transition.js` | 旧版过渡逻辑兼容入口 | 了解历史实现，不必第一优先级深读 |
+| `js/transition.js` | 旧版过渡兼容桥接层 | 看历史全局入口如何统一转发给 `DepthManager` |
 
 ## 如果你要开始学习代码，建议这样学
 
@@ -493,6 +493,12 @@ http://localhost:8000
 同时存在。
 
 这在真实项目里很常见。代码不是一次就长成最终样子，而是会经历一段兼容期。
+
+不过现在的实际运行策略已经收敛成一条主线：
+
+- `DepthManager` 是唯一跨页过渡引擎
+- `transition.js` 只保留给历史全局调用做兼容转发
+- 不再并行维护第二套固定 `setTimeout` 的页面切换节奏
 
 ## 常见修改入口
 

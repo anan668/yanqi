@@ -16,11 +16,11 @@
         plannerDraft: 'YANQI_PLANNER_DRAFT',
         confirmedBookings: 'YANQI_CONFIRMED_BOOKINGS'
     });
-    const PRICE_DISPLAY_VERSION = '2026-03-16-rate-1451-v2.84';
-    const CURRENT_USD_SCALE = 0.1451 * 2.84;
-    const LEGACY_PRICE_REBALANCE_RATIO_RATE1451 = CURRENT_USD_SCALE / (0.1451 * 1);
-    const LEGACY_PRICE_REBALANCE_RATIO_V28 = CURRENT_USD_SCALE / (0.14 * 2.8);
-    const LEGACY_PRICE_REBALANCE_RATIO_V5 = CURRENT_USD_SCALE / (0.14 * 5);
+    const PRICE_DISPLAY_VERSION = '2026-04-03-cny-native-v1';
+    const LEGACY_USD_SCALE_RATE1451_V284 = 0.1451 * 2.84;
+    const LEGACY_USD_SCALE_RATE1451 = 0.1451;
+    const LEGACY_USD_SCALE_V28 = 0.14 * 2.8;
+    const LEGACY_USD_SCALE_V5 = 0.14 * 5;
 
     /**
      * getSafeStorage() - 安全获取 localStorage，避免隐私模式或权限限制导致脚本报错
@@ -241,14 +241,14 @@
     }
 
     /**
-     * rebalanceLegacyPackagePrice(priceText, version) - 把旧倍率写进去的美元价格拉回当前统一尺度
+     * rebalanceLegacyPackagePrice(priceText, version) - 把旧美元展示价格折回当前统一的人民币显示
      * @param {string} priceText - 已存储的价格文本
      * @param {string} version - 当前条目的价格版本
      * @returns {string} - 归一化后的价格文本
      */
     function rebalanceLegacyPackagePrice(priceText, version) {
         const safePriceText = sanitizeReadableText(priceText, '');
-        if (!safePriceText || version === PRICE_DISPLAY_VERSION) {
+        if (!safePriceText) {
             return safePriceText;
         }
 
@@ -263,20 +263,35 @@
             return safePriceText;
         }
 
-        const fractionDigits = numericText.includes('.') ? Math.min(numericText.split('.')[1].length, 2) : 0;
         const currency = safePriceText.replace(amountMatch[0], '').trim();
-        const ratio = version === '2026-03-16-rate-1451'
-            ? LEGACY_PRICE_REBALANCE_RATIO_RATE1451
-            : version === '2026-03-16-v2.8'
-                ? LEGACY_PRICE_REBALANCE_RATIO_V28
-                : LEGACY_PRICE_REBALANCE_RATIO_V5;
-        const nextAmount = amount * ratio;
-        const formatted = nextAmount.toLocaleString('en-US', {
-            minimumFractionDigits: fractionDigits,
-            maximumFractionDigits: fractionDigits
-        });
+        const formattedCurrentCny = `¥${Math.round(amount).toLocaleString('zh-CN')}`;
+        if (
+            version === PRICE_DISPLAY_VERSION
+            || currency.includes('¥')
+            || currency.includes('￥')
+            || /(?:CNY|RMB|人民币)/i.test(currency)
+        ) {
+            return formattedCurrentCny;
+        }
 
-        return `${currency}${formatted}`;
+        const isKnownLegacyUsdVersion = version === '2026-03-16-rate-1451-v2.84'
+            || version === '2026-03-16-rate-1451'
+            || version === '2026-03-16-v2.8'
+            || version === '2026-03-16-v5';
+        const usdScale = version === '2026-03-16-rate-1451-v2.84'
+            ? LEGACY_USD_SCALE_RATE1451_V284
+            : version === '2026-03-16-rate-1451'
+                ? LEGACY_USD_SCALE_RATE1451
+                : version === '2026-03-16-v2.8'
+                    ? LEGACY_USD_SCALE_V28
+                    : LEGACY_USD_SCALE_V5;
+        const cnyAmount = usdScale > 0 ? amount / usdScale : amount;
+
+        if (currency.includes('$') || /USD/i.test(currency) || isKnownLegacyUsdVersion) {
+            return `¥${Math.round(cnyAmount).toLocaleString('zh-CN')}`;
+        }
+
+        return formattedCurrentCny;
     }
 
     /**

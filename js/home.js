@@ -13,40 +13,32 @@
 */
 
 // 文件导读：建议先读数据结构和几个主要类，再回来看 DOMContentLoaded 入口如何把它们串起来。
-const USD_PER_CNY = 0.14;
-const DISPLAY_PRICE_MULTIPLIER = 5;
+const sharedPriceTools = window.YanqiPriceConfig || null;
 const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HERO_HOTSPOTS_STAGE_STORAGE_KEY = 'YANQI_HOME_HOTSPOTS_STAGE_SIZE';
 
-// 价格换算工具：把原始人民币文案提取成数值，再统一转成首页展示用的美元价格。
+// 价格展示工具：首页不再自己换汇，统一走共享人民币模块。
 /**
- * parseCurrencyAmount(priceText) - 从价格文本中提取数值部分
+ * normalizeDisplayPriceText(priceText) - 将原始价格文本整理成共享人民币展示文本
  * @param {string} priceText - 原始价格文本
- * @returns {number} - 提取后的数值金额
+ * @returns {string} - 转换后的人民币价格文本
  */
-function parseCurrencyAmount(priceText) {
-    const numeric = Number(String(priceText || '').replace(/[^\d]/g, ''));
-    return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+function normalizeDisplayPriceText(priceText) {
+    return sharedPriceTools && typeof sharedPriceTools.normalizePriceText === 'function'
+        ? sharedPriceTools.normalizePriceText(priceText)
+        : String(priceText || '');
 }
 
 /**
- * formatUsdPrice(value) - 把数值格式化为美元展示文本
- * @param {number} value - 需要格式化的金额
- * @returns {string} - 美元格式字符串
+ * getSpotBasePriceText(spotId, fallbackPriceText) - 获取首页潜点卡片应展示的统一起价
+ * @param {number} spotId - 潜点 id
+ * @param {string} fallbackPriceText - 兜底价格文本
+ * @returns {string} - 当前潜点起价文本
  */
-function formatUsdPrice(value) {
-    const safeValue = Math.max(0, Math.round(value));
-    return `$${safeValue.toLocaleString('en-US')}`;
-}
-
-/**
- * convertPriceTextToUsd(priceText) - 将原始价格文本转换为美元价格文本
- * @param {string} priceText - 原始价格文本
- * @returns {string} - 转换后的美元价格文本
- */
-function convertPriceTextToUsd(priceText) {
-    const amount = parseCurrencyAmount(priceText);
-    return amount > 0 ? formatUsdPrice(amount * USD_PER_CNY * DISPLAY_PRICE_MULTIPLIER) : priceText;
+function getSpotBasePriceText(spotId, fallbackPriceText) {
+    return sharedPriceTools && typeof sharedPriceTools.getDestinationPriceText === 'function'
+        ? sharedPriceTools.getDestinationPriceText(spotId, fallbackPriceText)
+        : normalizeDisplayPriceText(fallbackPriceText);
 }
 
 /**
@@ -57,7 +49,7 @@ function convertPriceTextToUsd(priceText) {
 function convertSpotCardPrices(spots) {
     return spots.map((spot) => ({
         ...spot,
-        price: convertPriceTextToUsd(spot.price)
+        price: normalizeDisplayPriceText(spot.price)
     }));
 }
 
@@ -177,7 +169,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '诗巴丹',
         tagline: '与海狼风暴共潜',
         image: 'assets/images/sipadan.jpg',
-        price: '¥3,980',
+        price: getSpotBasePriceText(1, '¥3,980'),
         rating: '4.9',
         difficulty: '★★★'
     },
@@ -186,7 +178,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '帕劳',
         tagline: '蓝色大门的秘密',
         image: 'assets/images/palau.jpg',
-        price: '¥4,280',
+        price: getSpotBasePriceText(2, '¥4,280'),
         rating: '4.8',
         difficulty: '★★'
     },
@@ -195,7 +187,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '大蓝洞',
         tagline: '深蓝之眼',
         image: 'assets/images/blue-hole.jpg',
-        price: '¥5,680',
+        price: getSpotBasePriceText(3, '¥5,680'),
         rating: '4.7',
         difficulty: '★★★★'
     },
@@ -204,7 +196,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '帝汶岛',
         tagline: '色彩斑斓的水下花园',
         image: 'assets/images/timor.jpg',
-        price: '¥3,480',
+        price: getSpotBasePriceText(4, '¥3,480'),
         rating: '4.6',
         difficulty: '★★'
     },
@@ -213,7 +205,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '波纳佩岛',
         tagline: '微生物王国',
         image: 'assets/images/pohnpei.jpg',
-        price: '¥2,980',
+        price: getSpotBasePriceText(5, '¥2,980'),
         rating: '4.5',
         difficulty: '★'
     },
@@ -222,7 +214,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '布纳肯',
         tagline: '海墙与海龟的呼吸线',
         image: 'assets/images/timor.jpg',
-        price: '¥3,680',
+        price: getSpotBasePriceText(6, '¥3,680'),
         rating: '4.7',
         difficulty: '★★'
     },
@@ -231,7 +223,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '科莫多',
         tagline: '巨龙与大鱼的故事',
         image: 'assets/images/komodo.jpg',
-        price: '¥3,880',
+        price: getSpotBasePriceText(7, '¥3,880'),
         rating: '4.8',
         difficulty: '★★'
     },
@@ -240,7 +232,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '图阿莫图',
         tagline: '南太平洋的明珠',
         image: 'assets/images/tuamotu.jpg',
-        price: '¥4,180',
+        price: getSpotBasePriceText(8, '¥4,180'),
         rating: '4.6',
         difficulty: '★★'
     },
@@ -249,7 +241,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '马布岛',
         tagline: '从码头慢慢走进玻璃海',
         image: 'assets/images/mabul.jpg',
-        price: '¥3,580',
+        price: getSpotBasePriceText(9, '¥3,580'),
         rating: '4.8',
         difficulty: '★'
     },
@@ -258,7 +250,7 @@ const divingSpotsData = convertSpotCardPrices([
         name: '马尔代夫船宿',
         tagline: '把好几片蓝，安静地收进同一段船宿里',
         image: 'assets/images/maldives-liveaboard.jpg',
-        price: '¥6,880',
+        price: getSpotBasePriceText(10, '¥6,880'),
         rating: '4.9',
         difficulty: '★★'
     }
