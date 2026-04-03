@@ -1,12 +1,16 @@
-/* ============================================
+﻿/* ============================================
    Detail Page Logic - detail.js
    ============================================
-   ?????
-   1. ???????Hero?????????????????????????footer ??????
-   2. ?????????????????????? detail ???????????
-   3. ??????? -> ???? -> ???? -> ????? -> ???????????
+   职责：
+   1. 驱动详情页 Hero、套餐、评论、地图、推荐与反馈层的整体交互。
+   2. 管理海域数据渲染、价格展示、详情页内切换和套餐确认流程。
+   3. 把“进入一片海”这件事收成一套完整的页面体验。
+   阅读顺序：
+   1. 价格与文本工具
+   2. 海域数据
+   3. `DetailPage` 类
+   4. 页面初始化与跨页联动
 */
-
 // 汇率与展示倍率：统一控制详情页里所有价格从基础值到最终显示值的换算规则。
 // 当前基准按“10000 人民币 ≈ 1451 美元”统一，同时保留盐憩套餐展示用的价格层级倍率。
 const USD_PER_CNY = 0.1451;
@@ -4799,8 +4803,6 @@ class DetailPage {
         }
 
         const booking = this.tripStore.upsertConfirmedBooking(this.buildConfirmedBooking(pkg));
-        console.log('confirmed booking saved:', booking);
-        console.log('all confirmed bookings:', this.tripStore.getConfirmedBookings());
         this.bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
         this.showBookingConfirmation(booking);
         this.closeBookingModal();

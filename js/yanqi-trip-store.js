@@ -1,12 +1,16 @@
-/* ============================================
+﻿/* ============================================
    Shared Trip Store - yanqi-trip-store.js
    ============================================
-   ?????
-   1. ?? detail ?? trip ????????????? Planner ?????????
-   2. ?????????????????????????
-   3. ????storage key -> ???? -> ???? -> upsert / remove??????
+   职责：
+   1. 统一管理 trip 页与 detail 页共享的本地存储数据。
+   2. 标准化 Planner Desk 草稿和已确认套餐的数据结构。
+   3. 提供读取、写入、更新、删除等稳定接口，避免多页面各写一套存储逻辑。
+   阅读顺序：
+   1. 存储 key 与基础工具
+   2. 草稿标准化
+   3. 套餐标准化
+   4. 对外导出接口
 */
-
 (function attachYanqiTripStore(window) {
     const STORAGE_KEYS = Object.freeze({
         plannerDraft: 'YANQI_PLANNER_DRAFT',
@@ -94,7 +98,7 @@
             return true;
         }
 
-        const markers = ['鍚', '杩', '涓', '灏', '绋', '鐨', '鏃', '鍐', '鎶', '琛', '闂', '璁', '璇', '钀', '鑺'];
+        const markers = ['\u935a', '\u6769', '\u6d93', '\u704f', '\u7ecb', '\u9428', '\u93c3', '\u9350', '\u93b6', '\u741b', '\u95c2', '\u7481', '\u7487', '\u9480', '\u947a'];
         const hitCount = markers.reduce((count, marker) => count + (safeText.includes(marker) ? 1 : 0), 0);
         return hitCount >= 2;
     }

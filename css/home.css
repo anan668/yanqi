@@ -1,14 +1,18 @@
-/* ============================================
+﻿/* ============================================
    Home Page Styles - home.css
    ============================================
-   ?????
-   1. ???? Hero??????????????Dive Match??????????????????
-   2. ?????????? reveal?????????????????????????
-   3. ????Hero -> ???? -> ????? -> Dive Match -> ?? -> ?? -> ??????????
+   作用：
+   1. 负责首页 Hero、热门潜点、目的地展台、Dive Match、故事区与页脚的完整视觉风格。
+   2. 把首页维持在“海面入口”这层较浅、较亮、较开放的海域气质里。
+   3. 用留白、雾感、舞台化布局和 reveal 节奏建立首页的吸引力。
+   阅读顺序：
+   1. Hero
+   2. 热门潜点
+   3. 目的地展台与 Dive Match
+   4. 故事区、页脚与响应式
 */
 
-/* 中文说明：该文件负责首页所有视觉样式，包括英雄区、热门潜点、精选目的地、故事区与页脚?*/
-/* 阅读提示：后续按“Hero -> 热门潜点 -> 精选目的地 -> 盐憩故事 -> 页脚与响应式”顺序组织?*/
+/* 文件导读：首页样式的核心不是“信息排满”，而是先建立入口感，再把用户缓慢带向更深的模块。 */
 /* .home-page 的主要视觉与布局效果 */
 .home-page {
     padding-top: 70px;
@@ -20,21 +24,21 @@
    Hero Section
    ============================================ */
 
-/* 控制首页 Hero 区的背景层次、留白和整体舞台?*/
+/* 控制首页 Hero 区的背景层次、留白和整体舞台。 */
 .hero-section {
     background:
         radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 36%),
         linear-gradient(180deg, #eff9ff 0%, #cceafb 34%, #92c7e3 72%, #6ea9cb 100%);
     padding: calc(var(--spacing-2xl) + 12px) var(--spacing-lg) calc(var(--spacing-2xl) + 20px);
-    /* 椤堕儴鍜屽簳閮ㄥ湪鍏ㄧ珯澶ч棿璺濆熀纭€涓婂啀鍔犱竴鐐癸紝
-       是为了让首页 Hero 像“海面入口”一样更开阔，不会贴着导航或下一段内容?*/
+    /* 顶部和底部在全站大间距基础上再加一点，
+       是为了让首页 Hero 像“海面入口”一样更开阔，不会贴着导航或下一段内容。 */
     text-align: center;
     color: #153955;
     position: relative;
     overflow: hidden;
 }
 
-/* .hero-section::before 的前置装饰样?*/
+/* .hero-section::before：补一层顶部水光和雾感，让 Hero 更像海面入口。 */
 .hero-section::before {
     content: '';
     position: absolute;
@@ -48,7 +52,7 @@
     pointer-events: none;
 }
 
-/* .hero-section::after 的后置装饰样?*/
+/* .hero-section::after：在底部接一层雾化过渡，帮助 Hero 自然衔接下个区块。 */
 .hero-section::after {
     content: "";
     position: absolute;
@@ -74,12 +78,12 @@
 
 /* 定义 slideDown 动画的关键帧 */
 @keyframes slideDown {
-/* 控制动画?from 阶段的状?*/
+/* slideDown 在 from：从轻微上浮和透明状态开始进入。 */
     from {
         opacity: 0;
         transform: translateY(-30px);
     }
-/* 控制动画?to 阶段的状?*/
+/* slideDown 在 to：回到稳定位置，完成首屏显现。 */
     to {
         opacity: 1;
         transform: translateY(0);
@@ -111,7 +115,8 @@
 /* 设置今日海域卡片的玻璃外观、边框和漂浮质感 */
 .today-sea-card {
     width: min(100%, 760px);
-    /* 卡片理想宽度?760px，但屏幕比这更窄时直接退?100%?       这样既不会在桌面端太散，也能在移动端自然收进版心?*/
+    /* 卡片理想宽度是 760px，但屏幕比这更窄时直接退到 100%。
+       这样既不会在桌面端太散，也能在移动端自然收进版心。 */
     margin: 0 auto;
     padding: 24px 30px 20px;
     text-align: left;
@@ -124,7 +129,7 @@
         0 22px 44px rgba(14, 60, 94, 0.16),
         inset 0 1px 0 rgba(255, 255, 255, 0.34);
     backdrop-filter: blur(22px) saturate(140%);
-    /* 背后海面被轻柔模糊后，今日海域卡更像浮在水上的玻璃片，而不是一块实心白卡?*/
+    /* 背后海面被轻柔模糊后，今日海域卡更像浮在水上的玻璃片，而不是一块实心白卡。 */
     -webkit-backdrop-filter: blur(22px) saturate(140%);
     animation: sea-card-float 1s ease-out;
 }
@@ -188,7 +193,7 @@
         background-color 260ms ease;
 }
 
-/* .today-sea-spot-link::before 的前置装饰样?*/
+/* .today-sea-spot-link::before：给卡片补一束斜向扫过的轻高光。 */
 .today-sea-spot-link::before {
     content: "";
     position: absolute;
@@ -202,9 +207,9 @@
     pointer-events: none;
 }
 
-/* .today-sea-spot-link::after 的后置装饰样?*/
+/* .today-sea-spot-link::after：右上角的轻量动作提示，提醒用户可以继续进入详情。 */
 .today-sea-spot-link::after {
-    content: "鏌ョ湅娴峰煙";
+    content: "查看海域";
     position: absolute;
     right: 18px;
     top: 18px;
@@ -226,13 +231,13 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
-/* .today-sea-spot-link:hover::before 的前置装饰样?*/
+/* .today-sea-spot-link:hover::before：hover 时让高光更明显地扫过卡面。 */
 .today-sea-spot-link:hover::before {
     opacity: 0.34;
     transform: translateX(18%) rotate(10deg);
 }
 
-/* .today-sea-spot-link:hover::after 的后置装饰样?*/
+/* .today-sea-spot-link:hover::after：hover 时轻微位移右上角提示，增加流动感。 */
 .today-sea-spot-link:hover::after {
     transform: translateX(4px);
     color: rgba(20, 63, 91, 0.92);
@@ -335,12 +340,12 @@
 
 /* 定义 sea-card-float 动画的关键帧 */
 @keyframes sea-card-float {
-/* 控制动画?from 阶段的状?*/
+/* sea-card-float 在 from：从轻微下沉开始进入。 */
     from {
         opacity: 0;
         transform: translateY(18px);
     }
-/* 控制动画?to 阶段的状?*/
+/* sea-card-float 在 to：回到稳定位置，完成今日海域卡显现。 */
     to {
         opacity: 1;
         transform: translateY(0);
@@ -351,7 +356,7 @@
    Hero Immersion Upgrade
    ============================================ */
 
-/* 控制首页 Hero 区的背景层次、留白和整体舞台?*/
+/* Hero 沉浸版舞台：把首页首屏升级成更完整的海面入口。 */
 .hero-section {
     min-height: clamp(528px, 68vh, 720px);
     display: flex;
@@ -365,7 +370,7 @@
     transition: filter 540ms ease, transform 680ms cubic-bezier(0.18, 0.78, 0.22, 1);
 }
 
-/* .hero-section::before 的前置装饰样?*/
+/* .hero-section::before：沉浸版 Hero 的上层雾光，负责补足浅层水光。 */
 .hero-section::before {
     background:
         radial-gradient(circle at 50% 2%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 32%),
@@ -376,13 +381,13 @@
     z-index: 0;
 }
 
-/* .home-page.hero-awakened .hero-section::before 的前置装饰样?*/
+/* .home-page.hero-awakened .hero-section::before：首屏唤醒后把雾光真正点亮。 */
 .home-page.hero-awakened .hero-section::before {
     opacity: 1;
     filter: blur(0);
 }
 
-/* .hero-section::after 的后置装饰样?*/
+/* .hero-section::after：沉浸版 Hero 的底部海雾衔接层。 */
 .hero-section::after {
     bottom: -66px;
     height: 156px;
@@ -517,7 +522,7 @@
 }
 
 
-/* ????????????????????? */
+/* Hero 首屏标题、副文案和今日海域卡片的统一入场前状态。 */
 .hero-title,
 .hero-subtitle,
 .today-sea-card {
@@ -530,7 +535,7 @@
         filter 1.05s ease;
 }
 
-/* ?????????????????? */
+/* Hero 唤醒后，让主标题先一步显现。 */
 .home-page.hero-awakened .hero-title {
     opacity: 1;
     filter: blur(0);
@@ -538,7 +543,7 @@
     transition-delay: 340ms;
 }
 
-/* ?????????????????? */
+/* Hero 唤醒后，让副标题跟着变清晰。 */
 .home-page.hero-awakened .hero-subtitle {
     opacity: 1;
     filter: blur(0);
@@ -546,7 +551,7 @@
     transition-delay: 560ms;
 }
 
-/* ????????????????????? */
+/* Hero 唤醒后，最后再托起今日海域卡片，形成更完整的首屏节奏。 */
 .home-page.hero-awakened .today-sea-card {
     opacity: 1;
     filter: blur(0);
@@ -555,7 +560,7 @@
     animation: hero-card-breathe 8.8s ease-in-out 2.3s infinite;
 }
 
-/* ?????????????????? */
+/* Hero 主标题：控制宽度、亮度和阴影层次。 */
 .hero-title {
     max-width: 760px;
     margin-bottom: 18px;
@@ -565,14 +570,14 @@
         0 18px 42px rgba(4, 21, 34, 0.22);
 }
 
-/* ?????????????????? */
+/* Hero 副标题：控制阅读宽度和更柔和的浅海色。 */
 .hero-subtitle {
     max-width: 640px;
     margin-bottom: 34px;
     color: rgba(220, 237, 247, 0.82);
 }
 
-/* ????????????????????? */
+/* 今日海域主卡：把首页推荐海域做成一张漂浮玻璃卡。 */
 .today-sea-card {
     position: relative;
     width: min(100%, 860px);
@@ -592,7 +597,7 @@
     overflow: hidden;
 }
 
-/* ? Hero ???????????????????? */
+/* Hero 热门潜点舞台外壳：给滚动卡片区一层独立的观察窗。 */
 .hero-hotspots-shell {
     width: min(100%, 1380px);
     max-width: none;
@@ -602,7 +607,7 @@
     isolation: isolate;
 }
 
-/* ?? Hero ????????????? */
+/* Hero 热门潜点标题区的默认隐藏状态。 */
 .hero-hotspots-head {
     position: relative;
     z-index: 1;
@@ -621,7 +626,7 @@
         filter 0.84s ease;
 }
 
-/* Hero ???????????????? */
+/* Hero 唤醒后，让热门潜点标题区进入可见状态。 */
 .home-page.hero-awakened .hero-hotspots-head {
     opacity: 1;
     filter: blur(0);
@@ -629,7 +634,7 @@
     transition-delay: 980ms;
 }
 
-/* ?? Hero ?????????????? */
+/* Hero 热门潜点英文 kicker：建立轻量档案感。 */
 .hero-hotspots-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -638,7 +643,7 @@
     color: rgba(188, 222, 238, 0.58);
 }
 
-/* ?? Hero ???????????????? */
+/* Hero 热门潜点标题文案容器：控制两层文案的对齐和宽度。 */
 .hero-hotspots-copy {
     display: grid;
     gap: 10px;
@@ -646,7 +651,7 @@
     max-width: 620px;
 }
 
-/* ?? Hero ????????????? */
+/* Hero 热门潜点主标题：作为这块观察窗的视觉锚点。 */
 .hero-hotspots-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -657,7 +662,7 @@
     text-shadow: 0 10px 28px rgba(4, 22, 34, 0.22);
 }
 
-/* ?? Hero ??????????????? */
+/* Hero 热门潜点副文案：负责补足阅读节奏和场景气氛。 */
 .hero-hotspots-subtitle {
     margin: 0;
     max-width: 560px;
@@ -667,7 +672,7 @@
     margin-inline: auto;
 }
 
-/* ? Hero ???????????????????????? */
+/* Hero 竹简滚动容器：承接热门海域卡片和左右流向按钮。 */
 .hero-bamboo-scroll-container {
     position: relative;
     z-index: 1;
@@ -698,7 +703,7 @@
     pointer-events: none;
 }
 
-/* Hero ????????????????? */
+/* Hero 唤醒后，让滚动舞台整体慢慢浮现。 */
 .home-page.hero-awakened .hero-bamboo-scroll-container {
     opacity: 1;
     filter: blur(0);
@@ -707,7 +712,7 @@
 }
 
 
-/* ???????????????????????????????????? */
+/* 今日海域卡片的深海玻璃版本：统一 Hero 内的视觉厚度。 */
 .today-sea-card {
     position: relative;
     width: min(100%, 860px);
@@ -727,7 +732,7 @@
     overflow: hidden;
 }
 
-/* ? Hero ???????????????????????????? */
+/* Hero 热门潜点舞台外壳：限制宽度并给滚动区留出缓冲。 */
 .hero-hotspots-shell {
     width: min(100%, 1380px);
     max-width: none;
@@ -737,7 +742,7 @@
     isolation: isolate;
 }
 
-/* ???????????????????????????????? */
+/* Hero 热门潜点标题区：默认先模糊、下沉，等待首屏唤醒。 */
 .hero-hotspots-head {
     position: relative;
     z-index: 1;
@@ -756,7 +761,7 @@
         filter 0.84s ease;
 }
 
-/* ??????????????????????????? */
+/* Hero 唤醒后，让标题区恢复清晰和稳定位置。 */
 .home-page.hero-awakened .hero-hotspots-head {
     opacity: 1;
     filter: blur(0);
@@ -764,7 +769,7 @@
     transition-delay: 980ms;
 }
 
-/* ????????????????? Journal ??? */
+/* Hero 热门潜点英文小标：维持轻量的 Journal 感。 */
 .hero-hotspots-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -773,7 +778,7 @@
     color: rgba(188, 222, 238, 0.58);
 }
 
-/* ????????????????????????????? */
+/* Hero 热门潜点标题文案容器：让标题和副文案保持居中节奏。 */
 .hero-hotspots-copy {
     display: grid;
     gap: 10px;
@@ -781,7 +786,7 @@
     max-width: 620px;
 }
 
-/* ??????????? serif ??????????????? */
+/* Hero 热门潜点主标题：用 serif 字体强化海域观察台的仪式感。 */
 .hero-hotspots-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -792,7 +797,7 @@
     text-shadow: 0 10px 28px rgba(4, 22, 34, 0.22);
 }
 
-/* ????????????????????????? */
+/* Hero 热门潜点副文案：控制阅读宽度和更柔和的气氛色。 */
 .hero-hotspots-subtitle {
     margin: 0;
     max-width: 560px;
@@ -802,7 +807,7 @@
     margin-inline: auto;
 }
 
-/* ???????????????????????????? */
+/* Hero 竹简滚动容器：作为卡片轨道的统一舞台。 */
 .hero-bamboo-scroll-container {
     position: relative;
     z-index: 1;
@@ -833,27 +838,27 @@
     pointer-events: none;
 }
 
-/* ????????????????????????????????? */
+/* Hero 唤醒后，让竹简滚动舞台完整显现。 */
 .home-page.hero-awakened .hero-bamboo-scroll-container {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
     transition-delay: 1120ms;
 }
-/* ?Hero 内的卡片轨道留更舒服的呼吸空?*/
+/* Hero 内的卡片轨道留更舒服的呼吸空间。 */
 .hero-bamboo-cards-wrapper {
     padding: 14px 0 16px;
     position: relative;
     isolation: isolate;
 }
 
-/* 鍘嬩綆杞ㄩ亾鍐呰竟璺濓紝閬垮厤 Hero 鍐呭崱鐗囨樉寰楀お鏉炬暎 */
+/* 压低轨道内边距，避免 Hero 内卡片显得太松散 */
 .hero-hotspots-shell .bamboo-cards-content {
     padding: 8px 2px;
     gap: 14px;
 }
 
-/* Hero 内的热门卡片改成更深海、更柔和的玻璃卡，不再像普通列表卡?*/
+/* Hero 内的热门卡片改成更深海、更柔和的玻璃卡，不再像普通列表卡。 */
 .hero-hotspots-shell .bamboo-card {
     --card-scale: 0.986;
     flex: 0 0 336px;
@@ -895,7 +900,7 @@
     filter: blur(0) saturate(1.03) brightness(1);
 }
 
-/* 调整 Hero 内卡片图片比例，让海面与潜点画面更舒?*/
+/* 调整 Hero 内卡片图片比例，让海面与潜点画面更舒展。 */
 .hero-hotspots-shell .bamboo-card-image {
     height: 210px;
 }
@@ -914,20 +919,20 @@
     -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
-/* Hero 内卡片标题用更亮的冷白蓝，强化海域名称识?*/
+/* Hero 内卡片标题用更亮的冷白蓝，强化海域名称识别。 */
 .hero-hotspots-shell .bamboo-card-title {
     color: #f2fbff;
     font-size: 1.08rem;
     letter-spacing: 0.03em;
 }
 
-/* Hero 内卡片副文案压成更轻、更安静的辅助信?*/
+/* Hero 内卡片副文案压成更轻、更安静的辅助信息。 */
 .hero-hotspots-shell .bamboo-card-tagline {
     color: rgba(208, 230, 240, 0.76);
     line-height: 1.6;
 }
 
-/* Hero 内价格和评分区域也切到更冷静的浅海色?*/
+/* Hero 内价格和评分区域也切到更冷静的浅海色。 */
 .hero-hotspots-shell .bamboo-card-footer {
     border-top-color: rgba(214, 234, 244, 0.1);
 }
@@ -940,7 +945,7 @@
     color: rgba(255, 226, 150, 0.92);
 }
 
-/* Hero 内底部按钮最后再出现，形成更完整的首屏节?*/
+/* Hero 内底部按钮最后再出现，形成更完整的首屏节奏。 */
 .hero-hotspots-actions {
     position: relative;
     z-index: 1;
@@ -997,7 +1002,7 @@
         0 14px 26px rgba(5, 18, 27, 0.12);
 }
 
-/* .today-sea-card::before 的前置装饰样?*/
+/* .today-sea-card::before：给今日海域卡补一层浅水高光。 */
 .today-sea-card::before {
     content: "";
     position: absolute;
@@ -1049,7 +1054,8 @@
         hero-hotspots-breathe 9.6s ease-in-out 1.5s infinite alternate;
 }
 
-/* 大屏桌面端放?Hero 内的今日海域舞台?   只在宽屏下扩展可视窗口，减少左右空位浪费，让轨道能多露出相邻海域内容?*/
+/* 大屏桌面端放宽 Hero 内的今日海域舞台。
+   只在宽屏下扩展可视窗口，减少左右空位浪费，让轨道能多露出相邻海域内容。 */
 @media (min-width: 1600px) {
     .hero-content {
         max-width: 1520px;
@@ -1338,14 +1344,14 @@
         0 18px 30px rgba(5, 18, 27, 0.18);
 }
 
-/* .today-sea-spot-link::before 的前置装饰样?*/
+/* .today-sea-spot-link::before：深色版本里继续保留卡片表面的扫光层。 */
 .today-sea-spot-link::before {
     inset: -40% auto auto -10%;
     width: 46%;
     opacity: 0.18;
 }
 
-/* .today-sea-spot-link::after 的后置装饰样?*/
+/* .today-sea-spot-link::after：深色版本里弱化动作提示的颜色。 */
 .today-sea-spot-link::after {
     color: rgba(203, 226, 239, 0.66);
 }
@@ -1363,13 +1369,13 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
-/* .today-sea-spot-link:hover::before 的前置装饰样?*/
+/* .today-sea-spot-link:hover::before：hover 时继续增强扫光存在感。 */
 .today-sea-spot-link:hover::before {
     opacity: 0.34;
     transform: translateX(18%) rotate(8deg);
 }
 
-/* .today-sea-spot-link:hover::after 的后置装饰样?*/
+/* .today-sea-spot-link:hover::after：hover 时同步提亮动作提示。 */
 .today-sea-spot-link:hover::after {
     transform: translateX(4px);
     color: rgba(240, 248, 253, 0.92);
@@ -1483,11 +1489,11 @@
 
 /* 定义 hero-glow-drift 动画的关键帧 */
 @keyframes hero-glow-drift {
-/* 控制动画?0% 阶段的状?*/
+/* hero-glow-drift 在 0%：光晕停在更靠上的初始位置。 */
     0% {
         transform: translate3d(-50%, -12%, 0) scale(0.92);
     }
-/* 控制动画?100% 阶段的状?*/
+/* hero-glow-drift 在 100%：轻微下移并放大，让海面呼吸感更明显。 */
     100% {
         transform: translate3d(-48%, -8%, 0) scale(1.02);
     }
@@ -1495,15 +1501,15 @@
 
 /* 定义 hero-wave-sway 动画的关键帧 */
 @keyframes hero-wave-sway {
-/* 控制动画?0% 阶段的状?*/
+/* hero-wave-sway 在 0%：海浪纹理回到基准位置。 */
     0% {
         transform: translate3d(-1.2%, 0, 0) scale(1);
     }
-/* 控制动画?50% 阶段的状?*/
+/* hero-wave-sway 在 50%：向另一侧轻推，让波纹像缓慢摆动。 */
     50% {
         transform: translate3d(1.1%, -1.2%, 0) scale(1.04);
     }
-/* 控制动画?100% 阶段的状?*/
+/* hero-wave-sway 在 100%：回到另一端的稳定点，形成完整循环。 */
     100% {
         transform: translate3d(-0.6%, 0.6%, 0) scale(1.01);
     }
@@ -1511,15 +1517,15 @@
 
 /* 定义 hero-plankton-float 动画的关键帧 */
 @keyframes hero-plankton-float {
-/* 控制动画?0% 阶段的状?*/
+/* hero-plankton-float 在 0%：浮游粒子从较低位置开始漂起。 */
     0% {
         transform: translate3d(0, 18px, 0) scale(0.92);
     }
-/* 控制动画?50% 阶段的状?*/
+/* hero-plankton-float 在 50%：中段略微抬高并放大，形成漂浮感。 */
     50% {
         transform: translate3d(10px, -20px, 0) scale(1.08);
     }
-/* 控制动画?100% 阶段的状?*/
+/* hero-plankton-float 在 100%：沿对角线继续上浮后轻轻收回。 */
     100% {
         transform: translate3d(-8px, -52px, 0) scale(0.94);
     }
@@ -1527,15 +1533,15 @@
 
 /* 定义 hero-card-breathe 动画的关键帧 */
 @keyframes hero-card-breathe {
-/* 控制动画?0% 阶段的状?*/
+/* hero-card-breathe 在 0%：卡片回到基准位置。 */
     0% {
         transform: translate3d(0, 0, 0);
     }
-/* 控制动画?50% 阶段的状?*/
+/* hero-card-breathe 在 50%：轻微上浮，像被海流托起。 */
     50% {
         transform: translate3d(0, -6px, 0);
     }
-/* 控制动画?100% 阶段的状?*/
+/* hero-card-breathe 在 100%：缓慢回落，保持呼吸式节奏。 */
     100% {
         transform: translate3d(0, 2px, 0);
     }
@@ -1551,7 +1557,7 @@
     overflow: hidden;
 }
 
-/* .trip-planner-section::after 的后置装饰样?*/
+/* .trip-planner-section::after：给行程入口区补一层底部雾化收束。 */
 .trip-planner-section::after {
     content: "";
     position: absolute;
@@ -1705,7 +1711,7 @@
     white-space: nowrap;
 }
 
-/* .search-btn::after 的后置装饰样?*/
+/* .search-btn::after：给按钮补一层外缘淡雾高光。 */
 .search-btn::after {
     content: "";
     position: absolute;
@@ -1827,7 +1833,7 @@
         linear-gradient(180deg, #d4efff 0%, #90c7e6 100%);
 }
 
-/* .bamboo-scroll-section::before 的前置装饰样?*/
+/* .bamboo-scroll-section::before：在推荐区顶部加一层浅色海雾。 */
 .bamboo-scroll-section::before {
     content: "";
     position: absolute;
@@ -1842,7 +1848,7 @@
     z-index: 0;
 }
 
-/* .bamboo-scroll-section::after 的后置装饰样?*/
+/* .bamboo-scroll-section::after：在推荐区底部补一层更深的过渡。 */
 .bamboo-scroll-section::after {
     content: "";
     position: absolute;
@@ -1934,7 +1940,7 @@
     box-shadow: var(--shadow-lg);
 }
 
-/* .bamboo-card.active 激活状态下的样?*/
+/* .bamboo-card.active：当前激活卡片用更亮的描边和阴影提示。 */
 .bamboo-card.active {
     --card-scale: 1.04;
     opacity: 1;
@@ -1952,12 +1958,12 @@
 
 /* 定义 bamboo-card-reveal 动画的关键帧 */
 @keyframes bamboo-card-reveal {
-/* 控制动画?0% 阶段的状?*/
+/* bamboo-card-reveal 在 0%：卡片从轻微下沉和模糊状态开始进入。 */
     0% {
         opacity: 0;
         transform: translate3d(0, 18px, 0) scale(0.975);
     }
-/* 控制动画?100% 阶段的状?*/
+/* bamboo-card-reveal 在 100%：卡片回到稳定位置并保留轻微漂浮变量。 */
     100% {
         opacity: 0.94;
         transform: translate3d(calc(var(--elastic-x) + var(--wobble-x)), calc(var(--lift-y) + var(--wobble-y)), 0) rotate(var(--wobble-r)) scale(var(--card-scale));
@@ -2098,7 +2104,7 @@
     transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease;
 }
 
-/* 提供按钮外圈的淡雾边缘和海面反射感，避免按钮看起来过?*/
+/* 提供按钮外圈的淡雾边缘和海面反射感，避免按钮看起来过硬。 */
 .scroll-arrow .button-base {
     position: absolute;
     z-index: 0;
@@ -2116,7 +2122,7 @@
     transition: opacity 320ms ease, transform 320ms ease, box-shadow 320ms ease;
 }
 
-/* 给玻璃按钮加一层很淡的海面扫光，悬停时会更明显一?*/
+/* 给玻璃按钮加一层很淡的海面扫光，悬停时会更明显一些。 */
 .scroll-arrow .button-top::after {
     content: "";
     position: absolute;
@@ -2130,7 +2136,7 @@
     animation: sea-arrow-sheen 9.5s ease-in-out infinite;
 }
 
-/* 使用线?SVG 箭头代替廉价文本箭头，保持按钮中心留?*/
+/* 使用线性 SVG 箭头代替廉价文本箭头，保持按钮中心留白。 */
 .scroll-arrow-icon {
     width: 22px;
     height: 22px;
@@ -2145,7 +2151,7 @@
     transition: transform 320ms ease, opacity 320ms ease;
 }
 
-/* Ұťôĺ΢ */
+/* 右侧箭头：给左右按钮错开一点呼吸节奏。 */
 .scroll-arrow.right {
     animation-delay: -2.8s;
 }
@@ -2199,19 +2205,19 @@
         0 10px 18px rgba(8, 31, 49, 0.2);
 }
 
-/* 鐐瑰嚮鏃跺悓姝ユ敹鏉熼浘闈㈤珮鍏夛紝閬垮厤鏈烘寮忓己鍘嬫劅 */
+/* 点击时同步收束雾面高光，避免机械式强压感 */
 .scroll-arrow:active .button-bottom {
     opacity: 0.72;
     transform: scale(0.98);
 }
 
-/* 点击时让外层发光略微回收，保持克制反?*/
+/* 点击时让外层发光略微回收，保持克制反馈。 */
 .scroll-arrow:active .button-base {
     opacity: 0.58;
     transform: scale(0.975);
 }
 
-/* 绂佺敤鏃朵繚鐣欑幓鐠冭疆寤擄紝浣嗘槑鏄鹃檷浣庡瓨鍦ㄦ劅鍜屽彲鐐瑰嚮鏆楃ず */
+/* 禁用时保留玻璃轮廓，但明显降低存在感和可点击暗示 */
 .scroll-arrow.disabled {
     opacity: 0.42;
     cursor: not-allowed;
@@ -2219,7 +2225,7 @@
     transform: none;
 }
 
-/* 禁用时取消主要发光和边缘高亮，只保留安静的轮?*/
+/* 禁用时取消主要发光和边缘高亮，只保留安静的轮廓。 */
 .scroll-arrow.disabled .button-top,
 .scroll-arrow:disabled .button-top {
     border-color: rgba(192, 219, 232, 0.12);
@@ -2242,7 +2248,7 @@
     opacity: 0.5;
 }
 
-/* 定义左右箭头在海流里轻微漂浮的常驻呼吸动?*/
+/* 定义左右箭头在海流里轻微漂浮的常驻呼吸动画。 */
 @keyframes sea-arrow-float {
     0%,
     100% {
@@ -2283,7 +2289,7 @@
         linear-gradient(180deg, #1c5f88 0%, #144b71 42%, #0e3654 100%);
 }
 
-/* .featured-destinations::before 的前置装饰样?*/
+/* .featured-destinations::before：用浅色海雾把这一层从上方轻轻托起。 */
 .featured-destinations::before {
     content: "";
     position: absolute;
@@ -2295,7 +2301,7 @@
     z-index: 0;
 }
 
-/* .featured-destinations::after 的后置装饰样?*/
+/* .featured-destinations::after：在底部加深海流渐变，给后续区块做衔接。 */
 .featured-destinations::after {
     content: "";
     position: absolute;
@@ -2307,7 +2313,8 @@
     z-index: 0;
 }
 
-/* 精选目的地在滚动过程中会把“舞台建立进度”和“左侧收束进度”写?CSS 变量?   这样?Hero 进入这层时，不需要靠硬切类名，也能得到更像海流缓慢推进的连续过渡?*/
+/* 精选目的地在滚动过程中会把“舞台建立进度”和“左侧收束进度”写进 CSS 变量。
+   这样 Hero 进入这层时，不需要靠硬切类名，也能得到更像海流缓慢推进的连续过渡。 */
 .featured-destinations {
     --curated-stage-progress: 0;
     --curated-left-progress: 0;
@@ -2340,14 +2347,14 @@
         filter 1.22s ease;
 }
 
-/* .featured-destinations.is-visible .curated-reveal 显示状态下的样?*/
+/* .featured-destinations.is-visible .curated-reveal：区块进入视口后恢复清晰。 */
 .featured-destinations.is-visible .curated-reveal {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
 }
 
-/* .featured-destinations.is-visible .curated-waters-stage 显示状态下的样?*/
+/* .featured-destinations.is-visible .curated-waters-stage：让主舞台稍晚一步显现。 */
 .featured-destinations.is-visible .curated-waters-stage {
     transition-delay: 180ms;
 }
@@ -2368,7 +2375,7 @@
         opacity 0.92s ease;
 }
 
-/* .curated-waters-intro::after 的后置装饰样?*/
+/* .curated-waters-intro::after：在引导文案下方补一条收束细线。 */
 .curated-waters-intro::after {
     content: "";
     position: absolute;
@@ -2476,7 +2483,7 @@
     grid-column: 2;
 }
 
-/* .curated-waters-stage::before 的前置装饰样?*/
+/* .curated-waters-stage::before：给目的地舞台表面加一层柔和高光。 */
 .curated-waters-stage::before {
     content: "";
     position: absolute;
@@ -2490,7 +2497,7 @@
     z-index: 0;
 }
 
-/* .curated-waters-stage::after 的后置装饰样?*/
+/* .curated-waters-stage::after：用纵向细光线区分左右层次。 */
 .curated-waters-stage::after {
     content: "";
     position: absolute;
@@ -2548,7 +2555,7 @@
     transform: translate3d(-54px, 0, 0) scale(0.988);
 }
 
-/* .curated-main-surface.is-active 激活状态下的样?*/
+/* .curated-main-surface.is-active：当前激活主卡恢复清晰并回到稳定位置。 */
 .curated-main-surface.is-active {
     opacity: 1;
     filter: blur(0);
@@ -2586,7 +2593,7 @@
         0 18px 36px rgba(3, 15, 24, 0.2);
 }
 
-/* .curated-main-media::before 的前置装饰样?*/
+/* .curated-main-media::before：压一层顶部高光，增加海面反射感。 */
 .curated-main-media::before {
     content: "";
     position: absolute;
@@ -2598,7 +2605,7 @@
     z-index: 2;
 }
 
-/* .curated-main-media::after 的后置装饰样?*/
+/* .curated-main-media::after：补足轻微焦散纹理，让海水更有流动感。 */
 .curated-main-media::after {
     content: "";
     position: absolute;
@@ -2624,7 +2631,7 @@
     filter: saturate(0.9) contrast(1.02) brightness(0.9);
 }
 
-/* .curated-main-surface.is-active .curated-main-image 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-image：当前图片回到最清晰的展示状态。 */
 .curated-main-surface.is-active .curated-main-image {
     transform: scale(1);
     filter: saturate(1) contrast(1.04) brightness(0.96);
@@ -2650,43 +2657,43 @@
         transform 0.58s cubic-bezier(0.2, 0.84, 0.24, 1);
 }
 
-/* .curated-main-surface.is-active .curated-main-copy > * 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-copy > *：当前文案分层浮现。 */
 .curated-main-surface.is-active .curated-main-copy > * {
     opacity: 1;
     transform: translate3d(0, 0, 0);
 }
 
-/* .curated-main-surface.is-active .curated-main-kicker 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-kicker：先出现档案小标。 */
 .curated-main-surface.is-active .curated-main-kicker {
     transition-delay: 80ms;
 }
 
-/* .curated-main-surface.is-active .curated-main-heading 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-heading：随后出现主标题层。 */
 .curated-main-surface.is-active .curated-main-heading {
     transition-delay: 140ms;
 }
 
-/* .curated-main-surface.is-active .curated-main-atmosphere 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-atmosphere：再补足场景气氛描述。 */
 .curated-main-surface.is-active .curated-main-atmosphere {
     transition-delay: 220ms;
 }
 
-/* .curated-main-surface.is-active .curated-main-facts 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-facts：事实信息卡稍后跟进。 */
 .curated-main-surface.is-active .curated-main-facts {
     transition-delay: 290ms;
 }
 
-/* .curated-main-surface.is-active .curated-main-conditions 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-conditions：海况标签随后亮起。 */
 .curated-main-surface.is-active .curated-main-conditions {
     transition-delay: 360ms;
 }
 
-/* .curated-main-surface.is-active .curated-main-worth 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-main-worth：价值说明最后补充。 */
 .curated-main-surface.is-active .curated-main-worth {
     transition-delay: 430ms;
 }
 
-/* .curated-main-surface.is-active .curated-detail-button 激活状态下的样?*/
+/* .curated-main-surface.is-active .curated-detail-button：详情按钮压轴出现。 */
 .curated-main-surface.is-active .curated-detail-button {
     transition-delay: 500ms;
 }
@@ -2892,7 +2899,7 @@
     filter: saturate(0.94) contrast(1.04) brightness(0.88);
 }
 
-/* .curated-main-surface.is-shifted-layout.is-active .curated-main-image 激活状态下的样?*/
+/* .curated-main-surface.is-shifted-layout.is-active .curated-main-image：切到海报式布局后仍保持清晰聚焦。 */
 .curated-main-surface.is-shifted-layout.is-active .curated-main-image {
     transform: scale(1.01);
     filter: saturate(1.02) contrast(1.06) brightness(0.94);
@@ -3015,7 +3022,7 @@
     transform: translate3d(var(--sample-offset-x, 0px), var(--sample-offset-y, 0px), 0) scale(1);
 }
 
-/* .curated-sample-card::before 的前置装饰样?*/
+/* .curated-sample-card::before：样本卡 hover 时扫过的细光带。 */
 .curated-sample-card::before {
     content: "";
     position: absolute;
@@ -3027,7 +3034,7 @@
     pointer-events: none;
 }
 
-/* .curated-sample-card::after 的后置装饰样?*/
+/* .curated-sample-card::after：样本卡底部的潮线强调。 */
 .curated-sample-card::after {
     content: "";
     position: absolute;
@@ -3052,7 +3059,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-/* .curated-sample-card:hover::before 的前置装饰样?*/
+/* .curated-sample-card:hover::before：hover 时让扫光真正滑过卡面。 */
 .curated-sample-card:hover::before {
     opacity: 1;
     transform: translateX(22%) rotate(8deg);
@@ -3063,7 +3070,7 @@
     transform: scale(1.06);
 }
 
-/* .curated-sample-card.is-active 激活状态下的样?*/
+/* .curated-sample-card.is-active：当前样本卡用更亮的边缘和背景强调。 */
 .curated-sample-card.is-active {
     border-color: rgba(237, 248, 255, 0.3);
     background:
@@ -3075,7 +3082,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
-/* .curated-sample-card.is-active::after 的后置装饰样?*/
+/* .curated-sample-card.is-active::after：当前样本卡的底部潮线完全显现。 */
 .curated-sample-card.is-active::after {
     opacity: 1;
     transform: scaleX(1);
@@ -3090,7 +3097,7 @@
     aspect-ratio: 1.08 / 1;
 }
 
-/* .curated-sample-image-wrap::after 的后置装饰样?*/
+/* .curated-sample-image-wrap::after：给样本图片补一层压暗渐变。 */
 .curated-sample-image-wrap::after {
     content: "";
     position: absolute;
@@ -3136,12 +3143,12 @@
 
 /* 定义 curated-main-breathe 动画的关键帧 */
 @keyframes curated-main-breathe {
-/* 控制动画?0%, 100% 阶段的状?*/
+/* curated-main-breathe 在 0% 和 100%：主卡回到基准呼吸状态。 */
     0%,
     100% {
         transform: translate3d(0, 0, 0);
     }
-/* 控制动画?50% 阶段的状?*/
+/* curated-main-breathe 在 50%：主卡轻微上浮并提亮。 */
     50% {
         transform: translate3d(0, -4px, 0);
     }
@@ -3149,13 +3156,13 @@
 
 /* 定义 curated-caustics 动画的关键帧 */
 @keyframes curated-caustics {
-/* 控制动画?0%, 100% 阶段的状?*/
+/* curated-caustics 在 0% 和 100%：焦散纹理回到基准位置。 */
     0%,
     100% {
         transform: translate3d(0, 0, 0) scale(1);
         opacity: 0.28;
     }
-/* 控制动画?50% 阶段的状?*/
+/* curated-caustics 在 50%：焦散纹理轻轻漂移并增强。 */
     50% {
         transform: translate3d(2%, -2%, 0) scale(1.06);
         opacity: 0.44;
@@ -3166,7 +3173,7 @@
    Dive Match
    ============================================ */
 
-/* ?Dive Match 做成比精选目的地更深一层的匹配海域档案?*/
+/* Dive Match：做成比精选目的地更深一层的匹配海域档案。 */
 .dive-match {
     position: relative;
     overflow: hidden;
@@ -3177,7 +3184,7 @@
         linear-gradient(180deg, #10344f 0%, #0b2941 44%, #0a2237 100%);
 }
 
-/* ?Dive Match 顶部一层柔和雾面过渡，让它从精选目的地平滑接进?*/
+/* Dive Match 顶部一层柔和雾面过渡，让它从精选目的地平滑接进来。 */
 .dive-match::before {
     content: "";
     position: absolute;
@@ -3189,7 +3196,7 @@
     z-index: 0;
 }
 
-/* ?Dive Match 底部留一层更深的海流过渡，为后面的盐憩故事衔接深?*/
+/* Dive Match 底部留一层更深的海流过渡，为后面的盐憩故事衔接深度。 */
 .dive-match::after {
     content: "";
     position: absolute;
@@ -3211,7 +3218,7 @@
     gap: 34px;
 }
 
-/* 统一 Dive Match 标题区的显现前状?*/
+/* 统一 Dive Match 标题区的显现前状态。 */
 .dive-match-reveal {
     opacity: 0;
     transform: translate3d(0, 34px, 0);
@@ -3222,7 +3229,7 @@
         filter 0.9s ease;
 }
 
-/* 模块进入视口后，让标题区和舞台一起缓慢浮?*/
+/* 模块进入视口后，让标题区和舞台一起缓慢浮现。 */
 .dive-match.is-visible .dive-match-reveal {
     opacity: 1;
     transform: translate3d(0, 0, 0);
@@ -3243,7 +3250,7 @@
     color: rgba(214, 235, 247, 0.58);
 }
 
-/* 设置模块主标题的字号、留白和深海白文?*/
+/* 设置模块主标题的字号、留白和深海白文字。 */
 .dive-match-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -3252,7 +3259,7 @@
     color: #f5fbff;
 }
 
-/* 设置模块副文案的阅读宽度和更柔和的浅海盐?*/
+/* 设置模块副文案的阅读宽度和更柔和的浅海盐色。 */
 .dive-match-subtitle {
     margin: 18px 0 0;
     max-width: 760px;
@@ -3261,7 +3268,7 @@
     color: rgba(221, 237, 247, 0.8);
 }
 
-/* 让匹配舞台像一块更深层的海域档案台，承载标签和内容?*/
+/* 让匹配舞台像一块更深层的海域档案台，承载标签和内容。 */
 .dive-match-stage {
     position: relative;
     display: grid;
@@ -3295,7 +3302,7 @@
     z-index: 0;
 }
 
-/* 上方分类入口做成漂浮玻璃铭牌带，而不是普?pills */
+/* 上方分类入口做成漂浮玻璃铭牌带，而不是普通 pills。 */
 .dive-match-rail {
     position: relative;
     z-index: 1;
@@ -3304,7 +3311,7 @@
     gap: 12px;
 }
 
-/* 分类铭牌的默认玻璃质?*/
+/* 分类铭牌的默认玻璃质感。 */
 .dive-match-filter {
     all: unset;
     position: relative;
@@ -3341,7 +3348,7 @@
     transform: translate3d(0, 0, 0);
 }
 
-/* 标签分组名用更轻的字重区分层?*/
+/* 标签分组名用更轻的字重区分层次。 */
 .dive-match-filter-group {
     font-size: 0.68rem;
     letter-spacing: 0.18em;
@@ -3366,7 +3373,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
-/* 当前激活分类用更清晰的边缘高光和潮汐线强调，而不是普通选中?*/
+/* 当前激活分类用更清晰的边缘高光和潮汐线强调，而不是普通选中。 */
 .dive-match-filter.is-active {
     border-color: rgba(237, 247, 252, 0.28);
     background:
@@ -3378,7 +3385,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-/* 推荐内容区用绝对叠层承载切换，避免普?tab 切换?*/
+/* 推荐内容区用绝对叠层承载切换，避免普通 tab 切换感。 */
 .dive-match-display {
     position: relative;
     z-index: 1;
@@ -3401,17 +3408,17 @@
         filter 0.72s ease;
 }
 
-/* 更深层分类从更靠下的位置进入，模拟继续下?*/
+/* 更深层分类从更靠下的位置进入，模拟继续下潜。 */
 .dive-match-surface.from-deeper {
     transform: translate3d(0, 34px, 0) scale(0.988);
 }
 
-/* 更浅层分类从更高一点的位置漂入，模拟向上回一?*/
+/* 更浅层分类从更高一点的位置漂入，模拟向上回一层。 */
 .dive-match-surface.from-shallower {
     transform: translate3d(0, -28px, 0) scale(0.988);
 }
 
-/* 当前激活内容层进入稳定状?*/
+/* 当前激活内容层进入稳定状态。 */
 .dive-match-surface.is-active {
     opacity: 1;
     filter: blur(0);
@@ -3432,12 +3439,12 @@
     transform: translate3d(0, 20px, 0) scale(0.982);
 }
 
-/* 内容稳定后做极轻的呼吸浮?*/
+/* 内容稳定后做极轻的呼吸浮动。 */
 .dive-match-surface.is-resting {
     animation: dive-match-surface-breathe 7.4s ease-in-out infinite;
 }
 
-/* 当前分类大卡像一页更深层的海域档?*/
+/* 当前分类大卡像一页更深层的海域档案。 */
 .dive-match-focus-card {
     align-self: start;
     min-height: 100%;
@@ -3454,7 +3461,7 @@
     -webkit-backdrop-filter: blur(18px);
 }
 
-/* 分类分组名和当前所在层?*/
+/* 分类分组名和当前所在层级。 */
 .dive-match-focus-group {
     margin: 0 0 14px;
     font-size: 0.72rem;
@@ -3463,7 +3470,7 @@
     color: rgba(196, 222, 235, 0.56);
 }
 
-/* 标题与层级深度同行显?*/
+/* 标题与层级深度同行显示。 */
 .dive-match-focus-head {
     display: flex;
     align-items: flex-start;
@@ -3481,7 +3488,7 @@
     color: #f6fbff;
 }
 
-/* 当前分类对应的海层深度提?*/
+/* 当前分类对应的海层深度提示。 */
 .dive-match-focus-depth {
     flex-shrink: 0;
     padding: 8px 12px;
@@ -3501,7 +3508,7 @@
     color: rgba(233, 244, 251, 0.88);
 }
 
-/* 匹配建议的主体文?*/
+/* 匹配建议的主体文案。 */
 .dive-match-focus-guidance {
     margin: 0 0 16px;
     font-size: 0.95rem;
@@ -3561,13 +3568,13 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
-/* ǰݲ㼤Ƽһ?*/
+/* 当前激活的推荐卡片依次浮现，像一组被慢慢翻开的海域档案。 */
 .dive-match-surface.is-active .dive-match-card {
     opacity: 1;
     transform: translate3d(0, 0, 0);
 }
 
-/* hover 时轻微上浮、图片微放大，保持安静高?*/
+/* hover 时轻微上浮、图片微放大，保持安静高级。 */
 .dive-match-card:hover {
     transform: translate3d(0, -6px, 0);
     border-color: rgba(240, 248, 253, 0.2);
@@ -3594,19 +3601,19 @@
     filter: saturate(0.95) contrast(1.03) brightness(0.9);
 }
 
-/* 悬停时图片轻微靠?*/
+/* 悬停时图片轻微靠近，增加被托起的感觉。 */
 .dive-match-card:hover .dive-match-card-image {
     transform: scale(1.08);
 }
 
-/* 文案区用玻璃底接住图?*/
+/* 文案区用玻璃底接住图片，避免上下层断开。 */
 .dive-match-card-copy {
     display: grid;
     gap: 10px;
     padding: 18px 18px 20px;
 }
 
-/* 鑻辨枃鍚嶅仛杞讳竴鐐圭殑鍓爣棰?*/
+/* 英文名做轻一点的副标。*/
 .dive-match-card-kicker {
     margin: 0;
     font-size: 0.74rem;
@@ -3615,7 +3622,7 @@
     color: rgba(194, 221, 235, 0.56);
 }
 
-/* 涓枃鐩殑鍦板悕 */
+/* 中文目的地名 */
 .dive-match-card-name {
     margin: 0;
     font-size: 1.08rem;
@@ -3639,7 +3646,7 @@
     gap: 8px;
 }
 
-/* 推荐档案卡标签保持轻盈，不做工具?pills */
+/* 推荐档案卡标签保持轻盈，不做工具化 pills。 */
 .dive-match-card-tag {
     display: inline-flex;
     align-items: center;
@@ -3670,7 +3677,7 @@
     transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
 }
 
-/* hover 时给按钮一丝向上的海流?*/
+/* hover 时给按钮一丝向上的海流。 */
 .dive-match-card-action:hover {
     transform: translate3d(0, -2px, 0);
     border-color: rgba(241, 249, 253, 0.22);
@@ -3693,7 +3700,7 @@
    Why Yanqi
    ============================================ */
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 控制盐憩故事区的品牌叙事排版和卡片层次。 */
 .why-yanqi {
     padding: var(--spacing-2xl) var(--spacing-lg);
     position: relative;
@@ -3705,7 +3712,7 @@
     background-size: 18px 18px, 24px 24px, auto;
 }
 
-/* .why-yanqi::before 的前置装饰样?*/
+/* .why-yanqi::before：在故事区顶部补一层柔和海雾。 */
 .why-yanqi::before {
     content: "";
     position: absolute;
@@ -3719,7 +3726,7 @@
     z-index: 0;
 }
 
-/* .why-yanqi::after 的后置装饰样?*/
+/* .why-yanqi::after：在故事区底部加一层提亮过渡。 */
 .why-yanqi::after {
     content: "";
     position: absolute;
@@ -3733,7 +3740,7 @@
     z-index: 0;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区总壳层：安排左右叙事、河流引导线和卡片舞台。 */
 .story-shell {
     position: relative;
     z-index: 1;
@@ -3745,13 +3752,13 @@
     align-items: start;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区引导文案：控制标题、副文案和说明的宽度。 */
 .story-intro {
     max-width: 520px;
     align-self: center;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区 kicker：建立轻量的品牌叙事标签。 */
 .story-kicker {
     margin: 0 0 14px;
     font-size: 0.72rem;
@@ -3760,7 +3767,7 @@
     color: rgba(196, 223, 240, 0.62);
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区标题：作为整段品牌叙事的视觉锚点。 */
 .story-title {
     margin: 0 0 18px;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -3770,7 +3777,7 @@
     color: #f4fbff;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区 lead：承接主要叙事段落。 */
 .story-lead {
     margin: 0 0 18px;
     font-size: 1.06rem;
@@ -3778,14 +3785,14 @@
     color: rgba(241, 249, 255, 0.9);
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区 echo：用更轻的语气收束说明。 */
 .story-echo {
     margin: 0;
     line-height: 1.92;
     color: rgba(194, 216, 230, 0.72);
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区河流轨道：在视觉上连接左右叙事层。 */
 .story-river {
     position: relative;
     display: flex;
@@ -3794,7 +3801,7 @@
     padding-top: 10px;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区河流线与光点：保持一条缓慢流动的纵向引导。 */
 .story-river-line,
 .story-river-glow {
     display: block;
@@ -3802,13 +3809,13 @@
     border-radius: 999px;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区主河流线：给叙事卡片一条纵向骨架。 */
 .story-river-line {
     min-height: 100%;
     background: linear-gradient(180deg, rgba(200, 228, 243, 0.08), rgba(219, 240, 251, 0.68), rgba(200, 228, 243, 0.08));
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区河流光点：沿河流上下漂移，增加呼吸感。 */
 .story-river-glow {
     position: absolute;
     top: 12%;
@@ -3819,13 +3826,13 @@
     animation: story-current 6s ease-in-out infinite;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事卡片网格：让几张故事卡按节奏上下排开。 */
 .story-grid {
     display: grid;
     gap: 18px;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事卡片：统一卡面层次、边框和玻璃质感。 */
 .story-card {
     --story-card-shift: 0px;
     position: relative;
@@ -3845,7 +3852,7 @@
     overflow: hidden;
 }
 
-/* .story-card::before 的前置装饰样?*/
+/* .story-card::before：hover 时扫过卡面的高光层。 */
 .story-card::before {
     content: "";
     position: absolute;
@@ -3867,18 +3874,18 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
-/* .story-card:hover::before 的前置装饰样?*/
+/* .story-card:hover::before：鼠标移入后让扫光真正滑过卡面。 */
 .story-card:hover::before {
     opacity: 1;
     transform: translateX(0);
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 交错卡片：让部分故事卡横向错开，形成河流节奏。 */
 .story-card-offset {
     margin-left: 38px;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事卡编号：建立轻量阅读顺序。 */
 .story-card-index {
     margin: 0 0 16px;
     font-size: 0.76rem;
@@ -3887,7 +3894,7 @@
     color: rgba(194, 219, 235, 0.56);
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事卡标题：承接单张卡片的主叙事。 */
 .story-card-title {
     margin: 0 0 12px;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -3896,14 +3903,14 @@
     color: #f5fbff;
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事卡正文：保持更舒缓的阅读节奏。 */
 .story-card-copy {
     margin: 0;
     line-height: 1.82;
     color: rgba(204, 223, 234, 0.78);
 }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 故事区 reveal：默认先隐藏，等待进入视口后显现。 */
 .story-reveal {
     opacity: 0;
     transform: translate3d(0, 28px, 0);
@@ -3915,7 +3922,7 @@
     transition-delay: var(--story-delay, 0ms);
 }
 
-/* .story-reveal.is-visible 显示状态下的样?*/
+/* .story-reveal.is-visible：进入视口后恢复清晰和稳定位置。 */
 .story-reveal.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
@@ -3924,13 +3931,13 @@
 
 /* 定义 story-current 动画的关键帧 */
 @keyframes story-current {
-/* 控制动画?0%, 100% 阶段的状?*/
+/* story-current 在 0% 和 100%：河流光点回到基准位置。 */
     0%,
     100% {
         transform: translateY(0);
         opacity: 0.42;
     }
-/* 控制动画?50% 阶段的状?*/
+/* story-current 在 50%：河流光点沿纵向漂移，模拟缓慢流动。 */
     50% {
         transform: translateY(180px);
         opacity: 0.78;
@@ -3991,7 +3998,7 @@
         linear-gradient(180deg, #0f3048 0%, #0b2236 42%, #071823 100%);
 }
 
-/* .footer::before 的前置装饰样?*/
+/* .footer::before：页脚顶部的细潮线，帮助整页收束。 */
 .footer::before {
     content: "";
     position: absolute;
@@ -4003,7 +4010,7 @@
     opacity: 0.78;
 }
 
-/* .footer::after 的后置装饰样?*/
+/* .footer::after：给页脚再补一层轻微雾面与光感。 */
 .footer::after {
     content: "";
     position: absolute;
@@ -4116,7 +4123,7 @@
     transition: color 220ms ease, transform 220ms ease;
 }
 
-/* .footer-link::after 的后置装饰样?*/
+/* .footer-link::after：链接 hover 时展开的细下划线。 */
 .footer-link::after {
     content: "";
     position: absolute;
@@ -4136,7 +4143,7 @@
     transform: translateX(3px);
 }
 
-/* .footer-link:hover::after 的后置装饰样?*/
+/* .footer-link:hover::after：让下划线完整展开。 */
 .footer-link:hover::after {
     transform: scaleX(1);
 }
@@ -4230,7 +4237,7 @@
    Sea Guide
    ============================================ */
 
-/* 首页海图导览外层：控制悬浮位置、显隐和更深层时的强调状?*/
+/* 首页海图导览外层：控制悬浮位置、显隐和更深层时的强调状态。 */
 .sea-guide-home {
     position: fixed;
     right: 26px;
@@ -4247,7 +4254,7 @@
         transform 420ms cubic-bezier(0.22, 0.72, 0.2, 1);
 }
 
-/* 首页滚动到一定深度后，显示海图导览浮?*/
+/* 首页滚动到一定深度后，显示海图导览浮标。 */
 .sea-guide-home.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
@@ -4292,7 +4299,7 @@
     pointer-events: auto;
 }
 
-/* 海图导览入口表面的潮光扫过效?*/
+/* 海图导览入口表面的潮光扫过效果。 */
 .sea-guide-home .sea-guide-trigger::after {
     content: "";
     position: absolute;
@@ -4305,7 +4312,7 @@
     pointer-events: none;
 }
 
-/* 榧犳爣绉诲叆鏃讹紝鍏ュ彛杞诲井涓婃诞骞跺寮虹幓鐠冭竟缂橀珮鍏?*/
+/* 鼠标移入时，入口轻微上浮并增强玻璃边缘高光*/
 .sea-guide-home .sea-guide-trigger:hover {
     transform: translate3d(0, -3px, 0);
     border-color: rgba(200, 235, 245, 0.34);
@@ -4322,7 +4329,7 @@
     opacity: 0.52;
 }
 
-/* 鐐瑰嚮鏃朵繚鐣欐煍鍜屾寜鍘嬶紝涓嶅仛鏈烘鎸夐挳鎰?*/
+/* 点击时保留柔和按压，不做机械按钮。*/
 .sea-guide-home .sea-guide-trigger:active {
     transform: translate3d(0, -1px, 0);
 }
@@ -4343,21 +4350,21 @@
     height: 100%;
 }
 
-/* 海图导览入口文字区域的上下层?*/
+/* 海图导览入口文字区域的上下层次。 */
 .sea-guide-home .sea-guide-trigger-copy {
     display: grid;
     gap: 2px;
     min-width: 0;
 }
 
-/* 海图导览主标?*/
+/* 海图导览主标。 */
 .sea-guide-home .sea-guide-trigger-copy strong {
     font-size: 0.88rem;
     font-weight: 600;
     letter-spacing: 0.08em;
 }
 
-/* 海图导览副标?*/
+/* 海图导览副标。 */
 .sea-guide-home .sea-guide-trigger-copy small {
     font-size: 0.68rem;
     letter-spacing: 0.18em;
@@ -4365,7 +4372,7 @@
     color: rgba(215, 234, 243, 0.58);
 }
 
-/* 首页海图导览浮层：展开后承载所有快速跳转入?*/
+/* 首页海图导览浮层：展开后承载所有快速跳转入口。 */
 .sea-guide-home .sea-guide-panel {
     order: -1;
     width: min(326px, calc(100vw - 28px));
@@ -4394,7 +4401,7 @@
         filter 320ms ease;
 }
 
-/* 首页海图导览打开后，让浮层完整显?*/
+/* 首页海图导览打开后，让浮层完整显现。 */
 .sea-guide-home.is-open .sea-guide-panel {
     opacity: 1;
     pointer-events: auto;
@@ -4440,13 +4447,13 @@
         background-color 240ms ease;
 }
 
-/* 浮层打开时，让条目依次淡入出?*/
+/* 浮层打开时，让条目依次淡入出现。 */
 .sea-guide-home.is-open .sea-guide-entry {
     opacity: 1;
     transform: translate3d(0, 0, 0);
 }
 
-/* δʾͼ */
+/* 条目逐个加延迟，让海图导览浮层展开时更有层次。 */
 .sea-guide-home.is-open .sea-guide-entry:nth-child(1) { transition-delay: 20ms; }
 .sea-guide-home.is-open .sea-guide-entry:nth-child(2) { transition-delay: 45ms; }
 .sea-guide-home.is-open .sea-guide-entry:nth-child(3) { transition-delay: 70ms; }
@@ -4454,7 +4461,7 @@
 .sea-guide-home.is-open .sea-guide-entry:nth-child(5) { transition-delay: 120ms; }
 .sea-guide-home.is-open .sea-guide-entry:nth-child(6) { transition-delay: 145ms; }
 
-/* 当前所在海层对应条目的细潮线提?*/
+/* 当前所在海层对应条目的细潮线提示。 */
 .sea-guide-home .sea-guide-entry::before {
     content: "";
     position: absolute;
@@ -4468,7 +4475,7 @@
     transition: opacity 240ms ease;
 }
 
-/* 鎮仠鏃惰鏉＄洰鍍忚交纰颁竴鍧楁捣鍥剧储寮曞崱 */
+/* 悬停时让条目像轻碰一块海图索引卡 */
 .sea-guide-home .sea-guide-entry:hover {
     transform: translate3d(0, -2px, 0);
     border-color: rgba(204, 233, 244, 0.22);
@@ -4488,7 +4495,7 @@
         0 0 18px rgba(137, 205, 227, 0.09);
 }
 
-/* 当前条目的潮线需要真正显?*/
+/* 当前条目的潮线需要真正显现。 */
 .sea-guide-home .sea-guide-entry.is-current::before {
     opacity: 1;
 }
@@ -4500,7 +4507,7 @@
     padding-left: 10px;
 }
 
-/* 鏉＄洰涓绘爣棰?*/
+/* 条目主标。*/
 .sea-guide-home .sea-guide-entry-copy strong {
     font-size: 0.9rem;
     font-weight: 600;
@@ -4520,12 +4527,12 @@
     color: #fbfeff;
 }
 
-/* 当前条目辅助说明提亮一?*/
+/* 当前条目辅助说明提亮一点。 */
 .sea-guide-home .sea-guide-entry.is-current .sea-guide-entry-copy small {
     color: rgba(226, 240, 247, 0.78);
 }
 
-/* 海图导览按钮保持很轻的呼吸感，像漂浮在海流中的浮?*/
+/* 海图导览按钮保持很轻的呼吸感，像漂浮在海流中的浮标。 */
 @keyframes seaGuideDrift {
     0%,
     100% {
@@ -4545,9 +4552,9 @@
    Responsive Design
    ============================================ */
 
-/* 褰撳墠灞忓箷鏉′欢涓嬬殑鍝嶅簲寮忔牱寮?*/
+/* 当前屏幕条件下的响应式样。*/
 @media (max-width: 900px) {
-/* 控制首页 Hero 区的背景层次、留白和整体舞台?*/
+/* 平板下继续控制 Hero 区的背景层次、留白和整体舞台。 */
     .hero-section {
         min-height: 520px;
         padding-top: calc(var(--spacing-2xl) + 18px);
@@ -4570,7 +4577,7 @@
         padding: 30px 22px 24px;
     }
 
-/* 平板下让标题区和舞台之间仍保留层级，但避免首屏纵向过?*/
+/* 平板下让标题区和舞台之间仍保留层级，但避免首屏纵向过长。 */
     .hero-hotspots-head {
         margin-bottom: 24px;
     }
@@ -4581,7 +4588,7 @@
         padding: 6px 0 10px;
     }
 
-/* 平板下观察窗底板缩进略收，避免左右按钮吃掉过多空?*/
+/* 平板下观察窗底板缩进略收，避免左右按钮吃掉过多空间。 */
     .hero-bamboo-scroll-container::before {
         inset: 8px 44px 12px;
     }
@@ -4592,7 +4599,7 @@
         min-width: 312px;
     }
 
-/* 平板下边缘雾化罩收窄，避免吃掉过多可见内?*/
+/* 平板下边缘雾化罩收窄，避免吃掉过多可见内容。 */
     .hero-bamboo-cards-wrapper::before,
     .hero-bamboo-cards-wrapper::after {
         width: 34px;
@@ -4624,7 +4631,7 @@
         max-width: 560px;
     }
 
-/* 首页海图导览在平板上略微收紧尺寸，避免压住主要内?*/
+/* 首页海图导览在平板上略微收紧尺寸，避免压住主要内容。 */
     .sea-guide-home {
         right: 20px;
         bottom: 20px;
@@ -4635,18 +4642,18 @@
         width: min(312px, calc(100vw - 24px));
     }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 平板下故事区改成单列，优先保证阅读流。 */
     .story-shell {
         grid-template-columns: 1fr;
         gap: 24px;
     }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 平板下隐藏中间河流轨道，避免版面过长。 */
     .story-river {
         display: none;
     }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 平板下取消故事卡左右错位，避免横向拥挤。 */
     .story-card-offset {
         margin-left: 0;
     }
@@ -4675,7 +4682,7 @@
         transform: none;
     }
 
-/* 移动端和平板不做“说明跑去左边”的桌面逻辑，始终保持上?intro + 下方舞台的顺序阅?*/
+/* 移动端和平板不做“说明跑去左边”的桌面逻辑，始终保持上方 intro + 下方舞台的顺序阅读。 */
     .featured-destinations[data-curated-phase="left"] .curated-waters-shell {
         grid-template-columns: 1fr;
         align-items: start;
@@ -4688,7 +4695,7 @@
         transform: none;
     }
 
-/* .curated-waters-stage::after 的后置装饰样?*/
+/* .curated-waters-stage::after：平板下隐藏纵向分隔光线。 */
     .curated-waters-stage::after {
         display: none;
     }
@@ -4720,17 +4727,17 @@
         padding-right: 0;
     }
 
-/* ?Dive Match 在平板尺寸下改成单列舞台，避免左侧引导卡和右侧推荐卡过挤 */
+/* Dive Match 在平板尺寸下改成单列舞台，避免左侧引导卡和右侧推荐卡过挤。 */
     .dive-match-stage {
         padding: 24px 20px;
     }
 
-/* 平板下标题区可读性继续保持宽?*/
+/* 平板下标题区可读性继续保持宽度。 */
     .dive-match-intro {
         max-width: 100%;
     }
 
-/* 平板下把匹配内容改成一列，先看引导卡，再看推荐?*/
+/* 平板下把匹配内容改成一列，先看引导卡，再看推荐。 */
     .dive-match-display {
         min-height: 0;
     }
@@ -4762,7 +4769,7 @@
         flex-direction: column;
     }
 
-/* 在移动端收紧按钮尺寸，避免漂浮控件挤压卡片滚动区?*/
+/* 在移动端收紧按钮尺寸，避免漂浮控件挤压卡片滚动区。 */
     .scroll-arrow {
         width: 52px;
         height: 52px;
@@ -4770,9 +4777,9 @@
     }
 }
 
-/* 褰撳墠灞忓箷鏉′欢涓嬬殑鍝嶅簲寮忔牱寮?*/
+/* 当前屏幕条件下的响应式样。*/
 @media (max-width: 600px) {
-/* 控制首页 Hero 区的背景层次、留白和整体舞台?*/
+/* 手机端继续收紧 Hero 区的留白和整体舞台。 */
     .hero-section {
         min-height: 500px;
         padding: calc(var(--spacing-xl) + 10px) var(--spacing-md) var(--spacing-xl);
@@ -4818,19 +4825,19 @@
         padding: 24px 16px 20px;
     }
 
-/* 手机端标题区进一步收紧留白，但仍保持居中和层?*/
+/* 手机端标题区进一步收紧留白，但仍保持居中和层次。 */
     .hero-hotspots-head {
         margin-bottom: 20px;
         gap: 8px;
     }
 
-/* 手机端让主标题不要太大，保持像海域观察台而不是普通分区标?*/
+/* 手机端让主标题不要太大，保持像海域观察台而不是普通分区标题。 */
     .hero-hotspots-title {
         font-size: 1.34rem;
         letter-spacing: 0.1em;
     }
 
-/* 手机端副文案改为更适合竖向阅读的行?*/
+/* 手机端副文案改为更适合竖向阅读的行距。 */
     .hero-hotspots-subtitle {
         font-size: 0.94rem;
         line-height: 1.78;
@@ -4843,7 +4850,7 @@
         padding: 4px 0 8px;
     }
 
-/* 手机端观察窗底板继续收紧，保证卡片轨道仍有舞台底板但不显得笨?*/
+/* 手机端观察窗底板继续收紧，保证卡片轨道仍有舞台底板但不显得笨重。 */
     .hero-bamboo-scroll-container::before {
         inset: 6px 34px 10px;
         border-radius: 24px;
@@ -4861,7 +4868,7 @@
         width: 18px;
     }
 
-/* 手机端底部流向按钮改成单列，更像舞台下沿的两条流?*/
+/* 手机端底部流向按钮改成单列，更像舞台下沿的两条流线。 */
     .hero-hotspots-actions {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -4869,7 +4876,7 @@
         padding-top: 16px;
     }
 
-/* .today-sea-spot-link::after 的后置装饰样?*/
+/* .today-sea-spot-link::after：手机端把动作提示改成随正文排列。 */
     .today-sea-spot-link::after {
         position: static;
         display: inline-block;
@@ -4881,23 +4888,23 @@
         max-width: 100%;
     }
 
-/* 小屏?Dive Match 标签改成更紧凑的两列漂浮铭牌 */
+/* 小屏下 Dive Match 标签改成更紧凑的两列漂浮铭牌。 */
     .dive-match-rail {
         gap: 10px;
     }
 
-/* 灏忓睆涓嬪垎绫绘爣绛惧搴︽敹绱э紝閬垮厤涓€琛屽彧鎽嗕竴涓?*/
+/* 小屏下分类标签宽度收紧，避免一行只摆一个*/
     .dive-match-filter {
         min-width: calc(50% - 5px);
         padding: 12px 14px;
     }
 
-/* 小屏下推荐卡改单列，信息层级更清?*/
+/* 小屏下推荐卡改单列，信息层级更清楚。 */
     .dive-match-card-grid {
         grid-template-columns: 1fr;
     }
 
-/* 小屏下当前分类卡片和推荐卡的边距更紧?*/
+/* 小屏下当前分类卡片和推荐卡的边距更紧凑。 */
     .dive-match-focus-card,
     .dive-match-card-copy {
         padding-left: 16px;
@@ -4952,12 +4959,12 @@
         align-items: flex-start;
     }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 手机端故事区标题稍微收小，避免压迫。 */
     .story-title {
         font-size: 1.7rem;
     }
 
-/* 控制盐憩故事区的品牌叙事排版和卡片层?*/
+/* 手机端故事卡同步收紧内边距和圆角。 */
     .story-card {
         padding: 20px 18px;
         border-radius: 24px;
@@ -5069,7 +5076,7 @@
     }
 }
 
-/* 在手机宽度下，把海图导览进一步收成更紧凑的悬浮胶?*/
+/* 在手机宽度下，把海图导览进一步收成更紧凑的悬浮胶囊。 */
 @media (max-width: 640px) {
     .sea-guide-home {
         right: 14px;

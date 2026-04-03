@@ -1,3 +1,16 @@
+﻿/* ============================================
+   Text Layout Adapter - text-layout-adapter.js
+   ============================================
+   职责：
+   1. 封装 `pretext` 文本布局预测能力，提前计算多行文本高度。
+   2. 减少动态卡片在渲染后因为文案长短不同产生的高度跳动。
+   3. 提供批量应用、响应式刷新和缓存清理等通用能力。
+   阅读顺序：
+   1. 字体与尺寸工具
+   2. 模块加载与缓存
+   3. 单元素预测
+   4. 批量应用与响应式挂载
+*/
 (function () {
     const PRETEXT_IMPORT_PATH = '../pretext-main/dist/layout.js';
     const PRETEXT_FONT_READY_TIMEOUT = 1200;
