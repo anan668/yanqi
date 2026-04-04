@@ -24,7 +24,7 @@ const PREP_CONTENT = Object.freeze({
     certification: {
         kicker: 'Certification Path',
         title: '\u8bc1\u4e66\u4e0e\u7b49\u7ea7',
-        summary: '\u786e\u8ba4 OW / AOW \u7b49\u7ea7\u3001\u8fd1 12 \u4e2a\u6708\u6f5c\u6c34\u8bb0\u5f55\uff0c\u4ee5\u53ca\u662f\u5426\u9700\u8981\u8fdb\u9636\u8bfe\u7a0b\u8854\u63a5\u3002',
+        summary: '确认发证机构、OW / AOW 等级、近 12 个月潜水记录，以及是否需要 refresh / 复习课程。',
         templateId: 'prep-template-certification'
     },
     weather: {

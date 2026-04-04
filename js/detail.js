@@ -243,9 +243,9 @@ function createBufferedLiveAnnouncer(target, delay = 320) {
 const divingSpotDetails = convertSpotPriceDisplay({
     1: {
         name: '诗巴丹',
-        tagline: '海狼风暴的故乡，深海探险者的天堂',
+        tagline: '鱼群会先靠近，海墙随后把整片蓝慢慢放深。',
         image: 'assets/images/sipadan.jpg',
-        difficulty: '★★★',
+        difficulty: '需要流潜经验',
         depth: '5-40m',
         season: '3-10月',
         priceFrom: '¥3,980',
@@ -313,7 +313,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
             {
                 id: 2,
                 name: '帕劳',
-                description: '太平洋明珠，以蓝色大门和大断层著称。',
+                description: '蓝洞、断层与外海光线，会把层次慢慢推开。',
                 image: 'assets/images/palau.jpg',
                 price: '¥4,280'
             },
@@ -335,9 +335,9 @@ const divingSpotDetails = convertSpotPriceDisplay({
     },
     2: {
         name: '帕劳',
-        tagline: '蓝色大门的秘密，洋流与光线的剧场',
+        tagline: '让光线、断层与洋流在同一片蓝里慢慢排开。',
         image: 'assets/images/palau.jpg',
-        difficulty: '★★',
+        difficulty: '适合已有外海经验',
         depth: '8-35m',
         season: '11月-次年5月',
         priceFrom: '¥4,280',
@@ -427,9 +427,9 @@ const divingSpotDetails = convertSpotPriceDisplay({
     },
     3: {
         name: '大蓝洞',
-        tagline: '深蓝之眼，垂直落入地球的海底天窗',
+        tagline: '像从海面缓慢下望，看到一口更深的蓝在安静张开。',
         image: 'assets/images/blue-hole.jpg',
-        difficulty: '★★★★',
+        difficulty: '适合深潜与结构观察',
         depth: '18-40m',
         season: '4月-6月',
         priceFrom: '¥5,680',
@@ -519,9 +519,9 @@ const divingSpotDetails = convertSpotPriceDisplay({
     },
     4: {
         name: '帝汶岛',
-        tagline: '色彩斑斓的水下花园，坡地与珊瑚并行',
+        tagline: '光线落在珊瑚坡地上，整片海会显得更舒展一些。',
         image: 'assets/images/timor.jpg',
-        difficulty: '★★',
+        difficulty: '适合慢慢进入',
         depth: '6-32m',
         season: '4月-11月',
         priceFrom: '¥3,480',
@@ -611,9 +611,9 @@ const divingSpotDetails = convertSpotPriceDisplay({
     },
     5: {
         name: '波纳佩岛',
-        tagline: '微生物王国，耐心观察者的宝库',
+        tagline: '把注意力收回来以后，细小生命会一层层慢慢浮出来。',
         image: 'assets/images/pohnpei.jpg',
-        difficulty: '★',
+        difficulty: '适合恢复状态',
         depth: '5-24m',
         season: '全年适宜',
         priceFrom: '¥2,980',
@@ -632,7 +632,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 '能见度不追求极致，更适合微距和慢节奏观察',
                 '拍摄微距时要留意身体姿态，避免踢起底沙',
                 '雨量大时部分岸线出海会受天气影响',
-                '虽然整体难度低，仍需注意潜水后补水和休息'
+                '虽然整体节奏更轻，仍需注意潜后补水和休息'
             ],
             weather: {
                 season: '全年适宜',
@@ -705,7 +705,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
         name: '布纳肯',
         tagline: '海墙、海龟与清澈蓝水之间，保持刚好的安静',
         image: 'assets/images/timor.jpg',
-        difficulty: '★★',
+        difficulty: '适合长线观察',
         depth: '6-30m',
         season: '3月-11月',
         priceFrom: '¥3,680',
@@ -795,9 +795,9 @@ const divingSpotDetails = convertSpotPriceDisplay({
     },
     7: {
         name: '科莫多',
-        tagline: '巨龙与大鱼的故事，流潜爱好者的狂欢区',
+        tagline: '流会更明显一些，大景与停顿也因此更有层次。',
         image: 'assets/images/komodo.jpg',
-        difficulty: '★★',
+        difficulty: '需要洋流适应',
         depth: '8-34m',
         season: '4月-11月',
         priceFrom: '¥3,880',
@@ -887,9 +887,9 @@ const divingSpotDetails = convertSpotPriceDisplay({
     },
     8: {
         name: '图阿莫图',
-        tagline: '南太平洋的明珠，环礁通道里的蓝水张力',
+        tagline: '环礁通道把开阔蓝水一点点推近，张力却始终安静。',
         image: 'assets/images/tuamotu.jpg',
-        difficulty: '★★',
+        difficulty: '适合通道与蓝水经验',
         depth: '10-32m',
         season: '5月-10月',
         priceFrom: '¥4,180',
@@ -981,7 +981,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
         name: '马布岛',
         tagline: '把潜水、海风与慢一点的岛上时光，安静地放进同一次抵达。',
         image: 'assets/images/mabulc.jpg',
-        difficulty: '★',
+        difficulty: '入门友好',
         depth: '3-18m',
         season: '3月-10月',
         priceFrom: '¥3,580',
@@ -1036,7 +1036,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 user: '浅礁留白',
                 rating: '★★★★☆',
                 date: '2025-12-09',
-                text: '这里很适合第一次把潜水和度假真正放在一起。潜点难度不压人，回到岸上还能慢慢吃饭、看海，不会一直赶。'
+                text: '这里很适合第一次把潜水和度假真正放在一起。海况不会一下子把人推深，回到岸上还能慢慢吃饭、看海，不会一直赶。'
             },
             {
                 user: '水屋晚风',
@@ -1073,7 +1073,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
         name: '马尔代夫船宿',
         tagline: '把环礁、蓝水与在船上醒来的清晨，安静地放进同一段航线。',
         image: 'assets/images/maldives-liveaboard.jpg',
-        difficulty: '★★',
+        difficulty: '适合初次船宿',
         depth: '8-30m',
         season: '11月-次年4月',
         priceFrom: '¥6,880',
@@ -1271,14 +1271,24 @@ function getRelatedSpotProfile(spot) {
 
 const DETAIL_SWAP_STORAGE_KEY = 'yanqi_detail_swap_transition';
 const DETAIL_SWAP_MAX_AGE_MS = 12000;
-const DETAIL_SWAP_DURATION_MS = 600;
-const DETAIL_SWAP_NAVIGATE_DELAY_MS = 420;
+const DETAIL_SWAP_DURATION_MS = 760;
+const DETAIL_SWAP_NAVIGATE_DELAY_MS = 460;
 const DETAIL_SWAP_CLASSES = [
     'detail-swap-active',
     'detail-swap-exit',
     'detail-swap-enter',
-    'detail-swap-back-enter'
+    'detail-swap-back-enter',
+    'detail-swap-flow-forward',
+    'detail-swap-flow-backward'
 ];
+
+function normalizeDetailSwapDirection(direction) {
+    return direction === 'backward' ? 'backward' : 'forward';
+}
+
+function reverseDetailSwapDirection(direction) {
+    return normalizeDetailSwapDirection(direction) === 'forward' ? 'backward' : 'forward';
+}
 
 const HOME_DIVE_MATCH_LINK_MAP = Object.freeze({
     '入门新手': 'beginner',
@@ -1623,6 +1633,7 @@ function readDetailSwapState() {
         const toId = Number(parsed.toId);
         const at = Number(parsed.at);
         const forwardConsumed = Boolean(parsed.forwardConsumed);
+        const direction = normalizeDetailSwapDirection(parsed.direction);
 
         if (!Number.isFinite(fromId) || !Number.isFinite(toId) || !Number.isFinite(at)) {
             sessionStorage.removeItem(DETAIL_SWAP_STORAGE_KEY);
@@ -1634,7 +1645,7 @@ function readDetailSwapState() {
             return null;
         }
 
-        return { fromId, toId, at, forwardConsumed };
+        return { fromId, toId, at, forwardConsumed, direction };
     } catch (error) {
         sessionStorage.removeItem(DETAIL_SWAP_STORAGE_KEY);
         return null;
@@ -1647,12 +1658,13 @@ function readDetailSwapState() {
  * @param {number} toId - 目标潜点 ID
  * @returns {void} - 无返回值，直接写入 sessionStorage
  */
-function writeDetailSwapState(fromId, toId) {
+function writeDetailSwapState(fromId, toId, direction = 'forward') {
     sessionStorage.setItem(DETAIL_SWAP_STORAGE_KEY, JSON.stringify({
         fromId,
         toId,
         at: Date.now(),
-        forwardConsumed: false
+        forwardConsumed: false,
+        direction: normalizeDetailSwapDirection(direction)
     }));
 }
 
@@ -1666,7 +1678,8 @@ function markDetailSwapForwardConsumed(state) {
         fromId: state.fromId,
         toId: state.toId,
         at: state.at,
-        forwardConsumed: true
+        forwardConsumed: true,
+        direction: normalizeDetailSwapDirection(state.direction)
     }));
 }
 
@@ -2211,7 +2224,7 @@ class DetailPage {
                     title: '马布岛 · 饭后茶歇',
                     subtitle: '潜后不急着回房，海风、茶饮和码头边缓下来的说话声，会把这一天安静地收住。',
                     summary: '我是第一次把潜水和海岛停驻感真正放在一起。傍晚吃完饭后，大家没有立刻散掉，而是在码头边继续坐一会儿。风不大，海面很平，讲话声也慢下来，整个人会觉得这一天刚刚好。',
-                    diving: '对新手来说，这里的安排有安全感，不会一上来就把难度压满。潜后还能留得住力气去吹海风、喝点热茶，这点很加分。',
+                    diving: '对新手来说，这里的安排有安全感，不会一上来就把节奏推得太深。潜后还能留得住力气去吹海风、喝点热茶，这点很加分。',
                     stay: '房间适合潜后短休，收拾装备和洗漱动线也顺。饭后再走回去时，整座岛已经安静下来，不会有被行程推着走的感觉。',
                     food: '晚餐偏本地海鲜和热菜，潜完回来吃会觉得身体慢慢热起来。后面再来一杯茶或简单饮品，很自然就把一天收住了。',
                     scenery: '马布岛傍晚最迷人的不是颜色有多夸张，而是海风和人声都会一点点降下来，让你愿意在码头边多坐几分钟。',
@@ -2292,7 +2305,7 @@ class DetailPage {
                 ratingScore: '4.7 / 5',
                 focus: ['food', 'scenery'],
                 summary: `原本担心自己经验不够，会不会把这趟行程弄得很紧张，但实际体验比想象中温柔很多。岸上安排不会一直催着赶路，吃饭、休息、看海的时间都有保留下来，所以整个人不会一直处于紧绷状态。`,
-                diving: `对入门用户来说，这里的安排算友好，会先让你把身体放进海里，再慢慢往更完整的体验靠，不会一开始就把难度压上来。`,
+                diving: `对入门用户来说，这里的安排算友好，会先让你把身体放进海里，再慢慢往更完整的体验靠，不会一开始就把海况一下子推深。`,
                 stay: '住宿最让我满意的是安静度，晚上几乎没有嘈杂声，潜完回来睡一会儿就能恢复很多。',
                 food: '早餐比较稳，欢迎晚餐和海鲜做得比预期好，口味不是特别重，潜后吃也舒服；忌口提前备注后也能照顾到。',
                 scenery: `我最喜欢的是傍晚码头那段时间，海水颜色会从亮蓝慢慢变深，风一吹过来，整个人会觉得这趟 ${name} 来对了。`,
@@ -2403,7 +2416,7 @@ class DetailPage {
 
         document.getElementById('spotName').textContent = this.spotData.name;
         document.getElementById('spotTagline').textContent = this.spotData.tagline;
-        this.renderTag('difficultyTag', '难度', this.spotData.difficulty);
+        this.renderTag('difficultyTag', '进入节奏', this.spotData.difficulty);
         this.renderTag('depthTag', '深度', this.spotData.depth);
         this.renderTag('seasonTag', '最佳季节', this.spotData.season);
         this.syncDepthGaugeProfile();
@@ -2878,8 +2891,8 @@ class DetailPage {
             overview: {
                 key: 'overview',
                 kicker: 'Sea Dossier',
-                title: '潜点介绍',
-                intro: `先把${spotName}的流向、难度与进入方式读清，再决定要用怎样的节奏靠近。`
+                title: '海域档案',
+                intro: `先把${spotName}的流向、海况与进入方式读清，再决定要用怎样的节奏靠近。`
             },
             map: {
                 key: 'map',
@@ -3842,7 +3855,7 @@ class DetailPage {
                                     <span class="sea-atlas-meta-value">${atlas.season}</span>
                                 </div>
                                 <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">深度 / 难度</span>
+                                    <span class="sea-atlas-meta-label">深度 / 节奏</span>
                                     <span class="sea-atlas-meta-value">${atlas.depth} · ${atlas.difficulty}</span>
                                 </div>
                             </div>
@@ -7101,14 +7114,14 @@ class DetailPage {
 
         if (state.toId === this.spotId) {
             if (!state.forwardConsumed) {
-                this.playRelatedSwapAnimation('detail-swap-enter');
+                this.playRelatedSwapAnimation('detail-swap-enter', state.direction);
                 markDetailSwapForwardConsumed(state);
             }
             return;
         }
 
         if ((fromPageShow || this.navigationType === 'back_forward') && state.fromId === this.spotId) {
-            this.playRelatedSwapAnimation('detail-swap-back-enter');
+            this.playRelatedSwapAnimation('detail-swap-back-enter', reverseDetailSwapDirection(state.direction));
         }
     }
 
@@ -7117,7 +7130,7 @@ class DetailPage {
      * @param {string} className - 需要应用的动画 class
      * @returns {void} - 无返回值，直接更新页面状态
      */
-    playRelatedSwapAnimation(className) {
+    playRelatedSwapAnimation(className, direction = 'forward') {
         if (!this.body || !this.pageStage) {
             return;
         }
@@ -7125,7 +7138,11 @@ class DetailPage {
         this.resetRelatedSwapClasses();
         void this.pageStage.offsetWidth;
 
-        this.body.classList.add('detail-swap-active', className);
+        this.body.classList.add(
+            'detail-swap-active',
+            className,
+            normalizeDetailSwapDirection(direction) === 'backward' ? 'detail-swap-flow-backward' : 'detail-swap-flow-forward'
+        );
 
         if (this.relatedTransitionCleanupTimer) {
             window.clearTimeout(this.relatedTransitionCleanupTimer);
@@ -7224,10 +7241,11 @@ class DetailPage {
             sourceCard.classList.add('is-leaving');
         }
 
+        const direction = targetId > this.spotId ? 'forward' : 'backward';
         this.resetRelatedSwapClasses();
-        writeDetailSwapState(this.spotId, targetId);
+        writeDetailSwapState(this.spotId, targetId, direction);
         sessionStorage.setItem('yanqi_depth_current', '-50');
-        this.playRelatedSwapAnimation('detail-swap-exit');
+        this.playRelatedSwapAnimation('detail-swap-exit', direction);
 
         this.relatedTransitionTimer = window.setTimeout(() => {
             this.relatedTransitionTimer = 0;

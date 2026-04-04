@@ -17,10 +17,30 @@
     --detail-safe-side: 106px;
     --detail-sidebar-stick-top: 94px;
     --detail-sidebar-stick-bottom: 28px;
+    --detail-swap-exit-x: -92px;
+    --detail-swap-enter-x: 108px;
+    --detail-swap-back-enter-x: -84px;
+    --detail-swap-exit-y: 14px;
+    --detail-swap-enter-y: 10px;
+    --detail-swap-back-enter-y: -8px;
+    --detail-swap-enter-scale: 1.022;
+    --detail-swap-back-scale: 1.014;
     /* 给正文、相关推荐和页脚额外留出左右“安全边”。
        这样内容不会和两侧固定深度计、悬浮导览挤在一起。 */
     padding-top: 0;
     background: linear-gradient(180deg, #d9f0fb 0%, #eaf7fd 36%, #f4fbff 100%);
+}
+
+.detail-page.detail-swap-flow-forward {
+    --detail-swap-exit-x: -92px;
+    --detail-swap-enter-x: 108px;
+    --detail-swap-back-enter-x: -84px;
+}
+
+.detail-page.detail-swap-flow-backward {
+    --detail-swap-exit-x: 92px;
+    --detail-swap-enter-x: -108px;
+    --detail-swap-back-enter-x: 84px;
 }
 
 /* 控制 html.has-overlay-lock, 的布局、视觉和状态表现 */
@@ -32,11 +52,13 @@ body.has-overlay-lock {
 /* 控制 .detail-page.detail-swap-active 的布局、视觉和状态表现 */
 .detail-page.detail-swap-active {
     overflow-x: hidden;
+    --ocean-cover-opacity: 0.16;
 }
 
 /* 控制 .detail-page.detail-swap-active .page-stage 的布局、视觉和状态表现 */
 .detail-page.detail-swap-active .page-stage {
     will-change: transform, opacity, filter;
+    transform-origin: 50% 42%;
 }
 
 /* 控制 .detail-page.detail-swap-enter .page-stage, 的布局、视觉和状态表现 */
@@ -47,58 +69,74 @@ body.has-overlay-lock {
 
 /* 控制 .detail-page.detail-swap-exit .page-stage 的布局、视觉和状态表现 */
 .detail-page.detail-swap-exit .page-stage {
-    animation: detailSwapFadeOut 600ms cubic-bezier(0.24, 0.76, 0.24, 1) both;
+    animation: detailSwapDriftOut 760ms cubic-bezier(0.2, 0.76, 0.22, 1) both;
 }
 
 /* 控制 .detail-page.detail-swap-enter .page-stage 的布局、视觉和状态表现 */
 .detail-page.detail-swap-enter .page-stage {
-    animation: detailSwapFadeIn 600ms cubic-bezier(0.18, 0.78, 0.2, 1) both;
+    animation: detailSwapGlideIn 760ms cubic-bezier(0.16, 0.8, 0.2, 1) both;
 }
 
 /* 控制 .detail-page.detail-swap-back-enter .page-stage 的布局、视觉和状态表现 */
 .detail-page.detail-swap-back-enter .page-stage {
-    animation: detailSwapBackIn 600ms cubic-bezier(0.18, 0.78, 0.2, 1) both;
+    animation: detailSwapReturnIn 760ms cubic-bezier(0.16, 0.8, 0.2, 1) both;
 }
 
-/* 定义 detailSwapFadeOut 动画关键帧 */
-@keyframes detailSwapFadeOut {
+/* 定义 detailSwapDriftOut 动画关键帧 */
+@keyframes detailSwapDriftOut {
 /* 控制动画在 0% 阶段的状态 */
     0% {
         opacity: 1;
-        transform: scale(1);
+        transform: translate3d(0, 0, 0) scale(1);
         filter: blur(0);
+    }
+/* 控制动画在 44% 阶段的状态 */
+    44% {
+        opacity: 0.58;
+        transform: translate3d(calc(var(--detail-swap-exit-x) * 0.54), calc(var(--detail-swap-exit-y) * 0.5), 0) scale(0.988);
+        filter: blur(3px);
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {
         opacity: 0;
-        transform: scale(0.972);
-        filter: blur(4px);
+        transform: translate3d(var(--detail-swap-exit-x), var(--detail-swap-exit-y), 0) scale(0.968);
+        filter: blur(8px);
     }
 }
 
-/* 定义 detailSwapFadeIn 动画关键帧 */
-@keyframes detailSwapFadeIn {
+/* 定义 detailSwapGlideIn 动画关键帧 */
+@keyframes detailSwapGlideIn {
 /* 控制动画在 0% 阶段的状态 */
     0% {
         opacity: 0;
-        transform: scale(1.028);
-        filter: blur(5px);
+        transform: translate3d(var(--detail-swap-enter-x), var(--detail-swap-enter-y), 0) scale(var(--detail-swap-enter-scale));
+        filter: blur(8px);
+    }
+/* 控制动画在 56% 阶段的状态 */
+    56% {
+        opacity: 0.78;
+        filter: blur(2px);
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {
         opacity: 1;
-        transform: scale(1);
+        transform: translate3d(0, 0, 0) scale(1);
         filter: blur(0);
     }
 }
 
-/* 定义 detailSwapBackIn 动画关键帧 */
-@keyframes detailSwapBackIn {
+/* 定义 detailSwapReturnIn 动画关键帧 */
+@keyframes detailSwapReturnIn {
 /* 控制动画在 0% 阶段的状态 */
     0% {
         opacity: 0;
-        transform: translate3d(-28px, 0, 0) scale(1.014);
-        filter: blur(5px);
+        transform: translate3d(var(--detail-swap-back-enter-x), var(--detail-swap-back-enter-y), 0) scale(var(--detail-swap-back-scale));
+        filter: blur(7px);
+    }
+/* 控制动画在 54% 阶段的状态 */
+    54% {
+        opacity: 0.76;
+        filter: blur(2px);
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {

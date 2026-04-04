@@ -351,7 +351,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 1,
         name: '诗巴丹',
-        tagline: '与海狼风暴共潜',
+        tagline: '让海狼风暴把呼吸拉长',
         image: 'assets/images/sipadan.jpg',
         price: getSpotBasePriceText(1, '¥3,980'),
         rating: '4.9',
@@ -360,7 +360,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 2,
         name: '帕劳',
-        tagline: '蓝色大门的秘密',
+        tagline: '在光与断层之间把节奏拉长',
         image: 'assets/images/palau.jpg',
         price: getSpotBasePriceText(2, '¥4,280'),
         rating: '4.8',
@@ -369,7 +369,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 3,
         name: '大蓝洞',
-        tagline: '深蓝之眼',
+        tagline: '把敬畏留在逐渐下压的深蓝',
         image: 'assets/images/blue-hole.jpg',
         price: getSpotBasePriceText(3, '¥5,680'),
         rating: '4.7',
@@ -378,7 +378,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 4,
         name: '帝汶岛',
-        tagline: '色彩斑斓的水下花园',
+        tagline: '在珊瑚花园与缓流里慢慢停车',
         image: 'assets/images/timor.jpg',
         price: getSpotBasePriceText(4, '¥3,480'),
         rating: '4.6',
@@ -387,7 +387,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 5,
         name: '波纳佩岛',
-        tagline: '微生物王国',
+        tagline: '让微距生命把节奏放轻',
         image: 'assets/images/pohnpei.jpg',
         price: getSpotBasePriceText(5, '¥2,980'),
         rating: '4.5',
@@ -396,7 +396,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 6,
         name: '布纳肯',
-        tagline: '海墙与海龟的呼吸线',
+        tagline: '在海墙与海龟之间整理呼吸',
         image: 'assets/images/timor.jpg',
         price: getSpotBasePriceText(6, '¥3,680'),
         rating: '4.7',
@@ -405,7 +405,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 7,
         name: '科莫多',
-        tagline: '巨龙与大鱼的故事',
+        tagline: '用巨龙与大鱼的流线保持平衡',
         image: 'assets/images/komodo.jpg',
         price: getSpotBasePriceText(7, '¥3,880'),
         rating: '4.8',
@@ -414,7 +414,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 8,
         name: '图阿莫图',
-        tagline: '南太平洋的明珠',
+        tagline: '在环礁静水里让晨光缓走',
         image: 'assets/images/tuamotu.jpg',
         price: getSpotBasePriceText(8, '¥4,180'),
         rating: '4.6',
@@ -423,7 +423,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 9,
         name: '马布岛',
-        tagline: '从码头慢慢走进玻璃海',
+        tagline: '把码头与玻璃海之间的呼吸留白',
         image: 'assets/images/mabul.jpg',
         price: getSpotBasePriceText(9, '¥3,580'),
         rating: '4.8',
@@ -432,7 +432,7 @@ const divingSpotsData = convertSpotCardPrices([
     {
         id: 10,
         name: '马尔代夫船宿',
-        tagline: '把好几片蓝，安静地收进同一段船宿里',
+        tagline: '把几片蓝连在同一段船宿的呼吸里',
         image: 'assets/images/maldives-liveaboard.jpg',
         price: getSpotBasePriceText(10, '¥6,880'),
         rating: '4.9',

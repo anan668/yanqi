@@ -59,7 +59,7 @@
                         <p class="trip-hero-subtitle">把出发时间、同行人数与想去的海域，安静地放进这一层海流里。规划不必像填表，更像为一次下潜预留合适的潮汐与呼吸。</p>
 
                         <div class="trip-hero-actions">
-                            <button type="button" class="sea-action sea-action-primary" data-scroll-target="#trip-layer">继续安排行程</button>
+                            <button type="button" class="sea-action sea-action-primary" data-scroll-target="#plannerDeskControl">继续安排行程</button>
                             <a href="home.html" class="sea-action sea-action-secondary">返回首页</a>
                         </div>
                     </div>
@@ -69,29 +69,6 @@
                          外层保留为 section，既能承接英雄区文案，也方便后续被页内滚动和深度计定位。 -->
                     <section class="trip-planner-section trip-page-planner" id="trip-planner">
                         <div class="trip-planner-shell">
-                            <!-- 已收进行程：显示在行程页确认过的套餐，让行程页像一份被慢慢收住的行程档案。 -->
-                            <section class="confirmed-bookings-stage" id="confirmedBookingsStage" aria-labelledby="confirmedBookingsTitle">
-                                <div class="confirmed-bookings-head">
-                                    <div class="confirmed-bookings-copy">
-                                        <p class="confirmed-bookings-kicker">Booked Waters</p>
-                                        <h2 class="confirmed-bookings-title" id="confirmedBookingsTitle">已经收进行程的海</h2>
-                                        <p class="confirmed-bookings-intro">
-                                            在详情页确认过的套餐，会安静地停在这里，方便你继续整理出发时间与同行节奏。
-                                        </p>
-                                    </div>
-
-                                    <button type="button" class="confirmed-bookings-switch" id="confirmedBookingsSwitch" hidden>
-                                        换一批
-                                    </button>
-                                </div>
-
-                                <div class="confirmed-bookings-empty" id="confirmedBookingsEmpty">
-                                    还没有哪一片海被正式收进行程。等你在详情页慢慢确认以后，它会停在这里。
-                                </div>
-
-                                <div class="confirmed-bookings-list" id="confirmedBookingsList"></div>
-                            </section>
-
                             <!-- 行程交互控制台：
                                  这一层看起来像搜索栏，但实际上是行程页的三段式安排行程面板。
                                  脚本会在这里监听按钮点击，再把真正的浮层挂到页面顶层容器。 -->
@@ -307,6 +284,29 @@
                                     </article>
                                 </div>
                             </div>
+
+                            <!-- 已收进行程：显示在行程页确认过的套餐，让行程页像一份被慢慢收住的行程档案。 -->
+                            <section class="confirmed-bookings-stage" id="confirmedBookingsStage" aria-labelledby="confirmedBookingsTitle">
+                                <div class="confirmed-bookings-head">
+                                    <div class="confirmed-bookings-copy">
+                                        <p class="confirmed-bookings-kicker">Booked Waters</p>
+                                        <h2 class="confirmed-bookings-title" id="confirmedBookingsTitle">已经收进行程的海</h2>
+                                        <p class="confirmed-bookings-intro">
+                                            在详情页确认过的套餐，会安静地停在这里，方便你继续整理出发时间与同行节奏。
+                                        </p>
+                                    </div>
+
+                                    <button type="button" class="confirmed-bookings-switch" id="confirmedBookingsSwitch" hidden>
+                                        换一批
+                                    </button>
+                                </div>
+
+                                <div class="confirmed-bookings-empty" id="confirmedBookingsEmpty">
+                                    还没有哪一片海被正式收进行程。等你在详情页慢慢确认以后，它会停在这里。
+                                </div>
+
+                                <div class="confirmed-bookings-list" id="confirmedBookingsList"></div>
+                            </section>
                         </div>
                     </section>
                 </div>
@@ -360,7 +360,7 @@
                     <button type="button" class="prep-card" data-prep-card="certification" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">
                         <p class="prep-card-kicker">Certification Path</p>
                         <h3 class="prep-card-title">证书与等级</h3>
-                        <p class="prep-card-summary">确认 OW / AOW 等级、近 12 个月潜水记录，以及是否需要进阶课程衔接。</p>
+                        <p class="prep-card-summary">确认发证机构、OW / AOW 等级、近 12 个月潜水记录，以及是否需要 refresh / 复习课程。</p>
                     </button>
 
                     <button type="button" class="prep-card" data-prep-card="weather" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">
@@ -421,7 +421,7 @@
                 </div>
 
                 <div class="prep-detail-block prep-detail-subblock">
-                    <button type="button" class="prep-subtoggle" data-subpanel-target="gear-help">查看装备详情</button>
+                    <button type="button" class="prep-subtoggle" data-subpanel-target="gear-help" aria-expanded="false">查看装备详情</button>
                     <div class="prep-subpanel" data-subpanel="gear-help">
                         <p>盐憩会在行程确认后，把租借清单、建议自带项和备注项整理成一份装备说明。你可以按海域、水温和拍摄需求逐项核对，而不是在出发前一天临时补齐。</p>
                     </div>
@@ -430,43 +430,103 @@
 
             <template id="prep-template-certification">
                 <div class="prep-detail-block">
-                    <h4>常见证书介绍</h4>
+                    <h4>常见等级，不只看简称</h4>
                     <div class="prep-detail-list">
                         <article class="prep-detail-item">
-                            <h5>OW</h5>
-                            <p>Open Water Diver，开放水域初级潜水员。适合浅水、平稳海域，是第一次真正进入海里的起点。</p>
+                            <h5>OW / Open Water</h5>
+                            <p>多数休闲机构的第一张完整入门证书。以 PADI、SSI 为常见参考，成人 OW 常见训练上限在 18 米这一层，但真正是否适合某一潜，仍要连同海况与近期状态一起看。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>AOW</h5>
-                            <p>Advanced Open Water Diver，进阶开放水域潜水员。可以进入更复杂的潜点与更丰富的水下环境。</p>
+                            <h5>AOW / 进阶层</h5>
+                            <p>常见进阶训练会把你带到 30 米这一层，并加入深潜、导航等内容。不同机构命名并不完全一样，旧卡片也可能写作 Advanced Adventurer 或 Advanced Adventure。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>Rescue / Divemaster</h5>
-                            <p>前者强调判断与救援能力，后者则进入更专业的带队与协助层级。它们不是炫耀性的等级，而是责任更重的一层海域。</p>
+                            <h5>Specialty / 专项课</h5>
+                            <p>Nitrox、Deep、Navigation、Peak Performance Buoyancy、Night 这类专项课，往往比单纯追更高等级更能直接补齐一次行程真正需要的能力。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>Rescue / Dive Guide / Divemaster</h5>
+                            <p>这一层开始强调自我判断、他人协助与带队责任。它们不是炫耀性的等级，而是进入更复杂海况前，对秩序和责任的进一步承担。</p>
                         </article>
                     </div>
                 </div>
 
                 <div class="prep-detail-block prep-detail-subblock">
-                    <button type="button" class="prep-subtoggle" data-subpanel-target="cert-path">查看证书路径</button>
+                    <button type="button" class="prep-subtoggle" data-subpanel-target="cert-path" aria-expanded="false">查看证书路径</button>
                     <div class="prep-subpanel" data-subpanel="cert-path">
-                        <div class="prep-timeline">
-                            <span>理论学习</span>
-                            <span>平静水域练习</span>
-                            <span>开放水域训练</span>
-                            <span>完成考核后拿证</span>
+                        <div class="prep-path-grid">
+                            <article class="prep-path-step">
+                                <p class="prep-path-step-label">起点</p>
+                                <h5>体验潜 / Basic Diver</h5>
+                                <p>零基础可以先试水，但这不等于完整证书。真正要去更开放的海域，仍建议把 OW 学完整。</p>
+                            </article>
+                            <article class="prep-path-step">
+                                <p class="prep-path-step-label">第一层</p>
+                                <h5>OW / Open Water</h5>
+                                <p>从理论、平静水域到开放水域训练，是第一次真正把呼吸、耳压和平衡带进海里的起点。</p>
+                            </article>
+                            <article class="prep-path-step">
+                                <p class="prep-path-step-label">第二层</p>
+                                <h5>Advanced 路径</h5>
+                                <p>PADI AOW、SSI 新版 Advanced Open Water Diver、SDI Advanced Adventure 都属于这一层，通常会加入深潜和导航。</p>
+                            </article>
+                            <article class="prep-path-step">
+                                <p class="prep-path-step-label">延展</p>
+                                <h5>Specialty 专项课</h5>
+                                <p>若行程涉及 Nitrox、洋流、夜潜、深潜或中性浮力要求，专项课往往比笼统说“我有 AOW”更有判断价值。</p>
+                            </article>
+                            <article class="prep-path-step">
+                                <p class="prep-path-step-label">出发前</p>
+                                <h5>Refresh / ReActivate / Skills Update</h5>
+                                <p>如果有一段时间没下潜，先做一次复习回水，会比在流区、深潜或连续多潜里临时找状态更从容。</p>
+                            </article>
+                            <article class="prep-path-step">
+                                <p class="prep-path-step-label">更深一层</p>
+                                <h5>Rescue 到职业线</h5>
+                                <p>Rescue、Dive Guide、Divemaster 往后走的不是“更酷”，而是更高的判断力、照护能力与带队责任。</p>
+                            </article>
                         </div>
+                        <p class="prep-cert-note">不同培训体系的命名会更新。比如 SSI 已在 2026 年 3 月把进阶项目明确为 Advanced Open Water Diver，所以旧卡和新卡可能会出现不同写法。出发前最好连同发证机构、证书编号和电子卡一起备好。</p>
+                    </div>
+                </div>
+
+                <div class="prep-detail-block prep-detail-subblock">
+                    <button type="button" class="prep-subtoggle" data-subpanel-target="cert-lookup" aria-expanded="false">查看官方查证入口</button>
+                    <div class="prep-subpanel" data-subpanel="cert-lookup">
+                        <div class="prep-cert-link-grid">
+                            <a class="prep-cert-link" href="https://www.padi.com/certcard" target="_blank" rel="noreferrer noopener">
+                                <span class="prep-cert-link-agency">PADI</span>
+                                <strong>电子卡与补卡入口</strong>
+                                <span>通过 PADI eCard 与 PADI App 查看证书信息，出发前先核对等级、编号和卡面姓名会更稳妥。</span>
+                            </a>
+                            <a class="prep-cert-link" href="https://www.divessi.com/en/join-ssi/register-free/myssi-app" target="_blank" rel="noreferrer noopener">
+                                <span class="prep-cert-link-agency">SSI</span>
+                                <strong>MySSI 数字证书</strong>
+                                <span>MySSI 可查看数字证书、学习资料与 logbook；如果你持有旧版进阶卡，也能更快确认具体机构命名。</span>
+                            </a>
+                            <a class="prep-cert-link" href="https://www.tdisdi.com/sdi/diver-services/" target="_blank" rel="noreferrer noopener">
+                                <span class="prep-cert-link-agency">SDI</span>
+                                <strong>Diver Services</strong>
+                                <span>官方页面提供 Diver Profiles、补卡，以及 Confirm a SDI Certification 入口，适合出发前做一次网页核对。</span>
+                            </a>
+                            <a class="prep-cert-link" href="https://www.naui.org/services/verify-diver-certification/" target="_blank" rel="noreferrer noopener">
+                                <span class="prep-cert-link-agency">NAUI</span>
+                                <strong>在线验证证书</strong>
+                                <span>NAUI 官网可直接核对训练记录；如果是领导等级，也可以进一步进入专业资格验证页。</span>
+                            </a>
+                        </div>
+                        <p class="prep-cert-note">如果你的证书来自其他体系，例如 CMAS、RAID、TDI 或本地协会，最稳妥的方式仍然是按发证机构官网查询。给盐憩提供机构名、证书等级、编号和最近一次下潜时间，会比只说“我有 AOW”更准确。</p>
                     </div>
                 </div>
 
                 <div class="prep-detail-block">
                     <h4>等级与海域匹配</h4>
-                    <p>OW 更适合浅水、流速平稳的海域；AOW 更适合进入更复杂、深度更高或洋流更明显的潜点。如果某片海要求更高等级或近期记录，盐憩会在行程确认时提前提醒，而不是在船上才临时判断。</p>
+                    <p>证书更像进入某一层海的许可，但不会自动覆盖所有海况。除了深度，盐憩也会一起看洋流、能见度、低温、入水方式、夜潜安排与连续多潜节奏。哪怕都是 18 至 30 米，这一潜是否适合，仍要连同近期状态一起判断。</p>
                 </div>
 
                 <div class="prep-detail-block">
                     <h4>近 12 个月潜水记录</h4>
-                    <p>近期下潜记录会帮助判断你是否适应当前海况。如果太久没有下潜，先安排一次 refresh / 复习课程，通常会比硬着头皮下水更从容。</p>
+                    <p>近 12 个月的下潜频率、最后一次下潜时间，以及是否做过 refresh / ReActivate / Scuba Skills Update，往往比“几年前拿过哪张卡”更能说明你现在的状态。如果空档较久，先安排一次复习回水，再进入流区、深潜或船宿，会从容得多。</p>
                 </div>
             </template>
 

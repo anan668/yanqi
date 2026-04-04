@@ -119,7 +119,7 @@
     const DEFAULT_TRANSITION_TIMINGS = Object.freeze({
         general: Object.freeze({
             exitPageMs: 1120,
-            exitNavigateLeadMs: 180,
+            exitNavigateLeadMs: 100,
             enterPageMs: 880,
             overlayBoost: 0.23,
             pageshowOverlayBoost: 0.18,
@@ -142,7 +142,7 @@
             diveEnterMs: 1280,
             surfaceExitMs: 1520,
             surfaceEnterMs: 1340,
-            navigateLeadMs: 240,
+            navigateLeadMs: 120,
             overlayBoost: 0.2,
             pageshowOverlayBoost: 0.14
         })
@@ -2254,6 +2254,21 @@
             }
         }
 
+        /**
+         * forceTransitionReflow() - 在切换 class 前后强制浏览器同步布局，避免首帧位移被吞掉
+         * @returns {void} - 无返回值，仅用于刷新当前舞台的布局状态
+         */
+        forceTransitionReflow() {
+            if (this.pageStage) {
+                void this.pageStage.offsetWidth;
+                return;
+            }
+
+            if (this.body) {
+                void this.body.offsetWidth;
+            }
+        }
+
         // 通用切页控制：负责设置过渡 class、时长、覆盖层和入场/离场清理时机。
         /**
          * applyTransitionClass(className) - 应用当前页面切换所需的主动画 class
@@ -2262,7 +2277,13 @@
          */
         applyTransitionClass(className) {
             this.clearTransitionClasses();
-            this.body.classList.add('page-transition-active', className);
+            this.forceTransitionReflow();
+            this.body.classList.add('page-transition-active');
+            this.forceTransitionReflow();
+
+            if (className) {
+                this.body.classList.add(className);
+            }
         }
 
         /**

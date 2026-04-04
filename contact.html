@@ -90,7 +90,8 @@
             <div class="info-shell info-reveal info-reveal-delay-3" id="contactFormSection">
                 <section class="contact-form-shell">
                     <h2 class="info-section-title">把想说的话留在这里</h2>
-                    <p class="contact-form-copy">这还是前端演示版留言台。点击发送后，内容会先在当前浏览器里被暂时收下，不会伪装成已经发到服务器。</p>
+                    <p class="contact-form-copy">这还是前端演示版留言台。写下的草稿会先留在当前浏览器里，刷新回来也不会散掉；点击发送后，它会继续停在下方这片回看水域，不会伪装成已经发到服务器。</p>
+                    <p class="contact-draft-state" id="contactDraftState" aria-live="polite">这段草稿会先停在当前浏览器里，等你决定什么时候把它轻轻留下。</p>
 
                     <form id="contactForm" novalidate>
                         <div class="contact-form-grid">
@@ -124,20 +125,56 @@
                     </form>
 
                     <div class="contact-feedback" id="contactFeedback" aria-live="polite"></div>
+
+                    <section class="contact-memory" id="contactMemorySection" aria-labelledby="contactMemoryTitle">
+                        <div class="contact-memory-head">
+                            <div>
+                                <p class="contact-memory-kicker">Local Echoes</p>
+                                <h3 class="contact-memory-title" id="contactMemoryTitle">本地暂存的留言回看</h3>
+                            </div>
+                            <button type="button" class="contact-memory-clear" id="contactMemoryClear">清空本地暂存</button>
+                        </div>
+                        <p class="contact-memory-copy" id="contactMessagesMeta">这片水域会先替你安静收着已经留下的话。</p>
+                        <div class="contact-memory-list" id="contactMessagesList"></div>
+                    </section>
                 </section>
             </div>
 
             <footer class="info-footer info-reveal info-reveal-delay-3">
-                <div class="info-footer-top">
-                    <a href="home.html" class="info-footer-link">回到首页</a>
-                    <a href="trip.html" class="info-footer-link">去我的行程</a>
-                    <a href="detail.html?id=1" class="info-footer-link">继续看一片海</a>
+                <div class="info-footer-main">
+                    <div class="info-footer-intro">
+                        <p class="info-footer-kicker">Surface Return</p>
+                        <h2 class="info-footer-title">让这层联络水域，慢慢把你送回主线</h2>
+                        <p class="info-footer-copy">如果这段想法已经停稳，可以回到首页继续看海，去我的行程继续往下排，或者再潜进一片具体海域。这里更像一段缓慢收束，而不是突然结束。</p>
+                    </div>
+
+                    <div class="info-footer-column">
+                        <p class="info-footer-group-title">继续去往</p>
+                        <div class="info-footer-top">
+                            <a href="home.html" class="info-footer-link">回到首页</a>
+                            <a href="trip.html" class="info-footer-link">去我的行程</a>
+                            <a href="detail.html?id=1" class="info-footer-link">继续看一片海</a>
+                        </div>
+                    </div>
+
+                    <div class="info-footer-column">
+                        <p class="info-footer-group-title">在这层里</p>
+                        <div class="info-footer-links">
+                            <a href="#contactMethodsSection" class="policy-link" data-info-scroll="#contactMethodsSection">回到联络方式</a>
+                            <a href="#contactFormSection" class="policy-link" data-info-scroll="#contactFormSection">回到留言台</a>
+                            <a href="terms.html" class="policy-link">查看用户协议</a>
+                            <a href="privacy.html" class="policy-link">查看隐私政策</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-footer-links">
-                    <a href="terms.html" class="policy-link">用户协议</a>
-                    <a href="privacy.html" class="policy-link">隐私政策</a>
+
+                <div class="info-footer-bottom">
+                    <div class="info-footer-depth">
+                        <span class="info-footer-depth-label">Current Layer</span>
+                        <span class="info-footer-depth-value">联络浅层 · 回声会先停在这里</span>
+                    </div>
+                    <p class="info-footer-meta">这页仍在盐憩这片海里，只是停在一层更安静的说明水域。</p>
                 </div>
-                <p class="info-footer-meta">这页仍在盐憩这片海里，只是停在一层更安静的说明水域。</p>
             </footer>
         </main>
     </div>

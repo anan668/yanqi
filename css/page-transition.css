@@ -19,10 +19,13 @@
     --ocean-cover-opacity: 0;
     --ocean-depth-progress: 0;
     --login-home-blue-opacity: 0;
-    --page-exit-duration: 1120ms;
-    --page-enter-duration: 880ms;
-    --page-ocean-exit-duration: 1420ms;
-    --page-ocean-enter-duration: 1260ms;
+    --page-exit-duration: 1000ms;
+    --page-enter-duration: 760ms;
+    --page-ocean-exit-duration: 1200ms;
+    --page-ocean-enter-duration: 1040ms;
+    --page-stage-translation: 76vh;
+    --page-stage-blur: 6px;
+    --page-ocean-translation: 24vh;
 }
 
 /* 控制页面过渡遮罩、气泡层和海洋切换特效 */
@@ -204,6 +207,11 @@ body.trip-page.page-ocean-dive-exit > .navbar {
     animation: page-ocean-dive-exit var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.8, 0.2, 1) forwards;
 }
 
+body.page-ocean-dive-exit .page-stage,
+body.page-ocean-dive-enter .page-stage {
+    transform-origin: 50% 16%;
+}
+
 /* body.page-ocean-dive-enter .page-stage, body.home-page.page-ocean-dive-enter > .navba... 的主要视觉与布局效果 */
 body.page-ocean-dive-enter .page-stage,
 body.home-page.page-ocean-dive-enter > .navbar,
@@ -218,6 +226,11 @@ body.home-page.page-ocean-surface-exit > .navbar,
 body.detail-page.page-ocean-surface-exit > .navbar,
 body.trip-page.page-ocean-surface-exit > .navbar {
     animation: page-ocean-surface-exit var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.76, 0.24, 1) forwards;
+}
+
+body.page-ocean-surface-exit .page-stage,
+body.page-ocean-surface-enter .page-stage {
+    transform-origin: 50% 84%;
 }
 
 /* body.page-ocean-surface-enter .page-stage, body.home-page.page-ocean-surface-enter > ... 的主要视觉与布局效果 */
@@ -238,9 +251,9 @@ body.trip-page.page-ocean-surface-enter > .navbar {
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {
-        transform: translate3d(0, -108vh, 0);
-        opacity: 0.12;
-        filter: blur(10px);
+        transform: translate3d(0, calc(var(--page-stage-translation) * -1), 0);
+        opacity: 0.2;
+        filter: blur(var(--page-stage-blur));
     }
 }
 
@@ -254,9 +267,9 @@ body.trip-page.page-ocean-surface-enter > .navbar {
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {
-        transform: translate3d(0, 108vh, 0);
-        opacity: 0.12;
-        filter: blur(10px);
+        transform: translate3d(0, var(--page-stage-translation), 0);
+        opacity: 0.2;
+        filter: blur(var(--page-stage-blur));
     }
 }
 
@@ -264,9 +277,9 @@ body.trip-page.page-ocean-surface-enter > .navbar {
 @keyframes page-enter-from-bottom {
 /* 控制动画在 0% 阶段的状态 */
     0% {
-        transform: translate3d(0, 108vh, 0);
+        transform: translate3d(0, var(--page-stage-translation), 0);
         opacity: 0.08;
-        filter: blur(10px);
+        filter: blur(6px);
     }
 /* 控制动画在 72% 阶段的状态 */
     72% {
@@ -285,9 +298,9 @@ body.trip-page.page-ocean-surface-enter > .navbar {
 @keyframes page-enter-from-top {
 /* 控制动画在 0% 阶段的状态 */
     0% {
-        transform: translate3d(0, -108vh, 0);
+        transform: translate3d(0, calc(var(--page-stage-translation) * -1), 0);
         opacity: 0.08;
-        filter: blur(10px);
+        filter: blur(6px);
     }
 /* 控制动画在 72% 阶段的状态 */
     72% {
@@ -310,16 +323,23 @@ body.trip-page.page-ocean-surface-enter > .navbar {
         opacity: 1;
         filter: blur(0);
     }
-/* 控制动画在 54% 阶段的状态 */
-    54% {
-        opacity: 0.52;
-        filter: blur(4px);
+/* 控制动画在 42% 阶段的状态 */
+    42% {
+        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.42), 0) scale(0.995);
+        opacity: 0.72;
+        filter: blur(3px);
+    }
+/* 控制动画在 72% 阶段的状态 */
+    72% {
+        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.78), 0) scale(0.986);
+        opacity: 0.34;
+        filter: blur(6px);
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {
-        transform: translate3d(0, -14vh, 0) scale(0.964);
+        transform: translate3d(0, calc(var(--page-ocean-translation) * -1), 0) scale(0.976);
         opacity: 0.12;
-        filter: blur(12px);
+        filter: blur(10px);
     }
 }
 
@@ -327,9 +347,15 @@ body.trip-page.page-ocean-surface-enter > .navbar {
 @keyframes page-ocean-dive-enter {
 /* 控制动画在 0% 阶段的状态 */
     0% {
-        transform: translate3d(0, 11vh, 0) scale(1.03);
+        transform: translate3d(0, var(--page-ocean-translation), 0) scale(1.02);
         opacity: 0.06;
-        filter: blur(14px);
+        filter: blur(10px);
+    }
+/* 控制动画在 52% 阶段的状态 */
+    52% {
+        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.34), 0) scale(1.008);
+        opacity: 0.74;
+        filter: blur(3px);
     }
 /* 控制动画在 68% 阶段的状态 */
     68% {
@@ -352,16 +378,23 @@ body.trip-page.page-ocean-surface-enter > .navbar {
         opacity: 1;
         filter: blur(0);
     }
-/* 控制动画在 52% 阶段的状态 */
-    52% {
-        opacity: 0.56;
-        filter: blur(4px);
+/* 控制动画在 40% 阶段的状态 */
+    40% {
+        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.36), 0) scale(0.996);
+        opacity: 0.74;
+        filter: blur(3px);
+    }
+/* 控制动画在 72% 阶段的状态 */
+    72% {
+        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.76), 0) scale(0.988);
+        opacity: 0.34;
+        filter: blur(6px);
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {
-        transform: translate3d(0, 12vh, 0) scale(0.972);
-        opacity: 0.14;
-        filter: blur(11px);
+        transform: translate3d(0, var(--page-ocean-translation), 0) scale(0.978);
+        opacity: 0.12;
+        filter: blur(10px);
     }
 }
 
@@ -369,9 +402,15 @@ body.trip-page.page-ocean-surface-enter > .navbar {
 @keyframes page-ocean-surface-enter {
 /* 控制动画在 0% 阶段的状态 */
     0% {
-        transform: translate3d(0, -10vh, 0) scale(1.016);
-        opacity: 0.08;
-        filter: blur(13px);
+        transform: translate3d(0, calc(var(--page-ocean-translation) * -1), 0) scale(1.016);
+        opacity: 0.06;
+        filter: blur(10px);
+    }
+/* 控制动画在 52% 阶段的状态 */
+    52% {
+        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.3), 0) scale(1.006);
+        opacity: 0.76;
+        filter: blur(3px);
     }
 /* 控制动画在 68% 阶段的状态 */
     68% {
@@ -383,6 +422,31 @@ body.trip-page.page-ocean-surface-enter > .navbar {
         transform: translate3d(0, 0, 0) scale(1);
         opacity: 1;
         filter: blur(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --page-stage-translation: 18vh;
+        --page-stage-blur: 0px;
+        --page-ocean-translation: 10vh;
+    }
+
+    body.page-exit-up .page-stage,
+    body.page-exit-down .page-stage,
+    body.page-enter-from-bottom .page-stage,
+    body.page-enter-from-top .page-stage,
+    body.page-ocean-dive-exit .page-stage,
+    body.page-ocean-dive-enter .page-stage,
+    body.page-ocean-surface-exit .page-stage,
+    body.page-ocean-surface-enter .page-stage,
+    body.page-transition-active .navbar {
+        filter: none !important;
+    }
+
+    .page-transition-overlay {
+        transition: none;
+        opacity: 1;
     }
 }
 
