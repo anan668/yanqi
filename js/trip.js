@@ -827,6 +827,10 @@ function setupPlannerSummary() {
         renderPlannerCalendar();
     }
 
+    /**
+     * resetDateFieldValue() - 在上游字段失效时清空日期选择，并刷新日历显示
+     * @returns {boolean} - 本次是否真的清掉了已有日期
+     */
     function resetDateFieldValue() {
         const hadValue = Boolean(dateInput.value);
         if (!hadValue) {
@@ -841,6 +845,10 @@ function setupPlannerSummary() {
         return true;
     }
 
+    /**
+     * resetPeopleFieldValue() - 把同行人数退回空选项，并收起自定义人数编辑区
+     * @returns {boolean} - 本次是否真的清掉了已有同行人数
+     */
     function resetPeopleFieldValue() {
         const hadValue = Boolean(String(peopleInput.value || '').trim());
         const emptyOption = peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value=""]');
@@ -853,9 +861,15 @@ function setupPlannerSummary() {
         return hadValue;
     }
 
+    /**
+     * syncProgressivePlannerState() - 维护 Planner 的逐层解锁关系与字段回退
+     * @returns {boolean} - 本轮同步中是否发生了下游字段重置
+     */
     function syncProgressivePlannerState() {
         let didReset = false;
 
+        // Planner 的顺序固定为“海域 -> 日期 -> 同行人数”。
+        // 只要上游被改空，下游就必须一起回退，避免残留不再成立的组合。
         if (!isFieldComplete('spot')) {
             didReset = resetDateFieldValue() || didReset;
             didReset = resetPeopleFieldValue() || didReset;
@@ -868,6 +882,7 @@ function setupPlannerSummary() {
             const unlocked = isFieldUnlocked(key);
             const wasLocked = config.field.classList.contains('is-locked');
 
+            // “可用 / 锁定”状态同时驱动视觉态、tab 可达性和解锁显现动画。
             config.field.classList.toggle('is-ready', unlocked);
             config.field.classList.toggle('is-locked', !unlocked);
             config.trigger.setAttribute('aria-disabled', String(!unlocked));
@@ -913,6 +928,11 @@ function setupPlannerSummary() {
         return didReset;
     }
 
+    /**
+     * queueAutoAdvance(fieldKey) - 在完成当前步骤后，短暂停顿再引导到下一步
+     * @param {string} fieldKey - 当前刚完成的字段键名
+     * @returns {void} - 无返回值，直接安排自动展开
+     */
     function queueAutoAdvance(fieldKey) {
         const nextFieldKey = getNextFieldKey(fieldKey);
         if (!nextFieldKey || !isFieldUnlocked(nextFieldKey) || isFieldComplete(nextFieldKey)) {
@@ -927,6 +947,7 @@ function setupPlannerSummary() {
                 return;
             }
 
+            // 给用户一点“上一层刚收住”的缓冲，再把焦点带进下一层。
             openPanel(nextFieldKey);
             fieldMap[nextFieldKey]?.trigger?.focus({ preventScroll: true });
         }, 280);
@@ -1056,6 +1077,8 @@ function setupPlannerSummary() {
         const liveValue = availableValues.has(currentValue) ? currentValue : '';
         let nextValue = '';
 
+        // 当已收进行程收缩了可选海域后，旧草稿里原本的值可能已经不再合法。
+        // 这里会先过滤掉失效值，再从“锁定单海域 / 草稿值 / 当前值”里选出一个可继续使用的值。
         if (mode === 'locked-single') {
             nextValue = options[0]?.value || '';
         } else if (mode === 'booked-only') {
@@ -1668,6 +1691,8 @@ function setupPlannerSummary() {
         hasRenderedSummaryOnce = true;
 
         if (store && typeof store.savePlannerDraft === 'function') {
+            // 这里保存的是 Planner 的“编辑中草稿”；
+            // 它和下面 commitPlannerDeskSelection() 写入的已收进行程是两层不同的数据。
             store.savePlannerDraft({
                 spotValue: spotInput.value,
                 spotLabel: spotInput.dataset.label || COPY.spot.emptyLabel,
@@ -1687,6 +1712,8 @@ function setupPlannerSummary() {
      * @returns {void} - 无返回值，直接更新共享存储并刷新列表
      */
     function commitPlannerDeskSelection() {
+        // 草稿负责“页面回来还能继续填”，
+        // 这里负责“已收进行程列表立刻看到最新日期和人数”。
         syncPlannerSelectionToConfirmedBookings({
             spotValue: spotInput.value,
             dateValue: dateInput.value,
@@ -1718,6 +1745,9 @@ function setupPlannerSummary() {
         }
         const storedSpotValue = readPlannerDraftValue(draft, 'spot');
         const storedPeopleValue = readPlannerDraftValue(draft, 'people');
+        // 人数恢复时要兼顾两种情况：
+        // 1. 命中预设人数按钮；
+        // 2. 命中“自定义人数”占位，再把真实数字单独写回字段。
         const storedPeople = peopleOptions.find((option) => option.dataset.value === storedPeopleValue)
             || (storedPeopleValue
                 ? peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]')
@@ -1822,13 +1852,18 @@ function setupPlannerSummary() {
         }
     });
 
+    // 人数选项分成两条处理路径：
+    // 1. 预设人数：直接把按钮上挂的 data-* 写回字段、摘要和已收进行程；
+    // 2. 自定义人数：先展开输入区，让用户确认具体人数，再统一走 applyCustomPeopleValue()。
     peopleOptions.forEach((option) => {
         option.addEventListener('click', () => {
             if (option.dataset.value === 'custom') {
+                // 再次打开“自定义”时，优先把当前自定义人数带回输入框，方便继续调整。
                 showCustomPeopleEditor(getCustomPeopleCount());
                 return;
             }
 
+            // 预设人数不需要额外确认，点一下就立刻同步整块 Planner 的显示与已收进行程。
             setOptionState('people', option);
             syncProgressivePlannerState();
             updatePlannerSummary();
@@ -1838,17 +1873,21 @@ function setupPlannerSummary() {
         });
     });
 
+    // “应用”按钮与回车键共用同一提交函数，避免两套入口出现不同校验结果。
     customPeopleApply.addEventListener('click', () => {
         applyCustomPeopleValue();
     });
 
     customPeopleInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
+            // 阻止 Enter 触发表单默认提交，改由自定义人数自己的确认逻辑接管。
             event.preventDefault();
             applyCustomPeopleValue();
         }
     });
 
+    // 主按钮更像“把当前安排收进下一层浏览节奏”：
+    // 先保存草稿和已收进行程，再收起浮层，最后平滑滚动到目标区块。
     submitButton.addEventListener('click', (event) => {
         event.preventDefault();
         persistPlannerDraft();
@@ -1975,6 +2014,7 @@ class PrepSystem {
             return;
         }
 
+        const shouldRefreshPanel = this.activeKey && this.activeKey !== key;
         this.activeKey = key;
         const config = PREP_CONTENT[key];
         const template = document.getElementById(config.templateId);
@@ -1998,22 +2038,34 @@ class PrepSystem {
             this.summary.textContent = config.summary;
         }
 
-        this.panel.classList.remove('is-visible');
+        this.panel.classList.add('is-visible');
+
+        if (shouldRefreshPanel) {
+            this.panel.classList.remove('is-switching');
+            requestAnimationFrame(() => {
+                this.panel.classList.add('is-switching');
+            });
+            window.setTimeout(() => {
+                this.panel.classList.remove('is-switching');
+            }, 780);
+        }
         this.content.innerHTML = '';
 
         if (template) {
             this.content.appendChild(template.content.cloneNode(true));
         }
 
+        const detailBlocks = Array.from(this.content.querySelectorAll('.prep-detail-block'));
+
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                this.panel.classList.add('is-visible');
+                detailBlocks.forEach((block) => block.classList.add('is-ready'));
             });
         });
         // 连续两帧 requestAnimationFrame 是为了确保：
         // 1. 新内容先插入 DOM
         // 2. 浏览器先完成一次布局
-        // 3. 再触发可见状态，让入场动画稳定生。
+        // 3. 再触发内容显现，让换面节奏稳定生效。
     }
 }
 
@@ -2157,6 +2209,107 @@ function setupTripReveal() {
     observeTripRevealElements([prepHead], { baseDelay: 20, stepDelay: 0 });
     observeTripRevealElements(prepCards, { baseDelay: 70, stepDelay: 96 });
     observeTripRevealElements([prepPanel], { baseDelay: 110, stepDelay: 0 });
+}
+
+let confirmedBookingsEntranceObserver = null;
+const confirmedBookingsEntranceTimers = new WeakMap();
+
+/**
+ * isElementReadyForViewportEntrance(element) - 判断某个区块是否已经进入当前可见区域
+ * @param {Element} element - 需要判断的 DOM 元素
+ * @returns {boolean} - 当前元素是否足够可见，适合触发入场动画
+ */
+function isElementReadyForViewportEntrance(element) {
+    if (!(element instanceof Element)) {
+        return false;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+
+    return rect.top < viewportHeight * 0.96 && rect.bottom > viewportHeight * 0.08;
+}
+
+/**
+ * clearConfirmedBookingsEntranceTimers(list) - 清理已收进行程列表挂着的入场计时器
+ * @param {Element} list - 已收进行程列表容器
+ * @returns {void} - 无返回值，直接清理内部计时器
+ */
+function clearConfirmedBookingsEntranceTimers(list) {
+    const timerIds = confirmedBookingsEntranceTimers.get(list);
+    if (Array.isArray(timerIds)) {
+        timerIds.forEach((timerId) => window.clearTimeout(timerId));
+    }
+    confirmedBookingsEntranceTimers.delete(list);
+}
+
+/**
+ * runConfirmedBookingsEntrance(list) - 触发已收进行程卡片的成组进入动画
+ * @param {Element} list - 已收进行程列表容器
+ * @returns {void} - 无返回值，直接启动两张卡的推进显现
+ */
+function runConfirmedBookingsEntrance(list) {
+    if (!(list instanceof Element) || list.dataset.pendingEntrance !== 'true') {
+        return;
+    }
+
+    confirmedBookingsEntranceObserver?.unobserve?.(list);
+    clearConfirmedBookingsEntranceTimers(list);
+
+    const cards = Array.from(list.querySelectorAll('.confirmed-booking-card'));
+    if (!cards.length) {
+        list.classList.remove('is-refreshing');
+        list.dataset.pendingEntrance = 'false';
+        return;
+    }
+
+    const timerIds = [];
+    cards.forEach((card, index) => {
+        const timerId = window.setTimeout(() => {
+            card.classList.remove('is-entering');
+            void card.offsetWidth;
+            card.classList.add('is-entering');
+        }, 90 + (index * 150));
+        timerIds.push(timerId);
+    });
+
+    const cleanupTimer = window.setTimeout(() => {
+        list.classList.remove('is-refreshing');
+        list.dataset.pendingEntrance = 'false';
+        cards.forEach((card) => card.classList.remove('is-entering'));
+        confirmedBookingsEntranceTimers.delete(list);
+    }, 90 + Math.max(0, cards.length - 1) * 150 + 980);
+    timerIds.push(cleanupTimer);
+
+    confirmedBookingsEntranceTimers.set(list, timerIds);
+}
+
+/**
+ * ensureConfirmedBookingsEntranceObserver() - 保证已收进行程列表有专门的视口 observer
+ * @returns {IntersectionObserver} - 负责触发卡片入场的 observer 实例
+ */
+function ensureConfirmedBookingsEntranceObserver() {
+    if (confirmedBookingsEntranceObserver) {
+        return confirmedBookingsEntranceObserver;
+    }
+
+    confirmedBookingsEntranceObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            const target = entry.target;
+            if (target instanceof Element) {
+                runConfirmedBookingsEntrance(target);
+            }
+        });
+    }, {
+        threshold: 0.14,
+        rootMargin: '0px 0px -6% 0px'
+    });
+
+    return confirmedBookingsEntranceObserver;
 }
 
 /**
@@ -2381,6 +2534,8 @@ function syncPlannerSelectionToConfirmedBookings(selection) {
     const nextPeopleLabel = String(selection?.peopleLabel || '').trim();
     const now = new Date().toISOString();
 
+    // 这里只回写与当前 Planner 海域匹配的套餐；
+    // 如果 Planner 还没锁定海域，则把这份日期 / 人数视作当前列表的统一安排。
     const nextBookings = currentBookings.map((booking) => {
         const bookingSpotKey = String(booking?.spotKey || '').trim();
         const shouldSync = targetSpot ? bookingSpotKey === targetSpot : true;
@@ -2491,6 +2646,9 @@ function renderConfirmedBookings() {
     if (!Array.isArray(bookings) || bookings.length === 0) {
         empty.hidden = false;
         list.innerHTML = '';
+        list.classList.remove('is-refreshing');
+        list.dataset.pendingEntrance = 'false';
+        clearConfirmedBookingsEntranceTimers(list);
         confirmedBookingsTextLayoutController?.disconnect?.();
         confirmedBookingsTextLayoutController = null;
         confirmedBookingsPageIndex = 0;
@@ -2506,11 +2664,19 @@ function renderConfirmedBookings() {
     const visibleBookings = bookings.slice(start, start + CONFIRMED_BOOKINGS_PAGE_SIZE);
 
     empty.hidden = true;
+    clearConfirmedBookingsEntranceTimers(list);
+    list.classList.add('is-refreshing');
+    list.dataset.pendingEntrance = 'true';
     list.innerHTML = visibleBookings.map((booking) => buildConfirmedBookingCardMarkup(booking)).join('');
-    const cards = Array.from(list.querySelectorAll('.confirmed-booking-card'));
-    cards.forEach((card) => card.classList.add('trip-reveal-card'));
     syncConfirmedBookingsTextLayout();
-    observeTripRevealElements(cards, { baseDelay: 40, stepDelay: 92 });
+
+    if (isElementReadyForViewportEntrance(document.getElementById('confirmedBookingsStage') || list)) {
+        requestAnimationFrame(() => {
+            runConfirmedBookingsEntrance(list);
+        });
+    } else {
+        ensureConfirmedBookingsEntranceObserver().observe(list);
+    }
 
     if (switchButton) {
         switchButton.hidden = bookings.length <= CONFIRMED_BOOKINGS_PAGE_SIZE;

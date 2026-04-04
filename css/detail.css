@@ -2377,6 +2377,9 @@ body.has-overlay-lock {
 
 /* 控制 .booking-sticky 的布局、视觉和状态表现 */
 .booking-sticky {
+    --booking-copy-stick-top: 0px;
+    --booking-copy-stick-height: 0px;
+    --booking-sticky-stack-gap: 18px;
     position: static;
     max-height: calc(100vh - var(--detail-sidebar-stick-top) - var(--detail-sidebar-stick-bottom));
     overflow-y: auto;
@@ -2457,6 +2460,11 @@ body.has-overlay-lock {
     margin-bottom: 16px;
 }
 
+.booking-sticky.is-review-context .price-badge,
+.booking-sticky.is-review-context .booking-match {
+    display: none;
+}
+
 /* 控制 .booking-match-chip 的布局、视觉和状态表现 */
 .booking-match-chip {
     display: inline-flex;
@@ -2495,10 +2503,22 @@ body.has-overlay-lock {
 
 /* 控制 .booking-copy 的布局、视觉和状态表现 */
 .booking-copy {
-    position: relative;
+    position: sticky;
+    top: var(--booking-copy-stick-top, 0px);
+    z-index: 5;
     isolation: isolate;
-    margin-bottom: 18px;
-    padding: 2px 0;
+    margin-bottom: var(--booking-sticky-stack-gap, 18px);
+    padding: 14px 16px 16px;
+    border-radius: 24px;
+    background:
+        linear-gradient(148deg, rgba(250, 253, 255, 0.78), rgba(228, 242, 248, 0.52)),
+        rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(194, 220, 232, 0.48);
+    box-shadow:
+        0 16px 30px rgba(13, 43, 63, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.52);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
 .booking-copy > * {
@@ -2714,6 +2734,224 @@ body.has-overlay-lock {
     animation: bookingGuideGlow 980ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
 }
 
+/* 评论阅读中的套餐焦点舱：
+   让价格、当前套餐名和适合人群在侧栏内部持续停驻，
+   用户读评论时不需要只靠高亮卡片猜现在对应的是哪一套安排。 */
+.booking-focus-panel {
+    position: sticky;
+    top: calc(
+        var(--booking-copy-stick-top, 0px) +
+        var(--booking-copy-stick-height, 0px) +
+        var(--booking-sticky-stack-gap, 18px)
+    );
+    z-index: 4;
+    isolation: isolate;
+    display: grid;
+    gap: 14px;
+    margin-bottom: var(--booking-sticky-stack-gap, 18px);
+    padding: 16px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(136, 210, 233, 0.18), transparent 34%),
+        linear-gradient(165deg, rgba(17, 54, 79, 0.96), rgba(8, 34, 52, 0.94) 58%, rgba(10, 45, 66, 0.92) 100%);
+    border: 1px solid rgba(164, 213, 232, 0.2);
+    box-shadow:
+        0 18px 36px rgba(4, 20, 34, 0.22),
+        inset 0 1px 0 rgba(243, 249, 252, 0.14);
+    overflow: hidden;
+}
+
+.booking-focus-panel::before {
+    content: "";
+    position: absolute;
+    inset: -32% 24% auto -18%;
+    height: 74%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(173, 229, 243, 0.28), transparent 72%);
+    opacity: 0.82;
+    pointer-events: none;
+    filter: blur(10px);
+}
+
+.booking-focus-panel > * {
+    position: relative;
+    z-index: 1;
+}
+
+.booking-focus-head,
+.booking-focus-copy {
+    display: grid;
+    gap: 8px;
+}
+
+.booking-focus-state,
+.booking-focus-overline,
+.booking-focus-summary {
+    margin: 0;
+}
+
+.booking-focus-state {
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    color: rgba(211, 236, 245, 0.82);
+}
+
+.booking-focus-overline {
+    font-size: 0.64rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(176, 220, 234, 0.58);
+}
+
+.booking-focus-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: start;
+}
+
+.booking-focus-title {
+    margin: 0;
+    font-size: 1.08rem;
+    line-height: 1.48;
+    color: rgba(244, 250, 253, 0.98);
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+}
+
+.booking-focus-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.booking-focus-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(180, 223, 237, 0.2);
+    background: rgba(244, 250, 253, 0.08);
+    color: rgba(228, 244, 249, 0.84);
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.booking-focus-price-wrap {
+    display: grid;
+    gap: 6px;
+    min-width: 120px;
+    padding: 12px 12px 10px;
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
+        rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(180, 223, 237, 0.16);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+}
+
+.booking-focus-price-label {
+    font-size: 0.64rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(187, 224, 236, 0.62);
+}
+
+.booking-focus-price {
+    font-size: 1.34rem;
+    font-weight: 700;
+    color: rgba(245, 251, 254, 0.98);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+.booking-focus-summary {
+    color: rgba(217, 238, 246, 0.86);
+    font-size: 0.88rem;
+    line-height: 1.76;
+}
+
+.booking-focus-action {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid rgba(183, 223, 236, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 16px;
+    color: rgba(244, 249, 252, 0.96);
+    background:
+        linear-gradient(180deg, rgba(249, 252, 254, 0.1), rgba(204, 232, 243, 0.06)),
+        rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 1px 0 rgba(248, 251, 253, 0.12);
+    cursor: pointer;
+    transition:
+        transform 280ms ease,
+        border-color 280ms ease,
+        box-shadow 280ms ease,
+        background-color 280ms ease;
+}
+
+.booking-focus-action svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 280ms ease;
+}
+
+.booking-focus-action:hover {
+    transform: translate3d(0, -2px, 0);
+    border-color: rgba(192, 230, 242, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.14),
+        0 14px 24px rgba(6, 23, 36, 0.14);
+}
+
+.booking-focus-action:hover svg {
+    transform: translateX(3px);
+}
+
+.booking-focus-panel.is-review-context {
+    border-color: rgba(182, 225, 239, 0.28);
+    box-shadow:
+        0 22px 40px rgba(4, 20, 34, 0.24),
+        0 0 24px rgba(126, 198, 222, 0.12),
+        inset 0 1px 0 rgba(243, 249, 252, 0.16);
+}
+
+.booking-focus-panel.is-review-context .booking-focus-state {
+    color: rgba(229, 244, 249, 0.92);
+}
+
+@keyframes bookingFocusPulse {
+    0% {
+        transform: translate3d(0, 10px, 0);
+        opacity: 0.82;
+        filter: saturate(0.92);
+    }
+
+    58% {
+        transform: translate3d(0, -2px, 0);
+        opacity: 1;
+        filter: saturate(1.04);
+    }
+
+    100% {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+        filter: saturate(1);
+    }
+}
+
+.booking-focus-panel.is-pulsing {
+    animation: bookingFocusPulse 820ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+}
+
 /* ============================================
    套餐卡片列表
    ============================================ */
@@ -2741,6 +2979,10 @@ body.has-overlay-lock {
     gap: 16px;
     margin-bottom: 18px;
     padding-left: 18px;
+}
+
+.itinerary-list.is-review-context {
+    display: none;
 }
 
 .itinerary-list::before {
@@ -5734,6 +5976,16 @@ body.has-overlay-lock {
         max-height: none;
         overflow: visible;
         scrollbar-width: auto;
+    }
+
+    .booking-focus-panel {
+        position: static;
+        top: auto;
+    }
+
+    .booking-copy {
+        position: static;
+        top: auto;
     }
 
 /* 控制 .review-card 的布局、视觉和状态表现 */

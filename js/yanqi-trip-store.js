@@ -120,6 +120,11 @@
             : safeValue;
     }
 
+    /**
+     * normalizePlannerDateValue(value) - 把草稿里的日期整理成可靠的 YYYY-MM-DD
+     * @param {*} value - 原始日期值
+     * @returns {string} - 有效日期返回规范字符串，否则返回空字符
+     */
     function normalizePlannerDateValue(value) {
         const safeValue = normalizeText(value);
         if (!safeValue || !/^\d{4}-\d{2}-\d{2}$/.test(safeValue)) {
@@ -140,12 +145,21 @@
         return normalized === safeValue ? safeValue : '';
     }
 
+    /**
+     * normalizePlannerPeopleValue(value) - 规范化草稿里的同行人数写法
+     * @param {*} value - 原始人数值
+     * @returns {string} - 仅保留项目当前支持的数字、区间或加号格式
+     */
     function normalizePlannerPeopleValue(value) {
         const safeValue = normalizeText(value);
         if (!safeValue) {
             return '';
         }
 
+        // 当前允许三类写法：
+        // 1. 纯数字：`2`
+        // 2. 区间：`2-4`
+        // 3. 下限加号：`6+`
         const exactMatch = safeValue.match(/^(\d+)$/);
         if (exactMatch) {
             const count = Number.parseInt(exactMatch[1], 10);
@@ -170,6 +184,14 @@
         return '';
     }
 
+    /**
+     * pickPlannerDraftValue(source, primaryKey, legacyKey, normalizer) - 兼容新旧字段名读取草稿值
+     * @param {Object} source - 原始草稿对象
+     * @param {string} primaryKey - 当前主字段名
+     * @param {string} legacyKey - 旧字段名
+     * @param {Function} normalizer - 读取后使用的标准化函数
+     * @returns {string} - 标准化后的字段值
+     */
     function pickPlannerDraftValue(source, primaryKey, legacyKey, normalizer) {
         const normalize = typeof normalizer === 'function' ? normalizer : normalizeText;
         const primaryValue = normalize(source?.[primaryKey]);
@@ -263,6 +285,8 @@
             return safePriceText;
         }
 
+        // 旧数据里有一部分价格曾按美元展示后写入本地；
+        // 这里借助版本号把它们折回当前统一的人民币显示，避免老数据继续带着旧币种渲染。
         const currency = safePriceText.replace(amountMatch[0], '').trim();
         const formattedCurrentCny = `¥${Math.round(amount).toLocaleString('zh-CN')}`;
         if (

@@ -17,6 +17,11 @@
     const PREPARE_CACHE = new Map();
     let pretextModulePromise = null;
 
+    /**
+     * stableStringify(value) - 用稳定字段顺序序列化对象，保证缓存 key 可复用
+     * @param {*} value - 任意待序列化的值
+     * @returns {string} - 字段顺序稳定的 JSON 字符串
+     */
     function stableStringify(value) {
         if (!value || typeof value !== 'object' || Array.isArray(value)) {
             return JSON.stringify(value ?? null);
@@ -30,6 +35,11 @@
         return JSON.stringify(sorted);
     }
 
+    /**
+     * roundWidth(width) - 把宽度整理成稳定的小数值，减少缓存 key 抖动
+     * @param {number} width - 原始宽度
+     * @returns {number} - 四舍五入后的安全宽度
+     */
     function roundWidth(width) {
         if (!Number.isFinite(width)) {
             return 0;
@@ -38,6 +48,12 @@
         return Math.max(0, Math.round(width * 100) / 100);
     }
 
+    /**
+     * parsePx(value, fallback) - 把 CSS 像素文本转换成数字
+     * @param {string|number} value - 原始样式值
+     * @param {number} fallback - 解析失败时的兜底值
+     * @returns {number} - 可计算的像素数值
+     */
     function parsePx(value, fallback) {
         const numeric = Number.parseFloat(String(value || '').replace('px', '').trim());
         return Number.isFinite(numeric) ? numeric : fallback;
@@ -73,6 +89,10 @@
         return [text, font, stableStringify(options)].join('::');
     }
 
+    /**
+     * waitForFonts() - 等待页面字体大致稳定，避免过早测量导致高度偏差
+     * @returns {Promise<void>} - 字体 ready 或超时后完成
+     */
     function waitForFonts() {
         if (!document.fonts || typeof document.fonts.ready?.then !== 'function') {
             return Promise.resolve();
@@ -84,6 +104,10 @@
         ]);
     }
 
+    /**
+     * loadPretextModule() - 懒加载 pretext 模块，并把结果缓存成单例 Promise
+     * @returns {Promise<object>} - 载入完成的 pretext 模块
+     */
     function loadPretextModule() {
         if (!pretextModulePromise) {
             pretextModulePromise = import(PRETEXT_IMPORT_PATH)
@@ -97,6 +121,13 @@
         return pretextModulePromise;
     }
 
+    /**
+     * getPreparedText(text, font, options) - 获取可复用的预处理文本结果
+     * @param {string} text - 原始文本
+     * @param {string} font - 当前测量所用字体描述
+     * @param {object} options - 传给 pretext.prepare 的配置
+     * @returns {Promise<object>} - 预处理后的文本对象
+     */
     async function getPreparedText(text, font, options) {
         const safeText = String(text ?? '');
         const key = getPrepareCacheKey(safeText, font, options);
@@ -111,6 +142,11 @@
         return prepared;
     }
 
+    /**
+     * predictMetrics(config) - 预测一段文本在指定宽度和行高下的行数与高度
+     * @param {object} config - 文本测量配置
+     * @returns {Promise<{lineCount:number,height:number}>} - 预测后的布局结果
+     */
     async function predictMetrics(config) {
         const text = String(config?.text ?? '');
         const font = String(config?.font || '').trim();
@@ -129,6 +165,12 @@
         return module.layout(prepared, maxWidth, lineHeight);
     }
 
+    /**
+     * predictElementMetrics(element, options) - 从真实 DOM 元素推导文本布局结果
+     * @param {Element} element - 需要测量的目标元素
+     * @param {object} options - 文本提取与测量配置
+     * @returns {Promise<{lineCount:number,height:number}>} - 预测后的布局结果
+     */
     async function predictElementMetrics(element, options = {}) {
         if (!(element instanceof Element)) {
             return {
@@ -165,6 +207,12 @@
         });
     }
 
+    /**
+     * applyElementMetrics(element, options) - 把预测出的高度直接写回元素样式
+     * @param {Element} element - 需要应用高度的目标元素
+     * @param {object} options - 应用与输出配置
+     * @returns {Promise<{lineCount:number,height:number}>} - 本次应用使用的布局结果
+     */
     async function applyElementMetrics(element, options = {}) {
         const metrics = await predictElementMetrics(element, options);
         const pixelHeight = Math.ceil(metrics.height);
@@ -198,6 +246,12 @@
         return metrics;
     }
 
+    /**
+     * applyBatch(root, specs) - 按规格批量处理一个区域里的多组文本节点
+     * @param {Element} root - 需要扫描的容器节点
+     * @param {Array<object>} specs - 每组选择器与测量配置
+     * @returns {Promise<Array<object>>} - 所有测量任务完成后的结果数组
+     */
     async function applyBatch(root, specs) {
         if (!(root instanceof Element) || !Array.isArray(specs) || specs.length === 0) {
             return [];
@@ -218,6 +272,12 @@
         return Promise.all(tasks);
     }
 
+    /**
+     * mountResponsiveBatch(root, specs) - 让一组文本布局在尺寸或字体变化后自动重算
+     * @param {Element} root - 要观察的根容器
+     * @param {Array<object>} specs - 批量测量规格
+     * @returns {{refresh: Function, disconnect: Function}|null} - 可手动刷新或卸载的控制器
+     */
     function mountResponsiveBatch(root, specs) {
         if (!(root instanceof Element) || !Array.isArray(specs) || specs.length === 0) {
             return null;
@@ -232,6 +292,7 @@
                 return;
             }
 
+            // 统一走 applyBatch，让一个区块里所有文本在同一轮里完成重算。
             applyBatch(root, specs).catch(() => {
                 // 这里故意静默失败：如果 pretext 尚未构建、或某个模块暂时不可用，
                 // 页面仍然应该保持原样，不要打断现有交互。
@@ -247,6 +308,7 @@
                 window.cancelAnimationFrame(rafId);
             }
 
+            // 尺寸变化可能在一帧里连续触发很多次，合并到下一帧再算更稳定。
             rafId = window.requestAnimationFrame(() => {
                 rafId = 0;
                 run();

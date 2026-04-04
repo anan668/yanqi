@@ -496,6 +496,7 @@
             { input: messageInput, field: messageInput?.closest('.contact-field') }
         ];
 
+        // 每次输入都先收成一份“可存储的草稿对象”，后面恢复和保存都复用这个结构。
         function buildDraftFromForm() {
             return {
                 name: nameInput?.value || '',
@@ -506,6 +507,7 @@
             };
         }
 
+        // 页面再次打开时，把上次尚未提交的内容轻轻放回表单。
         function restoreDraftIntoForm() {
             const draft = safeReadContactDraft();
 
@@ -528,6 +530,8 @@
             updateContactDraftState(draft);
         }
 
+        // 只要表单里还有内容，就持续更新本地草稿；
+        // 如果用户已经全部删空，就把草稿一起清掉，避免留下一份“空壳记录”。
         function persistDraftFromForm() {
             const draft = normalizeContactDraft(buildDraftFromForm());
 
@@ -560,6 +564,7 @@
 
         if (clearButton) {
             clearButton.addEventListener('click', () => {
+                // 这里清的是“已暂存留言列表”，不是当前输入框里的未发草稿。
                 if (!safeReadContactMessages().length) {
                     renderStoredContactMessages();
                     return;
@@ -589,6 +594,8 @@
                 return;
             }
 
+            // 这里仍然是演示版前端流程：
+            // 留言不会发送到服务器，而是暂存在当前浏览器的 localStorage 里。
             const messages = safeReadContactMessages();
             messages.unshift({
                 name: nameInput.value.trim(),

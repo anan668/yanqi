@@ -1731,6 +1731,14 @@ class DetailPage {
         this.bookingConfirmGoTrip = document.getElementById('bookingConfirmGoTrip');
         this.bookingConfirmStay = document.getElementById('bookingConfirmStay');
         this.bookingCopy = document.getElementById('bookingCopy');
+        this.bookingFocusPanel = document.getElementById('bookingFocusPanel');
+        this.bookingFocusState = document.getElementById('bookingFocusState');
+        this.bookingFocusOverline = document.getElementById('bookingFocusOverline');
+        this.bookingFocusTitle = document.getElementById('bookingFocusTitle');
+        this.bookingFocusMeta = document.getElementById('bookingFocusMeta');
+        this.bookingFocusPrice = document.getElementById('bookingFocusPrice');
+        this.bookingFocusSummary = document.getElementById('bookingFocusSummary');
+        this.bookingFocusAction = document.getElementById('bookingFocusAction');
         this.reviewDetailModal = document.getElementById('reviewDetailModal');
         this.reviewDetailBody = document.getElementById('reviewDetailBody');
         this.reviewLightbox = document.getElementById('reviewLightbox');
@@ -1773,7 +1781,11 @@ class DetailPage {
         this.bookingCopyTypingActive = false;
         this.bookingCopySwapTimers = [];
         this.bookingCopySwapVersion = 0;
+        this.bookingCopyResizeObserver = null;
         this.activeBookingGuideKey = this.bookingCopy?.dataset.readingGuideKey || 'overview';
+        this.activeBookingFocusPackageId = '';
+        this.activeBookingFocusContextKey = '';
+        this.bookingFocusPulseTimer = 0;
         this.activeReviewLinkedPackageId = null;
         this.bookingStickyScrollTargetTop = 0;
         this.bookingStickyScrollRaf = 0;
@@ -1801,6 +1813,7 @@ class DetailPage {
         this.applyIncomingRelatedTransition();
         this.setupEventListeners();
         this.setupSeaGuide();
+        this.setupBookingStickyStack();
         this.setupBookingCopyReveal();
         this.setupIntroReveal();
         this.setupReviewsReveal();
@@ -2881,6 +2894,46 @@ class DetailPage {
     }
 
     /**
+     * updateBookingStickyStackOffsets() - 根据当前陪读文案高度，更新侧栏双层停驻所需的偏移量。
+     * 这样 booking-copy 和 booking-focus-panel 可以一起停住，而不是后者把前者顶掉。
+     * @returns {void} - 无返回值，直接写入 sticky 容器 CSS 变量
+     */
+    updateBookingStickyStackOffsets() {
+        if (!this.bookingSticky || !this.bookingCopy) {
+            return;
+        }
+
+        const copyHeight = Math.ceil(this.bookingCopy.getBoundingClientRect().height || this.bookingCopy.offsetHeight || 0);
+        this.bookingSticky.style.setProperty('--booking-copy-stick-top', '0px');
+        this.bookingSticky.style.setProperty('--booking-copy-stick-height', `${copyHeight}px`);
+        this.bookingSticky.style.setProperty('--booking-sticky-stack-gap', '18px');
+    }
+
+    /**
+     * setupBookingStickyStack() - 让右侧陪读文案和套餐焦点舱共享同一套 sticky 停驻栈。
+     * @returns {void} - 无返回值，直接注册尺寸同步逻辑
+     */
+    setupBookingStickyStack() {
+        if (!this.bookingSticky || !this.bookingCopy) {
+            return;
+        }
+
+        this.updateBookingStickyStackOffsets();
+
+        if ('ResizeObserver' in window) {
+            this.bookingCopyResizeObserver?.disconnect();
+            this.bookingCopyResizeObserver = new ResizeObserver(() => {
+                this.updateBookingStickyStackOffsets();
+            });
+            this.bookingCopyResizeObserver.observe(this.bookingCopy);
+        } else {
+            window.addEventListener('resize', () => {
+                this.updateBookingStickyStackOffsets();
+            });
+        }
+    }
+
+    /**
      * getBookingReadingGuideCopy() - 为当前阅读区块生成右侧 sticky 文案。
      * @param {string} sectionKey - 当前左侧正文所在区块 key
      * @returns {{ key: string, kicker: string, title: string, intro: string }} - 对应的陪读引导文案
@@ -2993,6 +3046,164 @@ class DetailPage {
         if (bookingTitle) {
             bookingTitle.setAttribute('aria-label', `当前阅读区块：${guideCopy.title}`);
         }
+
+        window.requestAnimationFrame(() => {
+            this.updateBookingStickyStackOffsets();
+        });
+    }
+
+    /**
+     * getBookingFocusContextContent() - 根据当前阅读区块，返回右侧套餐焦点舱应显示的陪读语气。
+     * @param {string} sectionKey - 当前阅读区块 key
+     * @returns {{ state: string, overline: string }} - 当前套餐焦点舱的状态文案
+     */
+    getBookingFocusContextContent(sectionKey) {
+        const contextMap = {
+            overview: {
+                state: '当前可以一起对照看的安排',
+                overline: 'Current Package'
+            },
+            map: {
+                state: '从海图回到进入方式',
+                overline: 'Sea Entry'
+            },
+            reviews: {
+                state: '这段评价正在对照下面这套安排',
+                overline: 'Review Companion'
+            },
+            related: {
+                state: '继续看别的海时，这一程仍停在这里',
+                overline: 'Still Holding'
+            }
+        };
+
+        return contextMap[sectionKey] || contextMap.overview;
+    }
+
+    /**
+     * buildBookingFocusMetaMarkup() - 生成右侧套餐焦点舱里的简短信息芯片。
+     * @param {Object} pkg - 当前套餐对象
+     * @returns {string} - 芯片 HTML 字符串
+     */
+    buildBookingFocusMetaMarkup(pkg) {
+        const metaItems = [
+            pkg?.group,
+            pkg?.duration,
+            Array.isArray(pkg?.fitTags) ? pkg.fitTags[0] : ''
+        ].filter(Boolean);
+
+        return metaItems.map((item) => `
+            <span class="booking-focus-chip">${escapeHtml(item)}</span>
+        `).join('');
+    }
+
+    /**
+     * getBookingFocusSummary() - 生成右侧套餐焦点舱里的摘要句。
+     * @param {Object} pkg - 当前套餐对象
+     * @param {string} sectionKey - 当前阅读区块 key
+     * @returns {string} - 对应的摘要文案
+     */
+    getBookingFocusSummary(pkg, sectionKey) {
+        const summaryParts = [
+            pkg?.audience ? `适合 ${pkg.audience}` : '',
+            pkg?.diveSummary || '',
+            pkg?.staySummary || ''
+        ].filter(Boolean);
+
+        const leadMap = {
+            overview: '先把适合自己的节奏停在旁边',
+            map: '从位置回到安排时，可以先记住这一程',
+            reviews: '现在读到的这段体验，更接近这一套安排',
+            related: '就算继续往相邻海域平移，这一程也还留在这里'
+        };
+
+        return `${leadMap[sectionKey] || leadMap.overview}：${summaryParts.join(' · ')}`;
+    }
+
+    /**
+     * pulseBookingFocusPanel() - 给右侧套餐焦点舱一次轻微的更新呼吸感。
+     * @returns {void} - 无返回值，直接刷新状态 class
+     */
+    pulseBookingFocusPanel() {
+        if (!this.bookingFocusPanel) {
+            return;
+        }
+
+        window.clearTimeout(this.bookingFocusPulseTimer);
+        this.bookingFocusPanel.classList.remove('is-pulsing');
+        void this.bookingFocusPanel.offsetWidth;
+        this.bookingFocusPanel.classList.add('is-pulsing');
+
+        this.bookingFocusPulseTimer = window.setTimeout(() => {
+            this.bookingFocusPanel?.classList.remove('is-pulsing');
+            this.bookingFocusPulseTimer = 0;
+        }, 820);
+    }
+
+    /**
+     * syncBookingFocusPanel() - 同步右侧套餐焦点舱，让价格与当前套餐在阅读评论时仍清晰停留。
+     * @param {{ force?: boolean }} [options={}] - 是否强制刷新
+     * @returns {void} - 无返回值，直接更新焦点舱内容
+     */
+    syncBookingFocusPanel(options = {}) {
+        if (
+            !this.bookingFocusPanel ||
+            !this.bookingFocusState ||
+            !this.bookingFocusOverline ||
+            !this.bookingFocusTitle ||
+            !this.bookingFocusMeta ||
+            !this.bookingFocusPrice ||
+            !this.bookingFocusSummary
+        ) {
+            return;
+        }
+
+        const { force = false } = options;
+        const packageId = this.selectedPackageId || this.getPackageFlowPackages()[0]?.id || this.packageData[0]?.id || '';
+        if (!packageId) {
+            return;
+        }
+
+        const pkg = this.getPackageById(packageId);
+        if (!pkg) {
+            return;
+        }
+
+        const contextKey = this.activeBookingGuideKey || 'overview';
+        if (
+            !force &&
+            packageId === this.activeBookingFocusPackageId &&
+            contextKey === this.activeBookingFocusContextKey
+        ) {
+            return;
+        }
+
+        const contextContent = this.getBookingFocusContextContent(contextKey);
+        this.activeBookingFocusPackageId = packageId;
+        this.activeBookingFocusContextKey = contextKey;
+
+        this.bookingFocusState.textContent = contextContent.state;
+        this.bookingFocusOverline.textContent = contextContent.overline;
+        this.bookingFocusTitle.textContent = pkg.name;
+        this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg);
+        this.bookingFocusPrice.textContent = pkg.price;
+        this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey);
+        this.bookingSticky?.classList.toggle('is-review-context', contextKey === 'reviews');
+        this.bookingFocusPanel.classList.toggle('is-review-context', contextKey === 'reviews');
+        this.itineraryList?.classList.toggle('is-review-context', contextKey === 'reviews');
+        this.itineraryList?.setAttribute('aria-hidden', String(contextKey === 'reviews'));
+        this.applyPackageCardSelectionState(packageId);
+
+        if (contextKey === 'reviews' && this.bookingSticky) {
+            this.bookingStickyScrollTargetTop = 0;
+            this.bookingSticky.scrollTop = 0;
+        }
+
+        if (this.bookingFocusAction) {
+            this.bookingFocusAction.dataset.packageId = pkg.id;
+        }
+
+        this.pulseBookingFocusPanel();
     }
 
     /**
@@ -3015,6 +3226,7 @@ class DetailPage {
         const nextGuideCopy = this.getBookingReadingGuideCopy(nextKey);
 
         this.activeBookingGuideKey = nextGuideCopy.key;
+        this.syncBookingFocusPanel({ force: true });
         this.clearBookingCopySwapTimers();
         this.bookingCopySwapVersion += 1;
         const transitionVersion = this.bookingCopySwapVersion;
@@ -4567,8 +4779,25 @@ class DetailPage {
         }
 
         this.selectedPackageId = targetId;
+        this.applyPackageCardSelectionState(targetId);
+        this.syncBookingFocusPanel();
+    }
+
+    /**
+     * applyPackageCardSelectionState() - 根据当前阅读语境决定是否保留套餐卡的旧版高亮。
+     * 评论态由上方焦点舱接管当前套餐提示，因此这里仅保留选中数据，不再把旧卡片继续点亮。
+     * @param {string|null} packageId - 当前选中的套餐 ID
+     * @returns {void} - 无返回值，直接同步套餐卡 class
+     */
+    applyPackageCardSelectionState(packageId = this.selectedPackageId) {
+        if (!this.itineraryList) {
+            return;
+        }
+
+        const targetId = packageId || this.selectedPackageId || '';
+        const shouldHighlightCard = Boolean(targetId) && (this.activeBookingGuideKey || 'overview') !== 'reviews';
         this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
-            card.classList.toggle('is-active', card.dataset.packageId === targetId);
+            card.classList.toggle('is-active', shouldHighlightCard && card.dataset.packageId === targetId);
         });
     }
 
@@ -6627,6 +6856,20 @@ class DetailPage {
 
                 event.preventDefault();
                 this.openBookingModal(packageCard.dataset.packageId, packageCard);
+            });
+        }
+
+        if (this.bookingFocusAction) {
+            this.bookingFocusAction.addEventListener('click', () => {
+                const packageId = this.bookingFocusAction.dataset.packageId || this.selectedPackageId;
+                if (!packageId) {
+                    return;
+                }
+
+                const sourceCard = (this.activeBookingGuideKey || 'overview') === 'reviews'
+                    ? null
+                    : this.getPackageCardById(packageId);
+                this.openBookingModal(packageId, sourceCard);
             });
         }
 

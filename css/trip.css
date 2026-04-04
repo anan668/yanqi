@@ -1290,6 +1290,127 @@
     }
 }
 
+@keyframes prep-detail-panel-refresh {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+
+    38% {
+        transform: translate3d(0, 10px, 0) scale(0.992);
+        filter: blur(10px);
+    }
+
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes prep-detail-panel-glow {
+    0% {
+        opacity: 0;
+    }
+
+    42% {
+        opacity: 0.92;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes prep-detail-head-refresh {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+
+    34% {
+        opacity: 0.32;
+        transform: translate3d(0, 8px, 0);
+        filter: blur(12px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes confirmed-booking-card-rise {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 26px, 0) scale(0.988);
+        filter: blur(18px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes confirmed-booking-card-rise-left {
+    0% {
+        opacity: 0;
+        transform: translate3d(-28px, 34px, 0) scale(0.984);
+        filter: blur(18px);
+    }
+
+    55% {
+        opacity: 1;
+        transform: translate3d(4px, -3px, 0) scale(1.006);
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes confirmed-booking-card-rise-right {
+    0% {
+        opacity: 0;
+        transform: translate3d(28px, 34px, 0) scale(0.984);
+        filter: blur(18px);
+    }
+
+    55% {
+        opacity: 1;
+        transform: translate3d(-4px, -3px, 0) scale(1.006);
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes confirmed-booking-card-sheen {
+    0% {
+        opacity: 0;
+        transform: translate3d(-12%, 0, 0);
+    }
+
+    44% {
+        opacity: 0.92;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(10%, 0, 0);
+    }
+}
+
 /* 回执层：保留 summary 锚点，但把它压成附着在控制台下方的一层轻回执。 */
 .planner-summary {
     grid-area: summary;
@@ -1953,6 +2074,8 @@
 
 /* 准备系统右侧详情面板：负责展开后的说明内容和玻璃质感。 */
 .prep-detail-panel {
+    position: relative;
+    overflow: hidden;
     min-height: 420px;
     padding: 28px 28px 24px;
     border-radius: 32px;
@@ -1967,9 +2090,36 @@
     -webkit-backdrop-filter: blur(18px) saturate(132%);
 }
 
+/* 切换准备主题时，整块详情面板先轻微沉回海里，再把新内容托起来。
+   这样用户会感觉是在同一块玻璃板里换到另一种准备层，而不是内容被硬替换。 */
+.prep-detail-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    background:
+        radial-gradient(circle at 18% 14%, rgba(214, 239, 250, 0.18) 0%, rgba(214, 239, 250, 0) 28%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 34%, rgba(145, 208, 234, 0.1) 72%, rgba(255, 255, 255, 0) 100%);
+    filter: blur(14px);
+}
+
+.prep-detail-panel.is-switching {
+    animation: prep-detail-panel-refresh 760ms cubic-bezier(0.16, 0.82, 0.2, 1);
+}
+
+.prep-detail-panel.is-switching::after {
+    animation: prep-detail-panel-glow 760ms ease;
+}
+
 /* .prep-detail-head 的主要视觉与布局效果*/
 .prep-detail-head {
     margin-bottom: 24px;
+}
+
+.prep-detail-panel.is-switching .prep-detail-head {
+    animation: prep-detail-head-refresh 760ms cubic-bezier(0.16, 0.82, 0.2, 1);
 }
 
 /* .prep-detail-kicker 的主要视觉与布局效果*/
@@ -2018,19 +2168,50 @@
         filter 720ms ease;
 }
 
-/* 详情块在面板可见后依次进入，避免内容同时砸出来。 */
-.prep-detail-panel.is-visible .prep-detail-block {
+/* 详情块改成独立的内容显现类：
+   面板本身保持稳定，切换时只让新内容一层层托出来，
+   不再靠面板整体反复退场/进场，避免你看到的“抖一下”。 */
+.prep-detail-block.is-ready {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
 }
 
 /* 详情块按顺序追加延迟，让阅读节奏更像一层层展开。 */
-.prep-detail-panel.is-visible .prep-detail-block:nth-child(1) { transition-delay: 40ms; }
-.prep-detail-panel.is-visible .prep-detail-block:nth-child(2) { transition-delay: 130ms; }
-.prep-detail-panel.is-visible .prep-detail-block:nth-child(3) { transition-delay: 220ms; }
-.prep-detail-panel.is-visible .prep-detail-block:nth-child(4) { transition-delay: 310ms; }
-.prep-detail-panel.is-visible .prep-detail-block:nth-child(5) { transition-delay: 400ms; }
+.prep-detail-block.is-ready:nth-child(1) { transition-delay: 40ms; }
+.prep-detail-block.is-ready:nth-child(2) { transition-delay: 130ms; }
+.prep-detail-block.is-ready:nth-child(3) { transition-delay: 220ms; }
+.prep-detail-block.is-ready:nth-child(4) { transition-delay: 310ms; }
+.prep-detail-block.is-ready:nth-child(5) { transition-delay: 400ms; }
+
+/* 已收进行程里的两张卡不再只是普通 reveal，而是左右轻错落地被海流托出来。 */
+.confirmed-bookings-list.is-refreshing .confirmed-booking-card {
+    pointer-events: none;
+}
+
+.confirmed-booking-card.is-entering {
+    animation: confirmed-booking-card-rise 860ms cubic-bezier(0.16, 0.82, 0.2, 1) both;
+}
+
+.confirmed-booking-card.is-entering:nth-child(odd) {
+    animation-name: confirmed-booking-card-rise-left;
+}
+
+.confirmed-booking-card.is-entering:nth-child(even) {
+    animation-name: confirmed-booking-card-rise-right;
+}
+
+.confirmed-booking-card.is-entering::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 24% 16%, rgba(227, 244, 252, 0.14) 0%, rgba(227, 244, 252, 0) 30%),
+        linear-gradient(120deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 34%, rgba(160, 219, 241, 0.08) 70%, rgba(255, 255, 255, 0) 100%);
+    animation: confirmed-booking-card-sheen 820ms ease both;
+}
 
 .prep-detail-block h4 {
     margin: 0 0 14px;
@@ -2605,6 +2786,22 @@
     gap: 18px;
 }
 
+/* 列表准备切换或初次进入时，先由父层把两张卡统一收在海雾里。
+   这样卡片不会先裸露一帧再被压回去，能避免“短暂显示一会又消失”的问题。 */
+.confirmed-bookings-list.is-refreshing .confirmed-booking-card:not(.is-entering) {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(0.988);
+    filter: blur(18px);
+}
+
+.confirmed-bookings-list.is-refreshing .confirmed-booking-card:nth-child(odd):not(.is-entering) {
+    transform: translate3d(-20px, 30px, 0) scale(0.986);
+}
+
+.confirmed-bookings-list.is-refreshing .confirmed-booking-card:nth-child(even):not(.is-entering) {
+    transform: translate3d(20px, 30px, 0) scale(0.986);
+}
+
 .confirmed-booking-card {
     position: relative;
     display: grid;
@@ -2620,7 +2817,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    transition: transform 320ms ease, border-color 320ms ease, box-shadow 320ms ease;
+    transition: transform 320ms ease, border-color 320ms ease, box-shadow 320ms ease, opacity 320ms ease, filter 320ms ease;
 }
 
 .confirmed-booking-card:hover {

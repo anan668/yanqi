@@ -2,20 +2,20 @@
    旧版过渡兼容桥 - transition.js
    ============================================
    职责：
-   1. 保留旧版全局入口，避免历史调用直接失效。
-   2. 把所有旧入口统一转发给 `DepthManager`。
-   3. 不再维护固定 `setTimeout` 的独立过渡节奏。
+   1. 保留旧版全局入口，避免历史模板或内联调用直接失效。
+   2. 把旧入口统一转发给 `DepthManager`。
+   3. 让新旧页面都走同一套“海层切换”导航逻辑。
    阅读顺序：
-   1. DepthManager 获取工具
-   2. 兼容导航入口
-   3. 旧类兼容壳
+   1. `getDepthManager`
+   2. `navigateWithDepthManager`
+   3. 兼容类与旧函数入口
 */
 (function attachLegacyTransitionBridge(window) {
     const DEFAULT_TARGET_URL = 'home.html';
 
     /**
-     * getDepthManager() - 安全读取当前页面已挂载的 DepthManager 实例
-     * @returns {Object|null} - 可用的深度过渡管理器或空值
+     * getDepthManager() - 安全读取当前页面已经挂载的 DepthManager 实例
+     * @returns {Object|null} - 可用的深度导航管理器；没有则返回 null
      */
     function getDepthManager() {
         return window.DepthManager && typeof window.DepthManager.navigateTo === 'function'
@@ -24,7 +24,7 @@
     }
 
     /**
-     * navigateWithDepthManager(targetUrl) - 用当前唯一过渡引擎执行站内跳转
+     * navigateWithDepthManager(targetUrl) - 优先复用 DepthManager 执行站内跳转
      * @param {string} targetUrl - 目标页面地址
      * @returns {void} - 无返回值，直接执行跳转
      */
@@ -43,20 +43,20 @@
     }
 
     /**
-     * LegacyDepthGaugeTransitionCompat - 旧类名兼容壳，仅保留转发能力
+     * LegacyDepthGaugeTransitionCompat - 旧类名兼容外壳，仅保留转发能力
      */
     class LegacyDepthGaugeTransitionCompat {
         /**
-         * constructor() - 初始化兼容壳状态
+         * constructor() - 初始化兼容壳的简单状态位
          */
         constructor() {
             this.isTransitioning = false;
         }
 
         /**
-         * startTransition(targetUrl) - 兼容旧调用方式，统一转发给 DepthManager
-         * @param {string} targetUrl - 目标页面地址；省略时默认进入首页
-         * @returns {void} - 无返回值，直接执行统一过渡
+         * startTransition(targetUrl) - 兼容旧调用方式，统一交给 DepthManager
+         * @param {string} targetUrl - 目标页面地址；省略时默认回首页
+         * @returns {void} - 无返回值，直接触发统一过渡
          */
         startTransition(targetUrl = DEFAULT_TARGET_URL) {
             if (this.isTransitioning) {
@@ -69,7 +69,7 @@
     }
 
     /**
-     * transitionToPage(pageUrl) - 旧版备用页面过渡入口，现统一交给 DepthManager
+     * transitionToPage(pageUrl) - 旧版页面过渡入口，现统一交给 DepthManager
      * @param {string} pageUrl - 目标页面地址
      * @returns {void} - 无返回值，直接执行统一过渡
      */
@@ -86,6 +86,7 @@
         navigateWithDepthManager(pageUrl);
     }
 
+    // 继续向 window 暴露旧名称，这样历史模板和旧 onclick 不需要一起重写。
     window.DepthGaugeTransition = LegacyDepthGaugeTransitionCompat;
     window.transitionToPage = transitionToPage;
     window.triggerDepthGaugeTransition = triggerDepthGaugeTransition;
