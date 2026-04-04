@@ -429,6 +429,196 @@ img {
     transform: scale(1.1);
 }
 
+html.has-avatar-return-open,
+body.has-avatar-return-open {
+    overflow: hidden;
+}
+
+/* 头像返回浮层：
+   这不是浏览器原生确认框，而是一层安静的“上浮确认”，
+   让用户从当前海层回到入口前先有一段缓冲。 */
+.avatar-return-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 860;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 280ms ease;
+}
+
+.avatar-return-modal.active,
+.avatar-return-modal.is-closing {
+    pointer-events: auto;
+}
+
+.avatar-return-modal.active {
+    opacity: 1;
+}
+
+.avatar-return-backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 18%, rgba(171, 221, 246, 0.14), transparent 34%),
+        linear-gradient(180deg, rgba(4, 16, 28, 0.28), rgba(4, 12, 22, 0.7));
+    backdrop-filter: blur(16px) saturate(108%);
+    -webkit-backdrop-filter: blur(16px) saturate(108%);
+}
+
+.avatar-return-dialog {
+    position: relative;
+    width: min(100%, 520px);
+    border-radius: 32px;
+    border: 1px solid rgba(197, 228, 242, 0.14);
+    background:
+        linear-gradient(180deg, rgba(12, 36, 54, 0.92), rgba(8, 24, 38, 0.88)),
+        rgba(7, 20, 31, 0.84);
+    box-shadow:
+        0 28px 52px rgba(4, 14, 24, 0.34),
+        0 0 34px rgba(118, 186, 214, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(24px) saturate(126%);
+    -webkit-backdrop-filter: blur(24px) saturate(126%);
+    transform: translate3d(0, 28px, 0) scale(0.98);
+    opacity: 0;
+    transition:
+        transform 420ms cubic-bezier(0.18, 0.8, 0.22, 1),
+        opacity 280ms ease,
+        box-shadow 320ms ease;
+}
+
+.avatar-return-modal.active .avatar-return-dialog {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+}
+
+.avatar-return-modal.is-closing .avatar-return-dialog {
+    transform: translate3d(0, 18px, 0) scale(0.985);
+    opacity: 0;
+}
+
+.avatar-return-inner {
+    position: relative;
+    padding: 30px 30px 28px;
+}
+
+.avatar-return-inner::before {
+    content: "";
+    position: absolute;
+    inset: 14px 14px auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(188, 228, 244, 0), rgba(188, 228, 244, 0.42), rgba(188, 228, 244, 0));
+    opacity: 0.88;
+}
+
+.avatar-return-kicker {
+    margin: 0 0 12px;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(201, 230, 241, 0.62);
+}
+
+.avatar-return-title {
+    margin: 0;
+    font-size: clamp(1.55rem, 3.8vw, 2rem);
+    line-height: 1.18;
+    color: #f2fbff;
+}
+
+.avatar-return-copy {
+    margin: 16px 0 0;
+    font-size: 0.98rem;
+    line-height: 1.9;
+    color: rgba(217, 235, 243, 0.76);
+}
+
+.avatar-return-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.avatar-return-primary,
+.avatar-return-secondary {
+    flex: 1 1 0;
+    min-height: 48px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font: inherit;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background-color 220ms ease,
+        box-shadow 220ms ease,
+        color 220ms ease;
+}
+
+.avatar-return-primary {
+    color: #062133;
+    background:
+        linear-gradient(135deg, rgba(234, 250, 255, 0.98), rgba(181, 226, 242, 0.9));
+    box-shadow:
+        0 16px 30px rgba(5, 18, 28, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.avatar-return-primary:hover,
+.avatar-return-primary:focus-visible {
+    transform: translate3d(0, -2px, 0);
+    box-shadow:
+        0 20px 34px rgba(5, 18, 28, 0.28),
+        0 0 18px rgba(148, 219, 242, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+.avatar-return-secondary {
+    color: rgba(228, 241, 247, 0.84);
+    border-color: rgba(192, 226, 240, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(145, 198, 221, 0.04)),
+        rgba(7, 24, 37, 0.54);
+}
+
+.avatar-return-secondary:hover,
+.avatar-return-secondary:focus-visible {
+    transform: translate3d(0, -2px, 0);
+    border-color: rgba(203, 232, 243, 0.22);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(145, 198, 221, 0.06)),
+        rgba(9, 28, 42, 0.66);
+}
+
+.avatar-return-primary:focus-visible,
+.avatar-return-secondary:focus-visible {
+    outline: none;
+}
+
+@media (max-width: 640px) {
+    .avatar-return-modal {
+        padding: 18px;
+    }
+
+    .avatar-return-inner {
+        padding: 26px 22px 22px;
+    }
+
+    .avatar-return-actions {
+        flex-direction: column;
+    }
+
+    .avatar-return-primary,
+    .avatar-return-secondary {
+        width: 100%;
+    }
+}
+
 /* ============================================
    通用组件样式
    ============================================ */

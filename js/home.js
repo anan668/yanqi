@@ -2723,12 +2723,21 @@ function setupHeroHotspotsStageResize() {
         return;
     }
 
+    const desktopQuery = window.matchMedia('(min-width: 1180px)');
+    const savedSize = safeReadHeroHotspotsStageSize();
+
     if (!isStageDebugModeEnabled) {
-        heroHotspotsStageShell.dataset.stageSizeMode = 'default';
+        if (desktopQuery.matches && savedSize) {
+            applyHeroHotspotsStageSize(heroHotspotsStageShell, savedSize);
+            heroHotspotsStageShell.dataset.stageSizeMode = 'custom';
+        } else {
+            heroHotspotsStageShell.dataset.stageSizeMode = 'default';
+            heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-width');
+            heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-height');
+            heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-shift-x');
+        }
+
         heroHotspotsStageShell.classList.remove('is-resizing');
-        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-width');
-        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-height');
-        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-shift-x');
         document.body.classList.remove('is-resizing-hero-hotspots');
         return;
     }
@@ -2736,7 +2745,6 @@ function setupHeroHotspotsStageResize() {
     const hudValue = document.getElementById('heroHotspotsStageHudValue');
     const hudHint = document.getElementById('heroHotspotsStageHudHint');
     const resetButton = document.getElementById('heroHotspotsStageReset');
-    const desktopQuery = window.matchMedia('(min-width: 1180px)');
     let resizeState = null;
     let hasCustomSize = Boolean(safeReadHeroHotspotsStageSize());
 
@@ -3177,14 +3185,9 @@ document.addEventListener('DOMContentLoaded', function () {
     consumePendingHomeScrollTarget();
     setupStoryReveal();
 
-    const avatar = document.querySelector('.avatar');
-    if (avatar) {
-        avatar.addEventListener('click', function () {
-            if (confirm('确认要返回登录页吗？')) {
-                navigateWithDepth('index.html');
-            }
-        });
-    }
+    window.YanqiAvatarReturn?.bind({
+        targetUrl: 'index.html'
+    });
 });
 
 

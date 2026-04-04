@@ -2460,8 +2460,25 @@ body.has-overlay-lock {
     margin-bottom: 16px;
 }
 
-.booking-sticky.is-review-context .price-badge,
-.booking-sticky.is-review-context .booking-match {
+.booking-sticky.is-focus-only-context {
+    max-height: none;
+    overflow: visible;
+    scrollbar-width: none;
+}
+
+.booking-sticky.is-focus-only-context .price-badge,
+.booking-sticky.is-focus-only-context .booking-match,
+.booking-sticky.is-focus-only-context .booking-note {
+    display: none;
+}
+
+.booking-sticky:not(.is-focus-only-context) .booking-copy {
+    position: relative;
+    top: auto;
+    z-index: auto;
+}
+
+.booking-sticky:not(.is-focus-only-context) .booking-focus-panel {
     display: none;
 }
 
@@ -2507,7 +2524,9 @@ body.has-overlay-lock {
     top: var(--booking-copy-stick-top, 0px);
     z-index: 5;
     isolation: isolate;
+    overflow: hidden;
     margin-bottom: var(--booking-sticky-stack-gap, 18px);
+    max-height: 320px;
     padding: 14px 16px 16px;
     border-radius: 24px;
     background:
@@ -2519,6 +2538,16 @@ body.has-overlay-lock {
         inset 0 1px 0 rgba(255, 255, 255, 0.52);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+    transform-origin: top center;
+    transition:
+        opacity 420ms ease,
+        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        max-height 420ms ease,
+        margin-bottom 420ms ease,
+        padding 420ms ease,
+        border-color 320ms ease,
+        box-shadow 420ms ease,
+        background 420ms ease;
 }
 
 .booking-copy > * {
@@ -2734,6 +2763,23 @@ body.has-overlay-lock {
     animation: bookingGuideGlow 980ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
 }
 
+.booking-copy.is-collapsed-for-focus {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-color: transparent;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0);
+    transform: translate3d(0, -18px, 0) scale(0.985);
+    pointer-events: none;
+}
+
+.booking-copy.is-collapsed-for-focus::after {
+    opacity: 0;
+}
+
 /* 评论阅读中的套餐焦点舱：
    让价格、当前套餐名和适合人群在侧栏内部持续停驻，
    用户读评论时不需要只靠高亮卡片猜现在对应的是哪一套安排。 */
@@ -2759,6 +2805,11 @@ body.has-overlay-lock {
         0 18px 36px rgba(4, 20, 34, 0.22),
         inset 0 1px 0 rgba(243, 249, 252, 0.14);
     overflow: hidden;
+    transition:
+        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        box-shadow 420ms ease,
+        border-color 320ms ease,
+        filter 360ms ease;
 }
 
 .booking-focus-panel::before {
@@ -2773,6 +2824,20 @@ body.has-overlay-lock {
     filter: blur(10px);
 }
 
+.booking-focus-panel::after {
+    content: "";
+    position: absolute;
+    inset: -22% 16% 22% -14%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 28% 48%, rgba(173, 229, 243, 0.26), transparent 48%),
+        linear-gradient(118deg, rgba(255, 255, 255, 0) 26%, rgba(219, 242, 248, 0.24) 50%, rgba(255, 255, 255, 0) 74%);
+    opacity: 0;
+    pointer-events: none;
+    filter: blur(20px);
+    transform: translate3d(-18px, 14px, 0) scale(0.98);
+}
+
 .booking-focus-panel > * {
     position: relative;
     z-index: 1;
@@ -2782,6 +2847,10 @@ body.has-overlay-lock {
 .booking-focus-copy {
     display: grid;
     gap: 8px;
+}
+
+.booking-focus-head {
+    --booking-focus-swap-delay: 0ms;
 }
 
 .booking-focus-state,
@@ -2804,6 +2873,7 @@ body.has-overlay-lock {
 }
 
 .booking-focus-main {
+    --booking-focus-swap-delay: 65ms;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 14px;
@@ -2869,12 +2939,14 @@ body.has-overlay-lock {
 }
 
 .booking-focus-summary {
+    --booking-focus-swap-delay: 125ms;
     color: rgba(217, 238, 246, 0.86);
     font-size: 0.88rem;
     line-height: 1.76;
 }
 
 .booking-focus-action {
+    --booking-focus-swap-delay: 185ms;
     appearance: none;
     -webkit-appearance: none;
     border: 1px solid rgba(183, 223, 236, 0.2);
@@ -2928,6 +3000,72 @@ body.has-overlay-lock {
     color: rgba(229, 244, 249, 0.92);
 }
 
+@keyframes bookingFocusSwapOut {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+        filter: blur(12px);
+    }
+}
+
+@keyframes bookingFocusSwapIn {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0);
+        filter: blur(14px);
+    }
+
+    58% {
+        opacity: 1;
+        transform: translate3d(0, -2px, 0);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes bookingFocusSwapGlow {
+    0% {
+        opacity: 0;
+        transform: translate3d(-22px, 16px, 0) scale(0.98);
+        filter: blur(22px);
+    }
+
+    34% {
+        opacity: 0.76;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(14px, -4px, 0) scale(1.04);
+        filter: blur(12px);
+    }
+}
+
+.booking-focus-panel.is-swapping-out > * {
+    animation: bookingFocusSwapOut 220ms ease both;
+    animation-delay: calc(var(--booking-focus-swap-delay, 0ms) * 0.24);
+}
+
+.booking-focus-panel.is-swapping-in > * {
+    animation: bookingFocusSwapIn 820ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+    animation-delay: var(--booking-focus-swap-delay, 0ms);
+}
+
+.booking-focus-panel.is-swapping-in::after {
+    animation: bookingFocusSwapGlow 940ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+}
+
 @keyframes bookingFocusPulse {
     0% {
         transform: translate3d(0, 10px, 0);
@@ -2978,24 +3116,44 @@ body.has-overlay-lock {
     flex-direction: column;
     gap: 16px;
     margin-bottom: 18px;
-    padding-left: 18px;
+    max-height: 2400px;
+    width: 100%;
+    padding-left: 0;
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    transform-origin: top center;
+    transition:
+        opacity 300ms ease,
+        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 320ms ease,
+        max-height 420ms ease,
+        margin-bottom 420ms ease,
+        padding-left 420ms ease;
 }
 
-.itinerary-list.is-review-context {
-    display: none;
+.itinerary-list[hidden] {
+    display: none !important;
+}
+
+.itinerary-list.is-focus-only-context {
+    max-height: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    filter: blur(10px);
+    transform: translate3d(0, 22px, 0) scale(0.985);
 }
 
 .itinerary-list::before {
-    content: "";
-    position: absolute;
-    left: 7px;
-    top: 8px;
-    bottom: 8px;
-    width: 1px;
-    background:
-        linear-gradient(180deg, rgba(171, 215, 231, 0.12), rgba(121, 186, 209, 0.44) 22%, rgba(121, 186, 209, 0.22) 78%, rgba(171, 215, 231, 0.08));
-    box-shadow: 0 0 18px rgba(150, 212, 232, 0.14);
-    pointer-events: none;
+    display: none;
+}
+
+.itinerary-list.is-focus-only-context::before {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
 }
 
 /* 控制 .package-group 的布局、视觉和状态表现 */
@@ -3015,6 +3173,7 @@ body.has-overlay-lock {
 
 /* 控制 .package-card 的布局、视觉和状态表现 */
 .package-card {
+    box-sizing: border-box;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -3024,7 +3183,8 @@ body.has-overlay-lock {
         radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.84), transparent 28%),
         linear-gradient(160deg, rgba(255, 255, 255, 0.82), rgba(244, 251, 255, 0.56) 42%, rgba(215, 233, 243, 0.44) 100%);
     padding: 18px;
-    margin-left: 10px;
+    width: 100%;
+    margin-left: 0;
     border-radius: 26px;
     border: 1px solid rgba(187, 216, 230, 0.76);
     box-shadow:
@@ -3054,6 +3214,7 @@ body.has-overlay-lock {
     position: absolute;
     inset: -22% -20% auto 34%;
     height: 78%;
+    border-radius: inherit;
     background:
         radial-gradient(circle at 36% 34%, rgba(198, 235, 246, 0.5), transparent 42%),
         radial-gradient(circle at 72% 26%, rgba(121, 190, 218, 0.18), transparent 34%);
@@ -3067,6 +3228,7 @@ body.has-overlay-lock {
     content: "";
     position: absolute;
     inset: -26% -18%;
+    border-radius: inherit;
     background:
         linear-gradient(118deg, rgba(255, 255, 255, 0) 34%, rgba(255, 255, 255, 0.16) 49%, rgba(255, 255, 255, 0) 64%),
         radial-gradient(circle at 16% 100%, rgba(111, 178, 206, 0.12), transparent 36%);
@@ -3236,6 +3398,8 @@ body.has-overlay-lock {
 
 .package-card-audience {
     display: grid;
+    width: 100%;
+    box-sizing: border-box;
     gap: 10px;
     padding: 14px 16px;
     border-radius: 20px;
@@ -3410,6 +3574,8 @@ body.has-overlay-lock {
 
 .package-card-archive {
     display: grid;
+    width: 100%;
+    box-sizing: border-box;
     gap: 12px;
     padding: 16px;
     border-radius: 22px;
@@ -6266,11 +6432,12 @@ body.has-overlay-lock {
     }
 
     .itinerary-list {
-        padding-left: 12px;
+        padding-left: 0;
     }
 
     .package-card {
-        margin-left: 6px;
+        width: 100%;
+        margin-left: 0;
         padding: 16px;
         gap: 16px;
         border-radius: 24px;
@@ -6504,6 +6671,346 @@ body.has-overlay-lock {
     border-color: rgba(133, 198, 224, 0.32);
 }
 
+/* 已选中 / 已收进行程的套餐卡：
+   保留原来的信息层级，但把视觉气质收拢到和 booking-focus-panel 同一片深海里。 */
+.package-card:is(.is-active, .is-booked) {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(136, 210, 233, 0.18), transparent 34%),
+        linear-gradient(165deg, rgba(17, 54, 79, 0.96), rgba(8, 34, 52, 0.94) 58%, rgba(10, 45, 66, 0.92) 100%);
+    border-color: rgba(164, 213, 232, 0.24);
+    box-shadow:
+        0 20px 40px rgba(4, 20, 34, 0.22),
+        0 0 24px rgba(126, 198, 222, 0.08),
+        inset 0 1px 0 rgba(243, 249, 252, 0.14);
+    filter: saturate(1.02);
+}
+
+.package-card.is-booked:not(.is-active) {
+    transform: translate3d(0, -2px, 0);
+}
+
+.package-card.is-active {
+    transform: translate3d(0, -6px, 0);
+    box-shadow:
+        0 24px 46px rgba(4, 20, 34, 0.24),
+        0 0 28px rgba(126, 198, 222, 0.12),
+        inset 0 1px 0 rgba(243, 249, 252, 0.16);
+}
+
+.package-card.is-booked.is-active {
+    border-color: rgba(182, 225, 239, 0.34);
+    box-shadow:
+        0 26px 52px rgba(4, 20, 34, 0.26),
+        0 0 32px rgba(126, 198, 222, 0.14),
+        inset 0 1px 0 rgba(243, 249, 252, 0.18);
+}
+
+.package-card:is(.is-active, .is-booked)::before {
+    opacity: 1;
+    background:
+        radial-gradient(circle at 30% 32%, rgba(173, 229, 243, 0.24), transparent 42%),
+        radial-gradient(circle at 74% 20%, rgba(121, 190, 218, 0.18), transparent 34%);
+    transform: translate3d(4%, -2%, 0) scale(1.02);
+}
+
+.package-card:is(.is-active, .is-booked)::after {
+    opacity: 0.3;
+    background:
+        linear-gradient(118deg, rgba(255, 255, 255, 0) 36%, rgba(192, 231, 242, 0.09) 50%, rgba(255, 255, 255, 0) 66%),
+        radial-gradient(circle at 16% 100%, rgba(111, 178, 206, 0.08), transparent 36%);
+    transform: translate3d(8%, -4%, 0) scale(1);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-badge {
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
+        rgba(255, 255, 255, 0.04);
+    border-color: rgba(180, 223, 237, 0.18);
+    color: rgba(228, 244, 249, 0.92);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-index {
+    color: rgba(187, 224, 236, 0.66);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-state {
+    background: rgba(244, 250, 253, 0.08);
+    border-color: rgba(180, 223, 237, 0.16);
+    color: rgba(228, 244, 249, 0.84);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-audience,
+.package-card:is(.is-active, .is-booked) .package-card-archive {
+    background:
+        linear-gradient(180deg, rgba(149, 208, 229, 0.12), rgba(22, 78, 104, 0.24)),
+        rgba(7, 28, 42, 0.26);
+    border-color: rgba(180, 223, 237, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.08),
+        0 12px 24px rgba(3, 15, 24, 0.14);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-section-label,
+.package-card:is(.is-active, .is-booked) .package-price-label {
+    color: rgba(187, 224, 236, 0.62);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-audience-copy,
+.package-card:is(.is-active, .is-booked) .package-card-title,
+.package-card:is(.is-active, .is-booked) .package-price-value,
+.package-card:is(.is-active, .is-booked) .package-cadence-primary {
+    color: rgba(245, 251, 254, 0.98);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-mood,
+.package-card:is(.is-active, .is-booked) .package-cadence-secondary,
+.package-card:is(.is-active, .is-booked) .package-card-guidance,
+.package-card:is(.is-active, .is-booked) .package-card-focus-copy {
+    color: rgba(217, 238, 246, 0.84);
+}
+
+.package-card:is(.is-active, .is-booked) .package-price-wrap {
+    border-bottom-color: rgba(180, 223, 237, 0.16);
+}
+
+.package-card:is(.is-active, .is-booked) .package-plate-fit {
+    background: rgba(244, 250, 253, 0.08);
+    border-color: rgba(180, 223, 237, 0.2);
+    color: rgba(228, 244, 249, 0.84);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.12),
+        0 8px 18px rgba(6, 23, 36, 0.14);
+}
+
+.package-card:is(.is-active, .is-booked) .package-plate-rhythm {
+    background: rgba(18, 76, 106, 0.18);
+    border-color: rgba(162, 204, 223, 0.3);
+    color: rgba(214, 236, 246, 0.78);
+}
+
+.package-card:is(.is-active, .is-booked) .package-plate-rhythm::before {
+    background: rgba(173, 229, 243, 0.74);
+    box-shadow: 0 0 0 3px rgba(188, 220, 232, 0.14);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-focus {
+    max-height: none;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    padding-top: 16px;
+    border-top-color: rgba(180, 223, 237, 0.16);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-mood,
+.package-card:is(.is-active, .is-booked) .package-cadence-secondary,
+.package-card:is(.is-active, .is-booked) .package-card-guidance,
+.package-card:is(.is-active, .is-booked) .package-card-focus-copy {
+    display: block;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: initial;
+    overflow: visible;
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-action {
+    color: rgba(244, 249, 252, 0.96);
+    background:
+        linear-gradient(180deg, rgba(184, 227, 239, 0.1), rgba(39, 101, 130, 0.12)),
+        rgba(7, 28, 42, 0.24);
+    border-color: rgba(183, 223, 236, 0.16);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.1),
+        0 12px 24px rgba(6, 23, 36, 0.16);
+}
+
+.package-card:is(.is-active, .is-booked) .package-card-action:hover {
+    border-color: rgba(192, 230, 242, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.14),
+        0 14px 24px rgba(6, 23, 36, 0.16);
+}
+
+.package-card.is-booked .package-card-state-booked {
+    color: rgba(236, 248, 253, 0.94);
+    background: rgba(173, 229, 243, 0.14);
+    border-color: rgba(173, 229, 243, 0.28);
+}
+
+.package-card.is-booked .package-card-action.is-booked {
+    background:
+        linear-gradient(180deg, rgba(173, 229, 243, 0.16), rgba(86, 150, 181, 0.14)),
+        rgba(255, 255, 255, 0.05);
+    border-color: rgba(151, 214, 236, 0.32);
+}
+
+/* 第一阶段套餐卡整体改成深海舱风格，并把详细信息完整展开。
+   用户此时靠右侧手动滑动查看套餐，所以每一张都应该像一只完整的小舱体。 */
+.booking-sticky:not(.is-focus-only-context) .package-card {
+    overflow: visible;
+    isolation: isolate;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(136, 210, 233, 0.18), transparent 34%),
+        linear-gradient(165deg, rgba(17, 54, 79, 0.96), rgba(8, 34, 52, 0.94) 58%, rgba(10, 45, 66, 0.92) 100%);
+    border-color: rgba(164, 213, 232, 0.18);
+    box-shadow:
+        0 18px 36px rgba(4, 20, 34, 0.2),
+        inset 0 1px 0 rgba(243, 249, 252, 0.14);
+    filter: saturate(1.01);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card::before {
+    inset: 0;
+    height: auto;
+    opacity: 0.92;
+    background:
+        radial-gradient(circle at 28% 22%, rgba(173, 229, 243, 0.18), transparent 28%),
+        radial-gradient(circle at 78% 16%, rgba(121, 190, 218, 0.14), transparent 24%);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card::after {
+    inset: 0;
+    opacity: 0.24;
+    background:
+        linear-gradient(118deg, rgba(255, 255, 255, 0) 22%, rgba(192, 231, 242, 0.08) 48%, rgba(255, 255, 255, 0) 72%),
+        radial-gradient(circle at 20% 100%, rgba(111, 178, 206, 0.08), transparent 28%);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-badge {
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
+        rgba(255, 255, 255, 0.04);
+    border-color: rgba(180, 223, 237, 0.18);
+    color: rgba(228, 244, 249, 0.92);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-index {
+    color: rgba(187, 224, 236, 0.66);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-state {
+    background: rgba(244, 250, 253, 0.08);
+    border-color: rgba(180, 223, 237, 0.16);
+    color: rgba(228, 244, 249, 0.84);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-audience,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-archive {
+    overflow: visible;
+    min-width: 0;
+    background:
+        linear-gradient(180deg, rgba(149, 208, 229, 0.12), rgba(22, 78, 104, 0.24)),
+        rgba(7, 28, 42, 0.26);
+    border-color: rgba(180, 223, 237, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.08),
+        0 12px 24px rgba(3, 15, 24, 0.14);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-head,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-title-wrap,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-signal,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-price-wrap,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-cadence-stack,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-footer {
+    width: 100%;
+    min-width: 0;
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-footer {
+    display: grid;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-section-label,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-price-label {
+    color: rgba(187, 224, 236, 0.62);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-audience-copy,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-title,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-price-value,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-cadence-primary {
+    color: rgba(245, 251, 254, 0.98);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-mood,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-cadence-secondary,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-guidance,
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-focus-copy {
+    color: rgba(217, 238, 246, 0.84);
+    display: block;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: initial;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-guidance {
+    font-size: 0.86rem;
+    line-height: 1.82;
+    letter-spacing: 0.01em;
+    text-wrap: pretty;
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-price-wrap {
+    border-bottom-color: rgba(180, 223, 237, 0.16);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-plate-fit {
+    background: rgba(244, 250, 253, 0.08);
+    border-color: rgba(180, 223, 237, 0.2);
+    color: rgba(228, 244, 249, 0.84);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.12),
+        0 8px 18px rgba(6, 23, 36, 0.14);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-plate-rhythm {
+    background: rgba(18, 76, 106, 0.18);
+    border-color: rgba(162, 204, 223, 0.3);
+    color: rgba(214, 236, 246, 0.78);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-plate-rhythm::before {
+    background: rgba(173, 229, 243, 0.74);
+    box-shadow: 0 0 0 3px rgba(188, 220, 232, 0.14);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-focus {
+    max-height: none;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    padding-top: 16px;
+    border-top-color: rgba(180, 223, 237, 0.16);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-action {
+    color: rgba(244, 249, 252, 0.96);
+    width: 100%;
+    justify-content: space-between;
+    background:
+        linear-gradient(180deg, rgba(184, 227, 239, 0.1), rgba(39, 101, 130, 0.12)),
+        rgba(7, 28, 42, 0.24);
+    border-color: rgba(183, 223, 236, 0.16);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.1),
+        0 12px 24px rgba(6, 23, 36, 0.16);
+}
+
+.booking-sticky:not(.is-focus-only-context) .package-card .package-card-action:hover {
+    border-color: rgba(192, 230, 242, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.14),
+        0 14px 24px rgba(6, 23, 36, 0.16);
+}
+
 .booking-note-feedback {
     display: grid;
     gap: 14px;
@@ -6693,10 +7200,13 @@ body.has-overlay-lock {
     transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease, color 220ms ease;
 }
 
-.booking-confirm-primary {
+.booking-confirm-primary,
+.booking-confirm-primary:link,
+.booking-confirm-primary:visited {
     border: 1px solid rgba(185, 227, 246, 0.16);
     background: linear-gradient(135deg, rgba(34, 102, 140, 0.78), rgba(19, 74, 106, 0.9));
     color: #f5fbff;
+    text-decoration: none;
 }
 
 .booking-confirm-secondary {
@@ -6706,12 +7216,21 @@ body.has-overlay-lock {
 }
 
 .booking-confirm-primary:hover,
+.booking-confirm-primary:active,
+.booking-confirm-primary:focus-visible,
 .booking-confirm-secondary:hover {
     transform: translateY(-2px);
 }
 
 .booking-confirm-primary:hover {
     border-color: rgba(185, 227, 246, 0.24);
+}
+
+.booking-confirm-primary:hover,
+.booking-confirm-primary:active,
+.booking-confirm-primary:focus-visible {
+    color: #f5fbff;
+    text-decoration: none;
 }
 
 .booking-confirm-secondary:hover {

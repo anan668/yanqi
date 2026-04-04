@@ -24,7 +24,7 @@ const PREP_CONTENT = Object.freeze({
     certification: {
         kicker: 'Certification Path',
         title: '\u8bc1\u4e66\u4e0e\u7b49\u7ea7',
-        summary: '确认发证机构、OW / AOW 等级、近 12 个月潜水记录，以及是否需要 refresh / 复习课程。',
+        summary: '确认发证机构、OW / AOW 等级与近 12 个月潜水记录；如果超过 6 个月没潜，首潜通常要先做一次 check dive。',
         templateId: 'prep-template-certification'
     },
     weather: {
@@ -2212,6 +2212,10 @@ function setupTripReveal() {
 }
 
 let confirmedBookingsEntranceObserver = null;
+
+// 把“某个已收进行程列表节点 -> 这一轮入场动画挂着的全部 timeout id”绑定在一起。
+// 这样列表重渲染时可以整批取消旧计时器，避免旧回调落到新 DOM 上。
+// 这里用 WeakMap，是因为 key 是 DOM 节点；节点销毁后不需要继续强持有这份映射。
 const confirmedBookingsEntranceTimers = new WeakMap();
 
 /**
@@ -2232,6 +2236,8 @@ function isElementReadyForViewportEntrance(element) {
 
 /**
  * clearConfirmedBookingsEntranceTimers(list) - 清理已收进行程列表挂着的入场计时器
+ * 这里清理的不只是“动画延迟”，更是在结束上一轮 render 留下的异步回调；
+ * 否则旧 timeout 可能会在新一轮 DOM 已经写入后继续执行，造成重复入场或状态串线。
  * @param {Element} list - 已收进行程列表容器
  * @returns {void} - 无返回值，直接清理内部计时器
  */
@@ -2240,52 +2246,90 @@ function clearConfirmedBookingsEntranceTimers(list) {
     if (Array.isArray(timerIds)) {
         timerIds.forEach((timerId) => window.clearTimeout(timerId));
     }
+
     confirmedBookingsEntranceTimers.delete(list);
 }
 
 /**
  * runConfirmedBookingsEntrance(list) - 触发已收进行程卡片的成组进入动画
+ * 这个函数负责把“最新一批已收进行程卡片”从刷新态推进到稳定态。
+ * 它会先确认当前列表确实还在等这一轮入场，再按错落节奏给每张卡片补一次进入动画，
+ * 最后统一收尾，避免 observer、类名和 timeout 残留到下一次重渲染。
  * @param {Element} list - 已收进行程列表容器
  * @returns {void} - 无返回值，直接启动两张卡的推进显现
  */
 function runConfirmedBookingsEntrance(list) {
+    // 只有“当前这批 DOM 还处在待入场状态”时才继续：
+    // 1. 节点必须真实存在；
+    // 2. `pendingEntrance = true` 表示 renderConfirmedBookings() 刚写入了新卡片，
+    //    但这批卡片还没有完整走完本轮入场流程。
     if (!(list instanceof Element) || list.dataset.pendingEntrance !== 'true') {
         return;
     }
 
+    // 一旦决定现在启动入场，就不再需要继续 observe 这个列表。
+    // 否则滚动过程中再次满足阈值时，observer 可能重复触发，给同一批卡片重复排队。
     confirmedBookingsEntranceObserver?.unobserve?.(list);
+
+    // 列表可能刚被再次刷新过；先清掉上一轮还没结束的 timeout，
+    // 确保当前 DOM 只响应“最新这一轮”的入场节奏。
     clearConfirmedBookingsEntranceTimers(list);
 
     const cards = Array.from(list.querySelectorAll('.confirmed-booking-card'));
     if (!cards.length) {
+        // `is-refreshing` 表示列表刚经历重渲染，CSS 仍处在等待入场的刷新态；
+        // 没有卡片时要立即退回稳定态，避免容器一直挂着过渡状态。
         list.classList.remove('is-refreshing');
         list.dataset.pendingEntrance = 'false';
         return;
     }
 
+    const INITIAL_ENTRANCE_DELAY = 90;
+    const CARD_STAGGER_DELAY = 150;
+    const CARD_ENTERING_DURATION = 980;
     const timerIds = [];
+
     cards.forEach((card, index) => {
+        // 用 setTimeout 把每张卡片错开，是为了做出更轻的成组推进感，
+        // 同时把加类动作推迟到当前渲染提交之后，让 CSS 动画从稳定的初始态开始。
         const timerId = window.setTimeout(() => {
             card.classList.remove('is-entering');
+
+            // 强制浏览器先结算一次布局。
+            // 这样下面再加回 `is-entering` 时，会被视为一次新的动画起点，
+            // 而不是被同一帧里的“移除又添加”直接合并掉。
             void card.offsetWidth;
+
+            // `is-entering` 只表示“这张卡此刻正在执行入场动画”。
+            // 动画跑完后会由下面的 cleanupTimer 统一移除，避免状态残留。
             card.classList.add('is-entering');
-        }, 90 + (index * 150));
+        }, INITIAL_ENTRANCE_DELAY + (index * CARD_STAGGER_DELAY));
         timerIds.push(timerId);
     });
 
+    // cleanupTimer 负责在最后一张卡片的入场动画结束后，把整组临时状态收干净：
+    // 1. 结束列表的刷新态 `is-refreshing`
+    // 2. 把“这一批还在等入场”的标记 `pendingEntrance` 复位
+    // 3. 移除卡片上的 `is-entering`，保证下次还能重新触发同一段动画
+    // 4. 从 WeakMap 删除这一轮 timer 记录，表示当前入场生命周期已结束
     const cleanupTimer = window.setTimeout(() => {
         list.classList.remove('is-refreshing');
         list.dataset.pendingEntrance = 'false';
         cards.forEach((card) => card.classList.remove('is-entering'));
         confirmedBookingsEntranceTimers.delete(list);
-    }, 90 + Math.max(0, cards.length - 1) * 150 + 980);
+    }, INITIAL_ENTRANCE_DELAY + Math.max(0, cards.length - 1) * CARD_STAGGER_DELAY + CARD_ENTERING_DURATION);
     timerIds.push(cleanupTimer);
 
+    // 把这一轮所有 timeout 都记下来。
+    // 后面如果用户立刻切换分页、修改日期或人数导致再次 render，就能先整批取消旧回调。
     confirmedBookingsEntranceTimers.set(list, timerIds);
 }
 
 /**
  * ensureConfirmedBookingsEntranceObserver() - 保证已收进行程列表有专门的视口 observer
+ * 已收进行程不一定在渲染完成时就出现在可见区里；
+ * 这个 observer 负责把入场时机延后到“用户真正滚到这里”的那一刻，
+ * 避免动画在屏幕外提前播完，回来时只剩静态结果。
  * @returns {IntersectionObserver} - 负责触发卡片入场的 observer 实例
  */
 function ensureConfirmedBookingsEntranceObserver() {
@@ -2305,6 +2349,7 @@ function ensureConfirmedBookingsEntranceObserver() {
             }
         });
     }, {
+        // 稍微提前一点触发，保证卡片刚进入阅读区时就能开始显现。
         threshold: 0.14,
         rootMargin: '0px 0px -6% 0px'
     });
@@ -2646,6 +2691,9 @@ function renderConfirmedBookings() {
     if (!Array.isArray(bookings) || bookings.length === 0) {
         empty.hidden = false;
         list.innerHTML = '';
+
+        // 空列表时不应该保留任何上一轮入场状态。
+        // 这里把刷新态、待入场标记和挂着的 timeout 一并清掉，避免下一次渲染继承旧状态。
         list.classList.remove('is-refreshing');
         list.dataset.pendingEntrance = 'false';
         clearConfirmedBookingsEntranceTimers(list);
@@ -2664,7 +2712,13 @@ function renderConfirmedBookings() {
     const visibleBookings = bookings.slice(start, start + CONFIRMED_BOOKINGS_PAGE_SIZE);
 
     empty.hidden = true;
+
+    // 新一页卡片准备写入前，先结束上一轮可能还没跑完的入场节奏。
     clearConfirmedBookingsEntranceTimers(list);
+
+    // `is-refreshing` 表示列表 DOM 刚被重建，CSS 可以先进入“等待显现”的刷新态；
+    // `pendingEntrance = true` 表示这一批卡片还没正式完成入场，
+    // 不管后面是立即触发还是等 observer 触发，都还属于同一轮待执行状态。
     list.classList.add('is-refreshing');
     list.dataset.pendingEntrance = 'true';
     list.innerHTML = visibleBookings.map((booking) => buildConfirmedBookingCardMarkup(booking)).join('');
@@ -2672,9 +2726,13 @@ function renderConfirmedBookings() {
 
     if (isElementReadyForViewportEntrance(document.getElementById('confirmedBookingsStage') || list)) {
         requestAnimationFrame(() => {
+            // 即使列表已经在视口里，也等一帧再启动，
+            // 让新 DOM、文本布局和尺寸先稳定下来，再从初始样式切入动画。
             runConfirmedBookingsEntrance(list);
         });
     } else {
+        // 当前还没滚到这一层时，交给 observer 延后触发，
+        // 避免动画在用户看不见的地方先结束。
         ensureConfirmedBookingsEntranceObserver().observe(list);
     }
 
@@ -2753,14 +2811,9 @@ document.addEventListener('DOMContentLoaded', () => {
     new PrepSystem();
     setupTripReveal();
 
-    const avatar = document.querySelector('.avatar');
-    if (avatar) {
-        avatar.addEventListener('click', () => {
-            if (confirm('\u786e\u8ba4\u8981\u8fd4\u56de\u767b\u5f55\u9875\u5417\uff1f')) {
-                navigateWithDepth('index.html');
-            }
-        });
-    }
+    window.YanqiAvatarReturn?.bind({
+        targetUrl: 'index.html'
+    });
 });
 
 

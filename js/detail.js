@@ -1785,6 +1785,8 @@ class DetailPage {
         this.activeBookingGuideKey = this.bookingCopy?.dataset.readingGuideKey || 'overview';
         this.activeBookingFocusPackageId = '';
         this.activeBookingFocusContextKey = '';
+        this.bookingFocusSwapTimers = [];
+        this.bookingFocusSwapVersion = 0;
         this.bookingFocusPulseTimer = 0;
         this.activeReviewLinkedPackageId = null;
         this.bookingStickyScrollTargetTop = 0;
@@ -1833,6 +1835,8 @@ class DetailPage {
         const basePrice = parsePriceValue(this.spotData.priceFrom) || 3980;
         const { name, season, features } = this.spotData;
         const firstWarning = features.warnings[0] || `进入 ${name} 前，请根据当天海况与个人经验调整节奏。`;
+        const leisureReentryNote = '若距离上一次下潜已超过 6 个月，首潜会先安排为 check dive / 复习回水，在较浅、友好的点位确认配重、耳压、浮力和基本应急动作；状态稳定后，再决定是否把当天第二潜完整排进去。';
+        const advancedReentryNote = '若距离上一次下潜已超过 6 个月，即使证书等级足够，首潜也会先做 check dive，不直接进入代表性流区或主潜线；状态稳定后，再把更完整的点位顺延到后续窗口。';
 
         return [
             {
@@ -1852,9 +1856,10 @@ class DetailPage {
                     '酒店与出海之间的切换更轻，潜后有充足休息时间。',
                     '把海底体验和海岛停留感放在同一套节奏里。'
                 ],
+                reentryNote: leisureReentryNote,
                 schedule: [
-                    { day: 'Day 1', text: '抵达、入住、装备确认，傍晚做一次轻量 briefing，让身体和海况都慢慢进入状态。' },
-                    { day: 'Day 2', text: `上午安排双潜，优先选择更友好的点位；下午回酒店休息，或视海况加一次轻岸潜。` },
+                    { day: 'Day 1', text: '抵达、入住、装备确认与简短 logbook 核对，傍晚做一次轻量 briefing，让身体和海况都慢慢进入状态。' },
+                    { day: 'Day 2', text: `上午先从更友好的点位入水；如果距离上次下潜超过 6 个月，这一潜会作为 check dive / warm-up，状态稳定后再衔接当天第二潜。下午回酒店休息，或视海况补一次轻岸潜。` },
                     { day: 'Day 3', text: '清晨看海面光线，悠闲早餐后返程；若航班时间宽松，可安排短程海边停留。' }
                 ],
                 includes: ['机场或码头接送', '2次船潜与1次体验潜/岸潜', '双人入住海边酒店', '每日早餐与欢迎晚餐', '基础装备协助与潜前 briefing'],
@@ -1862,7 +1867,7 @@ class DetailPage {
                 lodging: '优先安排安静、干净、离码头不远的海边酒店，房间更偏舒缓与休息感，适合潜后快速回到放松状态。',
                 dining: '早餐以热食、热带水果和基础咖啡茶饮为主，欢迎晚餐会安排海鲜或当地风味，也可以提前备注忌口。',
                 pace: '每次出海之间都留出明显的休息和回气空间，不追求密集下潜，更在意第一次进入这片海时是否从容。',
-                risk: `风险提示：${firstWarning}`,
+                risk: `风险提示：${firstWarning} 若距离上一次下潜超过 6 个月，首潜需先做 check dive / 复习回水。`,
                 fitReason: `${name} 的代表性体验并不一定要靠高密度行程完成。对于第一次来的人，更舒展的节奏通常能让海龟、鱼群和光线留下更完整的记忆。`
             },
             {
@@ -1882,9 +1887,10 @@ class DetailPage {
                     `会把 ${season} 的较稳窗口优先用在体验更完整的蓝水和海面时段。`,
                     '酒店舒适度、餐食节奏和潜后恢复感会被放在更前面。'
                 ],
+                reentryNote: leisureReentryNote,
                 schedule: [
                     { day: 'Day 1', text: '抵达入住，潜店做装备确认与路线说明，晚上安排欢迎晚餐。' },
-                    { day: 'Day 2', text: `上午双潜，下午回酒店休息；傍晚视天气安排一趟黄昏轻潜，感受 ${name} 的另一层光线。` },
+                    { day: 'Day 2', text: `上午第一潜先放在更友好的点位；如果距离上次下潜超过 6 个月，会先做 check dive，再决定是否接第二潜。下午回酒店休息；傍晚视天气安排一趟黄昏轻潜，感受 ${name} 的另一层光线。` },
                     { day: 'Day 3', text: '安排当天状态更好的主潜点，潜后保留完整午后，让潜水和休息保持平衡。' },
                     { day: 'Day 4', text: '早餐后返程，若时间允许可加一段码头散步或短程海景停留。' }
                 ],
@@ -1893,7 +1899,7 @@ class DetailPage {
                 lodging: '住宿更偏度假酒店质感，房间安静、床品舒适，适合上午潜完回来午休，也适合傍晚慢慢看海。',
                 dining: '除早餐外，会安排两顿节奏较慢的晚餐，通常包含海鲜和当地口味，适合潜后慢慢补充体力。',
                 pace: '潜水密度比入门款略高，但仍保留完整的午后休息和海面停留感，不会把每一天推得过满。',
-                risk: `风险提示：${firstWarning}`,
+                risk: `风险提示：${firstWarning} 若距离上一次下潜超过 6 个月，首潜需先做 check dive / 复习回水。`,
                 fitReason: `如果你已经有基本经验，但更在意舒适度、海岛停驻感和慢潜节奏，这一档通常比密集潜水更适合把 ${name} 记住。`
             },
             {
@@ -1913,9 +1919,10 @@ class DetailPage {
                     '会优先安排更能体现当地海况和水下层次的主潜点。',
                     '潜水密度更高，回到岸上后的休息时间会比休闲档更紧凑。'
                 ],
+                reentryNote: advancedReentryNote,
                 schedule: [
-                    { day: 'Day 1', text: '抵达后做装备、证书和近期记录确认，傍晚进行更完整的海况 briefing。' },
-                    { day: 'Day 2', text: `上午双潜，优先安排 ${name} 的代表性点位；下午根据状态补一潜或做更深入的路线说明。` },
+                    { day: 'Day 1', text: '抵达后做装备、证书和近期记录确认；若 logbook 有明显空档，会先把第二天首潜改成 check dive。傍晚进行更完整的海况 briefing。' },
+                    { day: 'Day 2', text: `上午先做节奏确认潜；如果距离上次下潜超过 6 个月，这一潜按 check dive 执行，不直接下 ${name} 的代表性流区。状态稳定后再接第二潜，下午根据体感补一潜或做更深入的路线说明。` },
                     { day: 'Day 3', text: '安排当天窗口更好的主潜线，若海况允许，会把更有层次的点位排进当天。' },
                     { day: 'Day 4', text: '早餐后返程，预留足够水面间隔；若行程允许，可安排短时设备整理与影像备份。' }
                 ],
@@ -1924,7 +1931,7 @@ class DetailPage {
                 lodging: '住宿选择更偏高效出海动线，房间重点是安静、整洁、潜后恢复快，不强调奢华但强调节奏顺畅。',
                 dining: '早餐与出海午餐会安排得更贴合潜水节奏，通常以易消化、补充体力和含蛋白食物为主。',
                 pace: '这是一条更偏成熟潜水员的主线，行程密度和起潜窗口都会更紧，适合已经熟悉自己节奏的人。',
-                risk: `风险提示：${firstWarning} 若近期下潜间隔较长，建议先评估是否需要 refresh。`,
+                risk: `风险提示：${firstWarning} 若距离上一次下潜超过 6 个月，首潜需先做 check dive，不建议直接进入主潜线。`,
                 fitReason: `${name} 的核心魅力往往不止停留在第一层蓝水。若你已经有 AOW 和近期经验，这一档更能把当地更完整的海况层次潜出来。`
             },
             {
@@ -1944,9 +1951,10 @@ class DetailPage {
                     '会根据当天窗口灵活调整点位，把更值得下去的时段留给主潜。',
                     '更适合把鱼群、大景、流区或更深层次的海况都安排进一次行程。'
                 ],
+                reentryNote: advancedReentryNote,
                 schedule: [
-                    { day: 'Day 1', text: '抵达、入住、装备检查与证书确认，潜导会根据近期经验做能力匹配说明。' },
-                    { day: 'Day 2', text: `安排双潜开线，先让身体和 ${name} 的水下节奏对齐；傍晚总结当天海况表现。` },
+                    { day: 'Day 1', text: '抵达、入住、装备检查与证书确认，潜导会结合近期记录判断是否需要把 Day 2 第一潜改成 check dive。' },
+                    { day: 'Day 2', text: `先用一潜把配重、耳压和 ${name} 的水下节奏对齐；若距离上次下潜超过 6 个月，则这一潜按 check dive 执行，状态稳定后再决定是否衔接第二潜与后续窗口。傍晚总结当天海况表现。` },
                     { day: 'Day 3', text: '根据当天能见度、流速和光线窗口安排更深入的主潜点，潜后保留简短恢复期。' },
                     { day: 'Day 4', text: '继续追窗口，必要时替换到更适合当天状态的点位，让行程保持弹性。' },
                     { day: 'Day 5', text: '潜水结束后返程，预留足够水面间隔和缓冲，避免匆忙离开。' }
@@ -1956,7 +1964,7 @@ class DetailPage {
                 lodging: '住宿仍保持安静和恢复优先，重点是方便第二天早出海，并让潜后洗漱、晾装备和休息更顺手。',
                 dining: '早餐稳定，欢迎晚餐会偏当地风味；潜后补给则更注重快速恢复体力，也可提前备注饮食禁忌。',
                 pace: '相比其他档位，这一套行程会更依赖天气与海况窗口，也需要潜水员有更好的自我节奏和体能管理。',
-                risk: `风险提示：${firstWarning} 若对流速、深度或连续出海恢复没有把握，不建议直接选择这一档。`,
+                risk: `风险提示：${firstWarning} 若距离上一次下潜超过 6 个月，首潜需先做 check dive；若对流速、深度或连续出海恢复没有把握，也不建议直接选择这一档。`,
                 fitReason: `如果你想认真决定怎样更深入地进入 ${name}，而不是只把这里当作一次打卡，这一档会更像一份真正为成熟潜水员准备的海域档案。`
             }
         ];
@@ -2477,6 +2485,7 @@ class DetailPage {
         this.renderRelatedSpots();
         this.renderFooter();
         this.syncBookingReadingGuide({ force: true, immediate: true });
+        this.syncBookingCopyDepthState();
         this.setupHeroCopyReveal();
         this.resetBookingCopyReveal();
         this.resetIntroReveal();
@@ -2539,6 +2548,8 @@ class DetailPage {
             }
 
             element.textContent = '';
+            element.classList.remove('is-typed');
+            element.dataset.typingActive = 'false';
         });
 
         return lineElements;
@@ -2722,10 +2733,14 @@ class DetailPage {
                 return;
             }
 
+            element.textContent = '';
+            element.classList.remove('is-typed');
+            element.dataset.typingActive = 'true';
             let index = 0;
 
             const appendNextCharacter = () => {
                 if (!this.bookingCopyTypingActive) {
+                    element.dataset.typingActive = 'false';
                     resolve();
                     return;
                 }
@@ -2747,6 +2762,8 @@ class DetailPage {
 
                 index += 1;
                 if (index >= characters.length) {
+                    element.dataset.typingActive = 'false';
+                    element.classList.add('is-typed');
                     this.queueBookingCopyTimeout(resolve, 220);
                     return;
                 }
@@ -2765,7 +2782,11 @@ class DetailPage {
      * @returns {Promise<void>} - 所有文案敲完后结束
      */
     async runBookingCopyTypewriter() {
-        if (!this.bookingCopy || this.bookingCopyTypingActive) {
+        if (
+            !this.bookingCopy ||
+            this.bookingCopyTypingActive ||
+            this.bookingCopy.classList.contains('is-typed')
+        ) {
             return;
         }
 
@@ -2877,6 +2898,31 @@ class DetailPage {
     }
 
     /**
+     * queueBookingFocusSwapTimeout() - 统一登记套餐焦点舱切换时用到的定时器。
+     * @param {Function} callback - 到时后要执行的回调
+     * @param {number} delay - 延迟毫秒数
+     * @returns {number} - 当前定时器 id
+     */
+    queueBookingFocusSwapTimeout(callback, delay) {
+        const timer = window.setTimeout(() => {
+            this.bookingFocusSwapTimers = this.bookingFocusSwapTimers.filter((id) => id !== timer);
+            callback();
+        }, delay);
+
+        this.bookingFocusSwapTimers.push(timer);
+        return timer;
+    }
+
+    /**
+     * clearBookingFocusSwapTimers() - 清空套餐焦点舱切换过程中遗留的定时器。
+     * @returns {void} - 无返回值，直接清理定时器
+     */
+    clearBookingFocusSwapTimers() {
+        this.bookingFocusSwapTimers.forEach((timer) => window.clearTimeout(timer));
+        this.bookingFocusSwapTimers = [];
+    }
+
+    /**
      * resetBookingCopySwapState() - 清理陪读文案切换时挂上的动画 class 和临时样式。
      * @returns {void} - 无返回值，直接恢复文案容器的稳定状态
      */
@@ -2894,6 +2940,19 @@ class DetailPage {
     }
 
     /**
+     * resetBookingFocusSwapState() - 清理套餐焦点舱切换时挂上的动画 class 和临时样式。
+     * @returns {void} - 无返回值，直接恢复焦点舱稳定状态
+     */
+    resetBookingFocusSwapState() {
+        if (!this.bookingFocusPanel) {
+            return;
+        }
+
+        this.bookingFocusPanel.classList.remove('is-swapping-out', 'is-swapping-in');
+        this.bookingFocusPanel.style.removeProperty('will-change');
+    }
+
+    /**
      * updateBookingStickyStackOffsets() - 根据当前陪读文案高度，更新侧栏双层停驻所需的偏移量。
      * 这样 booking-copy 和 booking-focus-panel 可以一起停住，而不是后者把前者顶掉。
      * @returns {void} - 无返回值，直接写入 sticky 容器 CSS 变量
@@ -2907,6 +2966,51 @@ class DetailPage {
         this.bookingSticky.style.setProperty('--booking-copy-stick-top', '0px');
         this.bookingSticky.style.setProperty('--booking-copy-stick-height', `${copyHeight}px`);
         this.bookingSticky.style.setProperty('--booking-sticky-stack-gap', '18px');
+    }
+
+    /**
+     * shouldCollapseBookingCopy() - 判断陪读文案是否该在更深阅读位置暂时收起。
+     * 早段评论仍保留 booking-copy 与焦点舱并行，滑到更深层后再把空间让给套餐焦点舱。
+     * @returns {boolean} - 是否应该折叠 booking-copy
+     */
+    shouldCollapseBookingCopy() {
+        const currentKey = this.activeBookingGuideKey || this.getCurrentBookingReadingGuideKey();
+        if (currentKey !== 'reviews' && currentKey !== 'related') {
+            return false;
+        }
+
+        if (currentKey === 'related') {
+            return true;
+        }
+
+        const reviewsAnchor = this.spotReviewsHeading || this.reviewsStage || this.reviewsSection;
+        if (!reviewsAnchor) {
+            return false;
+        }
+
+        const probeY = window.scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.28, 240);
+        const firstReviewCard = this.reviewsSection?.querySelector('.review-card');
+        if (firstReviewCard) {
+            const collapseStart = this.getElementReadingAnchorY(
+                firstReviewCard,
+                firstReviewCard.classList.contains('has-feature-photo') ? 0.82 : 0.92
+            );
+            return probeY >= collapseStart;
+        }
+
+        return probeY >= this.getElementReadingAnchorY(reviewsAnchor, 0.42);
+    }
+
+    /**
+     * syncBookingCopyDepthState() - 根据当前阅读深度决定 booking-copy 是停留还是退场。
+     * @returns {void} - 无返回值，直接切换 booking-copy 折叠状态
+     */
+    syncBookingCopyDepthState() {
+        if (!this.bookingCopy) {
+            return;
+        }
+
+        this.bookingCopy.classList.toggle('is-collapsed-for-focus', this.shouldCollapseBookingCopy());
     }
 
     /**
@@ -2994,6 +3098,44 @@ class DetailPage {
         }
 
         const probeY = window.scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.24, 220);
+        const relatedRect = this.relatedSection?.getBoundingClientRect();
+        const relatedEnterThreshold = window.innerHeight * 0.52;
+        const relatedHoldThreshold = window.innerHeight * 0.84;
+        if (
+            relatedRect &&
+            relatedRect.bottom > Math.max(window.innerHeight * 0.12, 72) &&
+            relatedRect.top <= (
+                this.activeBookingGuideKey === 'related'
+                    ? relatedHoldThreshold
+                    : relatedEnterThreshold
+            )
+        ) {
+            return 'related';
+        }
+
+        const reviewsAnchor = this.spotReviewsHeading || this.reviewsStage || this.reviewsSection;
+        const reviewsRect = reviewsAnchor?.getBoundingClientRect();
+        const reviewAnchorThreshold = window.innerHeight * (
+            this.activeBookingGuideKey === 'reviews' || this.activeBookingGuideKey === 'related' ? 0.92 : 0.8
+        );
+        if (
+            reviewsRect &&
+            reviewsRect.top <= reviewAnchorThreshold &&
+            reviewsRect.bottom > Math.max(window.innerHeight * 0.12, 72)
+        ) {
+            return 'reviews';
+        }
+
+        const firstReviewCard = this.reviewsSection?.querySelector('.review-card');
+        const firstReviewRect = firstReviewCard?.getBoundingClientRect();
+        if (
+            firstReviewRect &&
+            firstReviewRect.top <= window.innerHeight * 0.82 &&
+            firstReviewRect.bottom > Math.max(window.innerHeight * 0.12, 72)
+        ) {
+            return 'reviews';
+        }
+
         let currentKey = sections[0].key;
 
         sections.forEach(({ key, element }) => {
@@ -3041,6 +3183,10 @@ class DetailPage {
         this.setBookingCopyLineText('.booking-kicker-line', guideCopy.kicker);
         this.setBookingCopyLineText('.booking-title-line', guideCopy.title);
         this.setBookingCopyLineText('.booking-intro-line', guideCopy.intro);
+        this.bookingCopy.querySelectorAll('.booking-kicker-line, .booking-title-line, .booking-intro-line').forEach((line) => {
+            line.classList.remove('is-typed');
+            line.dataset.typingActive = 'false';
+        });
 
         const bookingTitle = this.bookingCopy.querySelector('.booking-title');
         if (bookingTitle) {
@@ -3121,6 +3267,98 @@ class DetailPage {
     }
 
     /**
+     * isBookingFocusOnlyContext() - 判断当前阅读语境是否应该切换到更安静的单焦点侧栏。
+     * 评论区和相邻海域区都优先只保留焦点舱，不再让右侧成为第二条滚动时间线。
+     * @param {string} [sectionKey=this.activeBookingGuideKey || 'overview'] - 当前阅读区块 key
+     * @returns {boolean} - 是否进入单焦点侧栏模式
+     */
+    isBookingFocusOnlyContext(sectionKey = this.activeBookingGuideKey || 'overview') {
+        return sectionKey === 'reviews' || sectionKey === 'related';
+    }
+
+    /**
+     * updateBookingFocusPrice() - 同步焦点舱价格，并在需要时触发滚动数字动画。
+     * @param {string} priceText - 目标价格文本
+     * @param {{ animate?: boolean }} [options={}] - 是否播放数字滚动动画
+     * @returns {void} - 无返回值，直接更新焦点舱价格
+     */
+    updateBookingFocusPrice(priceText, options = {}) {
+        if (!this.bookingFocusPrice) {
+            return;
+        }
+
+        const { animate = false } = options;
+        this.bookingFocusPrice.dataset.priceTarget = priceText;
+
+        if (!animate) {
+            this.bookingFocusPrice.textContent = priceText;
+            this.bookingFocusPrice.dataset.priceAnimated = 'true';
+            return;
+        }
+
+        delete this.bookingFocusPrice.dataset.priceAnimated;
+        animateRollingPrice(this.bookingFocusPrice, priceText, {
+            duration: 1460,
+            delay: 70
+        });
+    }
+
+    /**
+     * writeBookingFocusPanelContent() - 把当前套餐焦点舱的文字、价格和侧栏状态写回 DOM。
+     * @param {{ packageId: string, pkg: Object, contextKey: string, contextContent: Object, isReviewContext: boolean, isFocusOnlyContext: boolean, animatePrice?: boolean }} payload - 焦点舱更新所需数据
+     * @returns {void} - 无返回值，直接更新套餐焦点舱
+     */
+    writeBookingFocusPanelContent(payload) {
+        if (
+            !payload ||
+            !this.bookingFocusPanel ||
+            !this.bookingFocusState ||
+            !this.bookingFocusOverline ||
+            !this.bookingFocusTitle ||
+            !this.bookingFocusMeta ||
+            !this.bookingFocusSummary
+        ) {
+            return;
+        }
+
+        const {
+            packageId,
+            pkg,
+            contextKey,
+            contextContent,
+            isReviewContext,
+            isFocusOnlyContext,
+            animatePrice = false
+        } = payload;
+
+        this.bookingFocusState.textContent = contextContent.state;
+        this.bookingFocusOverline.textContent = contextContent.overline;
+        this.bookingFocusTitle.textContent = pkg.name;
+        this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg);
+        this.updateBookingFocusPrice(pkg.price, { animate: animatePrice });
+        this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey);
+        this.bookingSticky?.classList.toggle('is-focus-only-context', isFocusOnlyContext);
+        this.bookingFocusPanel.classList.toggle('is-review-context', isReviewContext);
+        this.itineraryList?.classList.toggle('is-focus-only-context', isFocusOnlyContext);
+        if (this.itineraryList) {
+            if ('inert' in this.itineraryList) {
+                this.itineraryList.inert = isFocusOnlyContext;
+            }
+            this.itineraryList.setAttribute('aria-hidden', String(isFocusOnlyContext));
+        }
+        this.applyPackageCardSelectionState(packageId);
+
+        if (isFocusOnlyContext && this.bookingSticky) {
+            this.bookingStickyScrollTargetTop = 0;
+            this.bookingSticky.scrollTop = 0;
+        }
+
+        if (this.bookingFocusAction) {
+            this.bookingFocusAction.dataset.packageId = pkg.id;
+        }
+    }
+
+    /**
      * pulseBookingFocusPanel() - 给右侧套餐焦点舱一次轻微的更新呼吸感。
      * @returns {void} - 无返回值，直接刷新状态 class
      */
@@ -3179,31 +3417,56 @@ class DetailPage {
         }
 
         const contextContent = this.getBookingFocusContextContent(contextKey);
+        const isReviewContext = contextKey === 'reviews';
+        const isFocusOnlyContext = this.isBookingFocusOnlyContext(contextKey);
+        const previousPackageId = this.activeBookingFocusPackageId;
+        const isFirstFocusPaint = !previousPackageId;
+        const shouldAnimateSwap = !isFirstFocusPaint && packageId !== previousPackageId;
+        const shouldAnimatePrice = isFirstFocusPaint || packageId !== previousPackageId;
         this.activeBookingFocusPackageId = packageId;
         this.activeBookingFocusContextKey = contextKey;
 
-        this.bookingFocusState.textContent = contextContent.state;
-        this.bookingFocusOverline.textContent = contextContent.overline;
-        this.bookingFocusTitle.textContent = pkg.name;
-        this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg);
-        this.bookingFocusPrice.textContent = pkg.price;
-        this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey);
-        this.bookingSticky?.classList.toggle('is-review-context', contextKey === 'reviews');
-        this.bookingFocusPanel.classList.toggle('is-review-context', contextKey === 'reviews');
-        this.itineraryList?.classList.toggle('is-review-context', contextKey === 'reviews');
-        this.itineraryList?.setAttribute('aria-hidden', String(contextKey === 'reviews'));
-        this.applyPackageCardSelectionState(packageId);
+        const focusPanelPayload = {
+            packageId,
+            pkg,
+            contextKey,
+            contextContent,
+            isReviewContext,
+            isFocusOnlyContext,
+            animatePrice: shouldAnimatePrice
+        };
 
-        if (contextKey === 'reviews' && this.bookingSticky) {
-            this.bookingStickyScrollTargetTop = 0;
-            this.bookingSticky.scrollTop = 0;
+        this.clearBookingFocusSwapTimers();
+        this.resetBookingFocusSwapState();
+
+        if (!shouldAnimateSwap) {
+            this.writeBookingFocusPanelContent(focusPanelPayload);
+            return;
         }
 
-        if (this.bookingFocusAction) {
-            this.bookingFocusAction.dataset.packageId = pkg.id;
-        }
+        this.bookingFocusSwapVersion += 1;
+        const transitionVersion = this.bookingFocusSwapVersion;
+        this.bookingFocusPanel.style.willChange = 'transform, opacity, filter';
+        this.bookingFocusPanel.classList.add('is-swapping-out');
 
-        this.pulseBookingFocusPanel();
+        this.queueBookingFocusSwapTimeout(() => {
+            if (!this.bookingFocusPanel || transitionVersion !== this.bookingFocusSwapVersion) {
+                return;
+            }
+
+            this.writeBookingFocusPanelContent(focusPanelPayload);
+            this.bookingFocusPanel.classList.remove('is-swapping-out');
+            void this.bookingFocusPanel.offsetWidth;
+            this.bookingFocusPanel.classList.add('is-swapping-in');
+
+            this.queueBookingFocusSwapTimeout(() => {
+                if (!this.bookingFocusPanel || transitionVersion !== this.bookingFocusSwapVersion) {
+                    return;
+                }
+
+                this.resetBookingFocusSwapState();
+            }, 860);
+        }, 180);
     }
 
     /**
@@ -4795,10 +5058,16 @@ class DetailPage {
         }
 
         const targetId = packageId || this.selectedPackageId || '';
-        const shouldHighlightCard = Boolean(targetId) && (this.activeBookingGuideKey || 'overview') !== 'reviews';
+        const shouldHighlightCard = Boolean(targetId) && !this.isBookingFocusOnlyContext();
         this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
             card.classList.toggle('is-active', shouldHighlightCard && card.dataset.packageId === targetId);
         });
+
+        if (!shouldHighlightCard) {
+            this.itineraryList.querySelectorAll('.package-card.is-active').forEach((card) => {
+                card.classList.remove('is-active');
+            });
+        }
     }
 
     /**
@@ -4967,35 +5236,22 @@ class DetailPage {
     }
 
     /**
-     * syncBookingStickyScrollWithReading() - 让右侧 sticky 侧栏的内部滚动跟着左侧正文连续移动。
-     * 不是跳到某个固定卡片，而是随着主内容阅读进度在锚点之间平滑插值。
-     * @returns {void} - 无返回值，直接同步侧栏内部滚动
+     * syncBookingStickyScrollWithReading() - 静态版侧栏里不再让右侧内部滚动跟随正文。
+     * 保留这个方法作为兼容入口，只负责停止旧的滚动追随动画。
+     * @returns {void} - 无返回值，直接清理旧的滚动跟随状态
      */
     syncBookingStickyScrollWithReading() {
+        if (this.bookingStickyScrollRaf) {
+            window.cancelAnimationFrame(this.bookingStickyScrollRaf);
+            this.bookingStickyScrollRaf = 0;
+        }
+
         if (!this.bookingSticky) {
-            return;
-        }
-
-        const hasOverlayOpen =
-            (this.reviewLightbox && this.reviewLightbox.classList.contains('active')) ||
-            (this.reviewDetailModal && this.reviewDetailModal.classList.contains('active')) ||
-            (this.bookingConfirmFeedback && this.bookingConfirmFeedback.classList.contains('active')) ||
-            (this.bookingModal && this.bookingModal.classList.contains('active'));
-
-        if (hasOverlayOpen) {
-            return;
-        }
-
-        const maxScrollTop = this.getBookingStickyMaxScrollTop();
-        if (maxScrollTop <= 0) {
             this.bookingStickyScrollTargetTop = 0;
-            this.bookingSticky.scrollTop = 0;
             return;
         }
 
-        const targetTop = Math.max(0, Math.min(this.getInterpolatedBookingStickyTop(), maxScrollTop));
-        this.bookingStickyScrollTargetTop = targetTop;
-        this.startBookingStickyScrollFollow();
+        this.bookingStickyScrollTargetTop = this.bookingSticky.scrollTop || 0;
     }
 
     /**
@@ -5103,6 +5359,12 @@ class DetailPage {
      */
     syncPackageSelectionFromCurrentReview() {
         if (!this.reviewsSection || !this.itineraryList || !this.bookingSticky) {
+            return;
+        }
+
+        const currentContextKey = this.activeBookingGuideKey || this.getCurrentBookingReadingGuideKey();
+        if (currentContextKey !== 'reviews') {
+            this.activeReviewLinkedPackageId = null;
             return;
         }
 
@@ -5320,6 +5582,8 @@ class DetailPage {
         this.activeReviewLinkedPackageId = null;
         this.syncReviewExpandButtons();
         window.requestAnimationFrame(() => {
+            this.syncBookingReadingGuide({ force: true, immediate: true });
+            this.syncBookingCopyDepthState();
             this.syncBookingStickyScrollWithReading();
             this.syncPackageSelectionFromCurrentReview();
         });
@@ -5635,6 +5899,13 @@ class DetailPage {
                         <h3>为什么适合这片海</h3>
                         <p>${pkg.fitReason}</p>
                     </section>
+
+                    ${pkg.reentryNote ? `
+                    <section class="package-modal-section">
+                        <h3>半年未潜水时</h3>
+                        <p>${pkg.reentryNote}</p>
+                    </section>
+                    ` : ''}
 
                     <section class="package-modal-section is-full">
                         <h3>每日安排</h3>
@@ -6074,7 +6345,8 @@ class DetailPage {
     }
 
     /**
-     * buildConfirmedBooking(pkg) - 用当前潜点数据和 Planner 草稿生成一条已确认行程
+     * buildConfirmedBooking(pkg) - 用当前潜点数据生成一条已确认行程
+     * 新加入的套餐不继承既有同行人数，避免上一份安排把新的套餐直接预设掉。
      * @param {Object} pkg - 当前套餐对象
      * @returns {Object} - 可写入共享 storage 的标准套餐记录
      */
@@ -6096,8 +6368,8 @@ class DetailPage {
             packageTags: Array.isArray(pkg.fitTags) ? pkg.fitTags.slice() : [],
             selectedDate: draft.dateValue || '',
             selectedDateLabel: draft.dateLabel || '',
-            selectedPeople: draft.peopleValue || '',
-            selectedPeopleLabel: draft.peopleLabel || '',
+            selectedPeople: '',
+            selectedPeopleLabel: '',
             priceDisplayVersion: PRICE_DISPLAY_VERSION
         };
     }
@@ -6866,7 +7138,7 @@ class DetailPage {
                     return;
                 }
 
-                const sourceCard = (this.activeBookingGuideKey || 'overview') === 'reviews'
+                const sourceCard = this.isBookingFocusOnlyContext()
                     ? null
                     : this.getPackageCardById(packageId);
                 this.openBookingModal(packageId, sourceCard);
@@ -7191,6 +7463,7 @@ class DetailPage {
      */
     updateSeaGuideState() {
         this.syncBookingReadingGuide();
+        this.syncBookingCopyDepthState();
         this.syncBookingStickyScrollWithReading();
         this.syncPackageSelectionFromCurrentReview();
 
@@ -7283,15 +7556,8 @@ class DetailPage {
      * @returns {void} - 无返回值，直接注册导航事件
      */
     setupNavigation() {
-        const avatar = document.querySelector('.avatar');
-        if (!avatar) {
-            return;
-        }
-
-        avatar.addEventListener('click', () => {
-            if (confirm('确认要返回登录页吗？')) {
-                navigateWithDepth('index.html');
-            }
+        window.YanqiAvatarReturn?.bind({
+            targetUrl: 'index.html'
         });
     }
 

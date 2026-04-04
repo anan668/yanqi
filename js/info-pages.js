@@ -627,6 +627,9 @@
         renderContactMethods();
         bindInfoNavigation();
         bindContactForm();
+        window.YanqiAvatarReturn?.bind({
+            targetUrl: 'index.html'
+        });
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {

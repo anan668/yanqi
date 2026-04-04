@@ -8,10 +8,15 @@
    4. 向需要展示价格的页面暴露一套稳定的全局接口。
 */
 (function attachYanqiPriceConfig(window) {
+    // 价格配置会被首页、详情页等多个页面共用。
+    // 放进 IIFE 里是为了只暴露一组稳定接口，避免内部常量直接散到全局作用域。
     const PRICE_CONFIG = Object.freeze({
         currency: 'CNY',
         priceDisplayVersion: '2026-04-03-cny-native-v1'
     });
+
+    // 这里保存的是“盐憩内部统一使用的参考起价”，不是实时价格。
+    // 单独收口成一份不可变配置，后续调整海域价格时只需要维护这一处。
     // 起价参考来自 2025-2026 年公开潜水套餐页面的粗略行情，
     // 这里统一收成“盐憩当前使用的参考起价”，方便首页、详情页和关联海域保持一致。
     const DESTINATION_BASE_PRICES = Object.freeze({
@@ -33,6 +38,7 @@
      * @returns {number} - 成功时返回正数金额，失败时返回 0
      */
     function extractCurrencyAmount(priceText) {
+        // 这里只抽取数字，是为了兼容旧文案、静态 HTML 和 data-* 中混用的价格字符串。
         const numeric = Number(String(priceText || '').replace(/[^\d.]/g, ''));
         return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
     }
@@ -65,6 +71,7 @@
      * @returns {number} - 可用时返回人民币金额；没有配置时返回 0
      */
     function getDestinationBasePrice(spotId) {
+        // 外部传入的 spotId 可能来自 URL、dataset 或对象字段，所以先统一转成整数。
         const normalizedId = Number.parseInt(spotId, 10);
         return Number.isFinite(normalizedId) && DESTINATION_BASE_PRICES[normalizedId]
             ? DESTINATION_BASE_PRICES[normalizedId]
@@ -84,6 +91,9 @@
             : normalizePriceText(fallbackPriceText);
     }
 
+    // 对外只暴露冻结后的统一接口：
+    // 1. 页面间读到的是同一套规则；
+    // 2. 调试或后续扩展时，不会被某个页面意外改写配置本身。
     window.YanqiPriceConfig = Object.freeze({
         PRICE_CONFIG,
         PRICE_DISPLAY_VERSION: PRICE_CONFIG.priceDisplayVersion,
