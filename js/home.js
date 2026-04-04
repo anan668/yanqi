@@ -16,6 +16,108 @@
 const sharedPriceTools = window.YanqiPriceConfig || null;
 const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HERO_HOTSPOTS_STAGE_STORAGE_KEY = 'YANQI_HOME_HOTSPOTS_STAGE_SIZE';
+const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
+const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
+
+/**
+ * resolveStageDebugMode() - 读取当前页面是否需要暴露舞台调试能力
+ * @returns {boolean} - 当前是否启用舞台调试态
+ */
+function resolveStageDebugMode() {
+    let stageDebugEnabled = false;
+
+    try {
+        const queryValue = new URLSearchParams(window.location.search).get(STAGE_DEBUG_QUERY_KEY);
+        if (queryValue != null) {
+            const normalized = String(queryValue).trim().toLowerCase();
+            stageDebugEnabled = ['1', 'true', 'yes', 'on'].includes(normalized);
+
+            if (stageDebugEnabled) {
+                localStorage.setItem(STAGE_DEBUG_STORAGE_KEY, '1');
+            } else if (['0', 'false', 'no', 'off'].includes(normalized)) {
+                localStorage.removeItem(STAGE_DEBUG_STORAGE_KEY);
+            }
+        } else {
+            stageDebugEnabled = localStorage.getItem(STAGE_DEBUG_STORAGE_KEY) === '1';
+        }
+    } catch (error) {
+        stageDebugEnabled = false;
+    }
+
+    document.documentElement?.classList.toggle('yanqi-stage-debug', stageDebugEnabled);
+    document.body?.classList.toggle('yanqi-stage-debug', stageDebugEnabled);
+    return stageDebugEnabled;
+}
+
+const isStageDebugModeEnabled = resolveStageDebugMode();
+
+/**
+ * persistStageDebugMode(enabled) - 把舞台调试开关写入本地存储，并同步根节点类名
+ * @param {boolean} enabled - 是否启用舞台调试
+ * @returns {void}
+ */
+function persistStageDebugMode(enabled) {
+    const nextEnabled = Boolean(enabled);
+
+    try {
+        if (nextEnabled) {
+            localStorage.setItem(STAGE_DEBUG_STORAGE_KEY, '1');
+        } else {
+            localStorage.removeItem(STAGE_DEBUG_STORAGE_KEY);
+        }
+    } catch (error) {
+        // 本地存储不可用时静默降级，保持按钮仍可点击。
+    }
+
+    document.documentElement?.classList.toggle('yanqi-stage-debug', nextEnabled);
+    document.body?.classList.toggle('yanqi-stage-debug', nextEnabled);
+}
+
+/**
+ * stripStageDebugQueryFromUrl() - 移除 stageDebug query，避免按钮切换后被旧 query 覆盖
+ * @returns {void}
+ */
+function stripStageDebugQueryFromUrl() {
+    try {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.delete(STAGE_DEBUG_QUERY_KEY);
+        window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+    } catch (error) {
+        // URL 处理失败时保留当前地址，不影响主流程。
+    }
+}
+
+/**
+ * setupStageDebugToggle() - 给页面底部的舞台调试按钮绑定状态和切换逻辑
+ * @returns {void}
+ */
+function setupStageDebugToggle() {
+    const toggle = document.querySelector('[data-stage-debug-toggle]');
+    if (!toggle) {
+        return;
+    }
+
+    const state = toggle.querySelector('[data-stage-debug-state]');
+    const syncState = (enabled) => {
+        toggle.classList.toggle('is-active', enabled);
+        toggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        toggle.setAttribute('aria-label', enabled ? '关闭舞台调试' : '打开舞台调试');
+        toggle.setAttribute('title', enabled ? '关闭舞台调试' : '打开舞台调试');
+        if (state) {
+            state.textContent = enabled ? '调试中' : '';
+        }
+    };
+
+    syncState(isStageDebugModeEnabled);
+
+    toggle.addEventListener('click', () => {
+        const nextEnabled = !toggle.classList.contains('is-active');
+        persistStageDebugMode(nextEnabled);
+        syncState(nextEnabled);
+        stripStageDebugQueryFromUrl();
+        window.location.reload();
+    });
+}
 
 // 价格展示工具：首页不再自己换汇，统一走共享人民币模块。
 /**
@@ -114,6 +216,52 @@ function clearHeroHotspotsStageSize(shell) {
 }
 
 /**
+ * measureHeroHotspotsStageNaturalHeight(shell, width) - 读取舞台在指定宽度下的自然内容高度
+ * @param {HTMLElement|null} shell - 今日海域舞台外壳
+ * @param {number|null} width - 目标宽度；为空时沿用当前宽度
+ * @returns {number} - 不带强制外壳高度时的内容真实高度
+ */
+function measureHeroHotspotsStageNaturalHeight(shell, width = null) {
+    const stageContent = shell?.querySelector('.hero-hotspots-shell');
+    if (!shell || !stageContent) {
+        return 520;
+    }
+
+    const previousWidth = shell.style.getPropertyValue('--hero-hotspots-stage-width');
+    const previousHeight = shell.style.getPropertyValue('--hero-hotspots-stage-height');
+    const previousMinHeight = stageContent.style.minHeight;
+
+    if (typeof width === 'number' && Number.isFinite(width)) {
+        shell.style.setProperty('--hero-hotspots-stage-width', `${Math.round(width)}px`);
+    }
+    shell.style.removeProperty('--hero-hotspots-stage-height');
+    stageContent.style.minHeight = '0';
+
+    const scrollHeight = Math.ceil(stageContent.scrollHeight || 0);
+    const rectHeight = Math.ceil(stageContent.getBoundingClientRect().height || 0);
+
+    if (previousWidth) {
+        shell.style.setProperty('--hero-hotspots-stage-width', previousWidth);
+    } else {
+        shell.style.removeProperty('--hero-hotspots-stage-width');
+    }
+
+    if (previousHeight) {
+        shell.style.setProperty('--hero-hotspots-stage-height', previousHeight);
+    } else {
+        shell.style.removeProperty('--hero-hotspots-stage-height');
+    }
+
+    if (previousMinHeight) {
+        stageContent.style.minHeight = previousMinHeight;
+    } else {
+        stageContent.style.removeProperty('min-height');
+    }
+
+    return Math.max(520, scrollHeight, rectHeight);
+}
+
+/**
  * clampHeroHotspotsStageSize(shell, width, height) - 限制首页今日海域舞台在桌面端的可调范围
  * @param {HTMLElement} shell - 今日海域舞台外壳
  * @param {number} width - 目标宽度
@@ -125,9 +273,12 @@ function clampHeroHotspotsStageSize(shell, width, height, shiftX = 0) {
     const sidePadding = Math.max(54, Math.min(window.innerWidth * 0.08, 180));
     const minWidth = 980;
     const maxWidth = Math.max(minWidth, Math.min(1560, window.innerWidth - sidePadding));
-    const minHeight = 520;
-    const maxHeight = Math.max(minHeight, Math.min(920, window.innerHeight - 110));
     const clampedWidth = Math.min(Math.max(width, minWidth), maxWidth);
+    const minHeight = measureHeroHotspotsStageNaturalHeight(shell, clampedWidth);
+    const maxHeight = Math.max(
+        minHeight,
+        Math.min(1120, Math.max(window.innerHeight - 28, minHeight + 220))
+    );
     const availableWidth = Math.max(clampedWidth, window.innerWidth - sidePadding);
     const maxShiftX = Math.max(0, (availableWidth - clampedWidth) / 2);
 
@@ -2572,6 +2723,16 @@ function setupHeroHotspotsStageResize() {
         return;
     }
 
+    if (!isStageDebugModeEnabled) {
+        heroHotspotsStageShell.dataset.stageSizeMode = 'default';
+        heroHotspotsStageShell.classList.remove('is-resizing');
+        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-width');
+        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-height');
+        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-shift-x');
+        document.body.classList.remove('is-resizing-hero-hotspots');
+        return;
+    }
+
     const hudValue = document.getElementById('heroHotspotsStageHudValue');
     const hudHint = document.getElementById('heroHotspotsStageHudHint');
     const resetButton = document.getElementById('heroHotspotsStageReset');
@@ -3003,6 +3164,7 @@ class HomeSeaGuide {
  * @returns {void} - 无返回值，直接启动首页逻辑
  */
 document.addEventListener('DOMContentLoaded', function () {
+    setupStageDebugToggle();
     new BambooScroll();
     new CuratedWatersStage();
     new DiveMatchStage();

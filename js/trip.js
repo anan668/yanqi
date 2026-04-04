@@ -366,7 +366,7 @@ class TripSeaGuide {
 // 这个函数同时负责。
 // 1. 管理海域 / 日期 / 人数三个字段的当前。
 // 2. 控制三个浮层的打开、关闭和定位
-// 3. 把字段结果实时回写到左侧摘要。
+// 3. 把字段结果实时回写到回执层。
 // 4. 在桌面端与移动端之间维持一致的交互逻辑
 /**
  * setupPlannerSummary() - 监听行程控制台输入并实时更新摘要卡片
@@ -391,6 +391,13 @@ function setupPlannerSummary() {
     const summaryIntro = document.getElementById('plannerSummaryIntro');
     const summaryStatusNote = document.getElementById('plannerSummaryStatusNote');
     const summaryItems = Array.from(document.querySelectorAll('#plannerSummary .planner-item'));
+    const summaryItemMap = summaryItems.reduce((map, item) => {
+        const fieldKey = String(item.dataset.summaryField || '').trim();
+        if (fieldKey) {
+            map[fieldKey] = item;
+        }
+        return map;
+    }, {});
 
     const spotField = document.querySelector('[data-planner-field="spot"]');
     const dateField = document.querySelector('[data-planner-field="date"]');
@@ -490,11 +497,11 @@ function setupPlannerSummary() {
         date: '\u5148\u8ba9\u6d77\u57df\u843d\u4f4d\uff0c\u51fa\u53d1\u7684\u6f6e\u6c50\u7a97\u53e3\u624d\u4f1a\u6162\u6162\u6d6e\u51fa\u6765',
         people: '\u5148\u628a\u51fa\u53d1\u65f6\u95f4\u5199\u8fdb\u6765\uff0c\u540c\u884c\u7684\u8282\u594f\u518d\u7ee7\u7eed\u5f20\u5f00'
     };
-    const SUMMARY_PROGRESS_COPY = {
-        spot: '\u5148\u9009\u4e00\u7247\u6d77\uff0c\u65e5\u671f\u4e0e\u540c\u884c\u624d\u4f1a\u4ece\u96fe\u91cc\u6162\u6162\u663e\u51fa\u6765\u3002',
-        date: '\u6d77\u57df\u5df2\u7ecf\u843d\u4f4d\uff0c\u4e0b\u4e00\u6b65\u628a\u51fa\u53d1\u65f6\u95f4\u653e\u8fdb\u66f4\u5408\u9002\u7684\u6f6e\u6c50\u91cc\u3002',
-        people: '\u6f6e\u6c50\u7a97\u53e3\u5df2\u7ecf\u6253\u5f00\uff0c\u518d\u628a\u540c\u884c\u8282\u594f\u5199\u8fdb\u6765\uff0c\u8fd9\u4e00\u6f5c\u5c31\u5b8c\u6574\u4e86\u3002',
-        confirmed: '\u6d77\u57df\uff0c\u65f6\u95f4\u4e0e\u540c\u884c\u90fd\u5df2\u5199\u8fdb\u6765\uff0c\u8fd9\u4e00\u6f5c\u5df2\u7ecf\u88ab\u5b89\u9759\u5730\u6536\u4f4f\u4e86\u3002'
+    const SUMMARY_INTRO_COPY = {
+        idle: '\u5148\u7559\u4e0b\u4e00\u53e5\u5f88\u8f7b\u7684\u56de\u6267\uff0c\u7b49\u6d77\u57df\u3001\u6f6e\u6c50\u4e0e\u540c\u884c\u8282\u594f\u6162\u6162\u6536\u51fa\u8f6e\u5ed3\u3002',
+        date: '\u6d77\u57df\u5df2\u7ecf\u5148\u5199\u8fdb\u6765\uff0c\u8fd9\u5c42\u56de\u6267\u4f1a\u987a\u7740\u540e\u9762\u7684\u5b89\u6392\u7ee7\u7eed\u663e\u5f62\u3002',
+        people: '\u6d77\u57df\u548c\u51fa\u53d1\u7a97\u53e3\u90fd\u5df2\u843d\u4f4d\uff0c\u56de\u6267\u5f00\u59cb\u6709\u4e86\u66f4\u6e05\u695a\u7684\u8282\u594f\u3002',
+        confirmed: '\u8fd9\u4e00\u6f5c\u7684\u8f6e\u5ed3\u5df2\u7ecf\u88ab\u5b89\u9759\u6536\u4f4f\uff0c\u540e\u9762\u53ea\u9700\u8981\u987a\u7740\u5b83\u7ee7\u7eed\u51c6\u5907\u3002'
     };
 
     /**
@@ -623,34 +630,37 @@ function setupPlannerSummary() {
 
     const summaryMetaMap = {
         spot: {
+            itemNode: summaryItemMap.spot || null,
             valueNode: summarySpot,
             metaNode: summarySpotMeta,
             stateNode: summarySpotState,
-            emptyValue: '海域尚未确认',
-            emptyMeta: '前往哪片海还在整理里，先让这次下潜慢慢收出方向。',
-            emptyState: '待确认',
-            filledState: '已收住',
-            filledMeta: '前往的海域已经落位，这一潜的方向也开始变得清楚。'
+            emptyValue: '\u6d77\u57df\u5f85\u5b9a',
+            emptyMeta: '\u8fd8\u6ca1\u5199\u8fdb\u56de\u6267\u3002',
+            emptyState: '\u5f85\u5199\u5165',
+            filledState: '\u5df2\u843d\u4f4d',
+            filledMeta: '\u8fd9\u4e00\u7247\u84dd\u5df2\u7ecf\u5148\u843d\u4e0b\u3002'
         },
         date: {
+            itemNode: summaryItemMap.date || null,
             valueNode: summaryDate,
             metaNode: summaryDateMeta,
             stateNode: summaryDateState,
-            emptyValue: '仍在等一段合适的潮汐',
-            emptyMeta: '出发时间还在等一段更合适的潮汐窗口。',
-            emptyState: '待确认',
-            filledState: '已写入',
-            filledMeta: '出发时间已经写进这次下潜，整段安排开始有了节奏。'
+            emptyValue: '\u65e5\u671f\u5f85\u5b9a',
+            emptyMeta: '\u8fd8\u5728\u7b49\u4e00\u6bb5\u66f4\u5408\u9002\u7684\u6f6e\u6c50\u7a97\u53e3\u3002',
+            emptyState: '\u5f85\u5199\u5165',
+            filledState: '\u5df2\u5199\u5165',
+            filledMeta: '\u51fa\u53d1\u7a97\u53e3\u5df2\u7ecf\u5199\u8fdb\u6765\u4e86\u3002'
         },
         people: {
+            itemNode: summaryItemMap.people || null,
             valueNode: summaryPeople,
             metaNode: summaryPeopleMeta,
             stateNode: summaryPeopleState,
-            emptyValue: '同行尚未确认',
-            emptyMeta: '同行人数还没落下，这趟海会怎样发生也还在确认。',
-            emptyState: '待确认',
-            filledState: '已写入',
-            filledMeta: '同行人数已经写进来，这一潜的节奏和陪伴感也更明确了。'
+            emptyValue: '\u4eba\u6570\u5f85\u5b9a',
+            emptyMeta: '\u540c\u884c\u8282\u594f\u8fd8\u6ca1\u5199\u8fdb\u6765\u3002',
+            emptyState: '\u5f85\u5199\u5165',
+            filledState: '\u5df2\u5199\u5165',
+            filledMeta: '\u540c\u884c\u8282\u594f\u5df2\u7ecf\u5199\u8fdb\u6765\u4e86\u3002'
         }
     };
 
@@ -658,9 +668,108 @@ function setupPlannerSummary() {
     let panelPositionFrame = 0;
     let calendarViewDate = null;
     let autoAdvanceTimer = 0;
+    let hasRenderedSummaryOnce = false;
+    let hasInitializedProgressiveState = false;
+    const fieldUnlockTimers = new WeakMap();
+
+    function getPlannerSummaryStage(hasSpot, hasDate, hasPeople) {
+        if (hasSpot && hasDate && hasPeople) {
+            return 'confirmed';
+        }
+
+        if (hasSpot && hasDate) {
+            return 'people';
+        }
+
+        if (hasSpot) {
+            return 'date';
+        }
+
+        return 'idle';
+    }
+
+    function buildPlannerSummaryReceiptCopy({
+        hasSpot,
+        hasDate,
+        hasPeople,
+        spotLabel,
+        dateLabel,
+        peopleLabel
+    }) {
+        if (hasSpot && hasDate && hasPeople) {
+            return `已记下 ${spotLabel} · ${dateLabel} · ${peopleLabel}，这一潜已经被海安静收住。`;
+        }
+
+        if (hasSpot && hasDate) {
+            return `已记下 ${spotLabel} · ${dateLabel}，再把同行节奏写进来，这层回执就会收完整。`;
+        }
+
+        if (hasSpot) {
+            return `已记下 ${spotLabel}，接下来等一段合适的潮汐把出发写进来。`;
+        }
+
+        return '先让回执停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。';
+    }
+
+    function syncSummaryItemState(fieldKey, isFilled, nextValue) {
+        const itemNode = summaryMetaMap[fieldKey]?.itemNode;
+        if (!itemNode) {
+            return;
+        }
+
+        const previousValue = String(itemNode.dataset.currentValue || '');
+        const wasFilled = itemNode.dataset.isFilled === 'true';
+        const shouldPulse = hasRenderedSummaryOnce && isFilled && (!wasFilled || previousValue !== nextValue);
+
+        itemNode.classList.toggle('is-confirmed', isFilled);
+        itemNode.classList.toggle('is-empty', !isFilled);
+
+        if (shouldPulse) {
+            itemNode.classList.remove('is-updated');
+            void itemNode.offsetWidth;
+            itemNode.classList.add('is-updated');
+        } else {
+            itemNode.classList.remove('is-updated');
+        }
+
+        itemNode.dataset.currentValue = isFilled ? nextValue : '';
+        itemNode.dataset.isFilled = String(isFilled);
+    }
 
     function getRequiredFieldKey(fieldKey) {
         return String(fieldMap[fieldKey]?.field?.dataset?.plannerRequires || '').trim();
+    }
+
+    function clearPlannerFieldUnlockReveal(fieldNode) {
+        if (!fieldNode) {
+            return;
+        }
+
+        const existingTimer = fieldUnlockTimers.get(fieldNode);
+        if (existingTimer) {
+            window.clearTimeout(existingTimer);
+            fieldUnlockTimers.delete(fieldNode);
+        }
+
+        fieldNode.classList.remove('is-unlocking');
+    }
+
+    function triggerPlannerFieldUnlockReveal(fieldNode) {
+        if (!fieldNode) {
+            return;
+        }
+
+        clearPlannerFieldUnlockReveal(fieldNode);
+        fieldNode.classList.remove('is-unlocking');
+        void fieldNode.offsetWidth;
+        fieldNode.classList.add('is-unlocking');
+
+        const timer = window.setTimeout(() => {
+            fieldNode.classList.remove('is-unlocking');
+            fieldUnlockTimers.delete(fieldNode);
+        }, 920);
+
+        fieldUnlockTimers.set(fieldNode, timer);
     }
 
     function getFieldSelectionValue(fieldKey) {
@@ -757,10 +866,19 @@ function setupPlannerSummary() {
         Object.keys(fieldMap).forEach((key) => {
             const config = fieldMap[key];
             const unlocked = isFieldUnlocked(key);
+            const wasLocked = config.field.classList.contains('is-locked');
 
             config.field.classList.toggle('is-ready', unlocked);
             config.field.classList.toggle('is-locked', !unlocked);
             config.trigger.setAttribute('aria-disabled', String(!unlocked));
+
+            if (!hasInitializedProgressiveState) {
+                clearPlannerFieldUnlockReveal(config.field);
+            } else if (wasLocked && unlocked) {
+                triggerPlannerFieldUnlockReveal(config.field);
+            } else if (!unlocked) {
+                clearPlannerFieldUnlockReveal(config.field);
+            }
 
             if (unlocked) {
                 config.trigger.removeAttribute('tabindex');
@@ -789,6 +907,8 @@ function setupPlannerSummary() {
                 closePanel(activePanelKey);
             }
         }
+
+        hasInitializedProgressiveState = true;
 
         return didReset;
     }
@@ -1472,17 +1592,20 @@ function setupPlannerSummary() {
     }
 
     /**
-     * updatePlannerSummary() - 根据当前字段值刷新左侧摘要区
-     * @returns {void} - 无返回值，直接更新摘要文案
+     * updatePlannerSummary() - 根据当前字段值刷新回执层
+     * @returns {void} - 无返回值，直接更新回执文案
      */
     function updatePlannerSummary() {
         const spotLabel = spotInput.dataset.label || summaryMetaMap.spot.emptyValue;
         const peopleLabel = peopleInput.dataset.label || summaryMetaMap.people.emptyValue;
-        const dateLabel = formatPlannerDate(dateInput.value);
         const hasSpot = Boolean(spotInput.value);
         const hasDate = Boolean(dateInput.value);
         const hasPeople = Boolean(peopleInput.value);
+        const dateLabel = hasDate ? formatPlannerDate(dateInput.value) : summaryMetaMap.date.emptyValue;
         const isConfirmed = hasSpot && hasDate && hasPeople;
+        const filledCount = [hasSpot, hasDate, hasPeople].filter(Boolean).length;
+        const summaryStage = getPlannerSummaryStage(hasSpot, hasDate, hasPeople);
+        const wasConfirmed = summaryRoot.classList.contains('is-confirmed');
 
         const nextValues = {
             spot: spotLabel,
@@ -1514,13 +1637,33 @@ function setupPlannerSummary() {
             ? summaryMetaMap.people.filledState
             : summaryMetaMap.people.emptyState;
 
-        summaryStatusNote.textContent = isConfirmed
-            ? SUMMARY_PROGRESS_COPY.confirmed
-            : hasDate
-                ? SUMMARY_PROGRESS_COPY.people
-                : hasSpot
-                    ? SUMMARY_PROGRESS_COPY.date
-                    : SUMMARY_PROGRESS_COPY.spot;
+        summaryIntro.textContent = SUMMARY_INTRO_COPY[summaryStage] || SUMMARY_INTRO_COPY.idle;
+        summaryStatusNote.textContent = buildPlannerSummaryReceiptCopy({
+            hasSpot,
+            hasDate,
+            hasPeople,
+            spotLabel,
+            dateLabel,
+            peopleLabel
+        });
+        summaryRoot.dataset.summaryStage = summaryStage;
+        summaryRoot.classList.toggle('is-empty', filledCount === 0);
+        summaryRoot.classList.toggle('has-progress', filledCount > 0 && !isConfirmed);
+        summaryRoot.classList.toggle('is-confirmed', isConfirmed);
+
+        syncSummaryItemState('spot', hasSpot, nextValues.spot);
+        syncSummaryItemState('date', hasDate, nextValues.date);
+        syncSummaryItemState('people', hasPeople, nextValues.people);
+
+        if (hasRenderedSummaryOnce && isConfirmed && !wasConfirmed) {
+            summaryRoot.classList.remove('is-updated-confirmed');
+            void summaryRoot.offsetWidth;
+            summaryRoot.classList.add('is-updated-confirmed');
+        } else if (!isConfirmed) {
+            summaryRoot.classList.remove('is-updated-confirmed');
+        }
+
+        hasRenderedSummaryOnce = true;
 
         if (store && typeof store.savePlannerDraft === 'function') {
             store.savePlannerDraft({

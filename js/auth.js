@@ -20,6 +20,110 @@ const LOGIN_STORAGE_KEYS = Object.freeze({
     accounts: 'yanqi_accounts'
 });
 const LOGIN_STAGE_STORAGE_KEY = 'yanqi_login_stage_size';
+const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
+const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
+const STAGE_DEBUG_EXIT_DELAY_MS = 180;
+let isNavigatingToHome = false;
+
+/**
+ * resolveStageDebugMode() - 读取当前页面是否需要暴露舞台调试能力
+ * @returns {boolean} - 当前是否启用舞台调试态
+ */
+function resolveStageDebugMode() {
+    let stageDebugEnabled = false;
+
+    try {
+        const queryValue = new URLSearchParams(window.location.search).get(STAGE_DEBUG_QUERY_KEY);
+        if (queryValue != null) {
+            const normalized = String(queryValue).trim().toLowerCase();
+            stageDebugEnabled = ['1', 'true', 'yes', 'on'].includes(normalized);
+
+            if (stageDebugEnabled) {
+                localStorage.setItem(STAGE_DEBUG_STORAGE_KEY, '1');
+            } else if (['0', 'false', 'no', 'off'].includes(normalized)) {
+                localStorage.removeItem(STAGE_DEBUG_STORAGE_KEY);
+            }
+        } else {
+            stageDebugEnabled = localStorage.getItem(STAGE_DEBUG_STORAGE_KEY) === '1';
+        }
+    } catch (error) {
+        stageDebugEnabled = false;
+    }
+
+    document.documentElement?.classList.toggle('yanqi-stage-debug', stageDebugEnabled);
+    document.body?.classList.toggle('yanqi-stage-debug', stageDebugEnabled);
+    return stageDebugEnabled;
+}
+
+const isStageDebugModeEnabled = resolveStageDebugMode();
+
+/**
+ * persistStageDebugMode(enabled) - 把舞台调试开关写入本地存储，并同步根节点类名
+ * @param {boolean} enabled - 是否启用舞台调试
+ * @returns {void}
+ */
+function persistStageDebugMode(enabled) {
+    const nextEnabled = Boolean(enabled);
+
+    try {
+        if (nextEnabled) {
+            localStorage.setItem(STAGE_DEBUG_STORAGE_KEY, '1');
+        } else {
+            localStorage.removeItem(STAGE_DEBUG_STORAGE_KEY);
+        }
+    } catch (error) {
+        // 本地存储不可用时静默降级，保持按钮仍可点击。
+    }
+
+    document.documentElement?.classList.toggle('yanqi-stage-debug', nextEnabled);
+    document.body?.classList.toggle('yanqi-stage-debug', nextEnabled);
+}
+
+/**
+ * stripStageDebugQueryFromUrl() - 移除 stageDebug query，避免按钮切换后被旧 query 覆盖
+ * @returns {void}
+ */
+function stripStageDebugQueryFromUrl() {
+    try {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.delete(STAGE_DEBUG_QUERY_KEY);
+        window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+    } catch (error) {
+        // URL 处理失败时保留当前地址，不影响主流程。
+    }
+}
+
+/**
+ * setupStageDebugToggle() - 给登录页的舞台调试按钮绑定状态和切换逻辑
+ * @returns {void}
+ */
+function setupStageDebugToggle() {
+    const toggle = document.querySelector('[data-stage-debug-toggle]');
+    if (!toggle) {
+        return;
+    }
+
+    const state = toggle.querySelector('[data-stage-debug-state]');
+    const syncState = (enabled) => {
+        toggle.classList.toggle('is-active', enabled);
+        toggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        toggle.setAttribute('aria-label', enabled ? '关闭舞台调试' : '打开舞台调试');
+        toggle.setAttribute('title', enabled ? '关闭舞台调试' : '打开舞台调试');
+        if (state) {
+            state.textContent = enabled ? '调试中' : '';
+        }
+    };
+
+    syncState(isStageDebugModeEnabled);
+
+    toggle.addEventListener('click', () => {
+        const nextEnabled = !toggle.classList.contains('is-active');
+        persistStageDebugMode(nextEnabled);
+        syncState(nextEnabled);
+        stripStageDebugQueryFromUrl();
+        window.location.reload();
+    });
+}
 
 /**
  * getDepthManager() - 安全获取全局深度计管理器
@@ -60,13 +164,23 @@ function setGaugeInteractiveState(isActive) {
  * @returns {void}
  */
 function navigateToHome() {
-    const manager = getDepthManager();
-    if (manager && typeof manager.navigateTo === 'function') {
-        manager.navigateTo('home.html');
+    if (isNavigatingToHome) {
         return;
     }
 
-    window.location.href = 'home.html';
+    isNavigatingToHome = true;
+    const toggle = document.querySelector('[data-stage-debug-toggle]');
+    toggle?.classList.add('is-leaving');
+
+    const manager = getDepthManager();
+    window.setTimeout(() => {
+        if (manager && typeof manager.navigateTo === 'function') {
+            manager.navigateTo('home.html');
+            return;
+        }
+
+        window.location.href = 'home.html';
+    }, STAGE_DEBUG_EXIT_DELAY_MS);
 }
 
 /**
@@ -113,7 +227,12 @@ function safeReadLoginStageSize() {
             return null;
         }
 
-        return parsed;
+        return {
+            width: parsed.width,
+            height: parsed.height,
+            shiftX: typeof parsed.shiftX === 'number' ? parsed.shiftX : 0,
+            shiftY: typeof parsed.shiftY === 'number' ? parsed.shiftY : 0
+        };
     } catch (error) {
         return null;
     }
@@ -144,6 +263,8 @@ function clearLoginStageSize(shell) {
 
     shell.style.removeProperty('--login-stage-width');
     shell.style.removeProperty('--login-stage-height');
+    shell.style.removeProperty('--login-stage-shift-x');
+    shell.style.removeProperty('--login-stage-shift-y');
 
     try {
         localStorage.removeItem(LOGIN_STAGE_STORAGE_KEY);
@@ -153,22 +274,34 @@ function clearLoginStageSize(shell) {
 }
 
 /**
- * clampLoginStageSize(shell, width, height) - 按当前视口限制登录舞台的最小 / 最大尺寸
+ * clampLoginStageSize(shell, width, height, shiftX, shiftY) - 按当前视口限制登录舞台的尺寸与位移
  * @param {HTMLElement} shell - 登录舞台外壳
  * @param {number} width - 目标宽度
  * @param {number} height - 目标高度
- * @returns {{width:number,height:number}} - 经过限制后的尺寸
+ * @param {number} shiftX - 目标横向位移
+ * @param {number} shiftY - 目标纵向位移
+ * @returns {{width:number,height:number,shiftX:number,shiftY:number}} - 经过限制后的尺寸
  */
-function clampLoginStageSize(shell, width, height) {
+function clampLoginStageSize(shell, width, height, shiftX = 0, shiftY = 0) {
     const sidePadding = Math.max(48, Math.min(window.innerWidth * 0.08, 160));
     const minWidth = 760;
     const maxWidth = Math.max(minWidth, Math.min(1240, window.innerWidth - sidePadding));
-    const minHeight = 590;
-    const maxHeight = Math.max(minHeight, Math.min(860, window.innerHeight - 36));
+    const safeGap = Math.max(10, Math.min(window.innerHeight * 0.018, 18));
+    const minHeightCap = window.innerWidth <= 980 ? 548 : 572;
+    const minHeight = Math.max(520, Math.min(minHeightCap, window.innerHeight - safeGap * 4));
+    const maxHeight = Math.max(minHeight, Math.min(860, window.innerHeight - safeGap * 2));
+    const clampedWidth = Math.min(Math.max(width, minWidth), maxWidth);
+    const clampedHeight = Math.min(Math.max(height, minHeight), maxHeight);
+    const availableWidth = Math.max(clampedWidth, window.innerWidth - sidePadding);
+    const availableHeight = Math.max(clampedHeight, window.innerHeight - safeGap * 2);
+    const maxShiftX = Math.max(0, (availableWidth - clampedWidth) / 2);
+    const maxShiftY = Math.max(0, (availableHeight - clampedHeight) / 2);
 
     return {
-        width: Math.min(Math.max(width, minWidth), maxWidth),
-        height: Math.min(Math.max(height, minHeight), maxHeight)
+        width: clampedWidth,
+        height: clampedHeight,
+        shiftX: Math.min(Math.max(shiftX, -maxShiftX), maxShiftX),
+        shiftY: Math.min(Math.max(shiftY, -maxShiftY), maxShiftY)
     };
 }
 
@@ -186,12 +319,22 @@ function applyLoginStageSize(shell, size) {
     if (!size) {
         shell.style.removeProperty('--login-stage-width');
         shell.style.removeProperty('--login-stage-height');
+        shell.style.removeProperty('--login-stage-shift-x');
+        shell.style.removeProperty('--login-stage-shift-y');
         return;
     }
 
-    const nextSize = clampLoginStageSize(shell, size.width, size.height);
+    const nextSize = clampLoginStageSize(
+        shell,
+        size.width,
+        size.height,
+        size.shiftX || 0,
+        size.shiftY || 0
+    );
     shell.style.setProperty('--login-stage-width', `${Math.round(nextSize.width)}px`);
     shell.style.setProperty('--login-stage-height', `${Math.round(nextSize.height)}px`);
+    shell.style.setProperty('--login-stage-shift-x', `${Math.round(nextSize.shiftX)}px`);
+    shell.style.setProperty('--login-stage-shift-y', `${Math.round(nextSize.shiftY)}px`);
 }
 
 /**
@@ -882,12 +1025,32 @@ function setupLoginStageResize(nodes) {
         return;
     }
 
+    const desktopQuery = window.matchMedia('(min-width: 981px)');
+    const savedSize = safeReadLoginStageSize();
+
+    if (!isStageDebugModeEnabled) {
+        if (desktopQuery.matches && savedSize) {
+            applyLoginStageSize(loginStageShell, savedSize);
+            loginStageShell.dataset.stageSizeMode = 'custom';
+        } else {
+            loginStageShell.dataset.stageSizeMode = 'default';
+            loginStageShell.style.removeProperty('--login-stage-width');
+            loginStageShell.style.removeProperty('--login-stage-height');
+            loginStageShell.style.removeProperty('--login-stage-shift-x');
+            loginStageShell.style.removeProperty('--login-stage-shift-y');
+        }
+
+        loginStageShell.classList.remove('is-resizing');
+        document.body.classList.remove('is-resizing-login-stage');
+        return;
+    }
+
     const hudValue = document.getElementById('loginStageHudValue');
     const hudHint = document.getElementById('loginStageHudHint');
     const resetButton = document.getElementById('loginStageReset');
-    const desktopQuery = window.matchMedia('(min-width: 981px)');
     let resizeState = null;
-    let hasCustomSize = Boolean(safeReadLoginStageSize());
+    let activeResizeHandle = null;
+    let hasCustomSize = Boolean(savedSize);
 
     const readCurrentStageSize = () => {
         const rect = loginStageShell.getBoundingClientRect();
@@ -936,11 +1099,15 @@ function setupLoginStageResize(nodes) {
 
         const finalSize = {
             width: resizeState.width,
-            height: resizeState.height
+            height: resizeState.height,
+            shiftX: resizeState.shiftX,
+            shiftY: resizeState.shiftY
         };
         const state = resizeState;
 
         resizeState = null;
+        activeResizeHandle?.removeEventListener('lostpointercapture', stopResize);
+        activeResizeHandle = null;
         loginStageShell.classList.remove('is-resizing');
         document.body.classList.remove('is-resizing-login-stage');
         window.removeEventListener('pointermove', onPointerMove);
@@ -969,27 +1136,37 @@ function setupLoginStageResize(nodes) {
 
         let nextWidth = resizeState.startWidth;
         let nextHeight = resizeState.startHeight;
+        let nextShiftX = resizeState.startShiftX;
+        let nextShiftY = resizeState.startShiftY;
 
         if (direction.includes('e')) {
             nextWidth += dx;
+            nextShiftX += dx / 2;
         }
         if (direction.includes('w')) {
             nextWidth -= dx;
+            nextShiftX += dx / 2;
         }
         if (direction.includes('s')) {
             nextHeight += dy;
+            nextShiftY += dy / 2;
         }
         if (direction.includes('n')) {
             nextHeight -= dy;
+            nextShiftY += dy / 2;
         }
 
-        const clamped = clampLoginStageSize(loginStageShell, nextWidth, nextHeight);
+        const clamped = clampLoginStageSize(loginStageShell, nextWidth, nextHeight, nextShiftX, nextShiftY);
         resizeState.hasMoved =
             resizeState.hasMoved ||
             Math.abs(clamped.width - resizeState.startWidth) > 0.5 ||
-            Math.abs(clamped.height - resizeState.startHeight) > 0.5;
+            Math.abs(clamped.height - resizeState.startHeight) > 0.5 ||
+            Math.abs(clamped.shiftX - resizeState.startShiftX) > 0.5 ||
+            Math.abs(clamped.shiftY - resizeState.startShiftY) > 0.5;
         resizeState.width = clamped.width;
         resizeState.height = clamped.height;
+        resizeState.shiftX = clamped.shiftX;
+        resizeState.shiftY = clamped.shiftY;
         hasCustomSize = resizeState.hadCustomSize || resizeState.hasMoved;
         applyLoginStageSize(loginStageShell, clamped);
         syncStageHud(clamped);
@@ -1002,6 +1179,7 @@ function setupLoginStageResize(nodes) {
             }
 
             event.preventDefault();
+            event.stopPropagation();
             const rect = loginStageShell.getBoundingClientRect();
             resizeState = {
                 direction: handle.dataset.resizeDirection || 'se',
@@ -1009,12 +1187,26 @@ function setupLoginStageResize(nodes) {
                 startY: event.clientY,
                 startWidth: rect.width,
                 startHeight: rect.height,
+                startShiftX: parseFloat(getComputedStyle(loginStageShell).getPropertyValue('--login-stage-shift-x')) || 0,
+                startShiftY: parseFloat(getComputedStyle(loginStageShell).getPropertyValue('--login-stage-shift-y')) || 0,
                 width: rect.width,
                 height: rect.height,
+                shiftX: parseFloat(getComputedStyle(loginStageShell).getPropertyValue('--login-stage-shift-x')) || 0,
+                shiftY: parseFloat(getComputedStyle(loginStageShell).getPropertyValue('--login-stage-shift-y')) || 0,
                 hasMoved: false,
                 hadCustomSize: hasCustomSize
             };
 
+            activeResizeHandle?.removeEventListener('lostpointercapture', stopResize);
+            activeResizeHandle = handle;
+            if (typeof handle.setPointerCapture === 'function') {
+                try {
+                    handle.setPointerCapture(event.pointerId);
+                } catch (error) {
+                    // 个别浏览器或设备在调试句柄上不支持 capture，这里静默降级到 window 监听。
+                }
+            }
+            activeResizeHandle.addEventListener('lostpointercapture', stopResize);
             loginStageShell.classList.add('is-resizing');
             document.body.classList.add('is-resizing-login-stage');
             window.addEventListener('pointermove', onPointerMove);
@@ -1112,6 +1304,7 @@ function initializeAuthPage() {
     const nodes = collectAuthNodes();
     const feedbackNode = ensureFeedbackNode(nodes.panelInner);
 
+    setupStageDebugToggle();
     setupLoginStageResize(nodes);
     bindTabSwitching(nodes, feedbackNode);
     bindRememberMe(nodes);

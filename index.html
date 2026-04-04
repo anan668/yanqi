@@ -17,6 +17,14 @@
 <body class="login-page is-auth-login" data-auth-mode="login">
     <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
 
+    <button type="button" class="stage-debug-toggle" data-stage-debug-toggle aria-pressed="false" title="开启舞台调试">
+        <span class="stage-debug-toggle-dot" aria-hidden="true"></span>
+        <span class="stage-debug-toggle-copy">
+            <span class="stage-debug-toggle-label">舞台</span>
+            <span class="stage-debug-toggle-state" data-stage-debug-state>调试中</span>
+        </span>
+    </button>
+
     <div class="depth-gauge left" aria-hidden="true">
         <div class="gauge-current" id="leftGaugeCurrent">0m</div>
         <div class="gauge-markers" id="leftGaugeMarkers"></div>

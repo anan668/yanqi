@@ -257,50 +257,55 @@
                                 </button>
                             </div>
 
-                            <!-- 行程摘要回读：
-                                 这块不是表单，而是把当前选择翻译成更安静的自然语言，
-                                 让用户在看完已收进行程、整理好当前控制台之后，再确认这次海已经排到了哪一步。 -->
-                            <div class="planner-summary" id="plannerSummary">
+                            <!-- 行程回执层：
+                                 这里保留 #plannerSummary 作为海图导览锚点，
+                                 但视觉上收成附着在控制台下方的一层轻回执，只负责安静回看当前安排。 -->
+                            <div class="planner-summary" id="plannerSummary" data-summary-stage="idle">
                                 <div class="planner-summary-head">
-                                    <p class="planner-summary-kicker">Confirmed Dive Plan</p>
-                                    <h2 class="planner-summary-title">即将进行的这一潜</h2>
+                                    <div class="planner-summary-heading">
+                                        <p class="planner-summary-kicker">Tide Receipt</p>
+                                        <h2 class="planner-summary-title">潮汐回执</h2>
+                                    </div>
                                     <p class="planner-summary-intro" id="plannerSummaryIntro">
-                                        当海域、时间与同行节奏被确认下来，这次下潜就会安静地停在这里，等着真正出发。
-                                    </p>
-                                    <p class="planner-summary-status-note" id="plannerSummaryStatusNote">
-                                        这次下潜还在整理轮廓，先把海域、时间和同行慢慢定下来。
+                                        先留下一句很轻的回执，等海域、潮汐与同行节奏慢慢收出轮廓。
                                     </p>
                                 </div>
 
-                                <article class="planner-item">
-                                    <span class="planner-item-index">01</span>
-                                    <div class="planner-item-copy">
-                                        <span class="planner-label">前往海域</span>
-                                        <strong id="plannerSummarySpot">海域尚未确认</strong>
-                                        <small id="plannerSummarySpotMeta">前往哪片海还在整理里，先让这次下潜慢慢收出方向。</small>
-                                    </div>
-                                    <span class="planner-item-state" id="plannerSummarySpotState">待确认</span>
-                                </article>
+                                <p class="planner-summary-status-note" id="plannerSummaryStatusNote" aria-live="polite">
+                                    先让回执停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。
+                                </p>
 
-                                <article class="planner-item">
-                                    <span class="planner-item-index">02</span>
-                                    <div class="planner-item-copy">
-                                        <span class="planner-label">出发时间</span>
-                                        <strong id="plannerSummaryDate">仍在等一段合适的潮汐</strong>
-                                        <small id="plannerSummaryDateMeta">出发时间还在等一段更合适的潮汐窗口。</small>
-                                    </div>
-                                    <span class="planner-item-state" id="plannerSummaryDateState">待确认</span>
-                                </article>
+                                <div class="planner-summary-receipt">
+                                    <article class="planner-item" data-summary-field="spot">
+                                        <span class="planner-item-index">01</span>
+                                        <div class="planner-item-copy">
+                                            <span class="planner-label">海域</span>
+                                            <strong id="plannerSummarySpot">海域待定</strong>
+                                            <small id="plannerSummarySpotMeta">还没写进回执。</small>
+                                        </div>
+                                        <span class="planner-item-state" id="plannerSummarySpotState">待写入</span>
+                                    </article>
 
-                                <article class="planner-item">
-                                    <span class="planner-item-index">03</span>
-                                    <div class="planner-item-copy">
-                                        <span class="planner-label">同行人数</span>
-                                        <strong id="plannerSummaryPeople">同行尚未确认</strong>
-                                        <small id="plannerSummaryPeopleMeta">同行人数还没落下，这趟海会怎样发生也还在确认。</small>
-                                    </div>
-                                    <span class="planner-item-state" id="plannerSummaryPeopleState">待确认</span>
-                                </article>
+                                    <article class="planner-item" data-summary-field="date">
+                                        <span class="planner-item-index">02</span>
+                                        <div class="planner-item-copy">
+                                            <span class="planner-label">出发</span>
+                                            <strong id="plannerSummaryDate">日期待定</strong>
+                                            <small id="plannerSummaryDateMeta">还在等一段更合适的潮汐窗口。</small>
+                                        </div>
+                                        <span class="planner-item-state" id="plannerSummaryDateState">待写入</span>
+                                    </article>
+
+                                    <article class="planner-item" data-summary-field="people">
+                                        <span class="planner-item-index">03</span>
+                                        <div class="planner-item-copy">
+                                            <span class="planner-label">同行</span>
+                                            <strong id="plannerSummaryPeople">人数待定</strong>
+                                            <small id="plannerSummaryPeopleMeta">同行节奏还没写进来。</small>
+                                        </div>
+                                        <span class="planner-item-state" id="plannerSummaryPeopleState">待写入</span>
+                                    </article>
+                                </div>
                             </div>
                         </div>
                     </section>

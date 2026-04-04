@@ -63,6 +63,32 @@
             { selector: '#detailFooter', depth: MIN_DEPTH }
         ])
     });
+    const PAGE_STATE_DEPTH_OFFSET_RULES = Object.freeze({
+        trip: Object.freeze([
+            Object.freeze({
+                selector: '#plannerFloatingLayer',
+                depthOffset: 0.55
+            })
+        ]),
+        detail: Object.freeze([
+            Object.freeze({
+                selector: '#bookingModal',
+                depthOffset: 0.52
+            }),
+            Object.freeze({
+                selector: '#reviewDetailModal',
+                depthOffset: 0.4
+            }),
+            Object.freeze({
+                selector: '#reviewLightbox',
+                depthOffset: 0.48
+            }),
+            Object.freeze({
+                selector: '#bookingConfirmFeedback',
+                depthOffset: 0.38
+            })
+        ])
+    });
     const DETAIL_GAUGE_DEFAULT_MAX_DEPTH = 72;
     const DETAIL_GAUGE_FOCUS_RATIO = 0.46;
     const DETAIL_GAUGE_MIN_ENTRY_DEPTH = Math.abs(PAGE_DEPTH_MAP.detail);
@@ -82,6 +108,8 @@
     const STORAGE_KEY_CURRENT = 'yanqi_depth_current';
     const STORAGE_KEY_NAV = 'yanqi_depth_nav';
     const STORAGE_KEY_HOME_ENTRY_DEPTH = 'YANQI_HOME_ENTRY_DEPTH';
+    const DETAIL_SWAP_STORAGE_KEY = 'yanqi_detail_swap_transition';
+    const DETAIL_SWAP_MAX_AGE_MS = 12000;
 
     // 统一过渡时序配置：
     // 1. general 控制整站默认切页节奏
@@ -146,6 +174,37 @@
         }
 
         return PAGE_SCROLL_DEPTH_STOP_MAP[pageId] || [];
+    }
+
+    /**
+     * getPageStateDepthOffsetRules(pageId) - 读取当前页面需要联动附加下潜的 DOM 状态规则
+     * @param {string} pageId - 页面标识
+     * @returns {Array<Object>} - 当前页面的轻微附加下潜规则
+     */
+    function getPageStateDepthOffsetRules(pageId) {
+        return PAGE_STATE_DEPTH_OFFSET_RULES[pageId] || [];
+    }
+
+    /**
+     * isDepthStateElementActive(element) - 判断某个浮层或弹层是否处于打开或收束中的可感知状态
+     * @param {HTMLElement|null} element - 需要检查的 DOM 元素
+     * @returns {boolean} - 当前元素是否应被视为“更深一层”状态
+     */
+    function isDepthStateElementActive(element) {
+        if (!element || element.hidden) {
+            return false;
+        }
+
+        const ariaHidden = element.getAttribute('aria-hidden');
+        if (ariaHidden === 'false') {
+            return true;
+        }
+
+        return (
+            element.classList.contains('active')
+            || element.classList.contains('is-open')
+            || element.classList.contains('is-closing')
+        );
     }
 
     /**
@@ -394,6 +453,15 @@
      */
     function randomBetween(min, max) {
         return min + Math.random() * (max - min);
+    }
+
+    /**
+     * getNavigationEntryType() - 读取当前文档的导航进入类型
+     * @returns {string} - 浏览器记录的 navigation type
+     */
+    function getNavigationEntryType() {
+        const [navigationEntry] = performance.getEntriesByType('navigation');
+        return navigationEntry && navigationEntry.type ? navigationEntry.type : 'navigate';
     }
 
     /**
@@ -699,6 +767,46 @@
         }
     }
 
+    /**
+     * readIncomingDetailSwapState() - 判断当前详情页是否正承接相关推荐切页进入
+     * @returns {{fromId:number,toId:number,at:number}|null} - 当前详情页可用的相关推荐切页状态
+     */
+    function readIncomingDetailSwapState() {
+        if (getPageIdFromPath(window.location.pathname) !== 'detail') {
+            return null;
+        }
+
+        const spotId = Number(new URL(window.location.href).searchParams.get('id'));
+        if (!Number.isFinite(spotId)) {
+            return null;
+        }
+
+        const raw = sessionStorage.getItem(DETAIL_SWAP_STORAGE_KEY);
+        if (!raw) {
+            return null;
+        }
+
+        try {
+            const parsed = JSON.parse(raw);
+            const fromId = Number(parsed.fromId);
+            const toId = Number(parsed.toId);
+            const at = Number(parsed.at);
+            const forwardConsumed = Boolean(parsed.forwardConsumed);
+
+            if (!Number.isFinite(fromId) || !Number.isFinite(toId) || !Number.isFinite(at)) {
+                return null;
+            }
+
+            if (forwardConsumed || toId !== spotId || Date.now() - at > DETAIL_SWAP_MAX_AGE_MS) {
+                return null;
+            }
+
+            return { fromId, toId, at };
+        } catch (error) {
+            return null;
+        }
+    }
+
     // 导航拦截基础判断：过滤新标签、下载链接、组合键等不应接管的点击。
     /**
      * shouldInterceptAnchorClick(event, anchor) - 判断当前链接点击是否应由深度管理器接管
@@ -768,6 +876,8 @@
             this.pageScrollFrameId = 0;
             this.pageScrollSyncTimerId = 0;
             this.pageScrollTargetDepth = null;
+            this.pageStateDepthObserver = null;
+            this.pageStateDepthRules = [];
             this.homeDiveMatchDepth = null;
             this.detailGaugeProfile = this.pageId === 'detail'
                 ? { ...DETAIL_GAUGE_DEFAULT_PROFILE }
@@ -825,6 +935,9 @@
                 }
             } else {
                 this.overlayBoost = 0;
+                const incomingDetailSwapState = this.pageId === 'detail'
+                    ? readIncomingDetailSwapState()
+                    : null;
                 if (this.pageId === 'login') {
                     const initialLoginDepth = clamp(this.targetDepth - 3, MIN_DEPTH, MAX_DEPTH);
                     this.currentDepth = initialLoginDepth;
@@ -843,6 +956,24 @@
                     }, 180);
                     // 首次直接进入首页时，先完成 0m -> 首页浅层深度的入场，再启动滚动驱动的继续下潜。
                     this.schedulePageScrollDepthSync(2060);
+                } else if (incomingDetailSwapState && getNavigationEntryType() === 'navigate') {
+                    const storedDepth = readNumber(sessionStorage.getItem(STORAGE_KEY_CURRENT));
+                    const startDepth = clamp(storedDepth ?? MIN_DEPTH, MIN_DEPTH, MAX_DEPTH);
+
+                    if (Math.abs(startDepth - this.targetDepth) > 0.05) {
+                        this.currentDepth = startDepth;
+                        this.renderDepth(startDepth);
+                        this.animateDepth(startDepth, this.targetDepth, 860);
+
+                        if (this.hasScrollDepthConfig()) {
+                            this.schedulePageScrollDepthSync(1040);
+                        }
+                    } else {
+                        this.finishDepth(this.targetDepth);
+                        if (this.hasScrollDepthConfig()) {
+                            this.schedulePageScrollDepthSync(140);
+                        }
+                    }
                 } else {
                     this.finishDepth(this.targetDepth);
                     if (this.hasScrollDepthConfig()) {
@@ -852,6 +983,7 @@
             }
 
             this.setupPageScrollDepth();
+            this.setupPageStateDepthObserver();
             this.setupPageShowHandler();
             this.setupSpecialTransitionAbortHandler();
             this.bindTrackedLinks();
@@ -1499,6 +1631,232 @@
         }
 
         /**
+         * setupPageStateDepthObserver() - 监听 trip / detail 页面浮层状态，让深度计在打开时轻微继续下潜
+         * @returns {void} - 无返回值，直接注册 DOM 属性观察
+         */
+        setupPageStateDepthObserver() {
+            const stateRules = getPageStateDepthOffsetRules(this.pageId);
+            if (!window.MutationObserver || stateRules.length === 0) {
+                return;
+            }
+
+            this.pageStateDepthRules = stateRules
+                .map((rule) => ({
+                    ...rule,
+                    element: document.querySelector(rule.selector)
+                }))
+                .filter((rule) => Boolean(rule.element));
+
+            if (this.pageStateDepthRules.length === 0) {
+                return;
+            }
+
+            this.pageStateDepthObserver = new MutationObserver(() => {
+                this.queuePageScrollDepthUpdate();
+            });
+
+            this.pageStateDepthRules.forEach((rule) => {
+                this.pageStateDepthObserver.observe(rule.element, {
+                    attributes: true,
+                    attributeFilter: ['class', 'hidden', 'aria-hidden']
+                });
+            });
+        }
+
+        /**
+         * getPageStateDepthOffset() - 根据当前页面可见浮层状态计算附加下潜量
+         * @returns {number} - 需要叠加到页面基础深度上的附加下潜值
+         */
+        getPageStateDepthOffset() {
+            if (this.pageStateDepthRules.length === 0) {
+                return 0;
+            }
+
+            const strongestOffset = this.pageStateDepthRules.reduce((currentOffset, rule) => {
+                if (!isDepthStateElementActive(rule.element)) {
+                    return currentOffset;
+                }
+
+                const offset = clamp(readNumber(rule.depthOffset) ?? 0, 0, 1.2);
+                return Math.max(currentOffset, offset);
+            }, 0);
+
+            return strongestOffset > 0 ? -strongestOffset : 0;
+        }
+
+        /**
+         * getPageScrollThresholdPoints() - 把当前页面的 section 停靠点整理成带滚动阈值的可计算数组
+         * @returns {Array<Object>} - 当前页面用于深度插值的阈值点
+         */
+        getPageScrollThresholdPoints() {
+            if (this.pageScrollDepthStops.length === 0) {
+                return [];
+            }
+
+            const rawPoints = this.pageScrollDepthStops.map((stop, index) => {
+                if (index === 0) {
+                    return {
+                        selector: stop.selector,
+                        depth: stop.depth,
+                        threshold: 0
+                    };
+                }
+
+                return {
+                    selector: stop.selector,
+                    depth: stop.depth,
+                    threshold: Math.max(
+                        0,
+                        stop.element.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.42
+                    )
+                };
+            });
+
+            if (this.pageId !== 'detail') {
+                return rawPoints;
+            }
+
+            return rawPoints.reduce((normalizedPoints, point, index) => {
+                if (index === 0) {
+                    normalizedPoints.push(point);
+                    return normalizedPoints;
+                }
+
+                const previousPoint = normalizedPoints[normalizedPoints.length - 1];
+                const minGap = Math.max(window.innerHeight * 0.18, 170);
+                const maxGap = Math.max(window.innerHeight * 0.56, 520);
+                const preferredThreshold = clamp(
+                    point.threshold,
+                    previousPoint.threshold + minGap,
+                    previousPoint.threshold + maxGap
+                );
+
+                normalizedPoints.push({
+                    ...point,
+                    threshold: preferredThreshold
+                });
+                return normalizedPoints;
+            }, []);
+        }
+
+        /**
+         * computeContinuousDepthFromPoints(points) - 按常规缓动方式在停靠点之间连续插值
+         * @param {Array<Object>} points - 当前页面可用的滚动阈值点
+         * @returns {number} - 计算出的基础深度
+         */
+        computeContinuousDepthFromPoints(points) {
+            if (points.length === 0) {
+                return this.targetDepth;
+            }
+
+            const scrollY = window.scrollY || window.pageYOffset || 0;
+            let baseDepth = points[0].depth;
+
+            if (scrollY <= points[0].threshold) {
+                return baseDepth;
+            }
+
+            for (let index = 0; index < points.length - 1; index += 1) {
+                const currentPoint = points[index];
+                const nextPoint = points[index + 1];
+
+                if (scrollY <= nextPoint.threshold) {
+                    const range = Math.max(nextPoint.threshold - currentPoint.threshold, 1);
+                    const progress = clamp((scrollY - currentPoint.threshold) / range, 0, 1);
+                    const eased = easeInOutCubic(progress);
+                    baseDepth = currentPoint.depth + (nextPoint.depth - currentPoint.depth) * eased;
+                    return baseDepth;
+                }
+            }
+
+            return points[points.length - 1].depth;
+        }
+
+        /**
+         * computePlateauDepthFromPoints(points) - 让详情页 section 在各自海层里更明显停靠，再过渡到下一层
+         * @param {Array<Object>} points - 详情页当前可用的滚动阈值点
+         * @returns {number} - 计算出的详情页基础深度
+         */
+        computePlateauDepthFromPoints(points) {
+            if (points.length === 0) {
+                return this.targetDepth;
+            }
+
+            const scrollY = window.scrollY || window.pageYOffset || 0;
+            if (points.length === 1 || scrollY <= points[0].threshold) {
+                return points[0].depth;
+            }
+
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const minTransitionPx = Math.max(viewportHeight * 0.08, 56);
+            const maxTransitionPx = Math.max(viewportHeight * 0.18, 160);
+            const transitionBias = 0.74;
+            const transitionSpanRatio = 0.36;
+
+            for (let index = 0; index < points.length - 1; index += 1) {
+                const currentPoint = points[index];
+                const nextPoint = points[index + 1];
+
+                if (scrollY > nextPoint.threshold) {
+                    continue;
+                }
+
+                const range = Math.max(nextPoint.threshold - currentPoint.threshold, 1);
+                const transitionCenter = currentPoint.threshold + range * transitionBias;
+                const halfTransitionSpan = Math.min(
+                    clamp(range * transitionSpanRatio * 0.5, minTransitionPx * 0.5, maxTransitionPx * 0.5),
+                    range * 0.48
+                );
+                const transitionStart = clamp(
+                    transitionCenter - halfTransitionSpan,
+                    currentPoint.threshold,
+                    nextPoint.threshold
+                );
+                const transitionEnd = clamp(
+                    transitionCenter + halfTransitionSpan,
+                    transitionStart,
+                    nextPoint.threshold
+                );
+
+                if (transitionEnd - transitionStart < 1) {
+                    return this.computeContinuousDepthFromPoints([currentPoint, nextPoint]);
+                }
+
+                if (scrollY <= transitionStart) {
+                    return currentPoint.depth;
+                }
+
+                if (scrollY >= transitionEnd) {
+                    return nextPoint.depth;
+                }
+
+                const progress = clamp((scrollY - transitionStart) / (transitionEnd - transitionStart), 0, 1);
+                const eased = easeInOutCubic(progress);
+                return currentPoint.depth + (nextPoint.depth - currentPoint.depth) * eased;
+            }
+
+            return points[points.length - 1].depth;
+        }
+
+        /**
+         * computeDetailLinearDepth() - 按整页滚动进度均匀计算详情页逻辑深度
+         * @returns {number} - 当前滚动位置对应的线性逻辑深度
+         */
+        computeDetailLinearDepth() {
+            const { start, end } = this.getDetailLogicalRange();
+            const documentHeight = Math.max(
+                document.documentElement?.scrollHeight || 0,
+                document.body?.scrollHeight || 0
+            );
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const scrollLimit = Math.max(documentHeight - viewportHeight, 1);
+            const scrollY = clamp(window.scrollY || window.pageYOffset || 0, 0, scrollLimit);
+            const progress = clamp(scrollY / scrollLimit, 0, 1);
+
+            return start + (end - start) * progress;
+        }
+
+        /**
          * setupPageScrollDepth() - 注册当前页面的滚动深度停靠点，并绑定滚动/尺寸变化监听
          * @returns {void} - 无返回值，直接准备页面滚动深度逻辑
          */
@@ -1597,79 +1955,8 @@
          * @returns {number} - 当前滚动位置对应的基础深度
          */
         computeScrollDepthFromStops() {
-            if (this.pageScrollDepthStops.length === 0) {
-                return this.targetDepth;
-            }
-
-            const scrollY = window.scrollY || window.pageYOffset || 0;
-            // 每个区块都会换算成一个滚动阈值，滚动位置落在哪两个阈值之间，
-            // 深度计就在这两层之间缓慢过渡。
-            const rawPoints = this.pageScrollDepthStops.map((stop, index) => {
-                if (index === 0) {
-                    return {
-                        selector: stop.selector,
-                        depth: stop.depth,
-                        threshold: 0
-                    };
-                }
-
-                return {
-                    selector: stop.selector,
-                    depth: stop.depth,
-                    threshold: Math.max(
-                        0,
-                        stop.element.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.42
-                    )
-                };
-            });
-            const points = this.pageId === 'detail'
-                ? rawPoints.reduce((normalizedPoints, point, index) => {
-                    if (index === 0) {
-                        normalizedPoints.push(point);
-                        return normalizedPoints;
-                    }
-
-                    const previousPoint = normalizedPoints[normalizedPoints.length - 1];
-                    const minGap = Math.max(window.innerHeight * 0.18, 170);
-                    const maxGap = Math.max(window.innerHeight * 0.56, 520);
-                    const preferredThreshold = clamp(
-                        point.threshold,
-                        previousPoint.threshold + minGap,
-                        previousPoint.threshold + maxGap
-                    );
-
-                    normalizedPoints.push({
-                        ...point,
-                        threshold: preferredThreshold
-                    });
-                    return normalizedPoints;
-                }, [])
-                : rawPoints;
-
-            let baseDepth = points[0].depth;
-
-            if (scrollY <= points[0].threshold) {
-                baseDepth = points[0].depth;
-            } else {
-                for (let index = 0; index < points.length - 1; index += 1) {
-                    const currentPoint = points[index];
-                    const nextPoint = points[index + 1];
-
-                    if (scrollY <= nextPoint.threshold) {
-                        const range = Math.max(nextPoint.threshold - currentPoint.threshold, 1);
-                        const progress = clamp((scrollY - currentPoint.threshold) / range, 0, 1);
-                        const eased = easeInOutCubic(progress);
-                        baseDepth = currentPoint.depth + (nextPoint.depth - currentPoint.depth) * eased;
-                        break;
-                    }
-                }
-
-                if (scrollY > points[points.length - 1].threshold) {
-                    baseDepth = points[points.length - 1].depth;
-                }
-            }
-
-            return baseDepth;
+            const points = this.getPageScrollThresholdPoints();
+            return this.computeContinuousDepthFromPoints(points);
         }
 
         /**
@@ -1703,21 +1990,21 @@
         }
 
         /**
-         * computeDetailScrollDepth() - 按详情页整页滚动进度线性计算当前逻辑深度
+         * computeDetailScrollDepth() - 以整页均匀下潜为主，再轻轻保留 section 停靠感
          * @returns {number} - 详情页当前应显示的目标深度
          */
         computeDetailScrollDepth() {
-            const { start, end } = this.getDetailLogicalRange();
-            const documentHeight = Math.max(
-                document.documentElement?.scrollHeight || 0,
-                document.body?.scrollHeight || 0
-            );
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-            const scrollLimit = Math.max(documentHeight - viewportHeight, 1);
-            const scrollY = clamp(window.scrollY || window.pageYOffset || 0, 0, scrollLimit);
-            const progress = clamp(scrollY / scrollLimit, 0, 1);
+            const points = this.getPageScrollThresholdPoints();
+            const linearDepth = this.computeDetailLinearDepth();
 
-            return start + (end - start) * progress;
+            if (points.length === 0) {
+                return linearDepth;
+            }
+
+            const plateauDepth = this.computePlateauDepthFromPoints(points);
+            const plateauInfluence = 0.16;
+
+            return linearDepth + (plateauDepth - linearDepth) * plateauInfluence;
         }
 
         /**
@@ -1730,10 +2017,10 @@
             }
 
             if (this.pageId === 'detail') {
-                return this.computeDetailScrollDepth();
+                return clamp(this.computeDetailScrollDepth() + this.getPageStateDepthOffset(), MIN_DEPTH, MAX_DEPTH);
             }
 
-            return this.computeScrollDepthFromStops();
+            return clamp(this.computeScrollDepthFromStops() + this.getPageStateDepthOffset(), MIN_DEPTH, MAX_DEPTH);
         }
 
         /**

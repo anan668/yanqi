@@ -107,6 +107,134 @@ body {
     overflow-x: hidden;
 }
 
+/* 舞台调试开关：收进导航右侧，让调试入口留在页面框架里，
+   不再像悬浮工具一样压在海面内容之上。 */
+.stage-debug-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 7px 12px 7px 10px;
+    flex: 0 0 auto;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    font: inherit;
+    color: rgba(225, 239, 247, 0.88);
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(244, 251, 255, 0.08) 0%, rgba(164, 201, 221, 0.04) 100%),
+        rgba(8, 28, 41, 0.42);
+    border: 1px solid rgba(197, 224, 238, 0.1);
+    box-shadow:
+        0 10px 18px rgba(4, 16, 25, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px) saturate(122%);
+    -webkit-backdrop-filter: blur(12px) saturate(122%);
+    transition:
+        opacity 220ms ease,
+        transform 220ms ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease,
+        background-color 220ms ease,
+        padding 220ms ease;
+}
+
+.stage-debug-toggle:hover,
+.stage-debug-toggle:focus-visible {
+    transform: translate3d(0, -2px, 0);
+    border-color: rgba(214, 236, 246, 0.18);
+    box-shadow:
+        0 14px 24px rgba(4, 16, 25, 0.12),
+        0 0 16px rgba(114, 180, 209, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.stage-debug-toggle:focus-visible {
+    outline: none;
+}
+
+.stage-debug-toggle:not(.is-active) {
+    padding-right: 10px;
+}
+
+.stage-debug-toggle.is-active {
+    border-color: rgba(192, 235, 248, 0.28);
+    background:
+        linear-gradient(180deg, rgba(244, 251, 255, 0.14) 0%, rgba(129, 185, 213, 0.08) 100%),
+        rgba(8, 34, 50, 0.64);
+    box-shadow:
+        0 16px 28px rgba(4, 16, 25, 0.16),
+        0 0 20px rgba(126, 200, 230, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.stage-debug-toggle-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: rgba(164, 194, 208, 0.68);
+    box-shadow: 0 0 0 4px rgba(141, 193, 218, 0.05);
+    transition: background-color 220ms ease, box-shadow 220ms ease;
+}
+
+.stage-debug-toggle.is-active .stage-debug-toggle-dot {
+    background: rgba(184, 240, 250, 0.96);
+    box-shadow:
+        0 0 0 4px rgba(141, 193, 218, 0.1),
+        0 0 14px rgba(160, 228, 244, 0.3);
+}
+
+.stage-debug-toggle-copy {
+    display: grid;
+    gap: 1px;
+    text-align: left;
+}
+
+.stage-debug-toggle-label {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.stage-debug-toggle-state {
+    font-size: 0.58rem;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(200, 223, 235, 0.64);
+}
+
+.stage-debug-toggle:not(.is-active) .stage-debug-toggle-state {
+    display: none;
+}
+
+.stage-debug-toggle.is-leaving,
+body.page-transition-active .stage-debug-toggle {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, -6px, 0);
+}
+
+@media (max-width: 768px) {
+    .stage-debug-toggle {
+        min-height: 34px;
+        padding: 6px 10px 6px 9px;
+        gap: 7px;
+    }
+
+    .stage-debug-toggle-label {
+        font-size: 0.68rem;
+    }
+
+    .stage-debug-toggle-state {
+        font-size: 0.56rem;
+    }
+}
+
 /* 标题样式 */
 /* h1, h2, h3, h4, h5, h6 的主要视觉与布局效果 */
 h1, h2, h3, h4, h5, h6 {

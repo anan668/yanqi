@@ -397,8 +397,15 @@
         radial-gradient(circle at 18% 14%, rgba(222, 239, 247, 0.14) 0%, rgba(222, 239, 247, 0) 34%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
     opacity: 0;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
     pointer-events: none;
-    transition: opacity 360ms ease;
+    transition:
+        opacity 360ms ease,
+        filter 620ms ease,
+        transform 620ms ease,
+        backdrop-filter 620ms ease,
+        -webkit-backdrop-filter 620ms ease;
 }
 
 /* 字段 hover 或展开时轻微上浮，并增强边缘高光，像这一格海流被选中。 */
@@ -451,6 +458,114 @@
 
 .planner-field.is-locked .planner-field-note {
     color: rgba(198, 216, 227, 0.5);
+}
+
+.planner-field-trigger {
+    transition: filter 620ms ease, opacity 420ms ease, transform 620ms ease;
+}
+
+.planner-field-label,
+.planner-field-value,
+.planner-field-note,
+.planner-field[data-planner-step] .planner-field-label::before {
+    transition:
+        color 520ms ease,
+        opacity 520ms ease,
+        background-color 520ms ease,
+        border-color 520ms ease,
+        transform 620ms ease,
+        filter 620ms ease;
+}
+
+/* 日期字段在未解锁时单独加重一点海雾感，让“下一层还没展开”更明显。 */
+.planner-field-date.is-locked {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(120, 160, 184, 0.07) 100%),
+        rgba(9, 28, 43, 0.42);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 16px 28px rgba(4, 15, 24, 0.1);
+}
+
+.planner-field-date.is-locked::after {
+    opacity: 0.98;
+    filter: blur(10px);
+    backdrop-filter: blur(6px) saturate(88%);
+    -webkit-backdrop-filter: blur(6px) saturate(88%);
+    animation-duration: 6.8s;
+}
+
+.planner-field-date.is-locked .planner-field-trigger {
+    filter: saturate(0.68) brightness(0.9);
+}
+
+.planner-field-date.is-locked .planner-field-value {
+    color: rgba(221, 234, 242, 0.68);
+}
+
+.planner-field-date.is-locked .planner-field-note {
+    color: rgba(198, 216, 227, 0.44);
+}
+
+/* 同行人数在未解锁时沿用同一层海雾逻辑，形成连续下潜的层级关系。 */
+.planner-field-select[data-planner-field="people"].is-locked {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(120, 160, 184, 0.075) 100%),
+        rgba(9, 28, 43, 0.44);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 16px 28px rgba(4, 15, 24, 0.1);
+}
+
+.planner-field-select[data-planner-field="people"].is-locked::after {
+    opacity: 0.98;
+    filter: blur(10px);
+    backdrop-filter: blur(6px) saturate(84%);
+    -webkit-backdrop-filter: blur(6px) saturate(84%);
+    animation-duration: 6.6s;
+}
+
+.planner-field-select[data-planner-field="people"].is-locked .planner-field-trigger {
+    filter: saturate(0.66) brightness(0.88);
+}
+
+.planner-field-select[data-planner-field="people"].is-locked .planner-field-value {
+    color: rgba(221, 234, 242, 0.66);
+}
+
+.planner-field-select[data-planner-field="people"].is-locked .planner-field-note {
+    color: rgba(198, 216, 227, 0.42);
+}
+
+/* 解封时保留一层短暂残雾，再慢慢把视野让出来，避免突然从遮罩切到清晰。 */
+.planner-field.is-unlocking {
+    overflow: hidden;
+}
+
+.planner-field.is-unlocking::before {
+    opacity: 0.86;
+    transform: translateX(0);
+    transition-duration: 620ms;
+}
+
+.planner-field.is-unlocking::after {
+    opacity: 0.92;
+    filter: blur(9px);
+    transform: translate3d(0, 0, 0) scale(1.015);
+    backdrop-filter: blur(5px) saturate(90%);
+    -webkit-backdrop-filter: blur(5px) saturate(90%);
+    animation: planner-field-mist-release 920ms cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
+}
+
+.planner-field.is-unlocking .planner-field-trigger {
+    animation: planner-field-copy-release 880ms cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
+}
+
+.planner-field.is-unlocking .planner-field-label,
+.planner-field.is-unlocking .planner-field-value,
+.planner-field.is-unlocking .planner-field-note,
+.planner-field.is-unlocking[data-planner-step] .planner-field-label::before {
+    animation: planner-field-copy-fade-in 820ms cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
 }
 
 /* 字段标题标签：告诉用户这一格是在整理海域、时间还是同行。 */
@@ -1068,68 +1183,110 @@
     }
 }
 
+@keyframes planner-field-mist-release {
+    0% {
+        opacity: 0.94;
+        filter: blur(10px);
+        transform: translate3d(0, 0, 0) scale(1.015);
+    }
+
+    55% {
+        opacity: 0.52;
+        filter: blur(6px);
+        transform: translate3d(0, -3px, 0) scale(1.008);
+    }
+
+    100% {
+        opacity: 0;
+        filter: blur(0);
+        transform: translate3d(0, -8px, 0) scale(1);
+    }
+}
+
+@keyframes planner-field-copy-release {
+    0% {
+        filter: saturate(0.72) brightness(0.9);
+        transform: translate3d(0, 2px, 0);
+    }
+
+    100% {
+        filter: saturate(1) brightness(1);
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes planner-field-copy-fade-in {
+    0% {
+        opacity: 0.54;
+        filter: blur(5px);
+        transform: translate3d(0, 4px, 0);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate3d(0, 0, 0);
+    }
+}
+
 @keyframes planner-summary-item-glow {
     0% {
-        box-shadow:
-            0 12px 22px rgba(4, 17, 28, 0.14),
-            inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     50% {
         box-shadow:
-            0 18px 34px rgba(12, 34, 49, 0.24),
-            0 0 26px rgba(127, 197, 225, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            0 12px 24px rgba(8, 26, 39, 0.18),
+            0 0 22px rgba(127, 197, 225, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
     100% {
-        box-shadow:
-            0 12px 22px rgba(4, 17, 28, 0.14),
-            inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 }
 
 @keyframes planner-summary-shell-glow {
     0% {
         box-shadow:
-            0 22px 38px rgba(4, 16, 25, 0.18),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            0 22px 40px rgba(4, 16, 25, 0.18),
+            0 0 26px rgba(128, 196, 223, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.07);
     }
 
     50% {
         box-shadow:
-            0 30px 52px rgba(4, 16, 25, 0.24),
-            0 0 40px rgba(128, 196, 223, 0.14),
-            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            0 28px 46px rgba(4, 16, 25, 0.22),
+            0 0 36px rgba(128, 196, 223, 0.14),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     100% {
         box-shadow:
-            0 26px 46px rgba(4, 16, 25, 0.22),
-            0 0 34px rgba(128, 196, 223, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            0 22px 40px rgba(4, 16, 25, 0.18),
+            0 0 26px rgba(128, 196, 223, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.07);
     }
 }
 
-/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
+/* 回执层：保留 summary 锚点，但把它压成附着在控制台下方的一层轻回执。 */
 .planner-summary {
     grid-area: summary;
+    position: relative;
     display: grid;
-    gap: 14px;
-    margin-top: 0;
-    align-self: stretch;
-    padding: 24px 24px 22px;
-    border-radius: 32px;
+    gap: 12px;
+    margin: -12px clamp(18px, 3vw, 32px) 0;
+    padding: 16px 20px 18px;
+    border-radius: 24px 24px 30px 30px;
     background:
-        radial-gradient(circle at 16% 0%, rgba(196, 226, 244, 0.12) 0%, rgba(196, 226, 244, 0) 34%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(160, 194, 214, 0.07) 100%),
-        rgba(8, 27, 41, 0.5);
-    border: 1px solid rgba(205, 229, 242, 0.12);
+        linear-gradient(180deg, rgba(193, 225, 241, 0.06) 0%, rgba(123, 170, 194, 0.04) 26%, rgba(7, 22, 34, 0.64) 100%),
+        rgba(6, 20, 31, 0.3);
+    border: 1px solid rgba(202, 227, 239, 0.08);
     box-shadow:
-        0 22px 38px rgba(4, 16, 25, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(18px) saturate(136%);
-    -webkit-backdrop-filter: blur(18px) saturate(136%);
+        0 18px 32px rgba(4, 15, 24, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(18px) saturate(124%);
+    -webkit-backdrop-filter: blur(18px) saturate(124%);
     opacity: 0;
     transform: translate3d(0, 24px, 0);
     filter: blur(18px);
@@ -1138,178 +1295,285 @@
         border-color 420ms ease,
         box-shadow 420ms ease,
         background-color 420ms ease,
-        transform 420ms ease;
+        transform 420ms ease,
+        opacity 320ms ease;
+}
+
+.planner-summary::before {
+    content: "";
+    position: absolute;
+    left: 30px;
+    right: 30px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(210, 233, 244, 0) 0%, rgba(210, 233, 244, 0.28) 18%, rgba(210, 233, 244, 0.08) 82%, rgba(210, 233, 244, 0) 100%);
+    opacity: 0.78;
 }
 
 .planner-summary-head {
     display: grid;
-    gap: 10px;
-    padding: 2px 4px 12px;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px 18px;
+    align-items: start;
+}
+
+.planner-summary-heading {
+    display: grid;
+    gap: 4px;
 }
 
 .planner-summary-kicker {
-    margin: 0 0 10px;
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
+    margin: 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: rgba(194, 221, 236, 0.48);
+    color: rgba(194, 221, 236, 0.46);
 }
 
 .planner-summary-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: clamp(1.34rem, 2vw, 1.82rem);
-    line-height: 1.34;
-    color: #f2fbff;
+    font-size: 1rem;
+    line-height: 1.42;
+    color: rgba(235, 246, 252, 0.8);
 }
 
 .planner-summary-intro {
     margin: 0;
-    max-width: 42ch;
-    line-height: 1.78;
-    color: rgba(208, 224, 235, 0.7);
-}
-
-.planner-summary-status-note {
-    margin: 2px 0 0;
-    padding: 12px 14px;
-    border-radius: 18px;
-    font-size: 0.84rem;
-    line-height: 1.7;
-    color: rgba(214, 230, 240, 0.7);
-    background: rgba(255, 255, 255, 0.045);
-    border: 1px solid rgba(205, 229, 242, 0.08);
+    max-width: 48ch;
+    max-height: 4.5em;
+    overflow: hidden;
+    font-size: 0.78rem;
+    line-height: 1.72;
+    color: rgba(204, 221, 232, 0.56);
+    opacity: 1;
+    transform: translateY(0);
     transition:
-        color 320ms ease,
-        background-color 320ms ease,
-        border-color 320ms ease,
+        max-height 320ms ease,
+        opacity 320ms ease,
         transform 320ms ease;
 }
 
-.planner-summary.is-confirmed {
-    border-color: rgba(210, 235, 247, 0.2);
+.planner-summary-status-note {
+    position: relative;
+    margin: 0;
+    min-height: 1.7em;
+    padding-left: 18px;
+    font-size: 0.88rem;
+    line-height: 1.74;
+    color: rgba(217, 231, 239, 0.74);
+    transition:
+        color 320ms ease,
+        opacity 320ms ease,
+        transform 320ms ease;
+}
+
+.planner-summary-status-note::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(139, 200, 225, 0.5);
+    box-shadow: 0 0 18px rgba(120, 184, 211, 0.18);
+    transition: background-color 320ms ease, box-shadow 320ms ease;
+}
+
+.planner-summary-receipt {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 14px;
+    max-height: 280px;
+    overflow: hidden;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        max-height 360ms ease,
+        opacity 360ms ease,
+        transform 360ms ease;
+}
+
+.planner-summary.is-empty {
+    border-color: rgba(202, 227, 239, 0.05);
     box-shadow:
-        0 26px 46px rgba(4, 16, 25, 0.22),
-        0 0 34px rgba(128, 196, 223, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        0 14px 26px rgba(4, 15, 24, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.planner-summary.is-empty .planner-summary-intro {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+}
+
+.planner-summary.is-empty .planner-summary-receipt {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.planner-summary.has-progress {
+    border-color: rgba(205, 229, 242, 0.1);
+    box-shadow:
+        0 18px 34px rgba(4, 16, 25, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.planner-summary.is-confirmed {
+    border-color: rgba(210, 235, 247, 0.14);
+    box-shadow:
+        0 22px 40px rgba(4, 16, 25, 0.18),
+        0 0 26px rgba(128, 196, 223, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .planner-summary.is-confirmed .planner-summary-status-note {
     color: rgba(232, 244, 250, 0.84);
-    background: rgba(134, 190, 215, 0.08);
-    border-color: rgba(183, 223, 241, 0.16);
+}
+
+.planner-summary.is-confirmed .planner-summary-status-note::before {
+    background: rgba(182, 224, 241, 0.72);
+    box-shadow: 0 0 20px rgba(146, 209, 233, 0.26);
 }
 
 .planner-summary.is-updated-confirmed {
     animation: planner-summary-shell-glow 1100ms ease;
 }
 
-/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
+/* 回执里的三项明细不再做大卡，而是收成轻量条目。 */
 .planner-item {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
     align-items: start;
-    gap: 16px;
-    padding: 18px 18px 17px;
-    border-radius: 24px;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    gap: 12px;
+    min-height: 72px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(138, 178, 201, 0.04) 100%),
-        rgba(7, 22, 34, 0.52);
-    border: 1px solid rgba(205, 229, 242, 0.08);
-    transition: transform 0.34s ease, box-shadow 0.34s ease, border-color 0.34s ease;
-    box-shadow:
-        0 12px 22px rgba(4, 17, 28, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(138, 178, 201, 0.02) 100%),
+        rgba(7, 22, 34, 0.36);
+    border: 1px solid rgba(205, 229, 242, 0.06);
+    transition:
+        opacity 320ms ease,
+        transform 320ms ease,
+        box-shadow 320ms ease,
+        border-color 320ms ease,
+        background-color 320ms ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .planner-item.is-confirmed {
-    border-color: rgba(196, 228, 242, 0.14);
+    border-color: rgba(196, 228, 242, 0.12);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(148, 190, 211, 0.06) 100%),
-        rgba(8, 25, 38, 0.6);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(148, 190, 211, 0.04) 100%),
+        rgba(8, 25, 38, 0.46);
+}
+
+.planner-item.is-empty {
+    opacity: 0.72;
 }
 
 .planner-item.is-confirmed .planner-item-index {
-    color: rgba(241, 249, 253, 0.9);
+    color: rgba(241, 249, 253, 0.88);
     background: rgba(120, 184, 211, 0.12);
     border-color: rgba(194, 227, 241, 0.16);
 }
 
 .planner-item.is-confirmed .planner-item-state {
-    color: rgba(236, 247, 251, 0.9);
+    color: rgba(236, 247, 251, 0.88);
     background: rgba(120, 184, 211, 0.12);
-    border-color: rgba(194, 227, 241, 0.16);
+    border-color: rgba(194, 227, 241, 0.14);
 }
 
 .planner-item.is-updated {
     animation: planner-summary-item-glow 920ms ease;
 }
 
-/* .planner-item:hover 鼠标移入时的样式 */
 .planner-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.24);
-    border-color: rgba(202, 231, 244, 0.12);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+    border-color: rgba(202, 231, 244, 0.1);
 }
 
 .planner-item-index {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 18px;
-    font-size: 0.78rem;
-    letter-spacing: 0.18em;
-    color: rgba(219, 237, 247, 0.78);
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(209, 231, 243, 0.08);
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: rgba(219, 237, 247, 0.68);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(209, 231, 243, 0.07);
 }
 
 .planner-item-copy {
     display: grid;
-    gap: 6px;
+    gap: 3px;
+    min-width: 0;
 }
 
 .planner-item-state {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 76px;
-    padding: 8px 12px;
+    min-width: auto;
+    margin-top: 2px;
+    padding: 6px 10px;
     border-radius: 999px;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    color: rgba(231, 243, 249, 0.8);
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(204, 227, 239, 0.08);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+    color: rgba(224, 238, 245, 0.72);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(204, 227, 239, 0.07);
 }
 
 /* .planner-label 的主要视觉与布局效果*/
 .planner-label {
     display: block;
-    font-size: 0.75rem;
-    letter-spacing: 0.18em;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgba(188, 213, 227, 0.5);
+    color: rgba(188, 213, 227, 0.46);
 }
 
-/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
 .planner-item strong {
     display: block;
-    font-size: 1.02rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    line-height: 1.48;
     color: #eef6ff;
 }
 
-/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
 .planner-item small {
     display: block;
-    font-size: 0.82rem;
-    line-height: 1.72;
-    color: rgba(198, 217, 229, 0.58);
+    max-height: 2.8em;
+    overflow: hidden;
+    font-size: 0.74rem;
+    line-height: 1.56;
+    color: rgba(198, 217, 229, 0.54);
+    opacity: 0.86;
+    transition:
+        max-height 320ms ease,
+        opacity 320ms ease,
+        transform 320ms ease;
+}
+
+.planner-item.is-empty strong {
+    color: rgba(222, 235, 243, 0.74);
+}
+
+.planner-item.is-empty small {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
 }
 
 /* .trip-focus-section, .trip-prep-section 的主要视觉与布局效果*/
@@ -1784,10 +2048,14 @@
         gap: 22px;
     }
 
-    /* 摘要卡在中屏下改单列，避免多列挤压文字。 */
+    /* 中屏下继续把回执托盘收窄，避免它重新长成第三块主模块。 */
     .planner-summary {
+        margin: -6px 12px 0;
+    }
+
+    .planner-summary-head,
+    .planner-summary-receipt {
         grid-template-columns: 1fr;
-        margin-top: 0;
     }
 
     /* Planner 控制台在中屏下仍保留两列，但把海域放整行，防止信息太满。 */
@@ -1847,6 +2115,26 @@
         padding: 18px;
     }
 
+    .planner-summary {
+        margin: 0;
+        padding: 14px 16px 16px;
+        border-radius: 22px;
+        gap: 10px;
+    }
+
+    .planner-summary-head {
+        gap: 8px;
+    }
+
+    .planner-summary-status-note {
+        font-size: 0.84rem;
+    }
+
+    .planner-summary-receipt {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
     /* 手机端适当缩小字段最小高度，保留层级但不让整体过长。 */
     .planner-field,
     .planner-submit-btn {
@@ -1899,15 +2187,31 @@
         border-radius: 24px;
     }
 
-/* 展示行程摘要卡片的布局、玻璃材质和悬停反馈 */
     .planner-item {
-        grid-template-columns: 44px minmax(0, 1fr);
-        padding: 16px 15px;
+        grid-template-columns: 36px minmax(0, 1fr);
+        min-height: auto;
+        padding: 12px 0;
+        border-width: 0 0 1px;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+    }
+
+    .planner-item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .planner-item-index {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
     }
 
     .planner-item-state {
         grid-column: 2;
         justify-self: start;
+        margin-top: 4px;
     }
 }
 .planner-option-custom {

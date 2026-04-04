@@ -15,6 +15,15 @@
 /* 文件导读：登录页样式很多，但主线很简单，就是“先营造门厅，再承接认证动作”。 */
 /* 登录页整体背景与页面框架 */
 .login-page {
+    --login-stage-safe-gap-y: clamp(10px, 1.8vh, 18px);
+    --login-stage-min-height: min(
+        572px,
+        calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(14px, 2vw, 28px) * 2))
+    );
+    --login-stage-min-height-tablet: min(
+        548px,
+        calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(12px, 1.8vw, 22px) * 2))
+    );
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -28,9 +37,13 @@
 /* 页面主舞台：page-stage 把登录舞台整体向右收一些，给左侧品牌门厅和海面留白预留空间。*/
 .login-page .page-stage {
     min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    padding-top: max(clamp(12px, 2vh, 22px), var(--login-stage-safe-gap-y));
+    padding-bottom: max(10px, var(--login-stage-safe-gap-y));
     padding-left: clamp(40px, 12vw, 240px);
     padding-right: clamp(20px, 6vw, 96px);
 }
@@ -46,9 +59,18 @@
     /* `min(920px, 62vw)`：理想宽度上限是 920px。
        如果屏幕没有这么宽，就退到视口宽度的 62%，避免舞台显得又满又硬。*/
     /* 登录舞台的目标宽度最多到 920px，同时只占视口约 62%，避免整页像普通居中登录框。*/
-    padding: clamp(12px, 2vw, 26px); /* 小屏收紧，大屏舒展，避免外层安全留白忽大忽小 */
+    padding: clamp(14px, 2vw, 28px); /* 小屏收紧，大屏舒展，避免外层安全留白忽大忽小 */
     margin: 0;
     animation: login-shell-rise 0.78s cubic-bezier(0.2, 0.9, 0.24, 1) both;
+}
+
+/* 登录页的舞台调试入口：
+   没有导航时，把入口收在右上角，避开深度计与主门厅。 */
+.login-page .stage-debug-toggle {
+    position: fixed;
+    top: max(18px, var(--depth-gauge-top, 20px));
+    right: calc(var(--depth-gauge-side, 3px) + 74px + 18px);
+    z-index: 1110;
 }
 
 /* login-stage-shell：
@@ -57,13 +79,31 @@
 .login-stage-shell {
     --login-stage-width: min(920px, 62vw);
     --login-stage-height: auto;
+    --login-stage-shift-x: 0px;
+    --login-stage-shift-y: 0px;
     position: relative;
     width: var(--login-stage-width);
     max-width: min(1240px, calc(100vw - clamp(40px, 8vw, 160px)));
     min-width: 760px;
     height: var(--login-stage-height);
-    min-height: 590px;
+    min-height: var(--login-stage-min-height);
     margin: 0 auto;
+    transform: translate3d(var(--login-stage-shift-x), var(--login-stage-shift-y), 0);
+}
+
+/* 登录页的尺寸 HUD 与拖拽句柄默认只留给调试态，
+   正常进入门厅时不暴露“可编辑舞台”的语言。 */
+.login-stage-hud,
+.login-stage-resize-layer {
+    display: none;
+}
+
+.yanqi-stage-debug .login-stage-hud {
+    display: grid;
+}
+
+.yanqi-stage-debug .login-stage-resize-layer {
+    display: block;
 }
 
 /* login-stage-hud：
@@ -74,7 +114,7 @@
     left: calc(var(--depth-gauge-side, 3px) + 74px + 18px);
     bottom: max(20px, var(--depth-gauge-bottom, 20px));
     z-index: 1100;
-    display: grid;
+    display: none;
     width: min(220px, calc(100vw - 132px));
     gap: 8px;
     padding: 12px 14px;
@@ -244,6 +284,7 @@ body.page-transition-active .login-stage-hud {
     position: absolute;
     inset: -10px;
     z-index: 3;
+    overflow: visible;
     pointer-events: none;
 }
 
@@ -256,6 +297,8 @@ body.page-transition-active .login-stage-hud {
     margin: 0;
     background: transparent;
     pointer-events: auto;
+    z-index: 1;
+    touch-action: none;
     opacity: 0;
     transition: opacity 220ms ease, transform 220ms ease;
 }
@@ -302,18 +345,18 @@ body.page-transition-active .login-stage-hud {
 
 .login-stage-resize-handle.is-north,
 .login-stage-resize-handle.is-south {
-    left: 40px;
-    right: 40px;
-    height: 18px;
+    left: 32px;
+    right: 32px;
+    height: 24px;
 }
 
 .login-stage-resize-handle.is-north {
-    top: -10px;
+    top: -14px;
     cursor: ns-resize;
 }
 
 .login-stage-resize-handle.is-south {
-    bottom: -10px;
+    bottom: -14px;
     cursor: ns-resize;
 }
 
@@ -327,31 +370,31 @@ body.page-transition-active .login-stage-hud {
 .login-stage-resize-handle.is-south-east,
 .login-stage-resize-handle.is-south-west,
 .login-stage-resize-handle.is-north-west {
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 30px;
 }
 
 .login-stage-resize-handle.is-north-east {
-    top: -10px;
-    right: -10px;
+    top: -14px;
+    right: -14px;
     cursor: nesw-resize;
 }
 
 .login-stage-resize-handle.is-south-east {
-    right: -10px;
-    bottom: -10px;
+    right: -14px;
+    bottom: -14px;
     cursor: nwse-resize;
 }
 
 .login-stage-resize-handle.is-south-west {
-    left: -10px;
-    bottom: -10px;
+    left: -14px;
+    bottom: -14px;
     cursor: nesw-resize;
 }
 
 .login-stage-resize-handle.is-north-west {
-    left: -10px;
-    top: -10px;
+    left: -14px;
+    top: -14px;
     cursor: nwse-resize;
 }
 
@@ -441,7 +484,7 @@ body.page-transition-active .login-stage-hud {
     display: grid;
     grid-template-columns: minmax(205px, 31%) minmax(0, 69%);
     /* 左侧至少保留 205px 给品牌门厅，右侧把更多空间留给表单，避免变成平均分栏。*/
-    min-height: 590px;
+    min-height: var(--login-stage-min-height);
     height: 100%;
 }
 
@@ -1218,6 +1261,49 @@ body.page-transition-active .login-stage-hud {
     margin-top: 0;
 }
 
+@media (max-height: 860px) and (min-width: 769px) {
+    .login-page {
+        --login-stage-safe-gap-y: clamp(12px, 2.1vh, 20px);
+        --login-stage-min-height: min(
+            552px,
+            calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(12px, 1.8vw, 22px) * 2))
+        );
+        --login-stage-min-height-tablet: min(
+            532px,
+            calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(12px, 1.6vw, 20px) * 2))
+        );
+    }
+
+    .login-container {
+        padding: clamp(12px, 1.6vw, 22px);
+    }
+
+    .login-side {
+        padding: clamp(18px, 2vw, 28px);
+    }
+
+    .form-side {
+        padding: clamp(18px, 2.4vw, 30px) clamp(18px, 2.6vw, 30px) 4px;
+    }
+
+    .login-page[data-auth-mode="login"] .form-side {
+        padding-bottom: clamp(24px, 3.6vw, 34px);
+    }
+
+    .form-brand {
+        margin-bottom: 14px;
+    }
+
+    .login-page[data-auth-mode="login"] .footer-links {
+        padding: 16px 0 8px;
+        margin-bottom: 12px;
+    }
+
+    .login-page[data-auth-mode="login"] .social-text {
+        margin-bottom: 10px;
+    }
+}
+
 /* .social-text：第三方入口的轻提示文案。*/
 .social-text {
     color: rgba(226, 236, 244, 0.64);
@@ -1468,7 +1554,12 @@ body.page-transition-active .login-stage-hud {
 
 /* 平板断点：开始收紧登录舞台的宽度和左右结构。*/
 @media (max-width: 980px) {
-/* page-stage 在平板宽度下继续居中，并缩小左右留白。*/
+    .login-page .stage-debug-toggle {
+        top: 16px;
+        right: 16px;
+    }
+
+  /* page-stage 在平板宽度下继续居中，并缩小左右留白。*/
     .login-page .page-stage {
         justify-content: center;
         padding-left: clamp(18px, 4vw, 36px);
@@ -1485,7 +1576,7 @@ body.page-transition-active .login-stage-hud {
         width: 100%;
         min-width: 0;
         max-width: none;
-        min-height: 560px;
+        min-height: var(--login-stage-min-height-tablet);
     }
 
     .login-stage-resize-layer {
@@ -1499,7 +1590,7 @@ body.page-transition-active .login-stage-hud {
 /* 左右双栏在平板下仍保留，但比例继续偏向表单区。*/
     .card-layout {
         grid-template-columns: 30% 70%;
-        min-height: 560px;
+        min-height: var(--login-stage-min-height-tablet);
     }
 
 /* 品牌标题在平板下适当缩小，避免压住表单。*/
@@ -1510,8 +1601,22 @@ body.page-transition-active .login-stage-hud {
 
 /* 中小屏断点：把左右结构改成更适合竖向阅读的布局。*/
 @media (max-width: 768px) {
-/* 页面主舞台：
-   page-stage 把登录舞台整体向右收一点，给左侧品牌门厅和海面留白预留空间。*/
+    .login-page .stage-debug-toggle {
+        min-height: 34px;
+        padding: 6px 10px 6px 9px;
+        gap: 7px;
+    }
+
+    .login-page .stage-debug-toggle-label {
+        font-size: 0.68rem;
+    }
+
+    .login-page .stage-debug-toggle-state {
+        font-size: 0.56rem;
+    }
+
+  /* 页面主舞台：
+     page-stage 把登录舞台整体向右收一点，给左侧品牌门厅和海面留白预留空间。*/
     .login-page .page-stage {
         justify-content: center;
         padding-left: 12px;

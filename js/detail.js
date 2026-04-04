@@ -14,6 +14,108 @@
 // 共享价格配置：详情页与首页共用同一套人民币展示规则。
 const sharedPriceTools = window.YanqiPriceConfig || null;
 const PRICE_DISPLAY_VERSION = sharedPriceTools?.PRICE_DISPLAY_VERSION || '';
+const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
+const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
+
+/**
+ * resolveStageDebugMode() - 读取当前页面是否需要暴露舞台调试能力
+ * @returns {boolean} - 当前是否启用舞台调试态
+ */
+function resolveStageDebugMode() {
+    let stageDebugEnabled = false;
+
+    try {
+        const queryValue = new URLSearchParams(window.location.search).get(STAGE_DEBUG_QUERY_KEY);
+        if (queryValue != null) {
+            const normalized = String(queryValue).trim().toLowerCase();
+            stageDebugEnabled = ['1', 'true', 'yes', 'on'].includes(normalized);
+
+            if (stageDebugEnabled) {
+                localStorage.setItem(STAGE_DEBUG_STORAGE_KEY, '1');
+            } else if (['0', 'false', 'no', 'off'].includes(normalized)) {
+                localStorage.removeItem(STAGE_DEBUG_STORAGE_KEY);
+            }
+        } else {
+            stageDebugEnabled = localStorage.getItem(STAGE_DEBUG_STORAGE_KEY) === '1';
+        }
+    } catch (error) {
+        stageDebugEnabled = false;
+    }
+
+    document.documentElement?.classList.toggle('yanqi-stage-debug', stageDebugEnabled);
+    document.body?.classList.toggle('yanqi-stage-debug', stageDebugEnabled);
+    return stageDebugEnabled;
+}
+
+const isStageDebugModeEnabled = resolveStageDebugMode();
+
+/**
+ * persistStageDebugMode(enabled) - 把舞台调试开关写入本地存储，并同步根节点类名
+ * @param {boolean} enabled - 是否启用舞台调试
+ * @returns {void}
+ */
+function persistStageDebugMode(enabled) {
+    const nextEnabled = Boolean(enabled);
+
+    try {
+        if (nextEnabled) {
+            localStorage.setItem(STAGE_DEBUG_STORAGE_KEY, '1');
+        } else {
+            localStorage.removeItem(STAGE_DEBUG_STORAGE_KEY);
+        }
+    } catch (error) {
+        // 本地存储不可用时静默降级，保持按钮仍可点击。
+    }
+
+    document.documentElement?.classList.toggle('yanqi-stage-debug', nextEnabled);
+    document.body?.classList.toggle('yanqi-stage-debug', nextEnabled);
+}
+
+/**
+ * stripStageDebugQueryFromUrl() - 移除 stageDebug query，避免按钮切换后被旧 query 覆盖
+ * @returns {void}
+ */
+function stripStageDebugQueryFromUrl() {
+    try {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.delete(STAGE_DEBUG_QUERY_KEY);
+        window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+    } catch (error) {
+        // URL 处理失败时保留当前地址，不影响主流程。
+    }
+}
+
+/**
+ * setupStageDebugToggle() - 给页面底部的舞台调试按钮绑定状态和切换逻辑
+ * @returns {void}
+ */
+function setupStageDebugToggle() {
+    const toggle = document.querySelector('[data-stage-debug-toggle]');
+    if (!toggle) {
+        return;
+    }
+
+    const state = toggle.querySelector('[data-stage-debug-state]');
+    const syncState = (enabled) => {
+        toggle.classList.toggle('is-active', enabled);
+        toggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        toggle.setAttribute('aria-label', enabled ? '关闭舞台调试' : '打开舞台调试');
+        toggle.setAttribute('title', enabled ? '关闭舞台调试' : '打开舞台调试');
+        if (state) {
+            state.textContent = enabled ? '调试中' : '';
+        }
+    };
+
+    syncState(isStageDebugModeEnabled);
+
+    toggle.addEventListener('click', () => {
+        const nextEnabled = !toggle.classList.contains('is-active');
+        persistStageDebugMode(nextEnabled);
+        syncState(nextEnabled);
+        stripStageDebugQueryFromUrl();
+        window.location.reload();
+    });
+}
 
 // 价格工具：负责从原始价格文本里提取数值，并统一转换为当前展示货币格式。
 /**
@@ -1602,6 +1704,7 @@ class DetailPage {
         this.spotReviewsHeading = document.getElementById('spotReviews');
         this.spotMapHeading = document.getElementById('spotMapSection');
         this.reviewsStage = document.querySelector('.reviews-stage');
+        this.bookingSticky = document.querySelector('.booking-sticky');
         this.bookingModal = document.getElementById('bookingModal');
         this.bookingModalBody = document.getElementById('bookingModalBody');
         this.bookingModalCloseTimer = 0;
@@ -1658,6 +1761,9 @@ class DetailPage {
         this.bookingCopySwapTimers = [];
         this.bookingCopySwapVersion = 0;
         this.activeBookingGuideKey = this.bookingCopy?.dataset.readingGuideKey || 'overview';
+        this.activeReviewLinkedPackageId = null;
+        this.bookingStickyScrollTargetTop = 0;
+        this.bookingStickyScrollRaf = 0;
         this.hasRenderedReviews = false;
         this.announceReviewsSummary = createBufferedLiveAnnouncer(this.reviewsLiveSummary);
         this.announceRelatedSummary = createBufferedLiveAnnouncer(this.relatedLiveSummary);
@@ -1830,13 +1936,120 @@ class DetailPage {
         ];
     }
 
+    /**
+     * getPackageFlowPackages() - 按右侧侧栏更适合阅读推进的顺序组织套餐。
+     * 不再把同组套餐完全堆在一起，而是按“较浅一层 / 更深一层”交错展开，
+     * 让阅读、评论与侧栏联动时更像继续下潜，而不是在两组卡片之间来回折返。
+     * @returns {Array<Object>} - 按展示流向排好的套餐数组
+     */
+    getPackageFlowPackages() {
+        if (!Array.isArray(this.packageData) || !this.packageData.length) {
+            return [];
+        }
+
+        const leisurePackages = this.packageData.filter((pkg) => pkg.group === '休闲套餐');
+        const advancedPackages = this.packageData.filter((pkg) => pkg.group === '进阶套餐');
+        const maxLength = Math.max(leisurePackages.length, advancedPackages.length);
+        const flowPackages = [];
+
+        for (let index = 0; index < maxLength; index += 1) {
+            if (leisurePackages[index]) {
+                flowPackages.push(leisurePackages[index]);
+            }
+
+            if (advancedPackages[index]) {
+                flowPackages.push(advancedPackages[index]);
+            }
+        }
+
+        const usedPackageIds = new Set(flowPackages.map((pkg) => pkg.id));
+        return flowPackages.concat(
+            this.packageData.filter((pkg) => !usedPackageIds.has(pkg.id))
+        );
+    }
+
+    /**
+     * getReviewPackageIntent() - 把评论里的经验等级整理成更适合侧栏联动的意图类型。
+     * 纯 AOW / 进阶评论才强制拉向进阶套餐；像 “OW / AOW” 这种过渡型表达，
+     * 会被视作中性层，避免一开始就把侧栏直接拽进更深套餐，后面又折返。
+     * @param {string} levelText - 评论上的经验等级文案
+     * @returns {'leisure'|'advanced'|'neutral'} - 当前评论更适合靠近的套餐意图
+     */
+    getReviewPackageIntent(levelText) {
+        const normalizedLevel = String(levelText || '').trim().toLowerCase();
+        if (!normalizedLevel) {
+            return 'neutral';
+        }
+
+        const hasOwSignal = /\bow\b|入门|新手/.test(normalizedLevel);
+        const hasAdvancedSignal = /\baow\b|进阶/.test(normalizedLevel);
+
+        if (hasAdvancedSignal && !hasOwSignal) {
+            return 'advanced';
+        }
+
+        if (hasOwSignal && !hasAdvancedSignal) {
+            return 'leisure';
+        }
+
+        return 'neutral';
+    }
+
     // 评论数据构建：为当前潜点生成评论卡、详情弹层和图片查看所需的完整数据。
+    /**
+     * attachReviewPackageLinks() - 按评论的潜水等级把评论映射到当前详情页的对应套餐。
+     * OW / 入门评论优先对齐休闲套餐，AOW / 进阶评论优先对齐进阶套餐；
+     * 这样左侧读到某一段体验时，右侧能顺着同一条节奏滑到更接近的套餐卡。
+     * @param {Array<Object>} reviews - 原始评论数组
+     * @returns {Array<Object>} - 补齐 linkedPackageId 等字段后的评论数组
+     */
+    attachReviewPackageLinks(reviews) {
+        const safeReviews = Array.isArray(reviews) ? reviews : [];
+        const flowPackages = this.getPackageFlowPackages();
+
+        if (!safeReviews.length || !flowPackages.length) {
+            return safeReviews;
+        }
+
+        let flowCursor = 0;
+
+        return safeReviews.map((review) => {
+            const intent = this.getReviewPackageIntent(review?.level);
+            const remainingPackages = flowPackages.slice(Math.min(flowCursor, flowPackages.length - 1));
+
+            let matchedOffset = 0;
+            if (intent === 'advanced') {
+                matchedOffset = remainingPackages.findIndex((pkg) => pkg.group === '进阶套餐');
+            } else if (intent === 'leisure') {
+                matchedOffset = remainingPackages.findIndex((pkg) => pkg.group === '休闲套餐');
+            }
+
+            const safeOffset = matchedOffset >= 0 ? matchedOffset : 0;
+            const linkedPackage = remainingPackages[safeOffset] || flowPackages[flowPackages.length - 1] || null;
+
+            if (linkedPackage) {
+                const linkedIndex = flowPackages.findIndex((pkg) => pkg.id === linkedPackage.id);
+                flowCursor = linkedIndex >= 0
+                    ? Math.min(linkedIndex + 1, flowPackages.length - 1)
+                    : flowCursor;
+            }
+
+            return {
+                ...review,
+                linkedPackageId: linkedPackage?.id || '',
+                linkedPackageName: linkedPackage?.name || '',
+                linkedPackageGroup: linkedPackage?.group || ''
+            };
+        });
+    }
+
     /**
      * buildReviewData() - 为当前潜点构建评论区、详情层和图片查看使用的数据
      * @returns {Array<Object>} - 评论数据数组
      */
     buildReviewData() {
         const { name } = this.spotData;
+        const finalizeReviews = (reviews) => this.applyReviewRatingVariation(this.attachReviewPackageLinks(reviews));
         const imagePrefix = REVIEW_IMAGE_PREFIX[this.spotId] || 'spot';
         const createReviewPhoto = (reviewNumber, photoKey, caption, position) => ({
             src: `assets/images/${imagePrefix}-review-${reviewNumber}-${photoKey}.jpg`,
@@ -1859,7 +2072,7 @@ class DetailPage {
             ];
 
         if (this.spotId === 10) {
-            return this.applyReviewRatingVariation([
+            return finalizeReviews([
                 {
                     id: 'review-1',
                     user: '第一夜的甲板',
@@ -1945,7 +2158,7 @@ class DetailPage {
         }
 
         if (this.spotId === 9) {
-            return this.applyReviewRatingVariation([
+            return finalizeReviews([
                 {
                     id: 'review-1',
                     user: '潮汐边的房间',
@@ -2030,7 +2243,7 @@ class DetailPage {
             ]);
         }
 
-        return this.applyReviewRatingVariation([
+        return finalizeReviews([
             {
                 id: 'review-1',
                 user: '海面以下',
@@ -2209,7 +2422,7 @@ class DetailPage {
 
         this.packageData = this.buildPackageData();
         this.reviewData = this.buildReviewData();
-        this.selectedPackageId = this.selectedPackageId || this.packageData[0]?.id || null;
+        this.selectedPackageId = this.selectedPackageId || this.getPackageFlowPackages()[0]?.id || this.packageData[0]?.id || null;
 
         const minPackagePrice = this.packageData.reduce((lowestPrice, pkg) => {
             const packagePrice = parsePriceValue(pkg.price);
@@ -2638,6 +2851,23 @@ class DetailPage {
     }
 
     /**
+     * resetBookingCopySwapState() - 清理陪读文案切换时挂上的动画 class 和临时样式。
+     * @returns {void} - 无返回值，直接恢复文案容器的稳定状态
+     */
+    resetBookingCopySwapState() {
+        if (!this.bookingCopy) {
+            return;
+        }
+
+        this.bookingCopy.classList.remove('is-swapping-out', 'is-swapping-in');
+        this.bookingCopy.style.removeProperty('transition');
+        this.bookingCopy.style.removeProperty('opacity');
+        this.bookingCopy.style.removeProperty('transform');
+        this.bookingCopy.style.removeProperty('filter');
+        this.bookingCopy.style.removeProperty('will-change');
+    }
+
+    /**
      * getBookingReadingGuideCopy() - 为当前阅读区块生成右侧 sticky 文案。
      * @param {string} sectionKey - 当前左侧正文所在区块 key
      * @returns {{ key: string, kicker: string, title: string, intro: string }} - 对应的陪读引导文案
@@ -2754,7 +2984,7 @@ class DetailPage {
 
     /**
      * syncBookingReadingGuide() - 让右侧 sticky 侧栏随着左侧阅读区块更新引导文案。
-     * 首次进入保持当前逐字显形，后续区块切换只做轻微淡出淡入，避免阅读中闪烁。
+     * 首次进入保持当前逐字显形，后续区块切换改成更明显的分行漂移与浮现，避免阅读中生硬换字。
      * @param {{ force?: boolean, immediate?: boolean }} [options={}] - 是否强制刷新、是否跳过过渡
      * @returns {void} - 无返回值，直接同步侧栏文案
      */
@@ -2770,42 +3000,27 @@ class DetailPage {
         }
 
         const nextGuideCopy = this.getBookingReadingGuideCopy(nextKey);
-        const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
         this.activeBookingGuideKey = nextGuideCopy.key;
         this.clearBookingCopySwapTimers();
         this.bookingCopySwapVersion += 1;
         const transitionVersion = this.bookingCopySwapVersion;
+        this.resetBookingCopySwapState();
 
         if (this.bookingCopyTypingActive) {
             this.clearBookingCopyTypeTimers();
             this.bookingCopyTypingActive = false;
         }
 
-        if (immediate || prefersReducedMotion) {
+        if (immediate) {
             this.writeBookingReadingGuideCopy(nextGuideCopy);
-            this.bookingCopy.style.transition = 'none';
-            this.bookingCopy.style.opacity = '1';
-            this.bookingCopy.style.transform = 'translate3d(0, 0, 0)';
-            this.bookingCopy.style.filter = 'blur(0px)';
-
-            window.requestAnimationFrame(() => {
-                if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
-                    return;
-                }
-
-                this.bookingCopy.style.removeProperty('transition');
-                this.bookingCopy.style.removeProperty('will-change');
-            });
             return;
         }
 
         this.bookingCopy.classList.add('is-typed');
         this.bookingCopy.style.willChange = 'opacity, transform, filter';
-        this.bookingCopy.style.transition = 'opacity 180ms ease, transform 180ms ease, filter 180ms ease';
-        this.bookingCopy.style.opacity = '0.32';
-        this.bookingCopy.style.transform = 'translate3d(0, 10px, 0)';
-        this.bookingCopy.style.filter = 'blur(8px)';
+        void this.bookingCopy.offsetWidth;
+        this.bookingCopy.classList.add('is-swapping-out');
 
         this.queueBookingCopySwapTimeout(() => {
             if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
@@ -2813,27 +3028,18 @@ class DetailPage {
             }
 
             this.writeBookingReadingGuideCopy(nextGuideCopy);
-            this.bookingCopy.style.transition =
-                'opacity 380ms ease, transform 560ms cubic-bezier(0.18, 0.78, 0.22, 1), filter 460ms ease';
-
-            window.requestAnimationFrame(() => {
-                if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
-                    return;
-                }
-
-                this.bookingCopy.style.opacity = '1';
-                this.bookingCopy.style.transform = 'translate3d(0, 0, 0)';
-                this.bookingCopy.style.filter = 'blur(0px)';
-            });
+            this.bookingCopy.classList.remove('is-swapping-out');
+            void this.bookingCopy.offsetWidth;
+            this.bookingCopy.classList.add('is-swapping-in');
 
             this.queueBookingCopySwapTimeout(() => {
                 if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
                     return;
                 }
 
-                this.bookingCopy.style.removeProperty('will-change');
-            }, 620);
-        }, 150);
+                this.resetBookingCopySwapState();
+            }, 860);
+        }, 240);
     }
 
     /**
@@ -3988,6 +4194,15 @@ class DetailPage {
             return;
         }
 
+        if (!isStageDebugModeEnabled) {
+            shell.classList.remove('is-resizing');
+            shell.style.removeProperty('width');
+            shell.style.removeProperty('height');
+            shell.style.removeProperty('--sea-atlas-shell-shift-x');
+            this.body?.classList.remove('is-resizing-sea-atlas');
+            return;
+        }
+
         const desktopQuery = window.matchMedia('(min-width: 1180px)');
         let resizeState = null;
 
@@ -4154,7 +4369,7 @@ class DetailPage {
         return this.reviewData.find((review) => review.id === reviewId) || null;
     }
 
-    // 套餐匹配区渲染：生成顶部能力标签和右侧套餐列表的当前状态。
+    // 套餐匹配区渲染：生成顶部能力标签和右侧“海层式”套餐流向列表。
     /**
      * renderPackageMatchTags() - 渲染顶部能力匹配标签组
      * @returns {void} - 无返回值，直接更新标签容器
@@ -4170,7 +4385,7 @@ class DetailPage {
     }
 
     /**
-     * renderItineraries() - 渲染右侧套餐分组卡片列表
+     * renderItineraries() - 渲染右侧按海层推进的连续套餐卡片列表
      * @returns {void} - 无返回值，直接更新套餐列表 DOM
      */
     renderItineraries() {
@@ -4180,108 +4395,104 @@ class DetailPage {
 
         this.renderPackageMatchTags();
 
-        const groupOrder = ['休闲套餐', '进阶套餐'];
         const bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
-        const groupedPackages = groupOrder.map((groupName) => ({
-            groupName,
-            items: this.packageData.filter((pkg) => pkg.group === groupName)
-        })).filter((group) => group.items.length > 0);
+        const flowPackages = this.getPackageFlowPackages();
 
-        this.itineraryList.innerHTML = groupedPackages.map((group, groupIndex) => `
-            <section class="package-group" aria-label="${group.groupName}">
-                <h4 class="package-group-title">${group.groupName}</h4>
-                ${group.items.map((pkg, itemIndex) => {
-                    const isActive = pkg.id === this.selectedPackageId;
-                    const isBooked = bookedPackageIds.has(pkg.id);
-                    const stateMarkup = isBooked
-                        ? '<div class="package-card-state-stack"><span class="package-card-state package-card-state-booked">已收进行程</span></div>'
-                        : '';
-                    const fitPlates = Array.isArray(pkg.fitTags)
-                        ? pkg.fitTags.map((tag) => createPackagePlateMarkup(tag, 'fit')).join('')
-                        : '';
-                    const rhythmPlates = buildPackageRhythmTags(pkg)
-                        .map((tag) => createPackagePlateMarkup(tag, 'rhythm'))
-                        .join('');
-                    const cadenceStayCopy = [pkg.staySummary, pkg.mealSummary].filter(Boolean).join(' · ');
-                    const focusCopy = getLeadingSentence(pkg.fitReason || pkg.pace || pkg.mood);
-                    const guidanceCopy = getLeadingSentence(pkg.pace || pkg.mood || pkg.fitReason);
-                    const actionCopy = isBooked ? '再看这套安排' : '继续了解';
+        this.itineraryList.innerHTML = flowPackages.map((pkg, index) => {
+            const isActive = pkg.id === this.selectedPackageId;
+            const isBooked = bookedPackageIds.has(pkg.id);
+            const stateMarkup = isBooked
+                ? '<div class="package-card-state-stack"><span class="package-card-state package-card-state-booked">已收进行程</span></div>'
+                : '';
+            const fitPlates = Array.isArray(pkg.fitTags)
+                ? pkg.fitTags.map((tag) => createPackagePlateMarkup(tag, 'fit')).join('')
+                : '';
+            const rhythmPlates = buildPackageRhythmTags(pkg)
+                .map((tag) => createPackagePlateMarkup(tag, 'rhythm'))
+                .join('');
+            const cadenceStayCopy = [pkg.staySummary, pkg.mealSummary].filter(Boolean).join(' · ');
+            const focusCopy = getLeadingSentence(pkg.fitReason || pkg.pace || pkg.mood);
+            const guidanceCopy = getLeadingSentence(pkg.pace || pkg.mood || pkg.fitReason);
+            const actionCopy = isBooked ? '再看这套安排' : '继续了解';
+            const stageLabel = `Sea Layer ${String(index + 1).padStart(2, '0')}`;
 
-                    return `
-                        <article
-                            class="package-card ${isActive ? 'is-active' : ''} ${isBooked ? 'is-booked' : ''}"
-                            data-package-id="${pkg.id}"
-                            tabindex="0"
-                            aria-label="${pkg.name}，查看详情"
-                            style="animation-delay: ${(groupIndex * 0.1) + (itemIndex * 0.08)}s"
-                        >
-                            <div class="package-card-head">
-                                <div class="package-card-topline">
-                                    <span class="package-card-badge">${pkg.group}</span>
-                                    ${stateMarkup}
-                                </div>
+            return `
+                <article
+                    class="package-card ${isActive ? 'is-active' : ''} ${isBooked ? 'is-booked' : ''}"
+                    data-package-id="${pkg.id}"
+                    data-package-flow-index="${index + 1}"
+                    tabindex="0"
+                    aria-label="${pkg.name}，查看详情"
+                    style="animation-delay: ${index * 0.08}s"
+                >
+                    <div class="package-card-head">
+                        <div class="package-card-topline">
+                            <div class="package-card-topline-main">
+                                <span class="package-card-index">${stageLabel}</span>
+                                <span class="package-card-badge">${pkg.group}</span>
+                            </div>
+                            ${stateMarkup}
+                        </div>
 
-                                <div class="package-card-audience">
-                                    <span class="package-card-section-label">适合谁</span>
-                                    <p class="package-card-audience-copy">${pkg.audience}</p>
-                                    <div class="package-tag-cluster package-tag-cluster-fit">
-                                        ${fitPlates}
-                                    </div>
-                                </div>
+                        <div class="package-card-audience">
+                            <span class="package-card-section-label">适合谁</span>
+                            <p class="package-card-audience-copy">${pkg.audience}</p>
+                            <div class="package-tag-cluster package-tag-cluster-fit">
+                                ${fitPlates}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="package-card-archive">
+                        <div class="package-card-title-wrap">
+                            <h4 class="package-card-title" aria-label="${pkg.name}">
+                                <span class="package-card-title-line">${pkg.name}</span>
+                            </h4>
+                            <p class="package-card-mood">${pkg.mood}</p>
+                        </div>
+
+                        <div class="package-tag-cluster package-tag-cluster-rhythm">
+                            ${rhythmPlates}
+                        </div>
+
+                        <div class="package-card-signal">
+                            <div class="package-price-wrap">
+                                <span class="package-price-label">这一程起于</span>
+                                <span class="package-price-value" data-price-target="${pkg.price}">¥0</span>
                             </div>
 
-                            <div class="package-card-archive">
-                                <div class="package-card-title-wrap">
-                                    <h4 class="package-card-title" aria-label="${pkg.name}">
-                                        <span class="package-card-title-line">${pkg.name}</span>
-                                    </h4>
-                                    <p class="package-card-mood">${pkg.mood}</p>
-                                </div>
-
-                                <div class="package-tag-cluster package-tag-cluster-rhythm">
-                                    ${rhythmPlates}
-                                </div>
-
-                                <div class="package-card-signal">
-                                    <div class="package-price-wrap">
-                                        <span class="package-price-label">这一程起于</span>
-                                        <span class="package-price-value" data-price-target="${pkg.price}">¥0</span>
-                                    </div>
-
-                                    <div class="package-cadence-stack">
-                                        <span class="package-card-section-label">进入方式</span>
-                                        <p class="package-cadence-primary">${pkg.diveSummary}</p>
-                                        <p class="package-cadence-secondary">${cadenceStayCopy}</p>
-                                    </div>
-                                </div>
+                            <div class="package-cadence-stack">
+                                <span class="package-card-section-label">进入方式</span>
+                                <p class="package-cadence-primary">${pkg.diveSummary}</p>
+                                <p class="package-cadence-secondary">${cadenceStayCopy}</p>
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="package-card-focus">
-                                <span class="package-card-section-label">当前海流</span>
-                                <p class="package-card-focus-copy">${focusCopy}</p>
-                            </div>
+                    <div class="package-card-focus">
+                        <span class="package-card-section-label">当前海流</span>
+                        <p class="package-card-focus-copy">${focusCopy}</p>
+                    </div>
 
-                            <div class="package-card-footer">
-                                <p class="package-card-guidance">${guidanceCopy}</p>
-                                <button class="package-card-action ${isBooked ? 'is-booked' : ''}" type="button" data-package-id="${pkg.id}">
-                                    ${actionCopy}
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                        <path
-                                            d="M5 12h14M13 6l6 6-6 6"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2.2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                        </article>
-                    `;
-                }).join('')}
-            </section>
-        `).join('');
+                    <div class="package-card-footer">
+                        <p class="package-card-guidance">${guidanceCopy}</p>
+                        <button class="package-card-action ${isBooked ? 'is-booked' : ''}" type="button" data-package-id="${pkg.id}">
+                            ${actionCopy}
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M5 12h14M13 6l6 6-6 6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </article>
+            `;
+        }).join('');
 
         this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
             card.addEventListener('click', (event) => {
@@ -4346,6 +4557,330 @@ class DetailPage {
         this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
             card.classList.toggle('is-active', card.dataset.packageId === targetId);
         });
+    }
+
+    /**
+     * getPackageCardById() - 根据套餐 ID 找到右侧侧栏中的对应套餐卡 DOM。
+     * @param {string} packageId - 套餐 ID
+     * @returns {HTMLElement|null} - 对应套餐卡或空值
+     */
+    getPackageCardById(packageId) {
+        if (!this.itineraryList || !packageId) {
+            return null;
+        }
+
+        return Array.from(this.itineraryList.querySelectorAll('.package-card'))
+            .find((card) => card.dataset.packageId === packageId) || null;
+    }
+
+    /**
+     * getBookingStickyMaxScrollTop() - 读取右侧 sticky 侧栏当前允许的最大内部滚动距离。
+     * @returns {number} - 当前最大 scrollTop
+     */
+    getBookingStickyMaxScrollTop() {
+        if (!this.bookingSticky) {
+            return 0;
+        }
+
+        return Math.max(0, this.bookingSticky.scrollHeight - this.bookingSticky.clientHeight);
+    }
+
+    /**
+     * getAbsoluteOffsetTop() - 读取元素基于文档流的绝对 offsetTop，避免 transform 参与侧栏滚动计算。
+     * @param {HTMLElement|null} element - 需要读取位置的元素
+     * @returns {number} - 文档流里的绝对 offsetTop
+     */
+    getAbsoluteOffsetTop(element) {
+        let current = element;
+        let offsetTop = 0;
+
+        while (current) {
+            offsetTop += current.offsetTop || 0;
+            current = current.offsetParent;
+        }
+
+        return offsetTop;
+    }
+
+    /**
+     * getBookingStickyTargetTopForPackage() - 计算某张套餐卡在右侧 sticky 侧栏内的理想停留位置。
+     * @param {string} packageId - 需要对齐的套餐 ID
+     * @returns {number} - 对应的 scrollTop 目标值
+     */
+    getBookingStickyTargetTopForPackage(packageId) {
+        if (!this.bookingSticky) {
+            return 0;
+        }
+
+        const targetCard = this.getPackageCardById(packageId);
+        if (!targetCard) {
+            return 0;
+        }
+
+        const stickyTop = this.getAbsoluteOffsetTop(this.bookingSticky);
+        const cardTop = this.getAbsoluteOffsetTop(targetCard);
+        const visualOffset = Math.max((this.bookingSticky.clientHeight - targetCard.offsetHeight) * 0.24, 26);
+        const rawTargetTop = (cardTop - stickyTop) - visualOffset;
+        const maxScrollTop = this.getBookingStickyMaxScrollTop();
+
+        return Math.max(0, Math.min(rawTargetTop, maxScrollTop));
+    }
+
+    /**
+     * getElementReadingAnchorY() - 取一个区块在页面里的绝对阅读锚点位置。
+     * @param {Element|null} element - 需要读取位置的区块元素
+     * @param {number} [ratio=0] - 取元素内部相对高度比例
+     * @returns {number} - 绝对页面 Y 值
+     */
+    getElementReadingAnchorY(element, ratio = 0) {
+        if (!element) {
+            return 0;
+        }
+
+        const rect = element.getBoundingClientRect();
+        return window.scrollY + rect.top + (rect.height * ratio);
+    }
+
+    /**
+     * getBookingStickyScrollAnchors() - 建立左侧阅读进度与右侧侧栏内部滚动之间的连续映射锚点。
+     * 顶部档案区保持在侧栏上部，进入评论区后再逐步把套餐卡推到视口焦点位置。
+     * @returns {Array<{ sourceY: number, targetTop: number }>} - 已按页面顺序排好的锚点数组
+     */
+    getBookingStickyScrollAnchors() {
+        if (!this.bookingSticky) {
+            return [];
+        }
+
+        const anchors = [];
+        const pushAnchor = (element, targetTop, ratio = 0) => {
+            if (!element) {
+                return;
+            }
+
+            anchors.push({
+                sourceY: this.getElementReadingAnchorY(element, ratio),
+                targetTop: Math.max(0, Math.min(targetTop, this.getBookingStickyMaxScrollTop()))
+            });
+        };
+
+        pushAnchor(this.introSection, 0, 0.04);
+        pushAnchor(this.spotMapHeading || this.mapContainer, 0, 0.2);
+
+        const reviewCards = this.reviewsSection
+            ? Array.from(this.reviewsSection.querySelectorAll('.review-card[data-linked-package-id]'))
+            : [];
+
+        if (reviewCards.length) {
+            const firstReviewTarget = this.getBookingStickyTargetTopForPackage(
+                reviewCards[0].dataset.linkedPackageId || ''
+            );
+
+            pushAnchor(this.spotReviewsHeading || this.reviewsStage, firstReviewTarget * 0.18, 0.3);
+
+            reviewCards.forEach((card) => {
+                const linkedPackageId = card.dataset.linkedPackageId || '';
+                const targetTop = this.getBookingStickyTargetTopForPackage(linkedPackageId);
+                pushAnchor(card, targetTop, card.classList.contains('has-feature-photo') ? 0.28 : 0.38);
+            });
+        }
+
+        const tailTarget = anchors.length ? anchors[anchors.length - 1].targetTop : 0;
+        pushAnchor(this.relatedSection || this.detailFooter, tailTarget, 0.14);
+
+        return anchors
+            .filter((anchor) => Number.isFinite(anchor.sourceY) && Number.isFinite(anchor.targetTop))
+            .sort((a, b) => a.sourceY - b.sourceY);
+    }
+
+    /**
+     * getInterpolatedBookingStickyTop() - 按当前阅读位置在锚点之间插值，得到右侧侧栏应处于的内部滚动位置。
+     * @returns {number} - 当前应同步到的 scrollTop
+     */
+    getInterpolatedBookingStickyTop() {
+        const anchors = this.getBookingStickyScrollAnchors();
+        if (!anchors.length) {
+            return 0;
+        }
+
+        const readingProbeY = window.scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.3, 250);
+
+        if (readingProbeY <= anchors[0].sourceY) {
+            return anchors[0].targetTop;
+        }
+
+        for (let index = 1; index < anchors.length; index += 1) {
+            const previousAnchor = anchors[index - 1];
+            const nextAnchor = anchors[index];
+
+            if (readingProbeY > nextAnchor.sourceY) {
+                continue;
+            }
+
+            const distance = Math.max(1, nextAnchor.sourceY - previousAnchor.sourceY);
+            const progress = Math.max(0, Math.min((readingProbeY - previousAnchor.sourceY) / distance, 1));
+            return previousAnchor.targetTop + ((nextAnchor.targetTop - previousAnchor.targetTop) * progress);
+        }
+
+        return anchors[anchors.length - 1].targetTop;
+    }
+
+    /**
+     * syncBookingStickyScrollWithReading() - 让右侧 sticky 侧栏的内部滚动跟着左侧正文连续移动。
+     * 不是跳到某个固定卡片，而是随着主内容阅读进度在锚点之间平滑插值。
+     * @returns {void} - 无返回值，直接同步侧栏内部滚动
+     */
+    syncBookingStickyScrollWithReading() {
+        if (!this.bookingSticky) {
+            return;
+        }
+
+        const hasOverlayOpen =
+            (this.reviewLightbox && this.reviewLightbox.classList.contains('active')) ||
+            (this.reviewDetailModal && this.reviewDetailModal.classList.contains('active')) ||
+            (this.bookingConfirmFeedback && this.bookingConfirmFeedback.classList.contains('active')) ||
+            (this.bookingModal && this.bookingModal.classList.contains('active'));
+
+        if (hasOverlayOpen) {
+            return;
+        }
+
+        const maxScrollTop = this.getBookingStickyMaxScrollTop();
+        if (maxScrollTop <= 0) {
+            this.bookingStickyScrollTargetTop = 0;
+            this.bookingSticky.scrollTop = 0;
+            return;
+        }
+
+        const targetTop = Math.max(0, Math.min(this.getInterpolatedBookingStickyTop(), maxScrollTop));
+        this.bookingStickyScrollTargetTop = targetTop;
+        this.startBookingStickyScrollFollow();
+    }
+
+    /**
+     * startBookingStickyScrollFollow() - 用轻缓追随的方式把右侧侧栏内部滚动带向目标位置。
+     * @returns {void} - 无返回值，直接启动或续接滚动跟随动画
+     */
+    startBookingStickyScrollFollow() {
+        if (!this.bookingSticky || this.bookingStickyScrollRaf) {
+            return;
+        }
+
+        const follow = () => {
+            this.bookingStickyScrollRaf = 0;
+            if (!this.bookingSticky) {
+                return;
+            }
+
+            const currentTop = this.bookingSticky.scrollTop;
+            const targetTop = Math.max(0, Math.min(
+                this.bookingStickyScrollTargetTop,
+                this.getBookingStickyMaxScrollTop()
+            ));
+            const delta = targetTop - currentTop;
+
+            if (Math.abs(delta) < 0.6) {
+                this.bookingSticky.scrollTop = targetTop;
+                return;
+            }
+
+            const easedStep = delta * 0.16;
+            const stepMagnitude = Math.min(
+                Math.abs(delta),
+                Math.max(Math.abs(delta) * 0.12, 0.9),
+                7.5
+            );
+            const guidedStep = Math.sign(delta) * stepMagnitude;
+            this.bookingSticky.scrollTop = currentTop + (
+                Math.abs(easedStep) > Math.abs(guidedStep) ? easedStep : guidedStep
+            );
+            this.bookingStickyScrollRaf = window.requestAnimationFrame(follow);
+        };
+
+        this.bookingStickyScrollRaf = window.requestAnimationFrame(follow);
+    }
+
+    /**
+     * getCurrentReviewLinkedPackageId() - 根据当前阅读位置找出更接近视口焦点的评论卡对应套餐。
+     * 带大图的评论卡会略微提高权重，让“主评论”在可视区时更容易主导右侧同步。
+     * @returns {string} - 当前评论对应的套餐 ID
+     */
+    getCurrentReviewLinkedPackageId() {
+        if (!this.reviewsSection) {
+            return '';
+        }
+
+        const reviewCards = Array.from(this.reviewsSection.querySelectorAll('.review-card[data-linked-package-id]'));
+        if (!reviewCards.length) {
+            return '';
+        }
+
+        const focusLine = Math.min(window.innerHeight * 0.42, 320);
+        let currentCard = null;
+        let bestScore = Number.POSITIVE_INFINITY;
+        let activeCardScore = Number.POSITIVE_INFINITY;
+
+        reviewCards.forEach((card) => {
+            const rect = card.getBoundingClientRect();
+            const intersectsViewport = rect.bottom > 0 && rect.top < window.innerHeight;
+            if (!intersectsViewport) {
+                return;
+            }
+
+            const cardCenter = rect.top + (rect.height / 2);
+            const featureBias = card.classList.contains('has-feature-photo') ? -70 : 0;
+            const score = Math.abs(cardCenter - focusLine) + featureBias;
+
+            if (score < bestScore) {
+                bestScore = score;
+                currentCard = card;
+            }
+
+            if (card.dataset.linkedPackageId === this.activeReviewLinkedPackageId && score < activeCardScore) {
+                activeCardScore = score;
+            }
+        });
+
+        if (
+            this.activeReviewLinkedPackageId &&
+            Number.isFinite(activeCardScore) &&
+            activeCardScore <= bestScore + 72
+        ) {
+            return this.activeReviewLinkedPackageId;
+        }
+
+        if (!currentCard) {
+            return '';
+        }
+
+        return currentCard.dataset.linkedPackageId || '';
+    }
+
+    /**
+     * syncPackageSelectionFromCurrentReview() - 当评论区进入当前阅读焦点时，同步右侧套餐高亮和内部滚动。
+     * @returns {void} - 无返回值，直接更新右侧套餐侧栏
+     */
+    syncPackageSelectionFromCurrentReview() {
+        if (!this.reviewsSection || !this.itineraryList || !this.bookingSticky) {
+            return;
+        }
+
+        const hasOverlayOpen =
+            (this.reviewLightbox && this.reviewLightbox.classList.contains('active')) ||
+            (this.reviewDetailModal && this.reviewDetailModal.classList.contains('active')) ||
+            (this.bookingConfirmFeedback && this.bookingConfirmFeedback.classList.contains('active')) ||
+            (this.bookingModal && this.bookingModal.classList.contains('active'));
+
+        if (hasOverlayOpen) {
+            return;
+        }
+
+        const linkedPackageId = this.getCurrentReviewLinkedPackageId();
+        if (!linkedPackageId || linkedPackageId === this.activeReviewLinkedPackageId) {
+            return;
+        }
+
+        this.activeReviewLinkedPackageId = linkedPackageId;
+        this.syncPackageCardSelection(linkedPackageId);
     }
 
     // 评论区渲染：根据当前筛选项输出评论卡、图片组和查看详情入口。
@@ -4441,7 +4976,12 @@ class DetailPage {
         ));
 
         this.reviewsSection.innerHTML = visibleReviews.map((review, index) => `
-            <article class="review-card${review.featurePhoto ? ' has-feature-photo' : ''}" data-review-id="${review.id}">
+            <article
+                class="review-card${review.featurePhoto ? ' has-feature-photo' : ''}"
+                data-review-id="${review.id}"
+                data-linked-package-id="${escapeHtml(review.linkedPackageId || '')}"
+                data-linked-package-name="${escapeHtml(review.linkedPackageName || '')}"
+            >
                 <div class="review-body">
                     <header class="review-header">
                         <div class="review-author">
@@ -4535,7 +5075,12 @@ class DetailPage {
             </article>
         `).join('');
 
+        this.activeReviewLinkedPackageId = null;
         this.syncReviewExpandButtons();
+        window.requestAnimationFrame(() => {
+            this.syncBookingStickyScrollWithReading();
+            this.syncPackageSelectionFromCurrentReview();
+        });
 
         const activeFilter = filters.find((filter) => filter.key === this.activeReviewFilter) || filters[0];
         if (this.hasRenderedReviews) {
@@ -6390,6 +6935,8 @@ class DetailPage {
      */
     updateSeaGuideState() {
         this.syncBookingReadingGuide();
+        this.syncBookingStickyScrollWithReading();
+        this.syncPackageSelectionFromCurrentReview();
 
         if (!this.seaGuide || !this.seaGuideEntries.length) {
             return;
@@ -6737,6 +7284,7 @@ class DetailPage {
  * @returns {void} - 无返回值，直接启动详情页逻辑
  */
 document.addEventListener('DOMContentLoaded', function () {
+    setupStageDebugToggle();
     new DetailPage();
 });
 
