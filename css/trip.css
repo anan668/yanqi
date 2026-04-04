@@ -178,6 +178,23 @@
     gap: 12px;
 }
 
+/* trip 页里的返回首页是链接按钮，需要压住全局 a:hover 的默认蓝色和下划线。 */
+.trip-hero-actions .sea-action,
+.trip-hero-actions .sea-action:hover,
+.trip-hero-actions .sea-action:focus-visible,
+.trip-hero-actions .sea-action:active,
+.trip-hero-actions .sea-action:visited {
+    text-decoration: none;
+}
+
+.trip-hero-actions .sea-action-secondary,
+.trip-hero-actions .sea-action-secondary:hover,
+.trip-hero-actions .sea-action-secondary:focus-visible,
+.trip-hero-actions .sea-action-secondary:active,
+.trip-hero-actions .sea-action-secondary:visited {
+    color: #eef7fd;
+}
+
 /* 首屏 文案分层入场：让 kicker、标题、副文案和按钮依次显现，而不是一次全部出现。 */
 .trip-hero-kicker,
 .trip-hero-title,
@@ -1619,6 +1636,95 @@
     max-width: 820px;
     margin: 0 auto 30px;
     text-align: center;
+}
+
+/* Trip 页区块显现系统：
+   这组样式专门服务于行程页中后段内容的“进入视口后再慢慢被海托出来”的节奏。
+   和首屏一次性入场不同，这里强调用户滚动到某一层时，内容才开始显形，
+   这样 Planning Notes、准备系统和已收进行程里的卡片不会在用户还没看到时就把动画播完。 */
+.trip-reveal-block,
+.trip-reveal-head,
+.trip-reveal-card,
+.trip-reveal-panel {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0) scale(0.988);
+    filter: blur(18px);
+    will-change: opacity, transform, filter;
+}
+
+/* 章节标题块更像先被海雾照亮，所以位移更小、节奏更稳。 */
+.trip-reveal-head {
+    transform: translate3d(0, 18px, 0);
+    filter: blur(14px);
+    transition:
+        opacity 760ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        transform 920ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        filter 920ms ease;
+}
+
+/* 卡片比标题更轻一点地浮起，像一张张资料卡被海流带到面前。 */
+.trip-reveal-card {
+    transform: translate3d(0, 22px, 0) scale(0.992);
+    filter: blur(16px);
+    transition:
+        opacity 720ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        transform 860ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        filter 860ms ease,
+        box-shadow 320ms ease,
+        border-color 320ms ease,
+        background 320ms ease;
+}
+
+/* 详情面板本身更像一整块玻璃板被抬起，所以模糊和位移略大一些。 */
+.trip-reveal-panel {
+    transform: translate3d(0, 28px, 0) scale(0.986);
+    filter: blur(18px);
+    transition:
+        opacity 780ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        transform 980ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        filter 980ms ease;
+}
+
+.trip-reveal-block {
+    transition:
+        opacity 760ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        transform 940ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        filter 940ms ease;
+}
+
+.trip-reveal-block.is-visible,
+.trip-reveal-head.is-visible,
+.trip-reveal-card.is-visible,
+.trip-reveal-panel.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+}
+
+/* 错落延迟：
+   不让一整组卡一起亮，而是让用户滑到哪里，哪里的卡片再一张张慢慢被看见。 */
+.trip-focus-grid .trip-reveal-card:nth-child(1),
+.prep-card-grid .trip-reveal-card:nth-child(1),
+.confirmed-bookings-list .trip-reveal-card:nth-child(1) {
+    transition-delay: 40ms;
+}
+
+.trip-focus-grid .trip-reveal-card:nth-child(2),
+.prep-card-grid .trip-reveal-card:nth-child(2),
+.confirmed-bookings-list .trip-reveal-card:nth-child(2) {
+    transition-delay: 120ms;
+}
+
+.trip-focus-grid .trip-reveal-card:nth-child(3),
+.prep-card-grid .trip-reveal-card:nth-child(3),
+.confirmed-bookings-list .trip-reveal-card:nth-child(3) {
+    transition-delay: 200ms;
+}
+
+.trip-focus-grid .trip-reveal-card:nth-child(4),
+.prep-card-grid .trip-reveal-card:nth-child(4),
+.confirmed-bookings-list .trip-reveal-card:nth-child(4) {
+    transition-delay: 280ms;
 }
 
 /* .trip-section-title 的主要视觉与布局效果*/

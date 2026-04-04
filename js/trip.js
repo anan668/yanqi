@@ -2051,6 +2051,113 @@ function getTripStore() {
 }
 
 let confirmedBookingsTextLayoutController = null;
+let tripRevealObserver = null;
+const tripRevealTimers = new WeakMap();
+
+/**
+ * clearTripRevealTimer(element) - 清理某个 reveal 元素挂着的延迟计时器
+ * @param {Element} element - 需要清理计时器的目标元素
+ * @returns {void} - 无返回值，直接清理内部状态
+ */
+function clearTripRevealTimer(element) {
+    const timerId = tripRevealTimers.get(element);
+    if (timerId) {
+        window.clearTimeout(timerId);
+        tripRevealTimers.delete(element);
+    }
+}
+
+/**
+ * scheduleTripReveal(element, delay) - 按轻微错落节奏触发单个区块显现
+ * @param {Element} element - 需要显现的目标元素
+ * @param {number} delay - 延迟时间
+ * @returns {void} - 无返回值，直接切换可见状态
+ */
+function scheduleTripReveal(element, delay) {
+    if (!element || element.classList.contains('is-visible')) {
+        return;
+    }
+
+    clearTripRevealTimer(element);
+    const timerId = window.setTimeout(() => {
+        element.classList.add('is-visible');
+        tripRevealTimers.delete(element);
+    }, Math.max(0, delay || 0));
+
+    tripRevealTimers.set(element, timerId);
+}
+
+/**
+ * observeTripRevealElements(elements, options) - 用统一 observer 监听行程页的区块显现
+ * @param {Element[]} elements - 需要监听的节点列表
+ * @param {{ baseDelay?: number, stepDelay?: number }} [options] - 错落节奏配置
+ * @returns {void} - 无返回值，直接注册 reveal 行为
+ */
+function observeTripRevealElements(elements, options = {}) {
+    const targets = Array.isArray(elements)
+        ? elements.filter((element) => element instanceof Element)
+        : [];
+
+    if (!targets.length) {
+        return;
+    }
+
+    const baseDelay = Number.isFinite(options.baseDelay) ? options.baseDelay : 0;
+    const stepDelay = Number.isFinite(options.stepDelay) ? options.stepDelay : 88;
+
+    if (!tripRevealObserver) {
+        tripRevealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                const target = entry.target;
+                const revealIndex = Number(target.dataset.tripRevealIndex || 0);
+                const revealDelay = Number(target.dataset.tripRevealDelay || 0);
+                scheduleTripReveal(target, revealDelay || (revealIndex * stepDelay));
+                tripRevealObserver.unobserve(target);
+            });
+        }, {
+            threshold: 0.14,
+            rootMargin: '0px 0px -8% 0px'
+        });
+    }
+
+    targets.forEach((target, index) => {
+        if (target.classList.contains('is-visible')) {
+            return;
+        }
+
+        target.dataset.tripRevealIndex = String(index);
+        target.dataset.tripRevealDelay = String(baseDelay + (index * stepDelay));
+        tripRevealObserver.observe(target);
+    });
+}
+
+/**
+ * setupTripReveal() - 给 trip 页中后段区块补一层进入视口后的显现节奏
+ * @returns {void} - 无返回值，直接为已存在的区块注册 reveal
+ */
+function setupTripReveal() {
+    const focusHead = document.querySelector('#trip-layer .trip-section-head');
+    const focusCards = Array.from(document.querySelectorAll('#trip-layer .trip-focus-card'));
+    const prepHead = document.querySelector('#trip-prep .trip-section-head');
+    const prepCards = Array.from(document.querySelectorAll('#trip-prep .prep-card'));
+    const prepPanel = document.getElementById('prepDetailPanel');
+
+    focusHead?.classList.add('trip-reveal-head');
+    prepHead?.classList.add('trip-reveal-head');
+    prepPanel?.classList.add('trip-reveal-panel');
+    focusCards.forEach((card) => card.classList.add('trip-reveal-card'));
+    prepCards.forEach((card) => card.classList.add('trip-reveal-card'));
+
+    observeTripRevealElements([focusHead], { baseDelay: 20, stepDelay: 0 });
+    observeTripRevealElements(focusCards, { baseDelay: 60, stepDelay: 90 });
+    observeTripRevealElements([prepHead], { baseDelay: 20, stepDelay: 0 });
+    observeTripRevealElements(prepCards, { baseDelay: 70, stepDelay: 96 });
+    observeTripRevealElements([prepPanel], { baseDelay: 110, stepDelay: 0 });
+}
 
 /**
  * syncConfirmedBookingsTextLayout() - 用文本布局工具稳定“已收进行程”卡片里的多行文本高度。
@@ -2400,7 +2507,10 @@ function renderConfirmedBookings() {
 
     empty.hidden = true;
     list.innerHTML = visibleBookings.map((booking) => buildConfirmedBookingCardMarkup(booking)).join('');
+    const cards = Array.from(list.querySelectorAll('.confirmed-booking-card'));
+    cards.forEach((card) => card.classList.add('trip-reveal-card'));
     syncConfirmedBookingsTextLayout();
+    observeTripRevealElements(cards, { baseDelay: 40, stepDelay: 92 });
 
     if (switchButton) {
         switchButton.hidden = bookings.length <= CONFIRMED_BOOKINGS_PAGE_SIZE;
@@ -2475,6 +2585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPlannerSummary();
     setupConfirmedBookingsStage();
     new PrepSystem();
+    setupTripReveal();
 
     const avatar = document.querySelector('.avatar');
     if (avatar) {
