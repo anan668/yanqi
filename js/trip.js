@@ -1648,7 +1648,9 @@ function setupPlannerSummary() {
         });
         summaryRoot.dataset.summaryStage = summaryStage;
         summaryRoot.classList.toggle('is-empty', filledCount === 0);
-        summaryRoot.classList.toggle('has-progress', filledCount > 0 && !isConfirmed);
+        // 回执只要已经写进任意一项，就持续保留“正在显形”的状态；
+        // 当三项都收齐时，再额外叠加 is-confirmed，避免完成最后一步时把 has-progress 误撤掉。
+        summaryRoot.classList.toggle('has-progress', filledCount > 0);
         summaryRoot.classList.toggle('is-confirmed', isConfirmed);
 
         syncSummaryItemState('spot', hasSpot, nextValues.spot);
