@@ -5254,6 +5254,8 @@ body.has-overlay-lock {
 
 /* 控制 .booking-modal-content 的布局、视觉和状态表现 */
 .booking-modal-content {
+    display: flex;
+    flex-direction: column;
     max-width: min(920px, calc(100vw - 32px));
     width: min(920px, calc(100vw - 32px));
     /* 宽度想维持在 920px 内，但如果屏幕更小，就按视口宽度减 32px 收住，
@@ -5261,22 +5263,28 @@ body.has-overlay-lock {
     max-height: calc(100vh - 44px);
     /* 把弹层最大高度限制在视口高度减 44px，
        目的是上下都留一点呼吸空间，而不是让弹层直接顶满整个屏幕。 */
-    overflow: hidden; /* 内容滚动交给内部区域处理，外层圆角和玻璃壳保持完整 */
+    overflow-x: hidden;
+    overflow-y: auto; /* 弹层整体自己滚动，避免内部多层滚动链在某些浏览器里失效 */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     padding: 24px 24px 20px;
     border-radius: 30px;
+    background-color: #082638;
     background:
-        linear-gradient(150deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.7)),
-        rgba(230, 244, 252, 0.88);
-    border: 1px solid rgba(205, 223, 233, 0.9);
+        radial-gradient(circle at 18% 18%, rgba(136, 210, 233, 0.16), transparent 34%),
+        linear-gradient(165deg, rgba(17, 54, 79, 0.96), rgba(8, 34, 52, 0.94) 58%, rgba(10, 45, 66, 0.92) 100%);
+    border: 1px solid rgba(164, 213, 232, 0.22);
     box-shadow:
-        0 30px 70px rgba(8, 29, 44, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.75);
+        0 30px 70px rgba(4, 20, 34, 0.28),
+        0 0 30px rgba(126, 198, 222, 0.08),
+        inset 0 1px 0 rgba(243, 249, 252, 0.14);
     backdrop-filter: blur(26px);
     -webkit-backdrop-filter: blur(26px);
     visibility: hidden;
     opacity: 0;
     transform: translate3d(0, 24px, 0) scale(0.982);
-    filter: blur(14px);
+    filter: none;
     transform-origin: center center;
     animation: none;
     position: relative;
@@ -5284,20 +5292,26 @@ body.has-overlay-lock {
     transition:
         opacity 520ms ease,
         transform 680ms cubic-bezier(0.2, 0.82, 0.2, 1),
-        filter 520ms ease,
+        background 760ms cubic-bezier(0.18, 0.82, 0.2, 1),
+        border-color 760ms cubic-bezier(0.18, 0.82, 0.2, 1),
+        box-shadow 760ms cubic-bezier(0.18, 0.82, 0.2, 1),
         visibility 0s linear 520ms;
-    will-change: transform, opacity, filter;
+    will-change: transform, opacity;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(153, 206, 226, 0.44) rgba(255, 255, 255, 0.02);
+}
+
+#bookingModalBody {
+    display: block;
 }
 
 .booking-modal.active .booking-modal-content {
     visibility: visible;
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
     transition:
         opacity 540ms ease,
         transform 760ms cubic-bezier(0.16, 0.84, 0.18, 1),
-        filter 520ms ease,
         visibility 0s linear 0s;
 }
 
@@ -5315,6 +5329,27 @@ body.has-overlay-lock {
     filter: blur(10px);
 }
 
+.booking-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.booking-modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 999px;
+}
+
+.booking-modal-content::-webkit-scrollbar-thumb {
+    background:
+        linear-gradient(180deg, rgba(175, 223, 239, 0.62), rgba(94, 160, 186, 0.46));
+    border-radius: 999px;
+    border: 1px solid rgba(181, 225, 239, 0.14);
+}
+
+.booking-modal-content::-webkit-scrollbar-thumb:hover {
+    background:
+        linear-gradient(180deg, rgba(195, 232, 243, 0.72), rgba(106, 174, 201, 0.58));
+}
+
 /* 套餐卡共享元素过渡的 ghost：
    这张影子卡负责从原卡位置放大到弹层中心，
    让打开详情的过程更像“展开一张卡”，而不是普通弹窗。 */
@@ -5323,14 +5358,13 @@ body.has-overlay-lock {
     margin: 0;
     z-index: 1;
     pointer-events: none;
-    overflow: hidden;
-    box-sizing: border-box;
     transform-origin: top left;
     will-change: transform, opacity, filter;
     animation: none !important;
     opacity: 1 !important;
 }
 
+.booking-card-morph-ghost,
 .booking-card-morph-ghost * {
     transition: none !important;
 }
@@ -5338,52 +5372,6 @@ body.has-overlay-lock {
 .booking-card-morph-ghost::before {
     opacity: 0 !important;
     transform: none !important;
-}
-
-.package-modal-motion,
-.booking-modal-content .modal-close {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
-    transition:
-        opacity 620ms ease,
-        transform 880ms cubic-bezier(0.18, 0.82, 0.2, 1),
-        filter 620ms ease;
-    transition-delay: 0ms;
-    will-change: transform, opacity, filter;
-}
-
-.booking-modal-content .modal-close {
-    --package-modal-enter-order: 1;
-}
-
-.booking-modal-content.is-layout-staged .package-modal-motion,
-.booking-modal-content.is-layout-staged .modal-close {
-    opacity: 0;
-    transform: translate3d(0, 24px, 0) scale(0.988);
-    filter: blur(10px);
-}
-
-.booking-modal-content.is-layout-staged .package-modal-price {
-    transform: translate3d(18px, 22px, 0) scale(0.964);
-}
-
-.booking-modal-content.is-layout-staged .package-modal-head-copy {
-    transform: translate3d(-10px, 18px, 0) scale(0.994);
-}
-
-.booking-modal-content.is-layout-ready .package-modal-motion,
-.booking-modal-content.is-layout-ready .modal-close {
-    transition-delay: calc(120ms + var(--package-modal-enter-order, 0) * 44ms);
-}
-
-.booking-modal-content.is-layout-closing .package-modal-motion,
-.booking-modal-content.is-layout-closing .modal-close {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0) scale(0.992);
-    filter: blur(8px);
-    transition-duration: 220ms;
-    transition-delay: 0ms !important;
 }
 
 /* 定义 modalSlideUp 动画关键帧 */
@@ -5409,13 +5397,13 @@ body.has-overlay-lock {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: var(--text-light);
+    color: rgba(220, 239, 247, 0.76);
     transition: color var(--transition-fast);
 }
 
 /* .modal-close:hover 鼠标移入时的样式 */
 .modal-close:hover {
-    color: var(--text-dark);
+    color: #f5fbff;
 }
 
 /* 控制 .package-modal-shell 的布局、视觉和状态表现 */
@@ -5423,7 +5411,8 @@ body.has-overlay-lock {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    max-height: calc(100vh - 88px);
+    min-height: 100%;
+    max-height: none;
 }
 
 /* 控制 .package-modal-head 的布局、视觉和状态表现 */
@@ -5438,13 +5427,33 @@ body.has-overlay-lock {
     min-width: 0;
 }
 
+.package-modal-overline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.package-modal-state {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(173, 229, 243, 0.14);
+    border: 1px solid rgba(173, 229, 243, 0.28);
+    color: rgba(236, 248, 253, 0.94);
+    font-size: 0.76rem;
+    line-height: 1;
+}
+
 /* 控制 .package-modal-kicker 的布局、视觉和状态表现 */
 .package-modal-kicker {
-    margin: 0 0 8px;
+    margin: 0;
     font-size: 0.74rem;
     letter-spacing: 0.26em;
     text-transform: uppercase;
-    color: rgba(39, 88, 118, 0.56);
+    color: rgba(187, 224, 236, 0.7);
 }
 
 /* 控制 .package-modal-title 的布局、视觉和状态表现 */
@@ -5453,13 +5462,13 @@ body.has-overlay-lock {
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: 2rem;
     line-height: 1.18;
-    color: #17364e;
+    color: rgba(245, 251, 254, 0.98);
 }
 
 /* 控制 .package-modal-subtitle 的布局、视觉和状态表现 */
 .package-modal-subtitle {
     margin: 12px 0 0;
-    color: #4d6d84;
+    color: rgba(217, 238, 246, 0.84);
     line-height: 1.78;
 }
 
@@ -5471,14 +5480,30 @@ body.has-overlay-lock {
     min-width: 160px;
     padding: 16px 18px;
     border-radius: 22px;
-    background: linear-gradient(135deg, #1d5d88 0%, #0f3f63 100%);
+    background:
+        linear-gradient(180deg, rgba(184, 227, 239, 0.1), rgba(39, 101, 130, 0.12)),
+        rgba(7, 28, 42, 0.24);
+    border: 1px solid rgba(183, 223, 236, 0.16);
     color: #f8fdff;
-    box-shadow: 0 18px 30px rgba(13, 48, 74, 0.2);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.1),
+        0 12px 24px rgba(6, 23, 36, 0.16);
+}
+
+.package-modal-price-duration {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(217, 238, 246, 0.68);
 }
 
 /* 控制 .package-modal-price strong 的布局、视觉和状态表现 */
-.package-modal-price strong {
+.package-modal-price strong,
+.package-modal-price-amount {
+    display: block;
+    margin-top: 8px;
     font-size: 1.48rem;
+    color: rgba(245, 251, 254, 0.98);
 }
 
 /* 控制 .package-modal-match 的布局、视觉和状态表现 */
@@ -5488,10 +5513,348 @@ body.has-overlay-lock {
     gap: 8px;
 }
 
+.booking-modal-content .package-modal-match .booking-match-chip,
+.booking-modal-content .package-modal-match .booking-match-link {
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
+        rgba(255, 255, 255, 0.04);
+    border-color: rgba(180, 223, 237, 0.18);
+    color: rgba(228, 244, 249, 0.92);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+}
+
+/* 套餐弹层顶部的“展开卡面”：
+   保持和原套餐卡同一种深海材质，让共享文字有稳定的落点，
+   打开时更像原卡继续往里展开，而不是切进另一套白色弹窗。 */
+.package-modal-head {
+    display: block;
+    padding-right: 44px;
+}
+
+.package-modal-archive {
+    display: grid;
+    gap: 16px;
+    padding: 22px 22px 20px;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at 16% 12%, rgba(131, 209, 232, 0.18), transparent 32%),
+        linear-gradient(180deg, rgba(149, 208, 229, 0.1), rgba(22, 78, 104, 0.2)),
+        rgba(7, 28, 42, 0.34);
+    border: 1px solid rgba(180, 223, 237, 0.16);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.09),
+        0 18px 36px rgba(3, 15, 24, 0.16);
+}
+
+.package-modal-head-copy {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.package-modal-overline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.package-modal-state,
+.package-modal-kicker {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.package-modal-state {
+    background: rgba(244, 250, 253, 0.1);
+    border: 1px solid rgba(180, 223, 237, 0.16);
+    color: rgba(228, 244, 249, 0.84);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+}
+
+.package-modal-kicker {
+    margin: 0;
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
+        rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(180, 223, 237, 0.18);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+    color: rgba(228, 244, 249, 0.92);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.package-modal-title {
+    margin: 0;
+    max-width: 18em;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.42rem, 2.1vw, 1.78rem);
+    line-height: 1.26;
+    color: rgba(245, 251, 254, 0.98);
+}
+
+.package-modal-subtitle {
+    margin: 0;
+    max-width: 40rem;
+    color: rgba(217, 238, 246, 0.84);
+    line-height: 1.78;
+}
+
+.package-modal-rhythm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.package-modal-rhythm .package-plate-rhythm {
+    background: rgba(18, 76, 106, 0.18);
+    border-color: rgba(162, 204, 223, 0.3);
+    color: rgba(214, 236, 246, 0.78);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.07);
+}
+
+.package-modal-rhythm .package-plate-rhythm::before {
+    background: rgba(173, 229, 243, 0.74);
+    box-shadow: 0 0 0 3px rgba(188, 220, 232, 0.14);
+}
+
+.package-modal-signal {
+    display: grid;
+    grid-template-columns: minmax(220px, 252px) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+}
+
+.package-modal-price {
+    display: grid;
+    align-items: stretch;
+    gap: 12px;
+    justify-content: stretch;
+    min-width: 0;
+    padding: 18px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(173, 229, 243, 0.12), transparent 42%),
+        linear-gradient(180deg, rgba(184, 227, 239, 0.08), rgba(39, 101, 130, 0.1)),
+        rgba(5, 23, 36, 0.3);
+    border: 1px solid rgba(183, 223, 236, 0.14);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.08),
+        0 12px 24px rgba(6, 23, 36, 0.14);
+    color: rgba(245, 251, 254, 0.98);
+}
+
+.package-modal-price-core,
+.package-modal-price-copy {
+    display: grid;
+    gap: 8px;
+}
+
+.package-modal-price-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(187, 224, 236, 0.62);
+}
+
+.package-modal-price strong,
+.package-modal-price-amount {
+    margin-top: 0;
+    font-size: 1.68rem;
+    line-height: 1.06;
+    color: rgba(245, 251, 254, 0.98);
+}
+
+.package-modal-price-note {
+    margin: 0;
+    color: rgba(217, 238, 246, 0.78);
+    font-size: 0.84rem;
+    line-height: 1.72;
+}
+
+.package-modal-price-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid rgba(180, 223, 237, 0.18);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.12), rgba(155, 208, 228, 0.06)),
+        rgba(255, 255, 255, 0.04);
+    color: rgba(236, 248, 253, 0.92);
+    font-size: 0.84rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition:
+        transform 280ms ease,
+        border-color 280ms ease,
+        background-color 280ms ease,
+        box-shadow 280ms ease,
+        color 280ms ease;
+}
+
+.package-modal-price-toggle:hover,
+.package-modal-price-toggle:focus-visible {
+    transform: translate3d(0, -1px, 0);
+    border-color: rgba(183, 223, 236, 0.28);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.12),
+        0 12px 20px rgba(6, 23, 36, 0.14);
+}
+
+.package-modal-price-editor {
+    display: grid;
+    gap: 14px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translate3d(0, -4px, 0);
+    padding-top: 0;
+    border-top: 1px solid transparent;
+    transition:
+        max-height 440ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        opacity 260ms ease,
+        transform 440ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        padding-top 260ms ease,
+        border-color 260ms ease;
+}
+
+.package-modal-price-editor.is-open {
+    max-height: 320px;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    padding-top: 14px;
+    border-top-color: rgba(180, 223, 237, 0.12);
+}
+
+.package-modal-option-group {
+    display: grid;
+    gap: 8px;
+}
+
+.package-modal-option-label,
+.package-modal-summary-label {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(187, 224, 236, 0.62);
+}
+
+.package-modal-option-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.package-modal-option {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid rgba(180, 223, 237, 0.14);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(217, 238, 246, 0.82);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition:
+        transform 260ms ease,
+        border-color 260ms ease,
+        background-color 260ms ease,
+        color 260ms ease,
+        box-shadow 260ms ease;
+}
+
+.package-modal-option:hover,
+.package-modal-option:focus-visible {
+    transform: translate3d(0, -1px, 0);
+    border-color: rgba(183, 223, 236, 0.22);
+    color: rgba(244, 250, 253, 0.96);
+}
+
+.package-modal-option.is-selected {
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
+        rgba(255, 255, 255, 0.04);
+    border-color: rgba(183, 223, 236, 0.26);
+    color: rgba(244, 250, 253, 0.98);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+}
+
+.package-modal-price-support {
+    margin: 0;
+    color: rgba(187, 224, 236, 0.68);
+    font-size: 0.8rem;
+    line-height: 1.72;
+}
+
+.package-modal-summary-block {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    padding: 18px 18px 16px;
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(149, 208, 229, 0.08), rgba(22, 78, 104, 0.18)),
+        rgba(7, 28, 42, 0.28);
+    border: 1px solid rgba(180, 223, 237, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.07),
+        0 12px 24px rgba(3, 15, 24, 0.12);
+}
+
+.package-modal-journey-primary,
+.package-modal-journey-secondary,
+.package-modal-current-copy {
+    margin: 0;
+}
+
+.package-modal-journey-primary {
+    color: rgba(245, 251, 254, 0.98);
+    font-size: 0.95rem;
+    line-height: 1.64;
+}
+
+.package-modal-journey-secondary,
+.package-modal-current-copy {
+    color: rgba(217, 238, 246, 0.84);
+    line-height: 1.74;
+}
+
+.package-modal-journey-secondary {
+    font-size: 0.84rem;
+}
+
+.package-modal-current-copy {
+    font-size: 0.9rem;
+}
+
 /* 控制 .package-modal-body 的布局、视觉和状态表现 */
 .package-modal-body {
-    overflow: auto;
-    padding-right: 6px;
+    overflow: visible;
+    padding-right: 0;
     display: grid;
     gap: 14px;
 }
@@ -5507,21 +5870,26 @@ body.has-overlay-lock {
 .package-modal-section {
     padding: 16px 18px;
     border-radius: 22px;
-    background: rgba(245, 251, 255, 0.76);
-    border: 1px solid rgba(203, 222, 233, 0.78);
+    background:
+        linear-gradient(180deg, rgba(149, 208, 229, 0.12), rgba(22, 78, 104, 0.24)),
+        rgba(7, 28, 42, 0.26);
+    border: 1px solid rgba(180, 223, 237, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.08),
+        0 12px 24px rgba(3, 15, 24, 0.14);
 }
 
 /* 控制 .package-modal-section h3 的布局、视觉和状态表现 */
 .package-modal-section h3 {
     margin: 0 0 12px;
     font-size: 1rem;
-    color: #1f5478;
+    color: rgba(245, 251, 254, 0.94);
 }
 
 /* 控制 .package-modal-section p, 的布局、视觉和状态表现 */
 .package-modal-section p,
 .package-modal-section li {
-    color: #38576e;
+    color: rgba(217, 238, 246, 0.84);
     line-height: 1.72;
 }
 
@@ -5545,24 +5913,24 @@ body.has-overlay-lock {
 .package-modal-day {
     padding: 12px 14px;
     border-radius: 18px;
-    background: rgba(233, 246, 253, 0.94);
-    border: 1px solid rgba(173, 210, 228, 0.82);
+    background: rgba(10, 41, 60, 0.54);
+    border: 1px solid rgba(173, 210, 228, 0.18);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.62),
-        0 10px 22px rgba(24, 58, 82, 0.06);
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 10px 22px rgba(3, 15, 24, 0.14);
 }
 
 /* 控制 .package-modal-day strong 的布局、视觉和状态表现 */
 .package-modal-day strong {
     display: block;
     margin-bottom: 6px;
-    color: #0f4567;
+    color: rgba(245, 251, 254, 0.92);
     font-size: 0.98rem;
 }
 
 /* 控制 .package-modal-day span 的布局、视觉和状态表现 */
 .package-modal-day span {
-    color: #35576f;
+    color: rgba(217, 238, 246, 0.8);
     line-height: 1.78;
 }
 
@@ -5587,16 +5955,19 @@ body.has-overlay-lock {
 
 /* 控制 .package-modal-secondary 的布局、视觉和状态表现 */
 .package-modal-secondary {
-    background: rgba(236, 248, 254, 0.9);
-    border: 1px solid rgba(197, 219, 231, 0.86);
-    color: #40617a;
+    background: rgba(244, 250, 253, 0.08);
+    border: 1px solid rgba(180, 223, 237, 0.2);
+    color: rgba(228, 244, 249, 0.84);
 }
 
 /* 控制 .package-modal-primary 的布局、视觉和状态表现 */
 .package-modal-primary {
-    background: linear-gradient(135deg, #1d5d88 0%, #0f3f63 100%);
+    background:
+        linear-gradient(180deg, rgba(184, 227, 239, 0.16), rgba(86, 150, 181, 0.14)),
+        rgba(255, 255, 255, 0.05);
     color: #f6fbff;
-    box-shadow: 0 14px 24px rgba(14, 55, 82, 0.18);
+    border: 1px solid rgba(151, 214, 236, 0.32);
+    box-shadow: 0 14px 24px rgba(6, 23, 36, 0.18);
 }
 
 /* .package-modal-secondary:hover, 鼠标移入时的样式 */
@@ -6645,6 +7016,7 @@ body.has-overlay-lock {
 
 /* 控制 .package-card-signal, 的布局、视觉和状态表现 */
     .package-card-signal,
+    .package-modal-signal,
     .review-dimensions,
     .review-gallery {
         grid-template-columns: 1fr;
@@ -6675,6 +7047,21 @@ body.has-overlay-lock {
         max-height: calc(100vh - 20px);
         /* 高度同理留出上下各 10px，避免弹层贴住刘海区或系统手势边缘。 */
         padding: 18px 16px 16px;
+        border-radius: 22px;
+    }
+
+    .package-modal-head {
+        padding-right: 38px;
+    }
+
+    .package-modal-archive {
+        padding: 18px 16px 16px;
+        border-radius: 24px;
+    }
+
+    .package-modal-summary-block,
+    .package-modal-price {
+        padding: 16px;
         border-radius: 22px;
     }
 

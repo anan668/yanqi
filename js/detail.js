@@ -1721,10 +1721,10 @@ class DetailPage {
         this.bookingModal = document.getElementById('bookingModal');
         this.bookingModalBody = document.getElementById('bookingModalBody');
         this.bookingModalCloseTimer = 0;
-        this.bookingModalLayoutRevealTimer = 0;
         this.bookingModalMorphRevealTimer = 0;
         this.bookingModalMorphCleanupTimer = 0;
         this.bookingModalMorphGhost = null;
+        this.bookingModalDrafts = new Map();
         this.activeBookingSourceCard = null;
         this.bookingConfirmFeedback = document.getElementById('bookingConfirmFeedback');
         this.bookingConfirmCopy = document.getElementById('bookingConfirmCopy');
@@ -3381,7 +3381,7 @@ class DetailPage {
 
     /**
      * syncBookingFocusPanel() - 同步右侧套餐焦点舱，让价格与当前套餐在阅读评论时仍清晰停留。
-     * @param {{ force?: boolean }} [options={}] - 是否强制刷新
+     * @param {{ force?: boolean, immediate?: boolean, animatePrice?: boolean|null }} [options={}] - 是否强制刷新、是否跳过焦点舱切换、是否自定义价格动效
      * @returns {void} - 无返回值，直接更新焦点舱内容
      */
     syncBookingFocusPanel(options = {}) {
@@ -3397,7 +3397,7 @@ class DetailPage {
             return;
         }
 
-        const { force = false } = options;
+        const { force = false, immediate = false, animatePrice = null } = options;
         const packageId = this.selectedPackageId || this.getPackageFlowPackages()[0]?.id || this.packageData[0]?.id || '';
         if (!packageId) {
             return;
@@ -3423,7 +3423,9 @@ class DetailPage {
         const previousPackageId = this.activeBookingFocusPackageId;
         const isFirstFocusPaint = !previousPackageId;
         const shouldAnimateSwap = !isFirstFocusPaint && packageId !== previousPackageId;
-        const shouldAnimatePrice = isFirstFocusPaint || packageId !== previousPackageId;
+        const shouldAnimatePrice = animatePrice == null
+            ? (isFirstFocusPaint || packageId !== previousPackageId)
+            : Boolean(animatePrice);
         this.activeBookingFocusPackageId = packageId;
         this.activeBookingFocusContextKey = contextKey;
 
@@ -3440,7 +3442,7 @@ class DetailPage {
         this.clearBookingFocusSwapTimers();
         this.resetBookingFocusSwapState();
 
-        if (!shouldAnimateSwap) {
+        if (immediate || !shouldAnimateSwap) {
             this.writeBookingFocusPanelContent(focusPanelPayload);
             return;
         }
@@ -4899,8 +4901,8 @@ class DetailPage {
             const rhythmPlates = buildPackageRhythmTags(pkg)
                 .map((tag) => createPackagePlateMarkup(tag, 'rhythm'))
                 .join('');
-            const cadenceStayCopy = [pkg.staySummary, pkg.mealSummary].filter(Boolean).join(' · ');
-            const focusCopy = getLeadingSentence(pkg.fitReason || pkg.pace || pkg.mood);
+            const cadenceStayCopy = this.getPackageCadenceStayCopy(pkg);
+            const focusCopy = this.getPackageFocusCopy(pkg);
             const guidanceCopy = getLeadingSentence(pkg.pace || pkg.mood || pkg.fitReason);
             const actionCopy = isBooked ? '再看这套安排' : '继续了解';
             const stageLabel = `Sea Layer ${String(index + 1).padStart(2, '0')}`;
@@ -4983,39 +4985,6 @@ class DetailPage {
             `;
         }).join('');
 
-        this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
-            card.addEventListener('click', (event) => {
-                if (event.target.closest('.package-card-action')) {
-                    return;
-                }
-
-                event.stopPropagation();
-                this.openBookingModal(card.dataset.packageId, card);
-            });
-
-            card.addEventListener('keydown', (event) => {
-                if (event.key !== 'Enter' && event.key !== ' ') {
-                    return;
-                }
-
-                if (event.target.closest('.package-card-action')) {
-                    return;
-                }
-
-                event.preventDefault();
-                event.stopPropagation();
-                this.openBookingModal(card.dataset.packageId, card);
-            });
-        });
-
-        this.itineraryList.querySelectorAll('.package-card-action').forEach((button) => {
-            button.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.openBookingModal(button.dataset.packageId, button.closest('.package-card'));
-            });
-        });
-
         this.setupPackageCardTitleReveal();
         this.setupPackagePriceObserver();
         this.syncPackageCardSelection();
@@ -5059,16 +5028,12 @@ class DetailPage {
         }
 
         const targetId = packageId || this.selectedPackageId || '';
-        const shouldHighlightCard = Boolean(targetId) && !this.isBookingFocusOnlyContext();
+        const shouldHighlightCard = Boolean(targetId) && (this.activeBookingGuideKey || 'overview') !== 'reviews';
         this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
-            card.classList.toggle('is-active', shouldHighlightCard && card.dataset.packageId === targetId);
+            const isCurrent = shouldHighlightCard && card.dataset.packageId === targetId;
+            card.classList.toggle('is-active', isCurrent);
+            card.setAttribute('aria-current', isCurrent ? 'true' : 'false');
         });
-
-        if (!shouldHighlightCard) {
-            this.itineraryList.querySelectorAll('.package-card.is-active').forEach((card) => {
-                card.classList.remove('is-active');
-            });
-        }
     }
 
     /**
@@ -5490,7 +5455,14 @@ class DetailPage {
                 <div class="review-body">
                     <header class="review-header">
                         <div class="review-author">
-                            <img src="${avatarSrc}" alt="${review.user}头像" class="review-avatar">
+                            <img
+                                src="${avatarSrc}"
+                                alt="${review.user}头像"
+                                class="review-avatar"
+                                loading="lazy"
+                                decoding="async"
+                                fetchpriority="low"
+                            >
                             <div class="review-meta">
                                 <div class="review-user">${review.user}</div>
                                 <div class="review-subline">
@@ -5552,6 +5524,9 @@ class DetailPage {
                                 src="${review.featurePhoto.src}"
                                 alt="${review.featurePhoto.caption}"
                                 class="review-photo review-featured-photo"
+                                loading="lazy"
+                                decoding="async"
+                                fetchpriority="low"
                                 onerror="this.onerror=null;this.src='https://via.placeholder.com/1200x900?text=${encodeURIComponent(review.featurePhoto.caption)}';"
                                 style="object-position: ${review.featurePhoto.position};"
                             >
@@ -5570,6 +5545,9 @@ class DetailPage {
                                 src="${photo.src}"
                                 alt="${photo.caption}"
                                 class="review-photo"
+                                loading="lazy"
+                                decoding="async"
+                                fetchpriority="low"
                                 onerror="this.onerror=null;this.src='https://via.placeholder.com/960x720?text=${encodeURIComponent(photo.caption)}';"
                                 style="object-position: ${photo.position};"
                             >
@@ -5792,7 +5770,12 @@ class DetailPage {
             <article class="review-detail-shell" data-review-id="${review.id}">
                 <header class="review-detail-header">
                     <div class="review-detail-author">
-                        <img src="assets/images/avatar.png" alt="${review.user}头像" class="review-detail-avatar">
+                        <img
+                            src="assets/images/avatar.png"
+                            alt="${review.user}头像"
+                            class="review-detail-avatar"
+                            decoding="async"
+                        >
                         <div class="review-detail-meta">
                             <p class="review-detail-kicker">Dive Memory · ${this.spotData.name}</p>
                             <h2 class="review-detail-title" id="reviewDetailTitle">${review.title || `${review.user}的下潜回声`}</h2>
@@ -5830,6 +5813,9 @@ class DetailPage {
                                         src="${photo.src}"
                                         alt="${photo.caption}"
                                         class="review-detail-photo"
+                                        loading="lazy"
+                                        decoding="async"
+                                        fetchpriority="low"
                                         onerror="this.onerror=null;this.src='https://via.placeholder.com/1200x900?text=${encodeURIComponent(photo.caption)}';"
                                         style="object-position: ${photo.position};"
                                     >
@@ -5862,16 +5848,243 @@ class DetailPage {
         `;
     }
 
+    getPackageCadenceStayCopy(pkg) {
+        return [pkg?.staySummary, pkg?.mealSummary].filter(Boolean).join(' · ');
+    }
+
+    getPackageFocusCopy(pkg) {
+        return getLeadingSentence(pkg?.fitReason || pkg?.pace || pkg?.mood);
+    }
+
+    parsePackageDurationLabel(durationText) {
+        const normalized = typeof durationText === 'string'
+            ? durationText.replace(/\s+/g, '')
+            : '';
+        const match = normalized.match(/(\d+)天(\d+)晚/);
+        const days = Number.parseInt(match?.[1] || '', 10);
+        const nights = Number.parseInt(match?.[2] || '', 10);
+        const safeDays = Number.isFinite(days) ? Math.max(2, days) : 3;
+        const safeNights = Number.isFinite(nights) ? Math.max(1, nights) : Math.max(safeDays - 1, 1);
+
+        return {
+            days: safeDays,
+            nights: safeNights,
+            label: `${safeDays}天${safeNights}晚`
+        };
+    }
+
+    getPackageModalDefaultWindowKey(pkg) {
+        const summary = `${pkg?.group || ''} ${pkg?.name || ''} ${pkg?.diveSummary || ''} ${pkg?.mood || ''}`;
+        if (/黄昏/.test(summary)) {
+            return 'afterglow';
+        }
+
+        if (/慢潜|停驻|舒展|度假/.test(summary)) {
+            return 'arrival';
+        }
+
+        return 'dawn';
+    }
+
+    getPackageModalWindowOptions(pkg) {
+        const defaultKey = this.getPackageModalDefaultWindowKey(pkg);
+
+        return [
+            {
+                key: 'dawn',
+                label: '清晨入海',
+                hint: '把更轻的第一束蓝，留给刚刚开始的下潜。'
+            },
+            {
+                key: 'arrival',
+                label: '午后抵达',
+                hint: '把抵达、适应和海边慢住留得更松一点。'
+            },
+            {
+                key: 'afterglow',
+                label: '黄昏慢住',
+                hint: '把傍晚的风、潜后停驻和海面余光一起留下。'
+            }
+        ].map((option) => ({
+            ...option,
+            isDefault: option.key === defaultKey
+        }));
+    }
+
+    getPackageModalDurationOptions(pkg) {
+        const baseDuration = this.parsePackageDurationLabel(pkg?.duration);
+        const optionDays = Array.from(new Set(
+            [baseDuration.days - 1, baseDuration.days, baseDuration.days + 1, baseDuration.days + 2]
+                .filter((day) => day >= 2 && day <= 6)
+        ));
+
+        return optionDays.map((days) => ({
+            days,
+            nights: days === baseDuration.days ? baseDuration.nights : Math.max(days - 1, 1),
+            label: days === baseDuration.days
+                ? baseDuration.label
+                : `${days}天${Math.max(days - 1, 1)}晚`
+        }));
+    }
+
+    getPackageModalDraft(packageOrId) {
+        const pkg = typeof packageOrId === 'object'
+            ? packageOrId
+            : this.getPackageById(packageOrId);
+        if (!pkg) {
+            return null;
+        }
+
+        const baseDuration = this.parsePackageDurationLabel(pkg.duration);
+        const defaultWindowKey = this.getPackageModalDefaultWindowKey(pkg);
+        const existingDraft = this.bookingModalDrafts.get(pkg.id) || {};
+        const normalizedDraft = {
+            days: Number.isFinite(Number(existingDraft.days))
+                ? Math.max(2, Math.min(6, Math.round(Number(existingDraft.days))))
+                : baseDuration.days,
+            windowKey: this.getPackageModalWindowOptions(pkg).some((option) => option.key === existingDraft.windowKey)
+                ? existingDraft.windowKey
+                : defaultWindowKey,
+            isEditorOpen: Boolean(existingDraft.isEditorOpen)
+        };
+
+        this.bookingModalDrafts.set(pkg.id, normalizedDraft);
+        return normalizedDraft;
+    }
+
+    updatePackageModalDraft(packageId, patch = {}) {
+        const pkg = this.getPackageById(packageId);
+        if (!pkg) {
+            return null;
+        }
+
+        const currentDraft = this.getPackageModalDraft(pkg);
+        const allowedWindowKeys = new Set(this.getPackageModalWindowOptions(pkg).map((option) => option.key));
+        const nextDraft = {
+            ...currentDraft,
+            ...patch
+        };
+
+        this.bookingModalDrafts.set(pkg.id, {
+            days: Number.isFinite(Number(nextDraft.days))
+                ? Math.max(2, Math.min(6, Math.round(Number(nextDraft.days))))
+                : currentDraft.days,
+            windowKey: allowedWindowKeys.has(nextDraft.windowKey) ? nextDraft.windowKey : currentDraft.windowKey,
+            isEditorOpen: Boolean(nextDraft.isEditorOpen)
+        });
+
+        return this.bookingModalDrafts.get(pkg.id);
+    }
+
+    estimatePackageModalPrice(pkg, selectedDays) {
+        const basePrice = parsePriceValue(pkg?.price);
+        const baseDuration = this.parsePackageDurationLabel(pkg?.duration);
+        if (!Number.isFinite(basePrice)) {
+            return null;
+        }
+
+        const deltaDays = selectedDays - baseDuration.days;
+        const longStayStep = Math.max(
+            680,
+            Math.round((basePrice / Math.max(baseDuration.days, 1)) * 0.82 / 100) * 100
+        );
+        const shortStayStep = Math.max(
+            480,
+            Math.round(longStayStep * 0.72 / 100) * 100
+        );
+        const nextValue = deltaDays >= 0
+            ? basePrice + (deltaDays * longStayStep)
+            : basePrice + (deltaDays * shortStayStep);
+
+        return Math.max(1600, Math.round(nextValue / 100) * 100);
+    }
+
+    getPackageModalViewState(packageOrId) {
+        const pkg = typeof packageOrId === 'object'
+            ? packageOrId
+            : this.getPackageById(packageOrId);
+        if (!pkg) {
+            return null;
+        }
+
+        const baseDuration = this.parsePackageDurationLabel(pkg.duration);
+        const draft = this.getPackageModalDraft(pkg);
+        const durationOptions = this.getPackageModalDurationOptions(pkg);
+        const windowOptions = this.getPackageModalWindowOptions(pkg);
+        const selectedWindow = windowOptions.find((option) => option.key === draft.windowKey) || windowOptions[0];
+        const selectedDays = draft.days;
+        const selectedNights = selectedDays === baseDuration.days
+            ? baseDuration.nights
+            : Math.max(selectedDays - 1, 1);
+        const durationLabel = `${selectedDays}天${selectedNights}晚`;
+        const estimatedPriceValue = this.estimatePackageModalPrice(pkg, selectedDays);
+        const priceLabel = Number.isFinite(estimatedPriceValue) ? formatPriceValue(estimatedPriceValue) : pkg.price;
+        const isCustomized =
+            selectedDays !== baseDuration.days ||
+            selectedWindow.key !== this.getPackageModalDefaultWindowKey(pkg);
+
+        return {
+            ...draft,
+            selectedDays,
+            selectedNights,
+            durationLabel,
+            durationOptions,
+            windowOptions,
+            windowKey: selectedWindow.key,
+            windowLabel: selectedWindow.label,
+            windowHint: selectedWindow.hint,
+            priceValue: estimatedPriceValue,
+            priceLabel,
+            priceHint: isCustomized
+                ? `此刻先按 ${durationLabel} · ${selectedWindow.label} 估算`
+                : '点开，换一换停留天数与入海时段',
+            isCustomized
+        };
+    }
+
+    renderBookingModalMarkup(packageId, options = {}) {
+        const pkg = this.getPackageById(packageId);
+        if (!pkg || !this.bookingModalBody) {
+            return;
+        }
+
+        const { preserveBodyScroll = false } = options;
+        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
+        const bodyScrollTop = preserveBodyScroll && modalContent
+            ? modalContent.scrollTop
+            : 0;
+
+        this.bookingModalBody.innerHTML = this.createPackageModalMarkup(pkg);
+
+        const nextModalContent = this.bookingModal?.querySelector('.booking-modal-content');
+        if (nextModalContent) {
+            nextModalContent.scrollTop = preserveBodyScroll ? bodyScrollTop : 0;
+        }
+    }
+
     /**
      * createPackageModalMarkup(pkg) - 生成套餐详情弹层的 HTML 内容
      * @param {Object} pkg - 当前套餐数据对象
      * @returns {string} - 套餐弹层 HTML 字符串
      */
     createPackageModalMarkup(pkg) {
+        const isBooked = this.bookedPackageIds.has(pkg.id);
+        const modalState = this.getPackageModalViewState(pkg);
+        const cadenceStayCopy = this.getPackageCadenceStayCopy(pkg);
+        const focusCopy = this.getPackageFocusCopy(pkg);
+        const rhythmTags = buildPackageRhythmTags({
+            ...pkg,
+            duration: modalState?.durationLabel || pkg.duration
+        });
+        const durationOptions = modalState?.durationOptions || [];
+        const windowOptions = modalState?.windowOptions || [];
+        const matchTags = Array.from(new Set([
+            ...(Array.isArray(pkg.fitTags) ? pkg.fitTags : []),
+            pkg.audience
+        ].filter(Boolean)));
+
         let layoutOrder = 0;
         const nextLayoutOrder = () => layoutOrder++;
-        const introOrder = nextLayoutOrder();
-        const priceOrder = nextLayoutOrder();
         const matchOrder = nextLayoutOrder();
         const highlightsOrder = nextLayoutOrder();
         const fitReasonOrder = nextLayoutOrder();
@@ -5888,21 +6101,96 @@ class DetailPage {
         return `
             <div class="package-modal-shell">
                 <header class="package-modal-head">
-                    <div class="package-modal-head-copy package-modal-motion" style="--package-modal-enter-order: ${introOrder}">
-                        <p class="package-modal-kicker">${pkg.group}</p>
-                        <h2 class="package-modal-title">${pkg.name}</h2>
-                        <p class="package-modal-subtitle">${pkg.mood}</p>
-                    </div>
-                    <div class="package-modal-price package-modal-motion" style="--package-modal-enter-order: ${priceOrder}">
-                        <div>
-                            <div>${pkg.duration}</div>
-                            <strong>${pkg.price}</strong>
+                    <div class="package-modal-archive">
+                        <div class="package-modal-head-copy">
+                            <div class="package-modal-overline">
+                                ${isBooked ? '<span class="package-modal-state">已收进行程</span>' : ''}
+                                <p class="package-modal-kicker">${escapeHtml(pkg.group)}</p>
+                            </div>
+                            <h2 class="package-modal-title">${escapeHtml(pkg.name)}</h2>
+                            <p class="package-modal-subtitle">${escapeHtml(pkg.mood)}</p>
                         </div>
+
+                        <div class="package-modal-rhythm">
+                            ${rhythmTags.map((tag) => createPackagePlateMarkup(escapeHtml(tag), 'rhythm')).join('')}
+                        </div>
+
+                        <div class="package-modal-signal">
+                            <section class="package-modal-price">
+                                <div class="package-modal-price-core">
+                                    <div class="package-modal-price-copy">
+                                        <span class="package-modal-price-label">这一程起于</span>
+                                        <strong class="package-modal-price-amount">${escapeHtml(modalState?.priceLabel || pkg.price)}</strong>
+                                        <p class="package-modal-price-note package-modal-extra-fragment" style="--package-modal-extra-order: 0">${escapeHtml(modalState?.priceHint || '')}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="package-modal-price-toggle package-modal-extra-fragment"
+                                        style="--package-modal-extra-order: 1"
+                                        data-package-price-editor-toggle="${escapeHtml(pkg.id)}"
+                                        aria-expanded="${String(Boolean(modalState?.isEditorOpen))}"
+                                    >
+                                        ${modalState?.isEditorOpen ? '先收住这一下' : '改一改节奏'}
+                                    </button>
+                                </div>
+
+                                <div class="package-modal-price-editor package-modal-extra-fragment ${modalState?.isEditorOpen ? 'is-open' : ''}" style="--package-modal-extra-order: 2" aria-hidden="${String(!modalState?.isEditorOpen)}">
+                                    <div class="package-modal-option-group">
+                                        <span class="package-modal-option-label">停留天数</span>
+                                        <div class="package-modal-option-list">
+                                            ${durationOptions.map((option) => `
+                                                <button
+                                                    type="button"
+                                                    class="package-modal-option ${option.label === modalState?.durationLabel ? 'is-selected' : ''}"
+                                                    data-package-duration-days="${option.days}"
+                                                    data-package-id="${escapeHtml(pkg.id)}"
+                                                    aria-pressed="${String(option.label === modalState?.durationLabel)}"
+                                                >
+                                                    ${escapeHtml(option.label)}
+                                                </button>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+
+                                    <div class="package-modal-option-group">
+                                        <span class="package-modal-option-label">入海时段</span>
+                                        <div class="package-modal-option-list">
+                                            ${windowOptions.map((option) => `
+                                                <button
+                                                    type="button"
+                                                    class="package-modal-option ${option.key === modalState?.windowKey ? 'is-selected' : ''}"
+                                                    data-package-window-key="${escapeHtml(option.key)}"
+                                                    data-package-id="${escapeHtml(pkg.id)}"
+                                                    aria-pressed="${String(option.key === modalState?.windowKey)}"
+                                                >
+                                                    ${escapeHtml(option.label)}
+                                                </button>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+
+                                    <p class="package-modal-price-support">
+                                        ${escapeHtml(modalState?.windowHint || '确认之后，也还能继续把这片海的节奏慢慢往下调。')}
+                                    </p>
+                                </div>
+                            </section>
+
+                            <section class="package-modal-summary-block package-modal-journey">
+                                <span class="package-modal-summary-label package-modal-journey-label">进入方式</span>
+                                <p class="package-modal-journey-primary">${escapeHtml(pkg.diveSummary)}</p>
+                                <p class="package-modal-journey-secondary">${escapeHtml(cadenceStayCopy)}</p>
+                            </section>
+                        </div>
+
+                        <section class="package-modal-summary-block package-modal-current">
+                            <span class="package-modal-summary-label package-modal-current-label">当前海流</span>
+                            <p class="package-modal-current-copy">${escapeHtml(focusCopy)}</p>
+                        </section>
                     </div>
                 </header>
 
                 <div class="package-modal-match package-modal-motion" style="--package-modal-enter-order: ${matchOrder}">
-                    ${Array.from(new Set([...pkg.fitTags, pkg.audience])).map((tag) => createBookingMatchChipMarkup(tag)).join('')}
+                    ${matchTags.map((tag) => createBookingMatchChipMarkup(tag)).join('')}
                 </div>
 
                 <div class="package-modal-body">
@@ -6107,68 +6395,11 @@ class DetailPage {
         };
     }
 
-    clearBookingModalLayoutTimer() {
-        if (this.bookingModalLayoutRevealTimer) {
-            window.clearTimeout(this.bookingModalLayoutRevealTimer);
-            this.bookingModalLayoutRevealTimer = 0;
-        }
-    }
-
-    clearBookingModalLayoutState() {
-        this.clearBookingModalLayoutTimer();
-
-        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
-        if (modalContent) {
-            modalContent.classList.remove('is-layout-staged', 'is-layout-ready', 'is-layout-closing');
-        }
-    }
-
-    primeBookingModalLayout() {
-        this.clearBookingModalLayoutTimer();
-
-        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
-        if (!modalContent) {
-            return;
-        }
-
-        modalContent.classList.remove('is-layout-ready', 'is-layout-closing');
-        modalContent.classList.add('is-layout-staged');
-    }
-
-    revealBookingModalLayout(delay = 120) {
-        this.clearBookingModalLayoutTimer();
-
-        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
-        if (!modalContent) {
-            return;
-        }
-
-        this.bookingModalLayoutRevealTimer = window.setTimeout(() => {
-            modalContent.classList.remove('is-layout-staged', 'is-layout-closing');
-            modalContent.classList.add('is-layout-ready');
-            this.bookingModalLayoutRevealTimer = 0;
-        }, delay);
-    }
-
-    collapseBookingModalLayout() {
-        this.clearBookingModalLayoutTimer();
-
-        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
-        if (!modalContent) {
-            return;
-        }
-
-        modalContent.classList.remove('is-layout-ready', 'is-layout-staged');
-        modalContent.classList.add('is-layout-closing');
-    }
-
     /**
      * clearBookingModalMorph() - 清理套餐卡到弹层的共享元素过渡状态
      * @returns {void} - 无返回值，直接移除 ghost 和临时 class
      */
     clearBookingModalMorph() {
-        this.clearBookingModalLayoutState();
-
         if (this.bookingModalMorphRevealTimer) {
             window.clearTimeout(this.bookingModalMorphRevealTimer);
             this.bookingModalMorphRevealTimer = 0;
@@ -6201,106 +6432,55 @@ class DetailPage {
     }
 
     /**
-     * startBookingModalMorph(packageId, sourceCard) - 让套餐卡像被展开一样放大到屏幕中间
+     * startBookingModalMorph(packageId, sourceState) - 让套餐卡像被展开一样放大到屏幕中间
      * @param {string} packageId - 当前展开的套餐 ID
-     * @param {HTMLElement|null} sourceCard - 点击来源的套餐卡
+     * @param {Object|null} sourceState - 点击来源卡片的布局快照
      * @returns {void} - 无返回值，直接驱动共享元素动画
      */
     startBookingModalMorph(packageId, sourceState = null) {
         const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
         const originCard = this.getPackageSourceCard(packageId);
 
-        if (!modalContent) {
+        if (!modalContent || window.innerWidth < 920) {
+            modalContent?.classList.remove('is-morphing');
             return;
         }
 
         const sourceRect = sourceState?.rect || originCard?.getBoundingClientRect();
         const targetRect = modalContent.getBoundingClientRect();
-        const canMorph =
-            window.innerWidth >= 920 &&
-            sourceRect &&
-            targetRect &&
-            sourceRect.width >= 40 &&
-            sourceRect.height >= 40 &&
-            targetRect.width >= 120 &&
-            targetRect.height >= 120;
 
-        modalContent.classList.add('is-morphing');
-
-        if (!canMorph) {
+        if (!sourceRect || sourceRect.width < 40 || sourceRect.height < 40 || targetRect.width < 120 || targetRect.height < 120) {
             modalContent.classList.remove('is-morphing');
-            this.revealBookingModalLayout(80);
             return;
         }
 
-        const ghost = sourceState?.ghost || originCard?.cloneNode(true);
-        const sourceRadius = Math.max(
-            18,
-            Math.round(Number.parseFloat(window.getComputedStyle(originCard || modalContent).borderTopLeftRadius) || 26)
-        );
-        const targetRadius = Math.max(
-            22,
-            Math.round(Number.parseFloat(window.getComputedStyle(modalContent).borderTopLeftRadius) || 30)
-        );
-
+        this.clearBookingModalMorph();
         this.activeBookingSourceCard = originCard || null;
         this.activeBookingSourceCard?.classList.add('is-originating');
+        modalContent.classList.add('is-morphing');
 
-        if (ghost && this.bookingModal) {
-            ghost.classList.add('is-layout-morphing');
-            ghost.style.left = `${sourceRect.left}px`;
-            ghost.style.top = `${sourceRect.top}px`;
-            ghost.style.width = `${sourceRect.width}px`;
-            ghost.style.height = `${sourceRect.height}px`;
-            ghost.style.transform = 'translate3d(0, 0, 0) scale(1, 1)';
-            ghost.style.transformOrigin = 'top left';
-            ghost.style.opacity = '1';
-            ghost.style.filter = 'blur(0px) saturate(1.04)';
-            ghost.style.borderRadius = `${sourceRadius}px`;
-            ghost.style.transition = 'none';
-            this.bookingModal.appendChild(ghost);
-            this.bookingModalMorphGhost = ghost;
-        }
-
-        const translateX = targetRect.left - sourceRect.left;
-        const translateY = targetRect.top - sourceRect.top;
-        const scaleX = targetRect.width / sourceRect.width;
-        const scaleY = targetRect.height / sourceRect.height;
+        const invertX = sourceRect.left - targetRect.left;
+        const invertY = sourceRect.top - targetRect.top;
+        const invertScaleX = sourceRect.width / targetRect.width;
+        const invertScaleY = sourceRect.height / targetRect.height;
 
         modalContent.style.transition = 'none';
-        modalContent.style.transformOrigin = 'center center';
-        modalContent.style.transform = 'translate3d(0, 28px, 0) scale(0.992)';
-        modalContent.style.opacity = '0';
-        modalContent.style.filter = 'blur(16px)';
+        modalContent.style.transformOrigin = 'top left';
+        modalContent.style.transform = `translate3d(${invertX}px, ${invertY}px, 0) scale(${invertScaleX}, ${invertScaleY})`;
+        modalContent.style.opacity = '1';
+        modalContent.style.filter = 'blur(0px)';
 
         void modalContent.offsetWidth;
 
         window.requestAnimationFrame(() => {
-            if (this.bookingModalMorphGhost) {
-                this.bookingModalMorphGhost.style.transition =
-                    'transform 980ms cubic-bezier(0.18, 0.82, 0.2, 1), opacity 640ms ease, filter 760ms ease, border-radius 980ms cubic-bezier(0.18, 0.82, 0.2, 1)';
-                this.bookingModalMorphGhost.style.transform =
-                    `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`;
-                this.bookingModalMorphGhost.style.opacity = '0.14';
-                this.bookingModalMorphGhost.style.filter = 'blur(14px) saturate(1.02)';
-                this.bookingModalMorphGhost.style.borderRadius = `${targetRadius}px`;
-            }
-
             modalContent.style.transition =
-                'opacity 620ms ease, transform 980ms cubic-bezier(0.18, 0.82, 0.2, 1), filter 620ms ease';
+                'transform 880ms cubic-bezier(0.18, 0.84, 0.18, 1), opacity 520ms ease, filter 520ms ease';
             modalContent.style.transform = 'translate3d(0, 0, 0) scale(1, 1)';
             modalContent.style.opacity = '1';
             modalContent.style.filter = 'blur(0px)';
         });
 
-        this.revealBookingModalLayout(150);
-
         this.bookingModalMorphRevealTimer = window.setTimeout(() => {
-            if (this.bookingModalMorphGhost) {
-                this.bookingModalMorphGhost.remove();
-                this.bookingModalMorphGhost = null;
-            }
-
             modalContent.classList.remove('is-morphing');
             modalContent.style.transition = '';
             modalContent.style.transformOrigin = '';
@@ -6308,7 +6488,7 @@ class DetailPage {
             modalContent.style.opacity = '';
             modalContent.style.filter = '';
             this.bookingModalMorphRevealTimer = 0;
-        }, 1040);
+        }, 920);
 
         this.bookingModalMorphCleanupTimer = window.setTimeout(() => {
             modalContent.classList.remove('is-morphing');
@@ -6318,7 +6498,7 @@ class DetailPage {
             modalContent.style.opacity = '';
             modalContent.style.filter = '';
             this.bookingModalMorphCleanupTimer = 0;
-        }, 1100);
+        }, 960);
     }
 
     // 遮罩锁定：在套餐弹窗、评论详情、图片放大层打开时统一锁住背景滚动。
@@ -6374,8 +6554,6 @@ class DetailPage {
             window.innerWidth >= 920 &&
             this.bookingModal.classList.contains('active')
         );
-
-        this.collapseBookingModalLayout();
 
         if (canReverseMorph) {
             const sourceVisibility = this.getElementVisibleState(sourceCard);
@@ -6481,6 +6659,17 @@ class DetailPage {
         const draft = this.tripStore && typeof this.tripStore.getPlannerDraft === 'function'
             ? this.tripStore.getPlannerDraft()
             : {};
+        const modalState = this.getPackageModalViewState(pkg);
+        const packageTags = modalState?.isCustomized
+            ? Array.from(new Set([
+                modalState.durationLabel,
+                modalState.windowLabel,
+                ...(Array.isArray(pkg.fitTags) ? pkg.fitTags : [])
+            ])).filter(Boolean)
+            : (Array.isArray(pkg.fitTags) ? pkg.fitTags.slice() : []);
+        const packageNote = modalState?.isCustomized
+            ? `${pkg.mood} 此刻先收作 ${modalState.durationLabel}，${modalState.windowLabel}。`
+            : pkg.mood;
 
         return {
             spotKey: String(this.spotId),
@@ -6490,9 +6679,9 @@ class DetailPage {
             packageId: pkg.id,
             packageTitle: pkg.name,
             packageTier: pkg.group,
-            packagePrice: pkg.price,
-            packageNote: pkg.mood,
-            packageTags: Array.isArray(pkg.fitTags) ? pkg.fitTags.slice() : [],
+            packagePrice: modalState?.priceLabel || pkg.price,
+            packageNote,
+            packageTags,
             selectedDate: draft.dateValue || '',
             selectedDateLabel: draft.dateLabel || '',
             selectedPeople: '',
@@ -6692,6 +6881,7 @@ class DetailPage {
 
         window.clearTimeout(this.reviewLightboxCloseTimer);
         this.reviewLightbox.classList.remove('is-closing');
+        this.reviewLightboxImage.decoding = 'async';
         this.reviewLightboxImage.src = src;
         this.reviewLightboxImage.alt = alt;
         this.reviewLightboxImage.onerror = () => {
@@ -7265,7 +7455,7 @@ class DetailPage {
                     return;
                 }
 
-                const sourceCard = this.isBookingFocusOnlyContext()
+                const sourceCard = (this.activeBookingGuideKey || 'overview') === 'reviews'
                     ? null
                     : this.getPackageCardById(packageId);
                 this.openBookingModal(packageId, sourceCard);
@@ -7380,6 +7570,53 @@ class DetailPage {
                     return;
                 }
 
+                const priceToggle = event.target.closest('[data-package-price-editor-toggle]');
+                if (priceToggle) {
+                    const packageId = priceToggle.dataset.packagePriceEditorToggle || this.selectedPackageId;
+                    if (!packageId) {
+                        return;
+                    }
+
+                    const currentState = this.getPackageModalViewState(packageId);
+                    this.updatePackageModalDraft(packageId, {
+                        isEditorOpen: !currentState?.isEditorOpen
+                    });
+                    this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    return;
+                }
+
+                const durationOption = event.target.closest('[data-package-duration-days][data-package-id]');
+                if (durationOption) {
+                    const packageId = durationOption.dataset.packageId;
+                    const nextDays = Number(durationOption.dataset.packageDurationDays);
+                    if (!packageId || !Number.isFinite(nextDays)) {
+                        return;
+                    }
+
+                    this.updatePackageModalDraft(packageId, {
+                        days: nextDays,
+                        isEditorOpen: true
+                    });
+                    this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    return;
+                }
+
+                const windowOption = event.target.closest('[data-package-window-key][data-package-id]');
+                if (windowOption) {
+                    const packageId = windowOption.dataset.packageId;
+                    const windowKey = windowOption.dataset.packageWindowKey;
+                    if (!packageId || !windowKey) {
+                        return;
+                    }
+
+                    this.updatePackageModalDraft(packageId, {
+                        windowKey,
+                        isEditorOpen: true
+                    });
+                    this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    return;
+                }
+
                 const confirmButton = event.target.closest('.package-modal-primary');
                 if (confirmButton) {
                     this.confirmBooking(confirmButton.dataset.packageId);
@@ -7484,10 +7721,10 @@ class DetailPage {
 
         this.selectedPackageId = pkg.id;
         this.syncPackageCardSelection(pkg.id);
-        this.bookingModalBody.innerHTML = this.createPackageModalMarkup(pkg);
+        this.updatePackageModalDraft(pkg.id, { isEditorOpen: false });
+        this.renderBookingModalMarkup(pkg.id);
         this.bookingModal.classList.remove('is-closing');
         this.bookingModal.setAttribute('aria-hidden', 'false');
-        this.primeBookingModalLayout();
         this.bookingModal.querySelector('.booking-modal-content')?.classList.add('is-morphing');
 
         window.requestAnimationFrame(() => {
@@ -7917,6 +8154,7 @@ class DetailPage {
     preloadRelatedAssets(relatedSpots) {
         relatedSpots.forEach((spot) => {
             const preloadImage = new Image();
+            preloadImage.decoding = 'async';
             preloadImage.src = spot.image;
 
             const href = new URL(`detail.html?id=${spot.id}`, window.location.href).href;

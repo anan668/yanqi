@@ -346,6 +346,156 @@ function createBufferedLiveAnnouncer(target, delay = 320) {
     };
 }
 
+/**
+ * scheduleIdleTask(callback, timeout) - 在浏览器空闲时执行低优先级初始化，必要时按超时兜底
+ * @param {Function} callback - 需要延后执行的任务
+ * @param {number} timeout - 最长等待时间
+ * @returns {Function} - 可用于取消该任务的函数
+ */
+function scheduleIdleTask(callback, timeout = 1200) {
+    if (typeof callback !== 'function') {
+        return () => {};
+    }
+
+    let isCancelled = false;
+    let taskId = 0;
+    const run = () => {
+        if (isCancelled) {
+            return;
+        }
+
+        isCancelled = true;
+        callback();
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+        taskId = window.requestIdleCallback(run, { timeout });
+        return () => {
+            if (isCancelled) {
+                return;
+            }
+
+            isCancelled = true;
+            if (typeof window.cancelIdleCallback === 'function') {
+                window.cancelIdleCallback(taskId);
+            }
+        };
+    }
+
+    taskId = window.setTimeout(run, Math.min(timeout, 360));
+    return () => {
+        if (isCancelled) {
+            return;
+        }
+
+        isCancelled = true;
+        window.clearTimeout(taskId);
+    };
+}
+
+/**
+ * createDeferredSectionBootstrap(selector, bootstrap, options) - 让下方区块在空闲或接近视口时再初始化
+ * @param {string} selector - 目标区块选择器
+ * @param {Function} bootstrap - 真正的初始化函数
+ * @param {{ immediate?: boolean, idleTimeoutMs?: number, rootMargin?: string, threshold?: number }} options - 启动配置
+ * @returns {Function} - 可重复调用的“确保已启动”函数
+ */
+function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
+    const target = selector ? document.querySelector(selector) : null;
+    const {
+        immediate = false,
+        idleTimeoutMs = 1200,
+        rootMargin = '180% 0px 140% 0px',
+        threshold = 0.01
+    } = options;
+    let hasBootstrapped = false;
+    let cancelIdleTask = () => {};
+    let observer = null;
+    let viewportCheckRaf = 0;
+
+    const detachViewportBootstrap = () => {
+        window.removeEventListener('scroll', requestViewportBootstrapCheck);
+        window.removeEventListener('resize', requestViewportBootstrapCheck);
+        if (viewportCheckRaf) {
+            window.cancelAnimationFrame(viewportCheckRaf);
+            viewportCheckRaf = 0;
+        }
+    };
+
+    const shouldBootstrapFromViewport = () => {
+        if (!target) {
+            return false;
+        }
+
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const rect = target.getBoundingClientRect();
+        return rect.top <= viewportHeight * 1.4 && rect.bottom >= -viewportHeight * 0.35;
+    };
+
+    function requestViewportBootstrapCheck() {
+        if (hasBootstrapped || viewportCheckRaf) {
+            return;
+        }
+
+        viewportCheckRaf = window.requestAnimationFrame(() => {
+            viewportCheckRaf = 0;
+            if (shouldBootstrapFromViewport()) {
+                runBootstrap();
+            }
+        });
+    }
+
+    const runBootstrap = () => {
+        if (hasBootstrapped) {
+            return;
+        }
+
+        hasBootstrapped = true;
+        cancelIdleTask();
+        detachViewportBootstrap();
+        if (observer) {
+            observer.disconnect();
+            observer = null;
+        }
+        bootstrap();
+    };
+
+    if (!target || immediate) {
+        runBootstrap();
+        return runBootstrap;
+    }
+
+    cancelIdleTask = scheduleIdleTask(runBootstrap, idleTimeoutMs);
+    window.addEventListener('scroll', requestViewportBootstrapCheck, { passive: true });
+    window.addEventListener('resize', requestViewportBootstrapCheck, { passive: true });
+    requestViewportBootstrapCheck();
+
+    if ('IntersectionObserver' in window) {
+        observer = new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting || entry.intersectionRatio > 0)) {
+                runBootstrap();
+            }
+        }, {
+            rootMargin,
+            threshold
+        });
+        observer.observe(target);
+    }
+
+    return runBootstrap;
+}
+
+/**
+ * clamp(value, min, max) - 提供首页多个模块共享的数值约束工具
+ * @param {number} value - 原始数值
+ * @param {number} min - 下限
+ * @param {number} max - 上限
+ * @returns {number} - 约束后的安全值
+ */
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
 // 热门潜点数据：用于竹签滚动推荐区的卡片渲染、价格展示和详情页跳转。
 const divingSpotsData = convertSpotCardPrices([
     {
@@ -848,11 +998,16 @@ class BambooScroll {
         this.cloneSets = 3;
         this.cards = [];
         this.cardPhysics = [];
+        this.cardCenterOffsets = [];
 
         this.cardStride = 300;
         this.setWidth = this.totalCards * this.cardStride;
         this.trackPosition = this.setWidth;
         this.trackVelocity = 0;
+        this.wrapperWidth = 0;
+        this.wrapperCenter = 0;
+        this.centerWeightMaxDist = 0;
+        this.physicsRangeRadius = 5;
 
         this.isDragging = false;
         this.pointerId = null;
@@ -889,6 +1044,15 @@ class BambooScroll {
 
         this.frameRafId = 0;
         this.lastFrameTs = 0;
+        this.lastAppliedTrackPosition = Number.NaN;
+        this.lastActivePhysicsRange = null;
+        this.lastHoverSyncTs = 0;
+        this.lastHoverTrackPosition = this.trackPosition;
+        this.isWrapperVisible = true;
+        this.isPageVisible = !document.hidden;
+        this.visibilityObserver = null;
+        this.frameLoop = (timestamp) => this.runFrame(timestamp);
+        this.handleDocumentVisibilityChange = () => this.syncDocumentVisibility();
 
         if (!this.content || !this.wrapper) {
             return;
@@ -905,8 +1069,7 @@ class BambooScroll {
         this.render();
         this.measure();
         this.attachEvents();
-        this.updateTrackPosition();
-        this.startFrameLoop();
+        this.updateTrackPosition(true);
         this.scheduleAutoStep();
     }
 
@@ -916,9 +1079,11 @@ class BambooScroll {
      */
     render() {
         const fragment = document.createDocumentFragment();
+        const visibleSetIndex = Math.floor(this.cloneSets / 2);
 
         for (let set = 0; set < this.cloneSets; set += 1) {
             divingSpotsData.forEach((spot) => {
+                const shouldDeferImage = set !== visibleSetIndex;
                 const card = document.createElement('div');
                 card.className = 'bamboo-card';
                 card.dataset.spotId = String(spot.id);
@@ -926,7 +1091,14 @@ class BambooScroll {
                 card.style.setProperty('--enter-delay', `${(spot.id - 1) * 0.045 + set * 0.04}s`);
                 card.innerHTML = `
                     <div class="bamboo-card-image-wrapper">
-                        <img src="${spot.image}" alt="${spot.name}" class="bamboo-card-image" onerror="this.src='https://via.placeholder.com/280x180?text=${encodeURIComponent(spot.name)}'">
+                        <img
+                            src="${spot.image}"
+                            alt="${spot.name}"
+                            class="bamboo-card-image"
+                            decoding="async"
+                            ${shouldDeferImage ? 'loading="lazy" fetchpriority="low"' : 'loading="eager"'}
+                            onerror="this.src='https://via.placeholder.com/280x180?text=${encodeURIComponent(spot.name)}'"
+                        >
                     </div>
                     <div class="bamboo-card-content">
                         <h3 class="bamboo-card-title">${spot.name}</h3>
@@ -965,7 +1137,11 @@ class BambooScroll {
             lagX: 0,
             lagV: 0,
             wobbleY: 0,
-            wobbleR: 0
+            wobbleR: 0,
+            renderedWobbleX: null,
+            renderedElasticX: null,
+            renderedWobbleY: null,
+            renderedWobbleR: null
         };
     }
 
@@ -988,12 +1164,18 @@ class BambooScroll {
         }
 
         this.setWidth = this.totalCards * this.cardStride;
+        this.wrapperWidth = this.wrapper.clientWidth;
+        this.wrapperCenter = this.wrapperWidth * 0.5;
+        this.centerWeightMaxDist = Math.max(this.wrapperWidth * 0.7, this.cardStride * 2.2);
+        this.physicsRangeRadius = Math.max(4, Math.ceil(this.wrapperWidth / Math.max(this.cardStride, 1)) + 2);
+        this.cardCenterOffsets = this.cards.map((card) => card.offsetLeft + card.offsetWidth * 0.5);
 
         if (!Number.isFinite(this.trackPosition) || this.trackPosition <= 0) {
             this.trackPosition = this.setWidth;
         }
 
         this.recenterTrack();
+        this.lastAppliedTrackPosition = Number.NaN;
     }
 
     /**
@@ -1028,6 +1210,8 @@ class BambooScroll {
             this.pointerInsideWrapper = true;
             this.pointerClientX = event.clientX;
             this.pointerClientY = event.clientY;
+            this.lastHoverSyncTs = 0;
+            this.lastHoverTrackPosition = this.trackPosition;
             this.cancelAutoStep();
             this.updateHoverFromPointer();
         });
@@ -1045,6 +1229,7 @@ class BambooScroll {
         this.wrapper.addEventListener('mouseleave', () => {
             this.pointerInsideWrapper = false;
             this.setHoveredCard(null);
+            this.lastHoverSyncTs = 0;
             if (!this.isDragging) {
                 this.scheduleAutoStep();
             }
@@ -1052,8 +1237,11 @@ class BambooScroll {
 
         window.addEventListener('resize', () => {
             this.measure();
-            this.updateTrackPosition();
+            this.updateTrackPosition(true);
+            this.ensureFrameLoop();
         });
+
+        this.setupVisibilityTracking();
     }
 
     /**
@@ -1085,6 +1273,7 @@ class BambooScroll {
         this.setHoveredCard(null);
 
         this.wrapper.classList.add('is-dragging');
+        this.ensureFrameLoop();
 
         if (this.wrapper.setPointerCapture) {
             this.wrapper.setPointerCapture(event.pointerId);
@@ -1131,6 +1320,7 @@ class BambooScroll {
 
         this.injectShake(Math.abs(this.lastTrackVelocity));
         this.applyDragRecoil(this.lastTrackVelocity, accel);
+        this.ensureFrameLoop();
 
         this.lastPointerX = event.clientX;
         this.lastPointerTime = now;
@@ -1251,6 +1441,7 @@ class BambooScroll {
 
         this.trackVelocity = clamped * 1.08;
         this.injectShake(Math.abs(this.trackVelocity) * 1.1);
+        this.ensureFrameLoop();
     }
 
     /**
@@ -1260,14 +1451,24 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接启动步进滚动
      */
     startStepScroll(direction, isAutoStep) {
-        if (this.isDragging || this.autoStep) {
+        if (this.isDragging) {
+            return false;
+        }
+
+        if (this.autoStep && isAutoStep) {
+            return false;
+        }
+
+        if (isAutoStep && !this.canAnimateFrame()) {
             return false;
         }
 
         this.inertia.active = false;
+        this.trackVelocity = 0;
 
         const from = this.trackPosition;
-        const to = from + direction * this.cardStride;
+        const currentTarget = this.autoStep ? this.autoStep.to : from;
+        const to = currentTarget + direction * this.cardStride;
 
         this.autoStep = {
             from,
@@ -1284,6 +1485,7 @@ class BambooScroll {
             this.scheduleAutoStep();
         }
 
+        this.ensureFrameLoop();
         return true;
     }
 
@@ -1304,6 +1506,11 @@ class BambooScroll {
         const randomJitter = this.randomBetween(this.autoIntervalJitterMinMs, this.autoIntervalJitterMaxMs);
         const delay = Math.max(2200, this.autoIntervalMs + randomJitter);
         this.autoTimer = setTimeout(() => {
+            if (!this.canAnimateFrame()) {
+                this.scheduleAutoStep();
+                return;
+            }
+
             if (!this.isDragging && !this.inertia.active && !this.autoStep && !this.pointerInsideWrapper) {
                 this.startStepScroll(1, true);
                 this.scheduleAutoStep();
@@ -1330,25 +1537,132 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接开始 requestAnimationFrame 循环
      */
     startFrameLoop() {
-        const frame = (timestamp) => {
-            if (!this.lastFrameTs) {
-                this.lastFrameTs = timestamp;
+        this.ensureFrameLoop();
+    }
+
+    /**
+     * setupVisibilityTracking() - 监听可见性变化，只在真正需要时驱动逐帧动画
+     * @returns {void}
+     */
+    setupVisibilityTracking() {
+        document.addEventListener('visibilitychange', this.handleDocumentVisibilityChange);
+
+        if (!('IntersectionObserver' in window)) {
+            return;
+        }
+
+        this.visibilityObserver = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            this.isWrapperVisible = Boolean(entry?.isIntersecting || entry?.intersectionRatio > 0);
+
+            if (this.isWrapperVisible) {
+                this.ensureFrameLoop();
+                return;
             }
 
-            const dt = Math.min((timestamp - this.lastFrameTs) / 1000, 0.05);
+            this.stopFrameLoop();
+        }, {
+            threshold: 0.02
+        });
+
+        this.visibilityObserver.observe(this.wrapper);
+    }
+
+    /**
+     * syncDocumentVisibility() - 根据页面标签显隐切换动画循环
+     * @returns {void}
+     */
+    syncDocumentVisibility() {
+        this.isPageVisible = !document.hidden;
+
+        if (this.isPageVisible) {
+            this.lastFrameTs = 0;
+            this.ensureFrameLoop();
+            return;
+        }
+
+        this.stopFrameLoop();
+    }
+
+    /**
+     * canAnimateFrame() - 判断当前组件是否适合继续执行逐帧动画
+     * @returns {boolean}
+     */
+    canAnimateFrame() {
+        return this.isPageVisible && this.isWrapperVisible;
+    }
+
+    /**
+     * shouldRunFrame() - 判断当前时刻是否真的需要保留 requestAnimationFrame 循环
+     * @returns {boolean}
+     */
+    shouldRunFrame() {
+        if (!this.canAnimateFrame()) {
+            return false;
+        }
+
+        return this.isDragging
+            || Boolean(this.autoStep)
+            || this.inertia.active
+            || Math.abs(this.trackVelocity) > 0.1
+            || this.shakeEnergy > 0.01;
+    }
+
+    /**
+     * ensureFrameLoop() - 在需要时才启动帧循环，避免组件空转
+     * @returns {void}
+     */
+    ensureFrameLoop() {
+        if (this.frameRafId || !this.shouldRunFrame()) {
+            return;
+        }
+
+        this.frameRafId = requestAnimationFrame(this.frameLoop);
+    }
+
+    /**
+     * stopFrameLoop() - 停止当前逐帧循环，并重置时间戳
+     * @returns {void}
+     */
+    stopFrameLoop() {
+        if (this.frameRafId) {
+            cancelAnimationFrame(this.frameRafId);
+            this.frameRafId = 0;
+        }
+
+        this.lastFrameTs = 0;
+    }
+
+    /**
+     * runFrame(timestamp) - 执行一帧轨道和卡片动画，并按需继续调度下一帧
+     * @param {number} timestamp - 当前帧时间戳
+     * @returns {void}
+     */
+    runFrame(timestamp) {
+        this.frameRafId = 0;
+
+        if (!this.shouldRunFrame()) {
+            this.lastFrameTs = 0;
+            return;
+        }
+
+        if (!this.lastFrameTs) {
             this.lastFrameTs = timestamp;
+        }
 
-            this.updateTrackMotion(dt);
-            this.updateCardPhysics(dt, timestamp / 1000);
+        const dt = Math.min((timestamp - this.lastFrameTs) / 1000, 0.05);
+        this.lastFrameTs = timestamp;
 
-            if (this.pointerInsideWrapper && !this.isDragging) {
-                this.updateHoverFromPointer();
-            }
+        this.updateTrackMotion(dt);
+        this.updateCardPhysics(dt, timestamp / 1000);
+        this.syncHoverWhileTrackMoves(timestamp);
 
-            this.frameRafId = requestAnimationFrame(frame);
-        };
+        if (this.shouldRunFrame()) {
+            this.frameRafId = requestAnimationFrame(this.frameLoop);
+            return;
+        }
 
-        this.frameRafId = requestAnimationFrame(frame);
+        this.lastFrameTs = 0;
     }
 
     /**
@@ -1423,7 +1737,14 @@ class BambooScroll {
             this.shakeEnergy = 0;
         }
 
-        for (let i = 0; i < this.cards.length; i += 1) {
+        const activeRange = this.getActivePhysicsRange();
+
+        if (!this.hasPhysicsActivity() || activeRange.end < activeRange.start) {
+            this.resetStalePhysics(null);
+            return;
+        }
+
+        for (let i = activeRange.start; i <= activeRange.end; i += 1) {
             const card = this.cards[i];
             const state = this.cardPhysics[i];
             const centerWeight = this.getCenterWeightByIndex(i);
@@ -1456,11 +1777,10 @@ class BambooScroll {
             const rotateTarget = this.clamp((state.jitterX + state.lagX) * 0.22, -6, 6);
             state.wobbleR += (rotateTarget - state.wobbleR) * Math.min(1, dt * 12);
 
-            card.style.setProperty('--wobble-x', `${state.jitterX.toFixed(2)}px`);
-            card.style.setProperty('--elastic-x', `${state.lagX.toFixed(2)}px`);
-            card.style.setProperty('--wobble-y', `${state.wobbleY.toFixed(2)}px`);
-            card.style.setProperty('--wobble-r', `${state.wobbleR.toFixed(2)}deg`);
+            this.applyCardPhysicsStyle(card, state);
         }
+
+        this.resetStalePhysics(activeRange);
     }
 
     /**
@@ -1472,13 +1792,12 @@ class BambooScroll {
         const normalized = this.clamp(speedPxPerSecond / 1600, 0, 1);
         this.shakeEnergy = this.clamp(this.shakeEnergy + 0.22 + normalized * 0.82, 0, 1.28);
 
-        for (let i = 0; i < this.cardPhysics.length; i += 1) {
-            const state = this.cardPhysics[i];
-            const centerWeight = this.getCenterWeightByIndex(i);
+        this.forEachActivePhysics((state, index) => {
+            const centerWeight = this.getCenterWeightByIndex(index);
             const impulse = (120 + normalized * 340) * centerWeight * this.randomBetween(0.85, 1.35);
             const direction = Math.random() < 0.5 ? -1 : 1;
             state.jitterV += direction * impulse;
-        }
+        });
     }
 
     /**
@@ -1497,13 +1816,12 @@ class BambooScroll {
         const direction = -Math.sign(velocity || accel || 1);
         const impulseBase = 80 + speedNorm * 180 + accelNorm * 140;
 
-        for (let i = 0; i < this.cardPhysics.length; i += 1) {
-            const state = this.cardPhysics[i];
-            const centerWeight = this.getCenterWeightByIndex(i);
+        this.forEachActivePhysics((state, index) => {
+            const centerWeight = this.getCenterWeightByIndex(index);
             const impulse = impulseBase * state.recoilScale * centerWeight * this.randomBetween(0.8, 1.2);
             state.lagV += direction * impulse;
             state.jitterV += (-direction * impulse) * 0.33;
-        }
+        });
     }
 
     /**
@@ -1520,6 +1838,28 @@ class BambooScroll {
         }
 
         this.setHoveredCard(card);
+    }
+
+    /**
+     * syncHoverWhileTrackMoves(timestamp) - 轨道移动时低频同步 hover，避免 elementFromPoint 每帧轮询
+     * @param {number} timestamp - 当前帧时间戳
+     * @returns {void}
+     */
+    syncHoverWhileTrackMoves(timestamp) {
+        if (!this.pointerInsideWrapper || this.isDragging || (!this.autoStep && !this.inertia.active)) {
+            return;
+        }
+
+        if (
+            timestamp - this.lastHoverSyncTs < 48
+            && Math.abs(this.trackPosition - this.lastHoverTrackPosition) < 10
+        ) {
+            return;
+        }
+
+        this.lastHoverSyncTs = timestamp;
+        this.lastHoverTrackPosition = this.trackPosition;
+        this.updateHoverFromPointer();
     }
 
     /**
@@ -1550,15 +1890,14 @@ class BambooScroll {
      * @returns {number} - 中心权重值
      */
     getCenterWeightByIndex(index) {
-        const card = this.cards[index];
-        if (!card || !this.wrapper) {
+        const cardCenterOffset = this.cardCenterOffsets[index];
+        if (!Number.isFinite(cardCenterOffset) || !this.wrapperWidth) {
             return 0.2;
         }
 
-        const wrapperCenter = this.wrapper.clientWidth * 0.5;
-        const cardCenter = card.offsetLeft + card.offsetWidth * 0.5 - this.trackPosition;
-        const dist = Math.abs(cardCenter - wrapperCenter);
-        const maxDist = Math.max(this.wrapper.clientWidth * 0.7, this.cardStride * 2.2);
+        const cardCenter = cardCenterOffset - this.trackPosition;
+        const dist = Math.abs(cardCenter - this.wrapperCenter);
+        const maxDist = this.centerWeightMaxDist || Math.max(this.wrapperWidth * 0.7, this.cardStride * 2.2);
         const normalized = 1 - dist / maxDist;
 
         return this.clamp(normalized, 0.2, 1);
@@ -1583,7 +1922,12 @@ class BambooScroll {
      * updateTrackPosition() - 将当前轨道位移同步到 DOM transform
      * @returns {void} - 无返回值，直接更新轨道样式
      */
-    updateTrackPosition() {
+    updateTrackPosition(force = false) {
+        if (!force && Math.abs(this.trackPosition - this.lastAppliedTrackPosition) < 0.01) {
+            return;
+        }
+
+        this.lastAppliedTrackPosition = this.trackPosition;
         this.content.style.transform = `translate3d(${-this.trackPosition}px, 0, 0)`;
     }
 
@@ -1612,13 +1956,139 @@ class BambooScroll {
         const brakeDirection = -Math.sign(direction || 1);
         this.shakeEnergy = this.clamp(this.shakeEnergy + 0.08, 0, 1.12);
 
-        for (let i = 0; i < this.cardPhysics.length; i += 1) {
-            const state = this.cardPhysics[i];
-            const centerWeight = this.getCenterWeightByIndex(i);
+        this.forEachActivePhysics((state, index) => {
+            const centerWeight = this.getCenterWeightByIndex(index);
             const impulse = (42 + centerWeight * 30) * state.recoilScale * this.randomBetween(0.92, 1.12);
 
             state.lagV += brakeDirection * impulse;
             state.jitterV += (-brakeDirection * impulse) * 0.16;
+        });
+    }
+
+    /**
+     * hasPhysicsActivity() - 判断当前是否还需要继续更新卡片物理状态
+     * @returns {boolean}
+     */
+    hasPhysicsActivity() {
+        return this.isDragging
+            || Boolean(this.autoStep)
+            || this.inertia.active
+            || Math.abs(this.trackVelocity) > 0.1
+            || this.shakeEnergy > 0.01;
+    }
+
+    /**
+     * getActivePhysicsRange() - 估算当前视口附近需要更新物理效果的卡片范围
+     * @returns {{start:number,end:number}}
+     */
+    getActivePhysicsRange() {
+        if (this.cards.length === 0 || this.cardCenterOffsets.length === 0) {
+            return { start: 0, end: -1 };
+        }
+
+        const firstCenter = this.cardCenterOffsets[0];
+        const approximateCenterIndex = Math.round(
+            (this.trackPosition + this.wrapperCenter - firstCenter) / Math.max(this.cardStride, 1)
+        );
+        const maxIndex = this.cards.length - 1;
+
+        return {
+            start: this.clamp(approximateCenterIndex - this.physicsRangeRadius, 0, maxIndex),
+            end: this.clamp(approximateCenterIndex + this.physicsRangeRadius, 0, maxIndex)
+        };
+    }
+
+    /**
+     * forEachActivePhysics(callback) - 遍历当前视口附近真正需要参与计算的卡片状态
+     * @param {(state: Object, index: number) => void} callback - 处理函数
+     * @returns {void}
+     */
+    forEachActivePhysics(callback) {
+        const range = this.getActivePhysicsRange();
+        if (range.end < range.start) {
+            return;
+        }
+
+        for (let i = range.start; i <= range.end; i += 1) {
+            callback(this.cardPhysics[i], i);
+        }
+    }
+
+    /**
+     * resetStalePhysics(activeRange) - 将已离开可见范围的卡片物理状态收回到静止值
+     * @param {{start:number,end:number}|null} activeRange - 当前活跃范围
+     * @returns {void}
+     */
+    resetStalePhysics(activeRange) {
+        const previousRange = this.lastActivePhysicsRange;
+        this.lastActivePhysicsRange = activeRange;
+
+        if (!previousRange) {
+            return;
+        }
+
+        for (let i = previousRange.start; i <= previousRange.end; i += 1) {
+            const stillActive = activeRange && i >= activeRange.start && i <= activeRange.end;
+            if (stillActive) {
+                continue;
+            }
+
+            this.resetCardPhysicsState(i);
+        }
+    }
+
+    /**
+     * resetCardPhysicsState(index) - 把单张卡片收回静止状态，避免离屏卡片继续参与动画
+     * @param {number} index - 卡片索引
+     * @returns {void}
+     */
+    resetCardPhysicsState(index) {
+        const state = this.cardPhysics[index];
+        const card = this.cards[index];
+        if (!state || !card) {
+            return;
+        }
+
+        state.jitterX = 0;
+        state.jitterV = 0;
+        state.lagX = 0;
+        state.lagV = 0;
+        state.wobbleY = 0;
+        state.wobbleR = 0;
+
+        this.applyCardPhysicsStyle(card, state);
+    }
+
+    /**
+     * applyCardPhysicsStyle(card, state) - 仅在值变化时写入 CSS 变量，减少样式写入频率
+     * @param {HTMLElement} card - 目标卡片节点
+     * @param {Object} state - 卡片物理状态
+     * @returns {void}
+     */
+    applyCardPhysicsStyle(card, state) {
+        const wobbleX = `${state.jitterX.toFixed(2)}px`;
+        const elasticX = `${state.lagX.toFixed(2)}px`;
+        const wobbleY = `${state.wobbleY.toFixed(2)}px`;
+        const wobbleR = `${state.wobbleR.toFixed(2)}deg`;
+
+        if (state.renderedWobbleX !== wobbleX) {
+            card.style.setProperty('--wobble-x', wobbleX);
+            state.renderedWobbleX = wobbleX;
+        }
+
+        if (state.renderedElasticX !== elasticX) {
+            card.style.setProperty('--elastic-x', elasticX);
+            state.renderedElasticX = elasticX;
+        }
+
+        if (state.renderedWobbleY !== wobbleY) {
+            card.style.setProperty('--wobble-y', wobbleY);
+            state.renderedWobbleY = wobbleY;
+        }
+
+        if (state.renderedWobbleR !== wobbleR) {
+            card.style.setProperty('--wobble-r', wobbleR);
+            state.renderedWobbleR = wobbleR;
         }
     }
 
@@ -1672,6 +2142,11 @@ class CuratedWatersStage {
         this.phaseRaf = 0;
         this.hasUserSelected = true;
         this.sampleCardsObserver = null;
+        this.layoutMetrics = {
+            stackedShellHeight: 0,
+            leftShellHeight: 0,
+            measuredViewportWidth: 0
+        };
         this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
 
         if (!this.section || !this.shell || !this.intro || !this.mainCard || !this.sampleCloud) {
@@ -1688,10 +2163,44 @@ class CuratedWatersStage {
     init() {
         this.renderSampleCloud();
         this.renderMainCard(this.currentIndex, { immediate: true });
+        this.updateLayoutMetrics();
         this.attachEvents();
         this.setupReveal();
         this.setupScrollPhases();
         this.preloadNearby(this.currentIndex);
+    }
+
+    /**
+     * updateLayoutMetrics() - 记录精选目的地在堆叠态与左侧收束态下的壳层高度
+     * @returns {void} - 无返回值，直接更新内部布局测量缓存
+     */
+    updateLayoutMetrics() {
+        if (!this.section || !this.shell) {
+            return;
+        }
+
+        const previousPhase = this.section.dataset.curatedPhase || 'top';
+        const previousTransition = this.shell.style.transition;
+        const previousShellMinHeight = this.shell.style.minHeight;
+        const previousSectionTransition = this.section.style.transition;
+
+        this.shell.style.transition = 'none';
+        this.section.style.transition = 'none';
+        this.shell.style.minHeight = '';
+        this.section.dataset.curatedPhase = 'top';
+        const stackedShellHeight = this.shell.offsetHeight;
+
+        this.section.dataset.curatedPhase = 'left';
+        const leftShellHeight = this.shell.offsetHeight;
+
+        this.section.dataset.curatedPhase = previousPhase;
+        this.shell.style.transition = previousTransition;
+        this.section.style.transition = previousSectionTransition;
+        this.shell.style.minHeight = previousShellMinHeight;
+
+        this.layoutMetrics.stackedShellHeight = stackedShellHeight;
+        this.layoutMetrics.leftShellHeight = leftShellHeight;
+        this.layoutMetrics.measuredViewportWidth = window.innerWidth || 0;
     }
 
     /**
@@ -1726,7 +2235,7 @@ class CuratedWatersStage {
                     style="--sample-delay: ${index * 90}ms; --sample-offset-x: ${offset.x}px; --sample-offset-y: ${offset.y}px;"
                 >
                     <span class="curated-sample-image-wrap">
-                        <img src="${dest.image}" alt="${dest.name}" class="curated-sample-image" onerror="this.src='https://via.placeholder.com/240x220?text=${encodeURIComponent(dest.name)}'">
+                        <img src="${dest.image}" alt="${dest.name}" class="curated-sample-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/240x220?text=${encodeURIComponent(dest.name)}'">
                     </span>
                     <span class="curated-sample-copy">
                         <span class="curated-sample-name">${dest.name}</span>
@@ -1794,7 +2303,7 @@ class CuratedWatersStage {
         surface.className = `curated-main-surface${directionClass ? ` ${directionClass}` : ''}${this.hasUserSelected ? ' is-shifted-layout' : ''}`;
         surface.innerHTML = `
             <div class="curated-main-media">
-                <img src="${dest.image}" alt="${dest.name}" class="curated-main-image" onerror="this.src='https://via.placeholder.com/760x720?text=${encodeURIComponent(dest.name)}'">
+                <img src="${dest.image}" alt="${dest.name}" class="curated-main-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/760x720?text=${encodeURIComponent(dest.name)}'">
             </div>
 
             <div class="curated-main-copy">
@@ -1942,6 +2451,7 @@ class CuratedWatersStage {
 
         preloadTargets.forEach((dest) => {
             const image = new Image();
+            image.decoding = 'async';
             image.src = dest.image;
         });
     }
@@ -2014,6 +2524,13 @@ class CuratedWatersStage {
      */
     setupScrollPhases() {
         const requestPhaseSync = () => {
+            if (
+                !this.layoutMetrics.measuredViewportWidth ||
+                Math.abs(this.layoutMetrics.measuredViewportWidth - (window.innerWidth || 0)) > 1
+            ) {
+                this.updateLayoutMetrics();
+            }
+
             if (this.phaseRaf) {
                 return;
             }
@@ -2026,6 +2543,10 @@ class CuratedWatersStage {
 
         window.addEventListener('scroll', requestPhaseSync, { passive: true });
         window.addEventListener('resize', requestPhaseSync, { passive: true });
+        window.setTimeout(() => {
+            this.updateLayoutMetrics();
+            requestPhaseSync();
+        }, 260);
         requestPhaseSync();
     }
 
@@ -2042,12 +2563,20 @@ class CuratedWatersStage {
         const scrollY = window.scrollY || window.pageYOffset || 0;
         const sectionTop = this.section.getBoundingClientRect().top + scrollY;
         const sectionHeight = this.section.offsetHeight;
+        const diveMatchSection = document.getElementById('dive-match');
+        const diveMatchTop = diveMatchSection
+            ? diveMatchSection.getBoundingClientRect().top + scrollY
+            : Number.POSITIVE_INFINITY;
 
         const introVisibleThreshold = Math.max(0, sectionTop - viewportHeight * 0.94);
         const settlingThreshold = Math.max(0, sectionTop - viewportHeight * 0.54);
+        const leftShiftStartThreshold = Math.max(
+            settlingThreshold + viewportHeight * 0.22,
+            sectionTop + Math.min(sectionHeight * 0.44, 560) - viewportHeight * 0.08
+        );
         const leftThreshold = Math.max(
-            settlingThreshold + viewportHeight * 0.18,
-            sectionTop + Math.min(sectionHeight * 0.34, 380) - viewportHeight * 0.1
+            leftShiftStartThreshold + viewportHeight * 0.16,
+            diveMatchTop - viewportHeight * 0.84
         );
         const stageProgressRaw = clamp(
             (scrollY - introVisibleThreshold) / Math.max(settlingThreshold - introVisibleThreshold, 1),
@@ -2057,13 +2586,12 @@ class CuratedWatersStage {
         const leftProgressRaw = window.innerWidth <= 1024
             ? 0
             : clamp(
-                (scrollY - settlingThreshold) / Math.max(leftThreshold - settlingThreshold, 1),
+                (scrollY - leftShiftStartThreshold) / Math.max(leftThreshold - leftShiftStartThreshold, 1),
                 0,
                 1
             );
         const stageProgress = 1 - Math.pow(1 - stageProgressRaw, 1.45);
         const leftProgress = leftProgressRaw * leftProgressRaw * (3 - 2 * leftProgressRaw);
-
         let nextPhase = 'top';
 
         if (window.innerWidth <= 1024) {
@@ -2081,6 +2609,12 @@ class CuratedWatersStage {
 
         this.section.style.setProperty('--curated-stage-progress', stageProgress.toFixed(4));
         this.section.style.setProperty('--curated-left-progress', leftProgress.toFixed(4));
+
+        if (window.innerWidth > 1024 && this.layoutMetrics.stackedShellHeight > 0) {
+            this.shell.style.minHeight = `${this.layoutMetrics.stackedShellHeight.toFixed(2)}px`;
+        } else {
+            this.shell.style.removeProperty('min-height');
+        }
 
         if (this.section.dataset.curatedPhase !== nextPhase) {
             this.section.dataset.curatedPhase = nextPhase;
@@ -2176,7 +2710,7 @@ class DiveMatchStage {
                     style="--card-delay: ${index * 90}ms;"
                 >
                     <div class="dive-match-card-media">
-                        <img src="${destination.image}" alt="${destination.name}" class="dive-match-card-image" onerror="this.src='https://via.placeholder.com/520x360?text=${encodeURIComponent(destination.name)}'">
+                        <img src="${destination.image}" alt="${destination.name}" class="dive-match-card-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/520x360?text=${encodeURIComponent(destination.name)}'">
                     </div>
                     <div class="dive-match-card-copy">
                         <p class="dive-match-card-kicker">${destination.englishName}</p>
@@ -2734,8 +3268,7 @@ function setupHomeScrollLinks() {
  */
 function setupHeroHotspotsStageResize() {
     const heroHotspotsStageShell = document.getElementById('heroHotspotsStageShell');
-    const resizeHandles = Array.from(document.querySelectorAll('.hero-hotspots-resize-handle'));
-    if (!heroHotspotsStageShell || !resizeHandles.length) {
+    if (!heroHotspotsStageShell) {
         return;
     }
 
@@ -2755,6 +3288,11 @@ function setupHeroHotspotsStageResize() {
 
         heroHotspotsStageShell.classList.remove('is-resizing');
         document.body.classList.remove('is-resizing-hero-hotspots');
+        return;
+    }
+
+    const resizeHandles = Array.from(document.querySelectorAll('.hero-hotspots-resize-handle'));
+    if (!resizeHandles.length) {
         return;
     }
 
@@ -3182,24 +3720,93 @@ class HomeSeaGuide {
     }
 }
 
+let curatedWatersStageInstance = null;
+let diveMatchStageInstance = null;
+let homeStoryRevealInitialized = false;
+
+/**
+ * ensureCuratedWatersStage() - 确保精选目的地舞台只初始化一次
+ * @returns {CuratedWatersStage} - 首页精选目的地舞台实例
+ */
+function ensureCuratedWatersStage() {
+    if (!curatedWatersStageInstance) {
+        curatedWatersStageInstance = new CuratedWatersStage();
+    }
+
+    return curatedWatersStageInstance;
+}
+
+/**
+ * ensureDiveMatchStage() - 确保潜水匹配舞台只初始化一次
+ * @returns {DiveMatchStage} - 首页潜水匹配舞台实例
+ */
+function ensureDiveMatchStage() {
+    if (!diveMatchStageInstance) {
+        diveMatchStageInstance = new DiveMatchStage();
+    }
+
+    return diveMatchStageInstance;
+}
+
+/**
+ * ensureStoryReveal() - 确保品牌故事区的显现观察器只建立一次
+ * @returns {void}
+ */
+function ensureStoryReveal() {
+    if (homeStoryRevealInitialized) {
+        return;
+    }
+
+    homeStoryRevealInitialized = true;
+    setupStoryReveal();
+}
+
 // 页面初始化：创建首页主要组件，并绑定头像退出、首屏、故事区等交互。
 /**
  * document DOMContentLoaded 回调 - 初始化首页的主要组件和页面级交互
  * @returns {void} - 无返回值，直接启动首页逻辑
  */
 document.addEventListener('DOMContentLoaded', function () {
+    const pendingHomeScrollTarget = readStoredHomeScrollTarget();
+    const hasDiveMatchDeepLink = window.location.hash === '#dive-match' || Boolean(getDiveMatchKeyFromLocation());
+    const shouldBootstrapCuratedImmediately =
+        pendingHomeScrollTarget === '#featured-destinations' ||
+        pendingHomeScrollTarget === '#dive-match' ||
+        window.location.hash === '#featured-destinations' ||
+        hasDiveMatchDeepLink;
+    const shouldBootstrapDiveMatchImmediately =
+        pendingHomeScrollTarget === '#dive-match' ||
+        hasDiveMatchDeepLink;
+    const shouldBootstrapStoryImmediately =
+        pendingHomeScrollTarget === '#why-yanqi' ||
+        window.location.hash === '#why-yanqi';
+
     setupStageDebugToggle();
     new BambooScroll();
-    new CuratedWatersStage();
-    new DiveMatchStage();
-    new HomeSeaGuide();
     setupHeroImmersion();
     setupHeroHotspotsStageResize();
     setupHeroActions();
     setupHomeNavState();
     setupHomeScrollLinks();
+    new HomeSeaGuide();
+
+    createDeferredSectionBootstrap('#featured-destinations', ensureCuratedWatersStage, {
+        immediate: shouldBootstrapCuratedImmediately,
+        idleTimeoutMs: 900,
+        rootMargin: '190% 0px 150% 0px'
+    });
+    createDeferredSectionBootstrap('#dive-match', ensureDiveMatchStage, {
+        immediate: shouldBootstrapDiveMatchImmediately,
+        idleTimeoutMs: 1200,
+        rootMargin: '180% 0px 140% 0px'
+    });
+    createDeferredSectionBootstrap('#why-yanqi', ensureStoryReveal, {
+        immediate: shouldBootstrapStoryImmediately,
+        idleTimeoutMs: 1500,
+        rootMargin: '160% 0px 120% 0px'
+    });
+
     consumePendingHomeScrollTarget();
-    setupStoryReveal();
 
     window.YanqiAvatarReturn?.bind({
         targetUrl: 'index.html'

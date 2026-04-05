@@ -187,13 +187,26 @@ function setupTripScrollLinks() {
  */
 function setupBackToTop() {
     const button = document.getElementById('back-to-top');
+    let updateRaf = 0;
     if (!button) {
         return;
     }
 
-    window.addEventListener('scroll', () => {
+    const syncButtonState = () => {
+        updateRaf = 0;
         button.classList.toggle('visible', window.pageYOffset > 300);
-    });
+    };
+
+    const requestButtonStateSync = () => {
+        if (updateRaf) {
+            return;
+        }
+
+        updateRaf = window.requestAnimationFrame(syncButtonState);
+    };
+
+    window.addEventListener('scroll', requestButtonStateSync, { passive: true });
+    requestButtonStateSync();
 
     button.addEventListener('click', () => {
         if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
@@ -1436,12 +1449,8 @@ function setupPlannerSummary() {
      * @returns {void} - 无返回值，直接安排定位刷新
      */
     function schedulePanelPosition() {
-        if (!activePanelKey) {
+        if (!activePanelKey || panelPositionFrame) {
             return;
-        }
-
-        if (panelPositionFrame) {
-            window.cancelAnimationFrame(panelPositionFrame);
         }
 
         panelPositionFrame = window.requestAnimationFrame(() => {
