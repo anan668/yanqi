@@ -2,19 +2,19 @@
    旧版过渡兼容桥 - transition.js
    ============================================
    职责：
-   1. 保留旧版全局入口，避免历史模板或内联调用直接失效。
+   1. 保留旧版全局入口，避免历史模板和旧 onclick 直接失效。
    2. 把旧入口统一转发给 `DepthManager`。
    3. 让新旧页面都走同一套“海层切换”导航逻辑。
    阅读顺序：
    1. `getDepthManager`
    2. `navigateWithDepthManager`
-   3. 兼容类与旧函数入口
+   3. 兼容类与旧函数导出
 */
 (function attachLegacyTransitionBridge(window) {
     const DEFAULT_TARGET_URL = 'home.html';
 
     /**
-     * getDepthManager() - 安全读取当前页面已经挂载的 DepthManager 实例
+     * getDepthManager() - 安全读取当前页面已挂载的 DepthManager 实例
      * @returns {Object|null} - 可用的深度导航管理器；没有则返回 null
      */
     function getDepthManager() {

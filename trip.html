@@ -72,7 +72,7 @@
                             <!-- 行程交互控制台：
                                  这一层看起来像搜索栏，但实际上是行程页的三段式安排行程面板。
                                  脚本会在这里监听按钮点击，再把真正的浮层挂到页面顶层容器。 -->
-                            <div class="search-bar trip-search-bar planner-desk-control" id="plannerDeskControl">
+                            <div class="search-bar trip-search-bar planner-desk-control trip-reveal-block" id="plannerDeskControl">
                                 <div class="planner-console-head">
                                     <p class="planner-console-kicker">Trip Console</p>
                                     <h2 class="planner-console-title">把下一次下潜先定下来</h2>
@@ -370,7 +370,7 @@
                     </button>
                 </div>
 
-                <div class="prep-detail-panel" id="prepDetailPanel" role="tabpanel" aria-live="polite">
+                <div class="prep-detail-panel trip-reveal-panel" id="prepDetailPanel" role="tabpanel" aria-live="polite">
                     <div class="prep-detail-head">
                         <p class="prep-detail-kicker" id="prepDetailKicker">Equipment & Rhythm</p>
                         <h3 class="prep-detail-title" id="prepDetailTitle">装备与节奏</h3>

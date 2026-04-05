@@ -2374,25 +2374,41 @@ class DiveMatchStage {
      */
     setupReveal() {
         if (!('IntersectionObserver' in window)) {
-            this.section.classList.add('is-visible');
+            this.section.classList.add('is-visible', 'is-stage-visible');
             return;
         }
 
-        const observer = new IntersectionObserver((entries) => {
+        const sectionObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (!entry.isIntersecting) {
                     return;
                 }
 
                 this.section.classList.add('is-visible');
-                observer.unobserve(entry.target);
+                sectionObserver.unobserve(entry.target);
             });
         }, {
             threshold: 0.18,
             rootMargin: '0px 0px -8% 0px'
         });
 
-        observer.observe(this.section);
+        sectionObserver.observe(this.section);
+
+        const stageObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                this.section.classList.add('is-stage-visible');
+                stageObserver.unobserve(entry.target);
+            });
+        }, {
+            threshold: 0.12,
+            rootMargin: '0px 0px 0px 0px'
+        });
+
+        stageObserver.observe(this.stage);
     }
 }
 

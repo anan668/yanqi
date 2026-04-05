@@ -362,18 +362,20 @@ class TripSeaGuide {
     }
 }
 
-// 行程控制台主控逻辑。
-// 这个函数同时负责。
-// 1. 管理海域 / 日期 / 人数三个字段的当前。
-// 2. 控制三个浮层的打开、关闭和定位
-// 3. 把字段结果实时回写到回执层。
-// 4. 在桌面端与移动端之间维持一致的交互逻辑
+// 行程控制台主控逻辑：
+// 1. 管理海域 / 日期 / 人数三个字段的当前选择。
+// 2. 控制三个浮层的打开、关闭、定位与联动。
+// 3. 把字段结果实时回写到回执层和“已收进行程”。
+// 4. 在桌面端与移动端之间维持一致的交互节奏。
 /**
  * setupPlannerSummary() - 监听行程控制台输入并实时更新摘要卡片
  * @returns {void} - 无返回值，直接绑定表单输入事件
  */
 function setupPlannerSummary() {
     const store = getTripStore();
+
+    // 这里把控制台拆成“真实字段值 / 视觉字段 / 摘要卡 / 浮层 / 日历”几组引用。
+    // 后面不管是恢复草稿、切换浮层还是提交行程，都会围绕这几组节点同步状态。
     const spotInput = document.getElementById('plannerSpot');
     const dateInput = document.getElementById('plannerDate');
     const peopleInput = document.getElementById('plannerPeople');
@@ -407,6 +409,8 @@ function setupPlannerSummary() {
     const dateTrigger = document.getElementById('plannerDateTrigger');
     const peopleTrigger = document.getElementById('plannerPeopleTrigger');
     const submitButton = document.querySelector('#plannerDeskControl .planner-submit-btn');
+    const submitButtonInner = submitButton?.querySelector('.planner-submit-btn-inner');
+    const submitButtonLabel = submitButton?.querySelector('.planner-submit-btn-label');
 
     const spotPanel = document.getElementById('plannerSpotPanel');
     const datePanel = document.getElementById('plannerDatePanel');
@@ -451,6 +455,8 @@ function setupPlannerSummary() {
         !dateTrigger ||
         !peopleTrigger ||
         !submitButton ||
+        !submitButtonInner ||
+        !submitButtonLabel ||
         !spotPanel ||
         !datePanel ||
         !peoplePanel ||
@@ -496,6 +502,20 @@ function setupPlannerSummary() {
     const LOCKED_HINTS = {
         date: '\u5148\u8ba9\u6d77\u57df\u843d\u4f4d\uff0c\u51fa\u53d1\u7684\u6f6e\u6c50\u7a97\u53e3\u624d\u4f1a\u6162\u6162\u6d6e\u51fa\u6765',
         people: '\u5148\u628a\u51fa\u53d1\u65f6\u95f4\u5199\u8fdb\u6765\uff0c\u540c\u884c\u7684\u8282\u594f\u518d\u7ee7\u7eed\u5f20\u5f00'
+    };
+    const SUBMIT_FEEDBACK_COPY = {
+        idle: {
+            button: '\u5148\u5f80\u4e0b\u4e00\u5c42\u770b\u770b',
+            status: '\u8fd9\u4e00\u5c42\u8fd8\u7559\u7740\u7a7a\u767d\uff0c\u4e5f\u53ef\u4ee5\u5148\u7ee7\u7eed\u5f80\u4e0b\u770b\uff0c\u540e\u9762\u518d\u6162\u6162\u8865\u9f50\u3002'
+        },
+        progress: {
+            button: '\u8fd9\u4e00\u5c42\u5148\u66ff\u4f60\u6536\u4f4f',
+            status: '\u8fd9\u4e00\u5c42\u5b89\u6392\u5df2\u7ecf\u5148\u66ff\u4f60\u6536\u4f4f\u4e86\uff0c\u63a5\u4e0b\u6765\u7ee7\u7eed\u5f80\u66f4\u6df1\u4e00\u5c42\u770b\u3002'
+        },
+        confirmed: {
+            button: '\u5df2\u5199\u8fdb\u884c\u7a0b\uff0c\u7ee7\u7eed\u4e0b\u6f5c',
+            status: '\u8fd9\u4e00\u6b21\u4e0b\u6f5c\u5df2\u7ecf\u5199\u8fdb\u884c\u7a0b\u4e86\uff0c\u63a5\u4e0b\u6765\u7ee7\u7eed\u770b\u540e\u9762\u7684\u51c6\u5907\u4e0e\u505c\u9a7b\u3002'
+        }
     };
     const SUMMARY_INTRO_COPY = {
         idle: '\u5148\u7559\u4e0b\u4e00\u53e5\u5f88\u8f7b\u7684\u56de\u6267\uff0c\u7b49\u6d77\u57df\u3001\u6f6e\u6c50\u4e0e\u540c\u884c\u8282\u594f\u6162\u6162\u6536\u51fa\u8f6e\u5ed3\u3002',
@@ -668,9 +688,14 @@ function setupPlannerSummary() {
     let panelPositionFrame = 0;
     let calendarViewDate = null;
     let autoAdvanceTimer = 0;
+    let submitContinueTimer = 0;
+    let submitFeedbackCountdownTimer = 0;
+    let submitFeedbackResetTimer = 0;
+    let detachSubmitFeedbackInterrupt = null;
     let hasRenderedSummaryOnce = false;
     let hasInitializedProgressiveState = false;
     const fieldUnlockTimers = new WeakMap();
+    const defaultSubmitButtonLabel = submitButtonLabel.textContent.trim() || '\u786e\u8ba4\u8fd9\u4e00\u5c42\u5b89\u6392';
 
     function getPlannerSummaryStage(hasSpot, hasDate, hasPeople) {
         if (hasSpot && hasDate && hasPeople) {
@@ -815,6 +840,152 @@ function setupPlannerSummary() {
 
         window.clearTimeout(autoAdvanceTimer);
         autoAdvanceTimer = 0;
+    }
+
+    function getPlannerSubmitFeedbackStage() {
+        const filledCount = [spotInput.value, dateInput.value, peopleInput.value].filter(Boolean).length;
+
+        if (filledCount >= 3) {
+            return 'confirmed';
+        }
+
+        if (filledCount > 0) {
+            return 'progress';
+        }
+
+        return 'idle';
+    }
+
+    function getPlannerSubmitFeedbackDelay() {
+        return 2000;
+    }
+
+    function buildPlannerSubmitCountdownLabel(baseLabel, secondsLeft) {
+        const safeSeconds = Math.max(1, Number.parseInt(secondsLeft, 10) || 1);
+        return `${baseLabel} · ${safeSeconds} 秒后继续下潜`;
+    }
+
+    function startPlannerSubmitFeedbackCountdown(baseLabel, feedbackDelay) {
+        const deadline = Date.now() + feedbackDelay;
+        let lastSecond = -1;
+
+        const syncCountdown = () => {
+            const remainingMs = Math.max(0, deadline - Date.now());
+            const secondsLeft = Math.max(1, Math.ceil(remainingMs / 1000));
+
+            if (secondsLeft !== lastSecond) {
+                lastSecond = secondsLeft;
+                const countdownLabel = buildPlannerSubmitCountdownLabel(baseLabel, secondsLeft);
+                submitButtonLabel.textContent = countdownLabel;
+                submitButton.setAttribute('aria-label', countdownLabel);
+            }
+
+            if (remainingMs <= 0) {
+                submitFeedbackCountdownTimer = 0;
+                return;
+            }
+
+            submitFeedbackCountdownTimer = window.setTimeout(syncCountdown, Math.min(250, remainingMs));
+        };
+
+        syncCountdown();
+    }
+
+    function clearPlannerSubmitFeedbackInterruption() {
+        if (typeof detachSubmitFeedbackInterrupt === 'function') {
+            detachSubmitFeedbackInterrupt();
+        }
+
+        detachSubmitFeedbackInterrupt = null;
+    }
+
+    function attachPlannerSubmitFeedbackInterruption() {
+        clearPlannerSubmitFeedbackInterruption();
+
+        const handleWheelInterrupt = (event) => {
+            const deltaX = Math.abs(Number(event?.deltaX) || 0);
+            const deltaY = Math.abs(Number(event?.deltaY) || 0);
+            const deltaZ = Math.abs(Number(event?.deltaZ) || 0);
+
+            if (deltaX < 0.5 && deltaY < 0.5 && deltaZ < 0.5) {
+                return;
+            }
+
+            if (window.OceanScroll && typeof window.OceanScroll.cancelActiveAnimation === 'function') {
+                window.OceanScroll.cancelActiveAnimation();
+            }
+
+            resetPlannerSubmitFeedback();
+        };
+
+        window.addEventListener('wheel', handleWheelInterrupt, { passive: true });
+        detachSubmitFeedbackInterrupt = () => {
+            window.removeEventListener('wheel', handleWheelInterrupt, { passive: true });
+        };
+    }
+
+    function clearPlannerSubmitFeedbackTimers() {
+        if (submitContinueTimer) {
+            window.clearTimeout(submitContinueTimer);
+            submitContinueTimer = 0;
+        }
+
+        if (submitFeedbackCountdownTimer) {
+            window.clearTimeout(submitFeedbackCountdownTimer);
+            submitFeedbackCountdownTimer = 0;
+        }
+
+        if (submitFeedbackResetTimer) {
+            window.clearTimeout(submitFeedbackResetTimer);
+            submitFeedbackResetTimer = 0;
+        }
+    }
+
+    function resetPlannerSubmitFeedback(options = {}) {
+        const shouldSyncSummary = options.syncSummary !== false;
+
+        clearPlannerSubmitFeedbackInterruption();
+        clearPlannerSubmitFeedbackTimers();
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+        submitButton.removeAttribute('aria-label');
+        submitButton.classList.remove('is-feedback', 'is-feedback-confirmed');
+        summaryRoot.classList.remove('is-submit-feedback');
+        submitButtonLabel.textContent = defaultSubmitButtonLabel;
+
+        if (shouldSyncSummary) {
+            updatePlannerSummary();
+        }
+    }
+
+    function triggerPlannerSubmitFeedback() {
+        const feedbackStage = getPlannerSubmitFeedbackStage();
+        const feedbackCopy = SUBMIT_FEEDBACK_COPY[feedbackStage] || SUBMIT_FEEDBACK_COPY.idle;
+        const feedbackDelay = getPlannerSubmitFeedbackDelay();
+
+        resetPlannerSubmitFeedback({ syncSummary: false });
+
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-busy', 'true');
+        submitButton.classList.add('is-feedback');
+        submitButton.classList.toggle('is-feedback-confirmed', feedbackStage === 'confirmed');
+        startPlannerSubmitFeedbackCountdown(feedbackCopy.button, feedbackDelay);
+        attachPlannerSubmitFeedbackInterruption();
+
+        summaryRoot.classList.remove('is-submit-feedback');
+        void summaryRoot.offsetWidth;
+        summaryRoot.classList.add('is-submit-feedback');
+        summaryStatusNote.textContent = feedbackCopy.status;
+
+        submitContinueTimer = window.setTimeout(() => {
+            submitContinueTimer = 0;
+            scrollToSection(submitButton.dataset.scrollTarget || '#trip-layer', 1640);
+
+            submitFeedbackResetTimer = window.setTimeout(() => {
+                submitFeedbackResetTimer = 0;
+                resetPlannerSubmitFeedback();
+            }, 560);
+        }, feedbackDelay);
     }
 
     function prepareFieldPanel(fieldKey) {
@@ -1887,13 +2058,14 @@ function setupPlannerSummary() {
     });
 
     // 主按钮更像“把当前安排收进下一层浏览节奏”：
-    // 先保存草稿和已收进行程，再收起浮层，最后平滑滚动到目标区块。
+    // 先保存草稿和已收进行程，再给出一小段“已收住”的确认反馈，最后平滑滚动到目标区块。
     submitButton.addEventListener('click', (event) => {
         event.preventDefault();
+        clearPendingAutoAdvance();
         persistPlannerDraft();
         commitPlannerDeskSelection();
         closeActivePanel();
-        scrollToSection(submitButton.dataset.scrollTarget || '#trip-layer', 1640);
+        triggerPlannerSubmitFeedback();
     });
 
     document.addEventListener('click', (event) => {
@@ -1948,7 +2120,7 @@ function setupPlannerSummary() {
     };
 }
 
-// 潜前准备系统。
+// 潜前准备系统：
 // 左侧是主题卡片，右侧是详情面板。
 // 它的核心不是“展开收起更多文字”，而是用更平静的节奏把准备事项逐层摊开。
 class PrepSystem {
@@ -2038,8 +2210,6 @@ class PrepSystem {
             this.summary.textContent = config.summary;
         }
 
-        this.panel.classList.add('is-visible');
-
         if (shouldRefreshPanel) {
             this.panel.classList.remove('is-switching');
             requestAnimationFrame(() => {
@@ -2063,8 +2233,8 @@ class PrepSystem {
             });
         });
         // 连续两帧 requestAnimationFrame 是为了确保：
-        // 1. 新内容先插入 DOM
-        // 2. 浏览器先完成一次布局
+        // 1. 新内容先插入 DOM。
+        // 2. 浏览器先完成一次布局。
         // 3. 再触发内容显现，让换面节奏稳定生效。
     }
 }
@@ -2103,7 +2273,10 @@ function getTripStore() {
 }
 
 let confirmedBookingsTextLayoutController = null;
-let tripRevealObserver = null;
+const tripRevealObservers = new Map();
+
+// 把“单个显现区块 -> 它当前挂着的 reveal timeout”绑定起来。
+// 这样区块还没来得及显示就被重新渲染时，可以先把旧计时器清掉，避免动画串线。
 const tripRevealTimers = new WeakMap();
 
 /**
@@ -2140,9 +2313,64 @@ function scheduleTripReveal(element, delay) {
 }
 
 /**
+ * getTripRevealObserver(options) - 按不同阈值配置复用 reveal 观察器
+ * @param {{ threshold?: number, rootMargin?: string, requireViewportReady?: boolean, readyTopRatio?: number, readyBottomRatio?: number }} [options] - observer 配置
+ * @returns {IntersectionObserver} - 对应配置下的可复用 observer
+ */
+function getTripRevealObserver(options = {}) {
+    const thresholdValue = Number.isFinite(options.threshold) ? options.threshold : 0.14;
+    const threshold = Math.min(1, Math.max(0, thresholdValue));
+    const rootMargin = typeof options.rootMargin === 'string' && options.rootMargin.trim()
+        ? options.rootMargin.trim()
+        : '0px 0px -8% 0px';
+    const requireViewportReady = options.requireViewportReady === true;
+    const readyTopRatio = Number.isFinite(options.readyTopRatio) ? options.readyTopRatio : 0.96;
+    const readyBottomRatio = Number.isFinite(options.readyBottomRatio) ? options.readyBottomRatio : 0.08;
+    const observerKey = [
+        threshold.toFixed(3),
+        rootMargin,
+        requireViewportReady ? '1' : '0',
+        readyTopRatio.toFixed(3),
+        readyBottomRatio.toFixed(3)
+    ].join('|');
+
+    if (tripRevealObservers.has(observerKey)) {
+        return tripRevealObservers.get(observerKey);
+    }
+
+    const observer = new IntersectionObserver((entries, currentObserver) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            const target = entry.target;
+            if (requireViewportReady && !isElementReadyForViewportEntrance(target, {
+                topRatio: readyTopRatio,
+                bottomRatio: readyBottomRatio
+            })) {
+                return;
+            }
+
+            const revealIndex = Number(target.dataset.tripRevealIndex || 0);
+            const revealDelay = Number(target.dataset.tripRevealDelay || 0);
+            const stepDelay = Number(target.dataset.tripRevealStepDelay || 0);
+            scheduleTripReveal(target, revealDelay || (revealIndex * stepDelay));
+            currentObserver.unobserve(target);
+        });
+    }, {
+        threshold,
+        rootMargin
+    });
+
+    tripRevealObservers.set(observerKey, observer);
+    return observer;
+}
+
+/**
  * observeTripRevealElements(elements, options) - 用统一 observer 监听行程页的区块显现
  * @param {Element[]} elements - 需要监听的节点列表
- * @param {{ baseDelay?: number, stepDelay?: number }} [options] - 错落节奏配置
+ * @param {{ baseDelay?: number, stepDelay?: number, threshold?: number, rootMargin?: string, requireViewportReady?: boolean, readyTopRatio?: number, readyBottomRatio?: number }} [options] - reveal 节奏与 observer 配置
  * @returns {void} - 无返回值，直接注册 reveal 行为
  */
 function observeTripRevealElements(elements, options = {}) {
@@ -2156,25 +2384,13 @@ function observeTripRevealElements(elements, options = {}) {
 
     const baseDelay = Number.isFinite(options.baseDelay) ? options.baseDelay : 0;
     const stepDelay = Number.isFinite(options.stepDelay) ? options.stepDelay : 88;
-
-    if (!tripRevealObserver) {
-        tripRevealObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
-
-                const target = entry.target;
-                const revealIndex = Number(target.dataset.tripRevealIndex || 0);
-                const revealDelay = Number(target.dataset.tripRevealDelay || 0);
-                scheduleTripReveal(target, revealDelay || (revealIndex * stepDelay));
-                tripRevealObserver.unobserve(target);
-            });
-        }, {
-            threshold: 0.14,
-            rootMargin: '0px 0px -8% 0px'
-        });
-    }
+    const observer = getTripRevealObserver({
+        threshold: options.threshold,
+        rootMargin: options.rootMargin,
+        requireViewportReady: options.requireViewportReady,
+        readyTopRatio: options.readyTopRatio,
+        readyBottomRatio: options.readyBottomRatio
+    });
 
     targets.forEach((target, index) => {
         if (target.classList.contains('is-visible')) {
@@ -2183,7 +2399,8 @@ function observeTripRevealElements(elements, options = {}) {
 
         target.dataset.tripRevealIndex = String(index);
         target.dataset.tripRevealDelay = String(baseDelay + (index * stepDelay));
-        tripRevealObserver.observe(target);
+        target.dataset.tripRevealStepDelay = String(stepDelay);
+        observer.observe(target);
     });
 }
 
@@ -2192,18 +2409,29 @@ function observeTripRevealElements(elements, options = {}) {
  * @returns {void} - 无返回值，直接为已存在的区块注册 reveal
  */
 function setupTripReveal() {
+    const plannerDesk = document.getElementById('plannerDeskControl');
     const focusHead = document.querySelector('#trip-layer .trip-section-head');
     const focusCards = Array.from(document.querySelectorAll('#trip-layer .trip-focus-card'));
     const prepHead = document.querySelector('#trip-prep .trip-section-head');
     const prepCards = Array.from(document.querySelectorAll('#trip-prep .prep-card'));
     const prepPanel = document.getElementById('prepDetailPanel');
 
+    plannerDesk?.classList.add('trip-reveal-block');
     focusHead?.classList.add('trip-reveal-head');
     prepHead?.classList.add('trip-reveal-head');
     prepPanel?.classList.add('trip-reveal-panel');
     focusCards.forEach((card) => card.classList.add('trip-reveal-card'));
     prepCards.forEach((card) => card.classList.add('trip-reveal-card'));
 
+    observeTripRevealElements([plannerDesk], {
+        baseDelay: 80,
+        stepDelay: 0,
+        threshold: 0.28,
+        rootMargin: '0px 0px -18% 0px',
+        requireViewportReady: true,
+        readyTopRatio: 0.74,
+        readyBottomRatio: 0.12
+    });
     observeTripRevealElements([focusHead], { baseDelay: 20, stepDelay: 0 });
     observeTripRevealElements(focusCards, { baseDelay: 60, stepDelay: 90 });
     observeTripRevealElements([prepHead], { baseDelay: 20, stepDelay: 0 });
@@ -2219,19 +2447,22 @@ let confirmedBookingsEntranceObserver = null;
 const confirmedBookingsEntranceTimers = new WeakMap();
 
 /**
- * isElementReadyForViewportEntrance(element) - 判断某个区块是否已经进入当前可见区域
+ * isElementReadyForViewportEntrance(element, options) - 判断某个区块是否已经进入当前可见区域
  * @param {Element} element - 需要判断的 DOM 元素
+ * @param {{ topRatio?: number, bottomRatio?: number }} [options] - 进入视口判定比例
  * @returns {boolean} - 当前元素是否足够可见，适合触发入场动画
  */
-function isElementReadyForViewportEntrance(element) {
+function isElementReadyForViewportEntrance(element, options = {}) {
     if (!(element instanceof Element)) {
         return false;
     }
 
     const rect = element.getBoundingClientRect();
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const topRatio = Number.isFinite(options.topRatio) ? options.topRatio : 0.96;
+    const bottomRatio = Number.isFinite(options.bottomRatio) ? options.bottomRatio : 0.08;
 
-    return rect.top < viewportHeight * 0.96 && rect.bottom > viewportHeight * 0.08;
+    return rect.top < viewportHeight * topRatio && rect.bottom > viewportHeight * bottomRatio;
 }
 
 /**
@@ -2798,9 +3029,9 @@ function setupConfirmedBookingsStage() {
     });
 }
 
-// 行程页初始化入口：统一启动导航、摘要卡、准备系统和头像返回逻辑。
+// 行程页初始化入口：统一启动导航、摘要卡、已收进行程、准备系统和头像返回逻辑。
 /**
- * document DOMContentLoaded 回调 - 初始化行程页的导航、摘要卡和准备系。
+ * document DOMContentLoaded 回调 - 初始化行程页的主交互模块。
  * @returns {void} - 无返回值，直接启动页面逻辑
  */
 document.addEventListener('DOMContentLoaded', () => {

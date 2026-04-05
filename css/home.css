@@ -3412,8 +3412,15 @@
         filter 0.9s ease;
 }
 
-/* 模块进入视口后，让标题区和舞台一起缓慢浮现。 */
-.dive-match.is-visible .dive-match-reveal {
+/* 标题区先进入，像先看见一层海的说明。 */
+.dive-match.is-visible .dive-match-intro.dive-match-reveal {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+}
+
+/* 舞台本体再慢一点进入，避免用户看到时动画已经提前播完。 */
+.dive-match.is-stage-visible .dive-match-stage.dive-match-reveal {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
@@ -3525,8 +3532,8 @@
     transition-delay: var(--match-delay, 0ms);
 }
 
-/* 模块出现后，分类铭牌依次浮现 */
-.dive-match.is-visible .dive-match-filter {
+/* 舞台真正进入后，分类铭牌依次浮现。 */
+.dive-match.is-stage-visible .dive-match-filter {
     opacity: 1;
     transform: translate3d(0, 0, 0);
 }
@@ -3601,8 +3608,8 @@
     transform: translate3d(0, -28px, 0) scale(0.988);
 }
 
-/* 当前激活内容层进入稳定状态。 */
-.dive-match-surface.is-active {
+/* 当前激活内容层进入稳定状态，但要等舞台真正进入视口后再开始。 */
+.dive-match.is-stage-visible .dive-match-surface.is-active {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
@@ -3622,13 +3629,16 @@
     transform: translate3d(0, 20px, 0) scale(0.982);
 }
 
-/* 内容稳定后做极轻的呼吸浮动。 */
-.dive-match-surface.is-resting {
+/* 内容稳定后做极轻的呼吸浮动，也延后到用户真正看到这层海时。 */
+.dive-match.is-stage-visible .dive-match-surface.is-resting {
     animation: dive-match-surface-breathe 7.4s ease-in-out infinite;
 }
 
 /* 当前分类大卡像一页更深层的海域档案。 */
 .dive-match-focus-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     align-self: start;
     min-height: 100%;
     padding: 28px 26px 26px;
@@ -3642,6 +3652,127 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.14);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+    opacity: 0;
+    filter: blur(14px);
+    transform: translate3d(-18px, 26px, 0) scale(0.982);
+    transition:
+        opacity 0.64s ease,
+        transform 0.78s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.78s ease;
+}
+
+/* 焦点卡补一层慢慢扫过的浅海微光，让切换更像海压变化而不是普通换卡。 */
+.dive-match-focus-card::before,
+.dive-match-focus-card::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+}
+
+.dive-match-focus-card::before {
+    inset: auto -12% -26% 34%;
+    height: 54%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 214, 236, 0.22) 0%, rgba(168, 214, 236, 0) 72%);
+    filter: blur(30px);
+    transform: translate3d(22px, 18px, 0) scale(0.88);
+    transition:
+        opacity 0.82s ease,
+        transform 1.22s cubic-bezier(0.16, 0.82, 0.2, 1);
+}
+
+.dive-match-focus-card::after {
+    inset: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(128deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 36%),
+        linear-gradient(180deg, rgba(152, 205, 230, 0.12), rgba(152, 205, 230, 0) 42%);
+    transform: translate3d(-8%, 0, 0);
+    transition:
+        opacity 0.72s ease,
+        transform 1s cubic-bezier(0.16, 0.82, 0.2, 1);
+}
+
+/* 当前层被激活后，焦点卡先稳住，再把海雾和微光推开。 */
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+    transition-delay: 80ms;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card::before {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition-delay: 150ms;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card::after {
+    opacity: 0.78;
+    transform: translate3d(0, 0, 0);
+    transition-delay: 210ms;
+}
+
+/* 焦点卡里的文案分层显现，像同一页档案被海水慢慢排开。 */
+.dive-match-focus-group,
+.dive-match-focus-head,
+.dive-match-focus-audience,
+.dive-match-focus-guidance,
+.dive-match-focus-note {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    filter: blur(12px);
+    transform: translate3d(0, 18px, 0);
+    transition:
+        opacity 0.54s ease,
+        transform 0.68s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.68s ease;
+}
+
+.dive-match-focus-depth {
+    opacity: 0;
+    transform: translate3d(14px, -6px, 0) scale(0.94);
+    transition:
+        opacity 0.48s ease,
+        transform 0.62s cubic-bezier(0.18, 0.84, 0.22, 1);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-group,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-head,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-audience,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-guidance,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-note,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-depth {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-group {
+    transition-delay: 180ms;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-head {
+    transition-delay: 250ms;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-depth {
+    transition-delay: 320ms;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-audience {
+    transition-delay: 340ms;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-guidance {
+    transition-delay: 420ms;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-note {
+    transition-delay: 500ms;
 }
 
 /* 分类分组名和当前所在层级。 */
@@ -3752,7 +3883,7 @@
 }
 
 /* 当前激活的推荐卡片依次浮现，像一组被慢慢翻开的海域档案。 */
-.dive-match-surface.is-active .dive-match-card {
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card {
     opacity: 1;
     transform: translate3d(0, 0, 0);
 }
@@ -3794,6 +3925,20 @@
     display: grid;
     gap: 10px;
     padding: 18px 18px 20px;
+}
+
+/* 推荐卡内部内容不再整块出现，而是跟随海域卡逐层浮现。 */
+.dive-match-card-kicker,
+.dive-match-card-name,
+.dive-match-card-reason,
+.dive-match-card-tags {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translate3d(0, 14px, 0);
+    transition:
+        opacity 0.48s ease,
+        transform 0.62s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.62s ease;
 }
 
 /* 英文名做轻一点的副标。*/
@@ -3840,6 +3985,11 @@
     color: rgba(236, 246, 252, 0.82);
     font-size: 0.78rem;
     line-height: 1;
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.96);
+    transition:
+        opacity 0.42s ease,
+        transform 0.52s cubic-bezier(0.18, 0.84, 0.22, 1);
 }
 
 /* 查看详情按钮保持克制发光，不做普通按钮感 */
@@ -3857,7 +4007,67 @@
     color: #f2fbff;
     font-size: 0.82rem;
     letter-spacing: 0.05em;
-    transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+    opacity: 0;
+    filter: blur(10px);
+    transition:
+        transform 0.28s ease,
+        box-shadow 0.28s ease,
+        border-color 0.28s ease,
+        opacity 0.48s ease,
+        filter 0.48s ease;
+}
+
+/* 每张卡激活后，文案和标签按卡片自己的节奏跟进。 */
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-kicker,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-name,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-reason,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tags,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag,
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-action {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-kicker {
+    transition-delay: calc(var(--card-delay, 0ms) + 80ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-name {
+    transition-delay: calc(var(--card-delay, 0ms) + 140ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-reason {
+    transition-delay: calc(var(--card-delay, 0ms) + 210ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tags {
+    transition-delay: calc(var(--card-delay, 0ms) + 280ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(1) {
+    transition-delay: calc(var(--card-delay, 0ms) + 320ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(2) {
+    transition-delay: calc(var(--card-delay, 0ms) + 360ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(3) {
+    transition-delay: calc(var(--card-delay, 0ms) + 400ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(4) {
+    transition-delay: calc(var(--card-delay, 0ms) + 440ms);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-action {
+    transition-delay:
+        0ms,
+        0ms,
+        0ms,
+        calc(var(--card-delay, 0ms) + 430ms),
+        calc(var(--card-delay, 0ms) + 430ms);
 }
 
 /* hover 时给按钮一丝向上的海流。 */

@@ -303,11 +303,15 @@ body.page-transition-active .login-stage-hud {
     transition: opacity 220ms ease, transform 220ms ease;
 }
 
+/* 拖拽点只在舞台 hover 或实际拖拽时显影，
+   这样调试入口存在，但不会破坏门厅平时的完整感。 */
 .login-stage-shell:hover .login-stage-resize-handle,
 .login-stage-shell.is-resizing .login-stage-resize-handle {
     opacity: 1;
 }
 
+/* 所有拖拽点的公共视觉核心：
+   真正可点的是 button，本体前面的微光胶囊只是给调试态一个轻量提示。 */
 .login-stage-resize-handle::before {
     content: "";
     position: absolute;
@@ -320,6 +324,7 @@ body.page-transition-active .login-stage-hud {
         0 10px 22px rgba(6, 20, 32, 0.12);
 }
 
+/* 左右边缘手柄：允许单独调宽，不改门厅高度。 */
 .login-stage-resize-handle.is-east,
 .login-stage-resize-handle.is-west {
     top: 36px;
@@ -343,6 +348,7 @@ body.page-transition-active .login-stage-hud {
     height: 72px;
 }
 
+/* 上下边缘手柄：允许单独调高，保持左右边界稳定。 */
 .login-stage-resize-handle.is-north,
 .login-stage-resize-handle.is-south {
     left: 32px;
@@ -366,6 +372,7 @@ body.page-transition-active .login-stage-hud {
     height: 4px;
 }
 
+/* 四角手柄：允许同时改宽高，适合快速把门厅向某个方向整体放大或收紧。 */
 .login-stage-resize-handle.is-north-east,
 .login-stage-resize-handle.is-south-east,
 .login-stage-resize-handle.is-south-west,
@@ -380,18 +387,21 @@ body.page-transition-active .login-stage-hud {
     cursor: nesw-resize;
 }
 
+/* 右下角：最符合桌面端“自由放大”直觉的入口，常用于把门厅向右下继续展开。 */
 .login-stage-resize-handle.is-south-east {
     right: -14px;
     bottom: -14px;
     cursor: nwse-resize;
 }
 
+/* 左下角：和右下角成对，适合在保住顶部位置时回收左侧宽度。 */
 .login-stage-resize-handle.is-south-west {
     left: -14px;
     bottom: -14px;
     cursor: nesw-resize;
 }
 
+/* 左上角：允许从顶部和左边一起收放，主要用于校正门厅在大屏里的靠位。 */
 .login-stage-resize-handle.is-north-west {
     left: -14px;
     top: -14px;

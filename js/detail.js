@@ -1721,6 +1721,7 @@ class DetailPage {
         this.bookingModal = document.getElementById('bookingModal');
         this.bookingModalBody = document.getElementById('bookingModalBody');
         this.bookingModalCloseTimer = 0;
+        this.bookingModalLayoutRevealTimer = 0;
         this.bookingModalMorphRevealTimer = 0;
         this.bookingModalMorphCleanupTimer = 0;
         this.bookingModalMorphGhost = null;
@@ -5867,15 +5868,32 @@ class DetailPage {
      * @returns {string} - 套餐弹层 HTML 字符串
      */
     createPackageModalMarkup(pkg) {
+        let layoutOrder = 0;
+        const nextLayoutOrder = () => layoutOrder++;
+        const introOrder = nextLayoutOrder();
+        const priceOrder = nextLayoutOrder();
+        const matchOrder = nextLayoutOrder();
+        const highlightsOrder = nextLayoutOrder();
+        const fitReasonOrder = nextLayoutOrder();
+        const reentryOrder = pkg.reentryNote ? nextLayoutOrder() : null;
+        const scheduleOrder = nextLayoutOrder();
+        const includesOrder = nextLayoutOrder();
+        const excludesOrder = nextLayoutOrder();
+        const lodgingOrder = nextLayoutOrder();
+        const diningOrder = nextLayoutOrder();
+        const paceOrder = nextLayoutOrder();
+        const riskOrder = nextLayoutOrder();
+        const actionsOrder = nextLayoutOrder();
+
         return `
             <div class="package-modal-shell">
                 <header class="package-modal-head">
-                    <div>
+                    <div class="package-modal-head-copy package-modal-motion" style="--package-modal-enter-order: ${introOrder}">
                         <p class="package-modal-kicker">${pkg.group}</p>
                         <h2 class="package-modal-title">${pkg.name}</h2>
                         <p class="package-modal-subtitle">${pkg.mood}</p>
                     </div>
-                    <div class="package-modal-price">
+                    <div class="package-modal-price package-modal-motion" style="--package-modal-enter-order: ${priceOrder}">
                         <div>
                             <div>${pkg.duration}</div>
                             <strong>${pkg.price}</strong>
@@ -5883,31 +5901,31 @@ class DetailPage {
                     </div>
                 </header>
 
-                <div class="package-modal-match">
+                <div class="package-modal-match package-modal-motion" style="--package-modal-enter-order: ${matchOrder}">
                     ${Array.from(new Set([...pkg.fitTags, pkg.audience])).map((tag) => createBookingMatchChipMarkup(tag)).join('')}
                 </div>
 
                 <div class="package-modal-body">
-                    <section class="package-modal-section">
+                    <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${highlightsOrder}">
                         <h3>套餐亮点</h3>
                         <ul>
                             ${pkg.highlights.map((highlight) => `<li>${highlight}</li>`).join('')}
                         </ul>
                     </section>
 
-                    <section class="package-modal-section">
+                    <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${fitReasonOrder}">
                         <h3>为什么适合这片海</h3>
                         <p>${pkg.fitReason}</p>
                     </section>
 
                     ${pkg.reentryNote ? `
-                    <section class="package-modal-section">
+                    <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${reentryOrder}">
                         <h3>半年未潜水时</h3>
                         <p>${pkg.reentryNote}</p>
                     </section>
                     ` : ''}
 
-                    <section class="package-modal-section is-full">
+                    <section class="package-modal-section is-full package-modal-motion" style="--package-modal-enter-order: ${scheduleOrder}">
                         <h3>每日安排</h3>
                         <div class="package-modal-schedule">
                             ${pkg.schedule.map((item) => `
@@ -5920,36 +5938,36 @@ class DetailPage {
                     </section>
 
                     <div class="package-modal-grid">
-                        <section class="package-modal-section">
+                        <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${includesOrder}">
                             <h3>包含内容</h3>
                             <ul>
                                 ${pkg.includes.map((item) => `<li>${item}</li>`).join('')}
                             </ul>
                         </section>
 
-                        <section class="package-modal-section">
+                        <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${excludesOrder}">
                             <h3>不包含内容</h3>
                             <ul>
                                 ${pkg.excludes.map((item) => `<li>${item}</li>`).join('')}
                             </ul>
                         </section>
 
-                        <section class="package-modal-section">
+                        <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${lodgingOrder}">
                             <h3>住宿说明</h3>
                             <p>${pkg.lodging}</p>
                         </section>
 
-                        <section class="package-modal-section">
+                        <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${diningOrder}">
                             <h3>餐饮说明</h3>
                             <p>${pkg.dining}</p>
                         </section>
 
-                        <section class="package-modal-section">
+                        <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${paceOrder}">
                             <h3>潜水节奏说明</h3>
                             <p>${pkg.pace}</p>
                         </section>
 
-                        <section class="package-modal-section">
+                        <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${riskOrder}">
                             <h3>能力与风险提示</h3>
                             <p><strong>适合人群：</strong>${pkg.audience}</p>
                             <p>${pkg.risk}</p>
@@ -5957,7 +5975,7 @@ class DetailPage {
                     </div>
                 </div>
 
-                <div class="package-modal-actions">
+                <div class="package-modal-actions package-modal-motion" style="--package-modal-enter-order: ${actionsOrder}">
                     <button type="button" class="package-modal-secondary">再想想</button>
                     <button type="button" class="package-modal-primary" data-package-id="${pkg.id}">确认预订</button>
                 </div>

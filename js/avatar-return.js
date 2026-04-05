@@ -1,4 +1,19 @@
+/* ============================================
+   头像返回确认 - avatar-return.js
+   ============================================
+   职责：
+   1. 给导航头像补一个“回到登录入口”的确认弹层。
+   2. 统一处理焦点锁定、Esc 关闭和返回焦点，避免弹层只剩视觉没有可用性。
+   3. 继续复用 DepthManager，让返回入口也保持海层切换节奏。
+   阅读顺序：
+   1. 常量与单例状态
+   2. 弹层打开/关闭
+   3. 懒创建 modal
+   4. 对外绑定与导出
+*/
 (function () {
+    // 这组常量把样式类名、焦点范围和默认文案收在一起，
+    // 方便不同页面只改配置，不必重复实现一套返回入口弹层。
     const MODAL_ID = 'yanqiAvatarReturnModal';
     const ACTIVE_CLASS = 'active';
     const CLOSING_CLASS = 'is-closing';
@@ -15,6 +30,8 @@
         triggerLabel: '\u6253\u5f00\u8fd4\u56de\u5165\u53e3\u786e\u8ba4'
     });
 
+    // 这里采用单例状态，而不是每次点击都新建一套弹层实例。
+    // 原因是全站头像入口语义一致，复用一份 DOM 和焦点管理更稳定，也更容易维护。
     const state = {
         modal: null,
         dialog: null,
@@ -36,6 +53,7 @@
         };
     }
 
+    // 返回入口同样优先走深度切换，保证“回到海面”不是普通 location 跳页。
     function navigateWithDepth(url) {
         if (window.DepthManager && typeof window.DepthManager.navigateTo === 'function') {
             window.DepthManager.navigateTo(url);
@@ -89,6 +107,7 @@
         }
     }
 
+    // 关闭时保留一段 closing class，让 CSS 有时间把退场动画完整播放完，再清理状态。
     function closeAvatarReturnModal() {
         if (!state.modal || (!state.isOpen && !state.modal.classList.contains(ACTIVE_CLASS))) {
             return;
@@ -120,6 +139,8 @@
         navigateWithDepth(targetUrl);
     }
 
+    // modal 采用懒创建：
+    // 只有页面上真的存在头像入口时才插入 DOM，避免所有页面首屏都多一层未使用的弹层结构。
     function ensureModal() {
         if (state.modal) {
             return state.modal;
@@ -162,6 +183,7 @@
 
         state.confirmButton?.addEventListener('click', confirmAvatarReturn);
 
+        // 这里统一托管 Esc 关闭和 Tab 焦点循环，保证弹层展开时键盘不会“漏”到页面底层。
         window.addEventListener('keydown', (event) => {
             if (!state.isOpen || !state.modal) {
                 return;
@@ -199,6 +221,7 @@
         return modal;
     }
 
+    // 打开时同步记录当前触发源，关闭后才知道应该把焦点还给谁。
     function openAvatarReturnModal(config = {}, trigger = null) {
         ensureModal();
 
@@ -221,6 +244,7 @@
         window.requestAnimationFrame(() => focusElement(state.confirmButton));
     }
 
+    // 对外暴露的是“绑定头像入口”，而不是要求每个页面自己写一套点击/键盘逻辑。
     function bindAvatarReturn(config = {}) {
         const resolvedConfig = normalizeConfig(config);
         const avatars = Array.from(document.querySelectorAll(resolvedConfig.selector)).filter((element) => element instanceof HTMLElement);
@@ -273,6 +297,7 @@
         };
     }
 
+    // 给页面提供三类能力：自动绑定、主动打开、主动关闭。
     window.YanqiAvatarReturn = Object.freeze({
         bind: bindAvatarReturn,
         open: openAvatarReturnModal,
