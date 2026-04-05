@@ -5323,13 +5323,14 @@ body.has-overlay-lock {
     margin: 0;
     z-index: 1;
     pointer-events: none;
+    overflow: hidden;
+    box-sizing: border-box;
     transform-origin: top left;
     will-change: transform, opacity, filter;
     animation: none !important;
     opacity: 1 !important;
 }
 
-.booking-card-morph-ghost,
 .booking-card-morph-ghost * {
     transition: none !important;
 }
@@ -5337,6 +5338,52 @@ body.has-overlay-lock {
 .booking-card-morph-ghost::before {
     opacity: 0 !important;
     transform: none !important;
+}
+
+.package-modal-motion,
+.booking-modal-content .modal-close {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+    transition:
+        opacity 620ms ease,
+        transform 880ms cubic-bezier(0.18, 0.82, 0.2, 1),
+        filter 620ms ease;
+    transition-delay: 0ms;
+    will-change: transform, opacity, filter;
+}
+
+.booking-modal-content .modal-close {
+    --package-modal-enter-order: 1;
+}
+
+.booking-modal-content.is-layout-staged .package-modal-motion,
+.booking-modal-content.is-layout-staged .modal-close {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0) scale(0.988);
+    filter: blur(10px);
+}
+
+.booking-modal-content.is-layout-staged .package-modal-price {
+    transform: translate3d(18px, 22px, 0) scale(0.964);
+}
+
+.booking-modal-content.is-layout-staged .package-modal-head-copy {
+    transform: translate3d(-10px, 18px, 0) scale(0.994);
+}
+
+.booking-modal-content.is-layout-ready .package-modal-motion,
+.booking-modal-content.is-layout-ready .modal-close {
+    transition-delay: calc(120ms + var(--package-modal-enter-order, 0) * 44ms);
+}
+
+.booking-modal-content.is-layout-closing .package-modal-motion,
+.booking-modal-content.is-layout-closing .modal-close {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.992);
+    filter: blur(8px);
+    transition-duration: 220ms;
+    transition-delay: 0ms !important;
 }
 
 /* 定义 modalSlideUp 动画关键帧 */
@@ -5385,6 +5432,10 @@ body.has-overlay-lock {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 18px;
     padding-right: 44px;
+}
+
+.package-modal-head-copy {
+    min-width: 0;
 }
 
 /* 控制 .package-modal-kicker 的布局、视觉和状态表现 */

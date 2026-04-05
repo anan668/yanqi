@@ -6107,11 +6107,68 @@ class DetailPage {
         };
     }
 
+    clearBookingModalLayoutTimer() {
+        if (this.bookingModalLayoutRevealTimer) {
+            window.clearTimeout(this.bookingModalLayoutRevealTimer);
+            this.bookingModalLayoutRevealTimer = 0;
+        }
+    }
+
+    clearBookingModalLayoutState() {
+        this.clearBookingModalLayoutTimer();
+
+        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
+        if (modalContent) {
+            modalContent.classList.remove('is-layout-staged', 'is-layout-ready', 'is-layout-closing');
+        }
+    }
+
+    primeBookingModalLayout() {
+        this.clearBookingModalLayoutTimer();
+
+        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
+        if (!modalContent) {
+            return;
+        }
+
+        modalContent.classList.remove('is-layout-ready', 'is-layout-closing');
+        modalContent.classList.add('is-layout-staged');
+    }
+
+    revealBookingModalLayout(delay = 120) {
+        this.clearBookingModalLayoutTimer();
+
+        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
+        if (!modalContent) {
+            return;
+        }
+
+        this.bookingModalLayoutRevealTimer = window.setTimeout(() => {
+            modalContent.classList.remove('is-layout-staged', 'is-layout-closing');
+            modalContent.classList.add('is-layout-ready');
+            this.bookingModalLayoutRevealTimer = 0;
+        }, delay);
+    }
+
+    collapseBookingModalLayout() {
+        this.clearBookingModalLayoutTimer();
+
+        const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
+        if (!modalContent) {
+            return;
+        }
+
+        modalContent.classList.remove('is-layout-ready', 'is-layout-staged');
+        modalContent.classList.add('is-layout-closing');
+    }
+
     /**
      * clearBookingModalMorph() - 清理套餐卡到弹层的共享元素过渡状态
      * @returns {void} - 无返回值，直接移除 ghost 和临时 class
      */
     clearBookingModalMorph() {
+        this.clearBookingModalLayoutState();
+
         if (this.bookingModalMorphRevealTimer) {
             window.clearTimeout(this.bookingModalMorphRevealTimer);
             this.bookingModalMorphRevealTimer = 0;
@@ -6153,47 +6210,97 @@ class DetailPage {
         const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
         const originCard = this.getPackageSourceCard(packageId);
 
-        if (!modalContent || window.innerWidth < 920) {
-            modalContent?.classList.remove('is-morphing');
+        if (!modalContent) {
             return;
         }
 
         const sourceRect = sourceState?.rect || originCard?.getBoundingClientRect();
         const targetRect = modalContent.getBoundingClientRect();
+        const canMorph =
+            window.innerWidth >= 920 &&
+            sourceRect &&
+            targetRect &&
+            sourceRect.width >= 40 &&
+            sourceRect.height >= 40 &&
+            targetRect.width >= 120 &&
+            targetRect.height >= 120;
 
-        if (!sourceRect || sourceRect.width < 40 || sourceRect.height < 40 || targetRect.width < 120 || targetRect.height < 120) {
+        modalContent.classList.add('is-morphing');
+
+        if (!canMorph) {
             modalContent.classList.remove('is-morphing');
+            this.revealBookingModalLayout(80);
             return;
         }
 
-        this.clearBookingModalMorph();
+        const ghost = sourceState?.ghost || originCard?.cloneNode(true);
+        const sourceRadius = Math.max(
+            18,
+            Math.round(Number.parseFloat(window.getComputedStyle(originCard || modalContent).borderTopLeftRadius) || 26)
+        );
+        const targetRadius = Math.max(
+            22,
+            Math.round(Number.parseFloat(window.getComputedStyle(modalContent).borderTopLeftRadius) || 30)
+        );
 
         this.activeBookingSourceCard = originCard || null;
         this.activeBookingSourceCard?.classList.add('is-originating');
-        modalContent.classList.add('is-morphing');
 
-        const invertX = sourceRect.left - targetRect.left;
-        const invertY = sourceRect.top - targetRect.top;
-        const invertScaleX = sourceRect.width / targetRect.width;
-        const invertScaleY = sourceRect.height / targetRect.height;
+        if (ghost && this.bookingModal) {
+            ghost.classList.add('is-layout-morphing');
+            ghost.style.left = `${sourceRect.left}px`;
+            ghost.style.top = `${sourceRect.top}px`;
+            ghost.style.width = `${sourceRect.width}px`;
+            ghost.style.height = `${sourceRect.height}px`;
+            ghost.style.transform = 'translate3d(0, 0, 0) scale(1, 1)';
+            ghost.style.transformOrigin = 'top left';
+            ghost.style.opacity = '1';
+            ghost.style.filter = 'blur(0px) saturate(1.04)';
+            ghost.style.borderRadius = `${sourceRadius}px`;
+            ghost.style.transition = 'none';
+            this.bookingModal.appendChild(ghost);
+            this.bookingModalMorphGhost = ghost;
+        }
+
+        const translateX = targetRect.left - sourceRect.left;
+        const translateY = targetRect.top - sourceRect.top;
+        const scaleX = targetRect.width / sourceRect.width;
+        const scaleY = targetRect.height / sourceRect.height;
 
         modalContent.style.transition = 'none';
-        modalContent.style.transformOrigin = 'top left';
-        modalContent.style.transform = `translate3d(${invertX}px, ${invertY}px, 0) scale(${invertScaleX}, ${invertScaleY})`;
-        modalContent.style.opacity = '1';
-        modalContent.style.filter = 'blur(0px)';
+        modalContent.style.transformOrigin = 'center center';
+        modalContent.style.transform = 'translate3d(0, 28px, 0) scale(0.992)';
+        modalContent.style.opacity = '0';
+        modalContent.style.filter = 'blur(16px)';
 
         void modalContent.offsetWidth;
 
         window.requestAnimationFrame(() => {
+            if (this.bookingModalMorphGhost) {
+                this.bookingModalMorphGhost.style.transition =
+                    'transform 980ms cubic-bezier(0.18, 0.82, 0.2, 1), opacity 640ms ease, filter 760ms ease, border-radius 980ms cubic-bezier(0.18, 0.82, 0.2, 1)';
+                this.bookingModalMorphGhost.style.transform =
+                    `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`;
+                this.bookingModalMorphGhost.style.opacity = '0.14';
+                this.bookingModalMorphGhost.style.filter = 'blur(14px) saturate(1.02)';
+                this.bookingModalMorphGhost.style.borderRadius = `${targetRadius}px`;
+            }
+
             modalContent.style.transition =
-                'transform 880ms cubic-bezier(0.18, 0.84, 0.18, 1), opacity 520ms ease, filter 520ms ease';
+                'opacity 620ms ease, transform 980ms cubic-bezier(0.18, 0.82, 0.2, 1), filter 620ms ease';
             modalContent.style.transform = 'translate3d(0, 0, 0) scale(1, 1)';
             modalContent.style.opacity = '1';
             modalContent.style.filter = 'blur(0px)';
         });
 
+        this.revealBookingModalLayout(150);
+
         this.bookingModalMorphRevealTimer = window.setTimeout(() => {
+            if (this.bookingModalMorphGhost) {
+                this.bookingModalMorphGhost.remove();
+                this.bookingModalMorphGhost = null;
+            }
+
             modalContent.classList.remove('is-morphing');
             modalContent.style.transition = '';
             modalContent.style.transformOrigin = '';
@@ -6201,7 +6308,7 @@ class DetailPage {
             modalContent.style.opacity = '';
             modalContent.style.filter = '';
             this.bookingModalMorphRevealTimer = 0;
-        }, 920);
+        }, 1040);
 
         this.bookingModalMorphCleanupTimer = window.setTimeout(() => {
             modalContent.classList.remove('is-morphing');
@@ -6211,7 +6318,7 @@ class DetailPage {
             modalContent.style.opacity = '';
             modalContent.style.filter = '';
             this.bookingModalMorphCleanupTimer = 0;
-        }, 960);
+        }, 1100);
     }
 
     // 遮罩锁定：在套餐弹窗、评论详情、图片放大层打开时统一锁住背景滚动。
@@ -6267,6 +6374,8 @@ class DetailPage {
             window.innerWidth >= 920 &&
             this.bookingModal.classList.contains('active')
         );
+
+        this.collapseBookingModalLayout();
 
         if (canReverseMorph) {
             const sourceVisibility = this.getElementVisibleState(sourceCard);
@@ -7378,6 +7487,7 @@ class DetailPage {
         this.bookingModalBody.innerHTML = this.createPackageModalMarkup(pkg);
         this.bookingModal.classList.remove('is-closing');
         this.bookingModal.setAttribute('aria-hidden', 'false');
+        this.primeBookingModalLayout();
         this.bookingModal.querySelector('.booking-modal-content')?.classList.add('is-morphing');
 
         window.requestAnimationFrame(() => {
