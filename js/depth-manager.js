@@ -33,6 +33,8 @@
         { selector: '#why-yanqi', depth: -36 },
         { selector: '.footer', depth: -42 }
     ]);
+    const HOME_DIVE_MATCH_SEMANTIC_RANGE = 6;
+    const HOME_DIVE_MATCH_SECTION_PUSH_MAX = 3;
 
     const MIN_DEPTH = -60;
     const MAX_DEPTH = 0;
@@ -2113,7 +2115,23 @@
             }
 
             const easedInfluence = easeInOutCubic(influence);
-            return baseDepth + (this.homeDiveMatchDepth - baseDepth) * easedInfluence;
+            const semanticDepthDelta = clamp(
+                Math.abs(this.homeDiveMatchDepth) - Math.abs(PAGE_DEPTH_MAP.home),
+                0,
+                HOME_DIVE_MATCH_SEMANTIC_RANGE
+            );
+            const semanticProgress = clamp(
+                semanticDepthDelta / HOME_DIVE_MATCH_SEMANTIC_RANGE,
+                0,
+                1
+            );
+            const semanticPush = HOME_DIVE_MATCH_SECTION_PUSH_MAX * semanticProgress;
+            const diveMatchTargetDepth = diveMatchStop.depth - semanticPush;
+            // 潜水匹配的分类深度只负责把当前海层再轻轻往下压，
+            // 不再反向覆盖首页整页的下潜基线，避免进入模块时出现“又浮浅一层”的错觉。
+            const boundedTargetDepth = Math.min(baseDepth, diveMatchTargetDepth);
+
+            return baseDepth + (boundedTargetDepth - baseDepth) * easedInfluence;
         }
 
         /**
