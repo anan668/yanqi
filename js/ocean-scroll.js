@@ -13,6 +13,28 @@
 */
 (function () {
     let activeScrollAnimation = null;
+    const SCROLL_MOODS = Object.freeze({
+        buoyant: Object.freeze({
+            durationScale: 1,
+            easing: easeBuoyant
+        }),
+        surface: Object.freeze({
+            durationScale: 0.9,
+            easing: easeSurface
+        }),
+        midwater: Object.freeze({
+            durationScale: 1.08,
+            easing: easeBuoyant
+        }),
+        deep: Object.freeze({
+            durationScale: 1.2,
+            easing: easePressure
+        }),
+        trench: Object.freeze({
+            durationScale: 1.34,
+            easing: easePressure
+        })
+    });
 
     /**
      * clamp(value, min, max) - 将数值限制在指定区间内
@@ -33,6 +55,62 @@
     function easeBuoyant(value) {
         const t = clamp(value, 0, 1);
         return 1 - Math.pow(1 - t, 4);
+    }
+
+    /**
+     * easeSurface(value) - 更接近海面漂移的轻盈缓动
+     * @param {number} value - 0 到 1 之间的原始进度
+     * @returns {number} - 处理后的缓动进度
+     */
+    function easeSurface(value) {
+        const t = clamp(value, 0, 1);
+        return 1 - Math.pow(1 - t, 3.2);
+    }
+
+    /**
+     * easePressure(value) - 更接近深层水压的慢压式缓动
+     * @param {number} value - 0 到 1 之间的原始进度
+     * @returns {number} - 处理后的缓动进度
+     */
+    function easePressure(value) {
+        const t = clamp(value, 0, 1);
+        const accelerated = t < 0.44
+            ? 2.6 * t * t
+            : 1 - Math.pow(1 - t, 2.45);
+        return clamp(accelerated, 0, 1);
+    }
+
+    /**
+     * resolveScrollMood(options) - 解析当前滚动应使用的语气配置
+     * @param {Object} options - 原始滚动配置
+     * @returns {{name:string,durationScale:number,easing:function}} - 规范化后的滚动语气
+     */
+    function resolveScrollMood(options) {
+        const requestedMoodConfig = options?.mood;
+        if (requestedMoodConfig && typeof requestedMoodConfig === 'object' && !Array.isArray(requestedMoodConfig)) {
+            const durationScale = clamp(Number(requestedMoodConfig.durationScale) || 1, 0.72, 1.6);
+            const inheritedMood = resolveScrollMood({ mood: requestedMoodConfig.name });
+            const easing = typeof requestedMoodConfig.easing === 'function'
+                ? requestedMoodConfig.easing
+                : inheritedMood.easing;
+
+            return {
+                name: String(requestedMoodConfig.name || 'custom').trim().toLowerCase() || 'custom',
+                durationScale,
+                easing
+            };
+        }
+
+        const requestedMood = String(requestedMoodConfig || '').trim().toLowerCase();
+        const currentPageMood = document.body?.dataset?.scrollMood || '';
+        const fallbackMood = requestedMood || currentPageMood || 'buoyant';
+        const moodConfig = SCROLL_MOODS[fallbackMood] || SCROLL_MOODS.buoyant;
+
+        return {
+            name: fallbackMood,
+            durationScale: moodConfig.durationScale,
+            easing: moodConfig.easing
+        };
     }
 
     /**
@@ -131,7 +209,10 @@
         const startY = window.scrollY || window.pageYOffset || 0;
         const destination = Math.max(0, Number(targetY) || 0);
         const distance = destination - startY;
-        const duration = clamp(Number(settings.duration) || 1600, 420, 3200);
+        const mood = resolveScrollMood(settings);
+        const durationScale = clamp(Number(settings.durationScale) || 1, 0.72, 1.6);
+        const easing = typeof settings.easing === 'function' ? settings.easing : mood.easing;
+        const duration = clamp((Number(settings.duration) || 1600) * mood.durationScale * durationScale, 420, 3600);
 
         // 同一时间只允许一个平滑滚动动画存在；新的动画开始时，旧动画立即让位。
         cancelActiveAnimation();
@@ -145,7 +226,8 @@
             const animation = {
                 frameId: 0,
                 resolve,
-                cleanupHandlers: []
+                cleanupHandlers: [],
+                moodName: mood.name
             };
 
             activeScrollAnimation = animation;
@@ -164,7 +246,7 @@
                 }
 
                 const progress = clamp((timestamp - startedAt) / duration, 0, 1);
-                const eased = easeBuoyant(progress);
+                const eased = easing(progress);
                 const nextY = startY + distance * eased;
 
                 window.scrollTo(0, nextY);
@@ -207,6 +289,8 @@
     window.OceanScroll = {
         animateTo,
         toSelector,
-        cancelActiveAnimation
+        cancelActiveAnimation,
+        resolveScrollMood,
+        moods: SCROLL_MOODS
     };
 })();

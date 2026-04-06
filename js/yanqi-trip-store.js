@@ -338,6 +338,7 @@
             packageId: normalizeText(source.packageId),
             packageTitle: sanitizeReadableText(source.packageTitle, ''),
             packageTier: sanitizeReadableText(source.packageTier, ''),
+            packageDuration: sanitizeReadableText(source.packageDuration, ''),
             packagePrice: rebalanceLegacyPackagePrice(source.packagePrice, priceDisplayVersion),
             packageNote: sanitizeReadableText(source.packageNote, ''),
             packageTags: Array.isArray(source.packageTags)

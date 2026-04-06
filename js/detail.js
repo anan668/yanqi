@@ -16,6 +16,9 @@ const sharedPriceTools = window.YanqiPriceConfig || null;
 const PRICE_DISPLAY_VERSION = sharedPriceTools?.PRICE_DISPLAY_VERSION || '';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
+const PACKAGE_MODAL_DURATION_MIN_DAYS = 2;
+const PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS = 6;
+const PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS = 12;
 
 /**
  * resolveStageDebugMode() - 读取当前页面是否需要暴露舞台调试能力
@@ -1691,6 +1694,7 @@ class DetailPage {
     constructor() {
         this.body = document.body;
         this.pageStage = document.getElementById('pageStage');
+        this.detailHero = document.getElementById('detailHero');
         this.spotId = this.getSpotIdFromUrl();
         this.spotData = divingSpotDetails[this.spotId] || divingSpotDetails[1];
         this.packageData = [];
@@ -1753,6 +1757,7 @@ class DetailPage {
         this.seaGuidePanel = document.getElementById('seaGuidePanel');
         this.seaGuideEntries = Array.from(document.querySelectorAll('.sea-guide-entry'));
         this.introSection = document.getElementById('spotOverview');
+        this.detailReadingSections = Array.from(document.querySelectorAll('[data-detail-reading-section]'));
         this.detailFooter = document.getElementById('detailFooter');
         this.detailFooterSpotName = document.getElementById('detailFooterSpotName');
         this.detailFooterLead = document.getElementById('detailFooterLead');
@@ -2456,6 +2461,7 @@ class DetailPage {
         }
 
         this.body.classList.toggle('spot-mabul', this.spotId === 9);
+        this.applyHeroEnvironmentProfile();
 
         this.packageData = this.buildPackageData();
         this.reviewData = this.buildReviewData();
@@ -2505,6 +2511,45 @@ class DetailPage {
         }
 
         window.DepthManager.setDetailGaugeProfile(this.spotData.depth);
+    }
+
+    /**
+     * getHeroEnvironmentProfile() - 根据当前海域返回首屏环境运动 profile。
+     * @returns {{ key: string, scrollMood: string }} - 当前海域的环境 profile 与默认滚动情绪
+     */
+    getHeroEnvironmentProfile() {
+        const profileMap = {
+            1: { key: 'surge', scrollMood: 'deep' },
+            2: { key: 'surge', scrollMood: 'deep' },
+            3: { key: 'abyss', scrollMood: 'trench' },
+            4: { key: 'garden', scrollMood: 'buoyant' },
+            5: { key: 'garden', scrollMood: 'buoyant' },
+            6: { key: 'lagoon', scrollMood: 'midwater' },
+            7: { key: 'surge', scrollMood: 'deep' },
+            8: { key: 'garden', scrollMood: 'midwater' },
+            9: { key: 'lagoon', scrollMood: 'buoyant' }
+        };
+
+        return profileMap[this.spotId] || { key: 'surge', scrollMood: 'midwater' };
+    }
+
+    /**
+     * applyHeroEnvironmentProfile() - 把当前海域的环境 profile 写入 body / hero，供首屏和滚动系统共用。
+     * @returns {void} - 无返回值，直接同步 data attribute
+     */
+    applyHeroEnvironmentProfile() {
+        if (!this.body) {
+            return;
+        }
+
+        const heroProfile = this.getHeroEnvironmentProfile();
+        this.body.dataset.detailHeroProfile = heroProfile.key;
+        this.body.dataset.detailBaseScrollMood = heroProfile.scrollMood;
+        this.body.dataset.scrollMood = heroProfile.scrollMood;
+
+        if (this.detailHero) {
+            this.detailHero.dataset.heroProfile = heroProfile.key;
+        }
     }
 
     /**
@@ -3091,6 +3136,50 @@ class DetailPage {
     }
 
     /**
+     * updateDetailReadingAtmosphere() - 同步当前阅读章节，让正文与右侧 sticky 共用一套安静的区块状态。
+     * @param {string} sectionKey - 当前阅读区块 key
+     * @returns {void} - 无返回值，直接更新页面状态
+     */
+    updateDetailReadingAtmosphere(sectionKey) {
+        if (!this.body) {
+            return;
+        }
+
+        const nextZone = ['overview', 'map', 'reviews', 'related'].includes(sectionKey)
+            ? sectionKey
+            : 'overview';
+        const baseMood = this.body.dataset.detailBaseScrollMood || 'midwater';
+        const zoneMoodMap = {
+            overview: baseMood,
+            map: 'midwater',
+            reviews: 'deep',
+            related: 'buoyant'
+        };
+
+        this.body.dataset.detailReadingZone = nextZone;
+        this.body.dataset.scrollMood = zoneMoodMap[nextZone] || baseMood;
+
+        this.detailReadingSections.forEach((section) => {
+            const isCurrent = section.dataset.detailReadingSection === nextZone;
+            section.classList.toggle('is-reading-current', isCurrent);
+        });
+
+        if (this.bookingSticky) {
+            this.bookingSticky.dataset.readingZone = nextZone;
+        }
+
+        if (this.bookingCopy) {
+            this.bookingCopy.dataset.readingZone = nextZone;
+            this.bookingCopy.classList.toggle('is-reading-current', nextZone !== 'related');
+        }
+
+        if (this.bookingFocusPanel) {
+            this.bookingFocusPanel.dataset.readingZone = nextZone;
+            this.bookingFocusPanel.classList.add('is-reading-current');
+        }
+    }
+
+    /**
      * getCurrentBookingReadingGuideKey() - 根据当前滚动位置判断正文更接近哪一个区块。
      * @returns {string} - 当前应在右侧显示的陪读区块 key
      */
@@ -3491,12 +3580,14 @@ class DetailPage {
         const { force = false, immediate = false } = options;
         const nextKey = this.getCurrentBookingReadingGuideKey();
         if (!force && nextKey === this.activeBookingGuideKey) {
+            this.updateDetailReadingAtmosphere(nextKey);
             return;
         }
 
         const nextGuideCopy = this.getBookingReadingGuideCopy(nextKey);
 
         this.activeBookingGuideKey = nextGuideCopy.key;
+        this.updateDetailReadingAtmosphere(nextGuideCopy.key);
         this.syncBookingFocusPanel({ force: true });
         this.clearBookingCopySwapTimers();
         this.bookingCopySwapVersion += 1;
@@ -5454,6 +5545,7 @@ class DetailPage {
             <article
                 class="review-card${review.featurePhoto ? ' has-feature-photo' : ''}"
                 data-review-id="${review.id}"
+                data-review-primary-focus="${escapeHtml(review.focus?.[0] || 'diving')}"
                 data-linked-package-id="${escapeHtml(review.linkedPackageId || '')}"
                 data-linked-package-name="${escapeHtml(review.linkedPackageName || '')}"
             >
@@ -5916,11 +6008,41 @@ class DetailPage {
         }));
     }
 
+    getPackageModalDurationClampMaxDays(pkg) {
+        const baseDuration = this.parsePackageDurationLabel(pkg?.duration);
+        return Math.max(PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS, baseDuration.days);
+    }
+
+    clampPackageModalDurationDays(value, maxDays = PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS) {
+        const safeMaxDays = Math.max(
+            PACKAGE_MODAL_DURATION_MIN_DAYS,
+            Number.isFinite(Number(maxDays)) ? Math.round(Number(maxDays)) : PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS
+        );
+        const numericValue = Number(value);
+
+        if (!Number.isFinite(numericValue)) {
+            return PACKAGE_MODAL_DURATION_MIN_DAYS;
+        }
+
+        return Math.max(
+            PACKAGE_MODAL_DURATION_MIN_DAYS,
+            Math.min(safeMaxDays, Math.round(numericValue))
+        );
+    }
+
+    parsePackageModalDurationDays(value, maxDays = PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS) {
+        const parsed = Number.parseInt(String(value || '').trim(), 10);
+        return Number.isFinite(parsed)
+            ? this.clampPackageModalDurationDays(parsed, maxDays)
+            : null;
+    }
+
     getPackageModalDurationOptions(pkg) {
         const baseDuration = this.parsePackageDurationLabel(pkg?.duration);
+        const presetMaxDays = Math.max(PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS, baseDuration.days);
         const optionDays = Array.from(new Set(
             [baseDuration.days - 1, baseDuration.days, baseDuration.days + 1, baseDuration.days + 2]
-                .filter((day) => day >= 2 && day <= 6)
+                .filter((day) => day >= PACKAGE_MODAL_DURATION_MIN_DAYS && day <= presetMaxDays)
         ));
 
         return optionDays.map((days) => ({
@@ -5941,16 +6063,18 @@ class DetailPage {
         }
 
         const baseDuration = this.parsePackageDurationLabel(pkg.duration);
+        const durationClampMaxDays = this.getPackageModalDurationClampMaxDays(pkg);
         const defaultWindowKey = this.getPackageModalDefaultWindowKey(pkg);
         const existingDraft = this.bookingModalDrafts.get(pkg.id) || {};
         const normalizedDraft = {
             days: Number.isFinite(Number(existingDraft.days))
-                ? Math.max(2, Math.min(6, Math.round(Number(existingDraft.days))))
+                ? this.clampPackageModalDurationDays(existingDraft.days, durationClampMaxDays)
                 : baseDuration.days,
             windowKey: this.getPackageModalWindowOptions(pkg).some((option) => option.key === existingDraft.windowKey)
                 ? existingDraft.windowKey
                 : defaultWindowKey,
-            isEditorOpen: Boolean(existingDraft.isEditorOpen)
+            isEditorOpen: Boolean(existingDraft.isEditorOpen),
+            isCustomDurationOpen: Boolean(existingDraft.isCustomDurationOpen)
         };
 
         this.bookingModalDrafts.set(pkg.id, normalizedDraft);
@@ -5964,6 +6088,7 @@ class DetailPage {
         }
 
         const currentDraft = this.getPackageModalDraft(pkg);
+        const durationClampMaxDays = this.getPackageModalDurationClampMaxDays(pkg);
         const allowedWindowKeys = new Set(this.getPackageModalWindowOptions(pkg).map((option) => option.key));
         const nextDraft = {
             ...currentDraft,
@@ -5972,13 +6097,67 @@ class DetailPage {
 
         this.bookingModalDrafts.set(pkg.id, {
             days: Number.isFinite(Number(nextDraft.days))
-                ? Math.max(2, Math.min(6, Math.round(Number(nextDraft.days))))
+                ? this.clampPackageModalDurationDays(nextDraft.days, durationClampMaxDays)
                 : currentDraft.days,
             windowKey: allowedWindowKeys.has(nextDraft.windowKey) ? nextDraft.windowKey : currentDraft.windowKey,
-            isEditorOpen: Boolean(nextDraft.isEditorOpen)
+            isEditorOpen: Boolean(nextDraft.isEditorOpen),
+            isCustomDurationOpen: Boolean(nextDraft.isCustomDurationOpen)
         });
 
         return this.bookingModalDrafts.get(pkg.id);
+    }
+
+    getPackageModalCustomDurationInput(packageId) {
+        if (!this.bookingModal) {
+            return null;
+        }
+
+        return Array.from(this.bookingModal.querySelectorAll('[data-package-custom-duration-input][data-package-id]'))
+            .find((input) => input.dataset.packageId === String(packageId)) || null;
+    }
+
+    focusPackageModalCustomDurationInput(packageId) {
+        const input = this.getPackageModalCustomDurationInput(packageId);
+        if (!input) {
+            return;
+        }
+
+        input.focus();
+        input.select();
+    }
+
+    applyPackageModalCustomDuration(packageId, rawValue = null) {
+        const pkg = this.getPackageById(packageId);
+        if (!pkg) {
+            return;
+        }
+
+        const input = this.getPackageModalCustomDurationInput(pkg.id);
+        const durationClampMaxDays = this.getPackageModalDurationClampMaxDays(pkg);
+        const nextDays = this.parsePackageModalDurationDays(
+            rawValue == null ? input?.value : rawValue,
+            durationClampMaxDays
+        );
+
+        if (!Number.isFinite(nextDays)) {
+            input?.focus();
+            input?.select();
+            return;
+        }
+
+        const hasPresetMatch = this.getPackageModalDurationOptions(pkg).some((option) => option.days === nextDays);
+        this.updatePackageModalDraft(pkg.id, {
+            days: nextDays,
+            isEditorOpen: true,
+            isCustomDurationOpen: !hasPresetMatch
+        });
+        this.renderBookingModalMarkup(pkg.id, { preserveBodyScroll: true });
+
+        if (!hasPresetMatch) {
+            window.requestAnimationFrame(() => {
+                this.focusPackageModalCustomDurationInput(pkg.id);
+            });
+        }
     }
 
     estimatePackageModalPrice(pkg, selectedDays) {
@@ -6015,6 +6194,7 @@ class DetailPage {
         const baseDuration = this.parsePackageDurationLabel(pkg.duration);
         const draft = this.getPackageModalDraft(pkg);
         const durationOptions = this.getPackageModalDurationOptions(pkg);
+        const customDurationMaxDays = this.getPackageModalDurationClampMaxDays(pkg);
         const windowOptions = this.getPackageModalWindowOptions(pkg);
         const selectedWindow = windowOptions.find((option) => option.key === draft.windowKey) || windowOptions[0];
         const selectedDays = draft.days;
@@ -6024,6 +6204,8 @@ class DetailPage {
         const durationLabel = `${selectedDays}天${selectedNights}晚`;
         const estimatedPriceValue = this.estimatePackageModalPrice(pkg, selectedDays);
         const priceLabel = Number.isFinite(estimatedPriceValue) ? formatPriceValue(estimatedPriceValue) : pkg.price;
+        const isCustomDurationSelected = !durationOptions.some((option) => option.days === selectedDays);
+        const isCustomDurationOpen = Boolean(draft.isCustomDurationOpen) || isCustomDurationSelected;
         const isCustomized =
             selectedDays !== baseDuration.days ||
             selectedWindow.key !== this.getPackageModalDefaultWindowKey(pkg);
@@ -6034,6 +6216,10 @@ class DetailPage {
             selectedNights,
             durationLabel,
             durationOptions,
+            customDurationMaxDays,
+            isCustomDurationSelected,
+            isCustomDurationOpen,
+            customDurationValue: selectedDays,
             windowOptions,
             windowKey: selectedWindow.key,
             windowLabel: selectedWindow.label,
@@ -6042,7 +6228,7 @@ class DetailPage {
             priceLabel,
             priceHint: isCustomized
                 ? `此刻先按 ${durationLabel} · ${selectedWindow.label} 估算`
-                : '点开，换一换停留天数与入海时段',
+                : '点开，换一换停留天数、入海时段，或写下自己的停留节奏',
             isCustomized
         };
     }
@@ -6154,7 +6340,46 @@ class DetailPage {
                                                     ${escapeHtml(option.label)}
                                                 </button>
                                             `).join('')}
+                                            <button
+                                                type="button"
+                                                class="package-modal-option ${(modalState?.isCustomDurationOpen || modalState?.isCustomDurationSelected) ? 'is-selected' : ''}"
+                                                data-package-custom-duration-toggle="${escapeHtml(pkg.id)}"
+                                                aria-pressed="${String(Boolean(modalState?.isCustomDurationOpen || modalState?.isCustomDurationSelected))}"
+                                            >
+                                                自定义
+                                            </button>
                                         </div>
+                                        ${modalState?.isCustomDurationOpen ? `
+                                            <div class="package-modal-custom-duration">
+                                                <div class="package-modal-custom-duration-copy">
+                                                    <span class="package-modal-custom-duration-kicker">把停留写进这一层</span>
+                                                    <p class="package-modal-custom-duration-note">天数支持 ${PACKAGE_MODAL_DURATION_MIN_DAYS} 到 ${modalState?.customDurationMaxDays || PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS} 天，价格会先按当前海流轻轻估算。</p>
+                                                </div>
+                                                <div class="package-modal-custom-duration-controls">
+                                                    <label class="package-modal-custom-duration-field">
+                                                        <input
+                                                            type="number"
+                                                            min="${PACKAGE_MODAL_DURATION_MIN_DAYS}"
+                                                            max="${modalState?.customDurationMaxDays || PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS}"
+                                                            step="1"
+                                                            value="${escapeHtml(String(modalState?.customDurationValue || modalState?.selectedDays || ''))}"
+                                                            inputmode="numeric"
+                                                            aria-label="自定义停留天数"
+                                                            data-package-custom-duration-input
+                                                            data-package-id="${escapeHtml(pkg.id)}"
+                                                        >
+                                                        <span>天</span>
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        class="package-modal-custom-duration-apply"
+                                                        data-package-custom-duration-apply="${escapeHtml(pkg.id)}"
+                                                    >
+                                                        带入这一程
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ` : ''}
                                     </div>
 
                                     <div class="package-modal-option-group">
@@ -6701,6 +6926,7 @@ class DetailPage {
             packageId: pkg.id,
             packageTitle: pkg.name,
             packageTier: pkg.group,
+            packageDuration: modalState?.durationLabel || pkg.duration || '',
             packagePrice: modalState?.priceLabel || pkg.price,
             packageNote,
             packageTags,
@@ -7337,6 +7563,7 @@ class DetailPage {
 
         if (!('IntersectionObserver' in window)) {
             this.relatedSection.classList.add('is-visible');
+            this.relatedSection.classList.add('is-sea-shift-awake');
             this.activateRelatedInitialStage();
             return;
         }
@@ -7347,7 +7574,7 @@ class DetailPage {
                     return;
                 }
 
-                entry.target.classList.add('is-visible');
+                entry.target.classList.add('is-visible', 'is-sea-shift-awake');
                 this.activateRelatedInitialStage();
                 this.relatedRevealObserver?.unobserve(entry.target);
             });
@@ -7449,7 +7676,7 @@ class DetailPage {
         }
 
         if (!('IntersectionObserver' in window)) {
-            this.detailFooter.classList.add('is-visible');
+            this.detailFooter.classList.add('is-visible', 'is-harbor-awake');
             return;
         }
 
@@ -7459,7 +7686,7 @@ class DetailPage {
                     return;
                 }
 
-                entry.target.classList.add('is-visible');
+                entry.target.classList.add('is-visible', 'is-harbor-awake');
                 this.footerRevealObserver?.unobserve(entry.target);
             });
         }, {
@@ -7701,6 +7928,24 @@ class DetailPage {
                     return;
                 }
 
+                const customDurationToggle = event.target.closest('[data-package-custom-duration-toggle]');
+                if (customDurationToggle) {
+                    const packageId = customDurationToggle.dataset.packageCustomDurationToggle || this.selectedPackageId;
+                    if (!packageId) {
+                        return;
+                    }
+
+                    this.updatePackageModalDraft(packageId, {
+                        isEditorOpen: true,
+                        isCustomDurationOpen: true
+                    });
+                    this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    window.requestAnimationFrame(() => {
+                        this.focusPackageModalCustomDurationInput(packageId);
+                    });
+                    return;
+                }
+
                 const durationOption = event.target.closest('[data-package-duration-days][data-package-id]');
                 if (durationOption) {
                     const packageId = durationOption.dataset.packageId;
@@ -7711,9 +7956,21 @@ class DetailPage {
 
                     this.updatePackageModalDraft(packageId, {
                         days: nextDays,
-                        isEditorOpen: true
+                        isEditorOpen: true,
+                        isCustomDurationOpen: false
                     });
                     this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    return;
+                }
+
+                const customDurationApply = event.target.closest('[data-package-custom-duration-apply]');
+                if (customDurationApply) {
+                    const packageId = customDurationApply.dataset.packageCustomDurationApply || this.selectedPackageId;
+                    if (!packageId) {
+                        return;
+                    }
+
+                    this.applyPackageModalCustomDuration(packageId);
                     return;
                 }
 
@@ -7737,6 +7994,20 @@ class DetailPage {
                 if (confirmButton) {
                     this.confirmBooking(confirmButton.dataset.packageId);
                 }
+            });
+
+            this.bookingModal.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') {
+                    return;
+                }
+
+                const customDurationInput = event.target.closest('[data-package-custom-duration-input][data-package-id]');
+                if (!customDurationInput) {
+                    return;
+                }
+
+                event.preventDefault();
+                this.applyPackageModalCustomDuration(customDurationInput.dataset.packageId, customDurationInput.value);
             });
         }
 
@@ -7837,7 +8108,11 @@ class DetailPage {
 
         this.selectedPackageId = pkg.id;
         this.syncPackageCardSelection(pkg.id);
-        this.updatePackageModalDraft(pkg.id, { isEditorOpen: false });
+        const currentModalState = this.getPackageModalViewState(pkg.id);
+        this.updatePackageModalDraft(pkg.id, {
+            isEditorOpen: false,
+            isCustomDurationOpen: Boolean(currentModalState?.isCustomDurationSelected)
+        });
         this.renderBookingModalMarkup(pkg.id);
         this.bookingModal.classList.remove('is-closing');
         this.bookingModal.setAttribute('aria-hidden', 'false');

@@ -19,6 +19,9 @@ body {
     --depth-gauge-bottom: 20px;
     --depth-gauge-side: 3px;
     --depth-gauge-step-size: 18px;
+    --depth-gauge-compression: 1;
+    --depth-gauge-shift: 0px;
+    --depth-gauge-current-scale: 1;
 }
 
 /* 深度计外层：用 fixed 固定在视口两边，让它始终像整站海层语言，而不是某个 section 内部组件。 */
@@ -33,6 +36,46 @@ body {
     justify-content: space-between;
     pointer-events: none; /* 深度计只做空间提示，不抢页面上的真实交互 */
     z-index: 1200;
+    opacity: calc(0.66 + var(--ocean-depth-progress) * 0.26);
+    transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.08), 0);
+}
+
+.depth-gauge::before,
+.depth-gauge::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.depth-gauge::before {
+    top: 44px;
+    bottom: 12px;
+    width: 1px;
+    margin: 0 auto;
+    background: linear-gradient(
+        180deg,
+        rgba(196, 232, 255, 0.08) 0%,
+        rgba(196, 232, 255, 0.3) 18%,
+        rgba(196, 232, 255, 0.14) 56%,
+        rgba(196, 232, 255, 0.34) 100%
+    );
+    box-shadow: 0 0 16px rgba(132, 205, 255, 0.16);
+    opacity: calc(0.4 + var(--ocean-depth-progress) * 0.34);
+}
+
+.depth-gauge::after {
+    inset: 36px 10px 8px;
+    border-radius: 999px;
+    background: linear-gradient(
+        180deg,
+        rgba(183, 227, 255, 0.08) 0%,
+        rgba(183, 227, 255, 0.02) 22%,
+        rgba(9, 58, 94, 0.08) 68%,
+        rgba(183, 227, 255, 0.12) 100%
+    );
+    filter: blur(14px);
+    opacity: calc(0.18 + var(--ocean-depth-progress) * 0.32);
 }
 
 /* .depth-gauge.left 的主要视觉与布局效果 */
@@ -60,7 +103,11 @@ body {
     line-height: 1.2;
     text-align: center;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-    box-shadow: 0 8px 20px rgba(4, 27, 52, 0.22);
+    box-shadow:
+        0 8px 20px rgba(4, 27, 52, 0.22),
+        0 0 0 1px rgba(202, 235, 255, 0.08),
+        0 0 18px rgba(141, 214, 255, calc(0.1 + var(--ocean-depth-progress) * 0.16));
+    transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.18), 0) scale(var(--depth-gauge-current-scale));
     backdrop-filter: blur(6px);
     /* 当前深度数字始终悬在页面最前层，轻微模糊能让它像仪表窗，而不是普通标签。 */
     -webkit-backdrop-filter: blur(6px);
@@ -76,12 +123,47 @@ body {
     overflow: hidden;
 }
 
+.gauge-markers::before,
+.gauge-markers::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.gauge-markers::before {
+    left: 50%;
+    width: 44px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+        180deg,
+        rgba(219, 241, 255, 0) 0%,
+        rgba(219, 241, 255, 0.12) 18%,
+        rgba(219, 241, 255, 0.04) 56%,
+        rgba(219, 241, 255, 0.16) 100%
+    );
+    filter: blur(12px);
+    opacity: calc(0.2 + var(--ocean-depth-progress) * 0.28);
+}
+
+.gauge-markers::after {
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%) translateY(var(--depth-gauge-shift)) scaleY(var(--depth-gauge-compression));
+    transform-origin: center top;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 24%, rgba(255, 255, 255, 0.18));
+    opacity: calc(0.24 + var(--ocean-depth-progress) * 0.42);
+}
+
 /* 全站刻度带包装层：所有页面都使用同一套滚动式刻度带，保证跨页观感连贯。 */
 .gauge-scale-tape {
     position: absolute;
     inset: 0 0 auto 0;
     display: block;
     will-change: transform;
+    transform: translate3d(0, var(--depth-gauge-shift), 0) scaleY(var(--depth-gauge-compression));
+    transform-origin: center top;
+    opacity: calc(0.72 + var(--ocean-depth-progress) * 0.18);
 }
 
 .gauge-scale-spacer {
@@ -97,7 +179,7 @@ body {
     align-items: center;
     column-gap: 8px;
     opacity: 0.24; /* 默认只保留很轻的存在感，避免刻度线把页面两侧压得太重 */
-    transform: scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
     transition: opacity 180ms ease, transform 220ms ease;
 }
 
@@ -119,6 +201,7 @@ body {
     height: 1px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.42);
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
 }
 
 .depth-gauge.left .depth-marker-line {
@@ -168,13 +251,13 @@ body {
 
 /* 控制深度刻度线、标签和当前刻度的视觉状态 */
 .depth-marker.is-reached {
-    opacity: 0.56;
+    opacity: calc(0.42 + var(--ocean-depth-progress) * 0.24);
 }
 
 /* 控制深度刻度线、标签和当前刻度的视觉状态 */
 .depth-marker.is-current {
     opacity: 1;
-    transform: scale(1.06);
+    transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.06), 0) scale(calc(1.04 + (var(--depth-gauge-current-scale) - 1) * 0.6));
 }
 
 /* 控制深度刻度线、标签和当前刻度的视觉状态 */
@@ -186,6 +269,9 @@ body {
 /* 控制深度刻度线、标签和当前刻度的视觉状态 */
 .depth-marker.is-current .depth-marker-label {
     color: #ffffff;
+    text-shadow:
+        0 1px 4px rgba(0, 0, 0, 0.35),
+        0 0 12px rgba(161, 223, 255, 0.16);
 }
 
 /* 设置当前深度数字的样式和发光效果 */
@@ -212,11 +298,11 @@ body.depth-gauge-interactive .depth-marker.is-current .depth-marker-line {
 /* 控制动画在 0%, 100% 阶段的状态 */
     0%,
     100% {
-        transform: translate3d(0, 0, 0);
+        transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.18), 0) scale(var(--depth-gauge-current-scale));
     }
 /* 控制动画在 50% 阶段的状态 */
     50% {
-        transform: translate3d(0, -2px, 0);
+        transform: translate3d(0, calc((var(--depth-gauge-shift) * -0.18) - 2px), 0) scale(calc(var(--depth-gauge-current-scale) + 0.012));
     }
 }
 
@@ -225,11 +311,11 @@ body.depth-gauge-interactive .depth-marker.is-current .depth-marker-line {
 /* 控制动画在 0%, 100% 阶段的状态 */
     0%,
     100% {
-        transform: translate3d(0, 0, 0) scale(1);
+        transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.06), 0) scale(calc(1.04 + (var(--depth-gauge-current-scale) - 1) * 0.6));
     }
 /* 控制动画在 50% 阶段的状态 */
     50% {
-        transform: translate3d(0, -1px, 0) scale(1.04);
+        transform: translate3d(0, calc((var(--depth-gauge-shift) * -0.06) - 1px), 0) scale(calc(1.06 + (var(--depth-gauge-current-scale) - 1) * 0.68));
     }
 }
 

@@ -2665,6 +2665,7 @@ class DiveMatchStage {
         this.switchTimer = 0;
         this.focusTimer = 0;
         this.stageSettleTimer = 0;
+        this.ritualTimer = 0;
         this.shouldAutoFocus = window.location.hash === '#dive-match' || Boolean(getDiveMatchKeyFromLocation());
         this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
 
@@ -2702,11 +2703,18 @@ class DiveMatchStage {
                 type="button"
                 class="dive-match-filter"
                 data-match-key="${match.key}"
+                data-match-group="${match.group}"
+                data-match-depth="${Math.abs(match.depth)}"
                 aria-pressed="${match.key === this.activeKey ? 'true' : 'false'}"
                 style="--match-delay: ${index * 56}ms;"
             >
-                <span class="dive-match-filter-group">${match.group}</span>
+                <span class="dive-match-filter-tide" aria-hidden="true"></span>
+                <span class="dive-match-filter-head">
+                    <span class="dive-match-filter-group">${match.group}</span>
+                    <span class="dive-match-filter-depth">${Math.abs(match.depth)}m</span>
+                </span>
                 <span class="dive-match-filter-label">${match.label}</span>
+                <span class="dive-match-filter-whisper">${match.note}</span>
             </button>
         `).join('');
 
@@ -2758,9 +2766,10 @@ class DiveMatchStage {
         surface.innerHTML = `
             <article class="dive-match-focus-card">
                 <p class="dive-match-focus-group">${match.group}</p>
+                <p class="dive-match-focus-ritual">把这次下潜，先安放在更适合此刻身体与呼吸的这一层。</p>
                 <div class="dive-match-focus-head">
                     <h3 class="dive-match-focus-title">${match.label}</h3>
-                    <span class="dive-match-focus-depth">${Math.abs(match.depth)}m layer</span>
+                    <span class="dive-match-focus-depth">${Math.abs(match.depth)}m 海层</span>
                 </div>
                 <p class="dive-match-focus-audience">${match.audience}</p>
                 <p class="dive-match-focus-guidance">${match.guidance}</p>
@@ -2792,6 +2801,7 @@ class DiveMatchStage {
         // 这里用深浅方向而不是左右方向，
         // 是因为潜水匹配的切换更像“往更深一层 / 回到更浅一层”。
         const nextSurface = this.createMatchSurface(nextMatch, enterClass);
+        this.syncRitualState(nextMatch, currentMatch, { immediate });
 
         if (this.switchTimer) {
             window.clearTimeout(this.switchTimer);
@@ -2836,8 +2846,50 @@ class DiveMatchStage {
         }
 
         if (!immediate) {
-            this.announceSummary(`已切换到${nextMatch.label}，推荐${nextMatch.cards.length}片海域。`);
+            this.announceSummary(`已切到${nextMatch.label}这一层，眼前展开${nextMatch.cards.length}片更适合此刻的海域。`);
         }
+    }
+
+    /**
+     * syncRitualState() - 把当前匹配层级同步成模块外层的仪式态状态
+     * @param {Object} nextMatch - 即将成为当前层级的匹配数据
+     * @param {Object|null} previousMatch - 上一个层级数据
+     * @param {{ immediate?: boolean }} options - 过渡配置
+     * @returns {void}
+     */
+    syncRitualState(nextMatch, previousMatch = null, options = {}) {
+        if (!this.section || !nextMatch) {
+            return;
+        }
+
+        const { immediate = false } = options;
+        const direction = !previousMatch || previousMatch.key === nextMatch.key
+            ? 'steady'
+            : (nextMatch.depth < previousMatch.depth ? 'deeper' : 'shallower');
+
+        if (this.ritualTimer) {
+            window.clearTimeout(this.ritualTimer);
+            this.ritualTimer = 0;
+        }
+
+        this.section.dataset.activeMatchKey = nextMatch.key;
+        this.section.dataset.activeMatchGroup = nextMatch.group;
+        this.section.dataset.matchDirection = direction;
+        this.section.style.setProperty('--dive-match-depth-ratio', String(clamp((Math.abs(nextMatch.depth) - 12) / 6, 0, 1)));
+        this.section.classList.remove('is-switching-deeper', 'is-switching-shallower');
+
+        if (immediate || direction === 'steady') {
+            this.section.classList.remove('is-transitioning');
+            return;
+        }
+
+        this.section.classList.add('is-transitioning');
+        this.section.classList.add(direction === 'deeper' ? 'is-switching-deeper' : 'is-switching-shallower');
+
+        this.ritualTimer = window.setTimeout(() => {
+            this.section.classList.remove('is-transitioning', 'is-switching-deeper', 'is-switching-shallower');
+            this.ritualTimer = 0;
+        }, 860);
     }
 
     /**
@@ -2845,11 +2897,14 @@ class DiveMatchStage {
      * @returns {void} - 无返回值，直接更新分类标签样式
      */
     syncActiveFilter() {
+        const activeMatch = getDiveMatchEntry(this.activeKey);
         this.filters.querySelectorAll('.dive-match-filter').forEach((button) => {
             const isActive = button.dataset.matchKey === this.activeKey;
             button.classList.toggle('is-active', isActive);
             button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
+
+        this.section?.style.setProperty('--dive-match-active-depth', `${Math.abs(activeMatch.depth)}m`);
     }
 
     /**
@@ -3538,19 +3593,67 @@ function consumePendingHomeScrollTarget() {
  * @returns {void} - 无返回值，直接设置观察器或降级显示
  */
 function setupStoryReveal() {
-    const revealItems = document.querySelectorAll('#why-yanqi .story-reveal');
-    if (revealItems.length === 0) {
+    const section = document.getElementById('why-yanqi');
+    if (!section) {
         return;
     }
 
-    revealItems.forEach((item) => {
-        observeOnceInViewport(item, () => {
-            item.classList.add('is-visible');
-        }, {
-            threshold: 0.18,
-            rootMargin: '0px 0px -8% 0px'
+    const intro = section.querySelector('.story-intro');
+    const revealItems = Array.from(section.querySelectorAll('.story-reveal'));
+    const cards = Array.from(section.querySelectorAll('.story-card'));
+    let rafId = 0;
+
+    const updateStoryState = () => {
+        rafId = 0;
+
+        const rect = section.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const progress = clamp((viewportHeight * 0.9 - rect.top) / (rect.height + viewportHeight * 0.72), 0, 1);
+        const isAwake = rect.top < viewportHeight * 0.86 && rect.bottom > viewportHeight * 0.22;
+
+        section.classList.toggle('is-story-awake', isAwake);
+        section.classList.toggle('is-story-current', rect.top < viewportHeight * 0.5 && rect.bottom > viewportHeight * 0.45);
+        section.style.setProperty('--story-progress', progress.toFixed(3));
+
+        if (intro && progress >= 0.06) {
+            intro.classList.add('is-visible');
+        }
+
+        let revealIndex = 0;
+        revealItems.forEach((item, index) => {
+            if (item.classList.contains('story-intro')) {
+                return;
+            }
+
+            const threshold = 0.08 + revealIndex * 0.08;
+            const itemProgress = clamp((progress - threshold) / 0.22, 0, 1);
+            item.style.setProperty('--story-item-progress', itemProgress.toFixed(3));
+
+            if (progress >= threshold) {
+                item.classList.add('is-visible');
+            }
+
+            revealIndex += 1;
         });
-    });
+
+        cards.forEach((card, index) => {
+            const threshold = 0.06 + index * 0.08;
+            const cardProgress = clamp((progress - threshold) / 0.22, 0, 1);
+            card.style.setProperty('--story-card-progress', cardProgress.toFixed(3));
+        });
+    };
+
+    const queueStoryState = () => {
+        if (rafId) {
+            return;
+        }
+
+        rafId = window.requestAnimationFrame(updateStoryState);
+    };
+
+    queueStoryState();
+    window.addEventListener('scroll', queueStoryState, { passive: true });
+    window.addEventListener('resize', queueStoryState);
 }
 
 // 首页海图导览：用浮层式海图导航替代普通回顶按钮，负责快速跳转和当前位置反馈。
@@ -3771,6 +3874,75 @@ function ensureStoryReveal() {
     setupStoryReveal();
 }
 
+/**
+ * setupHomeLayerFlow() - 监听首页中段海层变化，让首页更像一条连续下潜路径
+ * @returns {void}
+ */
+function setupHomeLayerFlow() {
+    const layerSections = Array.from(document.querySelectorAll('[data-home-layer]'));
+    if (!layerSections.length) {
+        return;
+    }
+
+    const body = document.body;
+    const setCurrentLayer = (layerKey) => {
+        if (!body) {
+            return;
+        }
+
+        body.dataset.currentHomeLayer = layerKey || '';
+    };
+
+    let rafId = 0;
+
+    const updateLayerState = () => {
+        rafId = 0;
+
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const probeY = scrollY + Math.min(viewportHeight * 0.42, 320);
+        let currentIndex = 0;
+
+        layerSections.forEach((section, index) => {
+            const top = section.getBoundingClientRect().top + scrollY;
+            if (probeY >= top - viewportHeight * 0.18) {
+                currentIndex = index;
+            }
+        });
+
+        const currentSection = layerSections[currentIndex];
+        const nextSection = layerSections[Math.min(currentIndex + 1, layerSections.length - 1)];
+        const currentTop = currentSection.getBoundingClientRect().top + scrollY;
+        const nextTop = nextSection.getBoundingClientRect().top + scrollY;
+        const layerDistance = Math.max(1, nextTop - currentTop);
+        const layerProgress = clamp((probeY - currentTop) / layerDistance, 0, 1);
+
+        layerSections.forEach((section, index) => {
+            const distance = index - currentIndex;
+            section.classList.toggle('is-home-current', index === currentIndex);
+            section.classList.toggle('is-home-passed', index < currentIndex);
+            section.classList.toggle('is-home-upcoming', index > currentIndex);
+            section.style.setProperty('--home-layer-distance', String(distance));
+        });
+
+        setCurrentLayer(currentSection?.dataset.homeLayer || '');
+        body?.style.setProperty('--home-layer-progress', layerProgress.toFixed(3));
+        body?.style.setProperty('--home-layer-index', String(currentIndex));
+    };
+
+    const queueLayerState = () => {
+        if (rafId) {
+            return;
+        }
+
+        rafId = window.requestAnimationFrame(updateLayerState);
+    };
+
+    queueLayerState();
+    window.addEventListener('scroll', queueLayerState, { passive: true });
+    window.addEventListener('resize', queueLayerState);
+}
+
 // 页面初始化：创建首页主要组件，并绑定头像退出、首屏、故事区等交互。
 /**
  * document DOMContentLoaded 回调 - 初始化首页的主要组件和页面级交互
@@ -3799,6 +3971,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupHomeNavState();
     setupHomeScrollLinks();
     new HomeSeaGuide();
+    setupHomeLayerFlow();
 
     createDeferredSectionBootstrap('#featured-destinations', ensureCuratedWatersStage, {
         immediate: shouldBootstrapCuratedImmediately,

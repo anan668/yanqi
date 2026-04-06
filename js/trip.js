@@ -114,16 +114,49 @@ function scrollToSection(targetSelector, duration) {
 
     const navbar = document.querySelector('.navbar');
     const offset = navbar ? navbar.offsetHeight + 14 : 0;
+    const mood = resolveTripScrollMood(targetSelector);
 
     if (window.OceanScroll && typeof window.OceanScroll.toSelector === 'function') {
         window.OceanScroll.toSelector(targetSelector, {
             offset,
-            duration: duration || 1580
+            duration: duration || 1580,
+            mood
         });
         return;
     }
 
     window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset));
+}
+
+function resolveTripScrollMood(targetSelector) {
+    if (!targetSelector) {
+        return 'midwater';
+    }
+
+    if (targetSelector === '#plannerDeskControl' || targetSelector === '#plannerSummary') {
+        return 'deep';
+    }
+
+    if (targetSelector === '#trip-layer') {
+        return 'midwater';
+    }
+
+    if (targetSelector === '#trip-prep' || targetSelector === '#tripFooter') {
+        return 'surface';
+    }
+
+    return 'midwater';
+}
+
+function applyTripRevealPreset(elements, className) {
+    if (!className) {
+        return;
+    }
+
+    const targets = Array.isArray(elements) ? elements : [elements];
+    targets
+        .filter((element) => element instanceof Element)
+        .forEach((element) => element.classList.add(className));
 }
 
 // 绑定行程页顶部导航和带 data-scroll-target 的内部跳转链接。
@@ -405,6 +438,8 @@ function setupPlannerSummary() {
     const summaryRoot = document.getElementById('plannerSummary');
     const summaryIntro = document.getElementById('plannerSummaryIntro');
     const summaryStatusNote = document.getElementById('plannerSummaryStatusNote');
+    const summaryMeterFill = document.getElementById('plannerSummaryMeterFill');
+    const summaryMeterOrbs = Array.from(document.querySelectorAll('#plannerSummary .planner-summary-meter-orb'));
     const summaryItems = Array.from(document.querySelectorAll('#plannerSummary .planner-item'));
     const summaryItemMap = summaryItems.reduce((map, item) => {
         const fieldKey = String(item.dataset.summaryField || '').trim();
@@ -461,6 +496,7 @@ function setupPlannerSummary() {
         !summaryRoot ||
         !summaryIntro ||
         !summaryStatusNote ||
+        !summaryMeterFill ||
         !spotField ||
         !dateField ||
         !peopleField ||
@@ -706,6 +742,7 @@ function setupPlannerSummary() {
     let submitFeedbackResetTimer = 0;
     let detachSubmitFeedbackInterrupt = null;
     let hasRenderedSummaryOnce = false;
+    let previousSummaryFilledCount = 0;
     let hasInitializedProgressiveState = false;
     const fieldUnlockTimers = new WeakMap();
     const defaultSubmitButtonLabel = submitButtonLabel.textContent.trim() || '\u786e\u8ba4\u8fd9\u4e00\u5c42\u5b89\u6392';
@@ -726,24 +763,47 @@ function setupPlannerSummary() {
         return 'idle';
     }
 
+    function getPlannerSummaryStayLabel(spotValue) {
+        const targetSpot = String(spotValue || '').trim();
+        if (!targetSpot || !store || typeof store.getConfirmedBookings !== 'function') {
+            return '';
+        }
+
+        const bookings = store.getConfirmedBookings();
+        if (!Array.isArray(bookings) || bookings.length === 0) {
+            return '';
+        }
+
+        const currentBooking = bookings.find((booking) => String(booking?.spotKey || '').trim() === targetSpot);
+        if (!currentBooking) {
+            return '';
+        }
+
+        const stayLabel = getConfirmedBookingStayLabel(currentBooking);
+        return stayLabel && stayLabel !== '停留节奏待定' ? stayLabel : '';
+    }
+
     function buildPlannerSummaryReceiptCopy({
         hasSpot,
         hasDate,
         hasPeople,
         spotLabel,
         dateLabel,
-        peopleLabel
+        peopleLabel,
+        stayLabel
     }) {
+        const staySegment = stayLabel ? ` · ${stayLabel}` : '';
+
         if (hasSpot && hasDate && hasPeople) {
-            return `已记下 ${spotLabel} · ${dateLabel} · ${peopleLabel}，这一潜已经被海安静收住。`;
+            return `已记下 ${spotLabel}${staySegment} · ${dateLabel} · ${peopleLabel}，这一潜已经被海安静收住。`;
         }
 
         if (hasSpot && hasDate) {
-            return `已记下 ${spotLabel} · ${dateLabel}，再把同行节奏写进来，这层回执就会收完整。`;
+            return `已记下 ${spotLabel}${staySegment} · ${dateLabel}，再把同行节奏写进来，这层回执就会收完整。`;
         }
 
         if (hasSpot) {
-            return `已记下 ${spotLabel}，接下来等一段合适的潮汐把出发写进来。`;
+            return `已记下 ${spotLabel}${staySegment}，接下来等一段合适的潮汐把出发写进来。`;
         }
 
         return '先让回执停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。';
@@ -772,6 +832,37 @@ function setupPlannerSummary() {
 
         itemNode.dataset.currentValue = isFilled ? nextValue : '';
         itemNode.dataset.isFilled = String(isFilled);
+    }
+
+    function pulsePlannerSummaryProgress() {
+        summaryRoot.classList.remove('is-progress-shifting');
+        void summaryRoot.offsetWidth;
+        summaryRoot.classList.add('is-progress-shifting');
+    }
+
+    function syncPlannerSummaryMeter(filledCount, isConfirmed, state = {}) {
+        const progress = Math.max(0, Math.min(1, filledCount / 3));
+        summaryRoot.style.setProperty('--planner-summary-progress', progress.toFixed(3));
+        summaryMeterFill.style.width = `${Math.max(progress * 100, progress > 0 ? 8 : 0)}%`;
+        const currentStep = !state.hasSpot
+            ? 'spot'
+            : (!state.hasDate ? 'date' : (!state.hasPeople ? 'people' : 'people'));
+
+        summaryRoot.dataset.summaryCurrentStep = currentStep;
+
+        summaryMeterOrbs.forEach((orb, index) => {
+            const isComplete = index < filledCount;
+            const stepKey = String(orb.dataset.summaryMeterStep || '').trim();
+            orb.classList.toggle('is-complete', isComplete);
+            orb.classList.toggle('is-confirmed', isConfirmed && isComplete);
+            orb.classList.toggle('is-current', !isComplete && stepKey === currentStep);
+        });
+
+        if (hasRenderedSummaryOnce && filledCount > previousSummaryFilledCount) {
+            pulsePlannerSummaryProgress();
+        }
+
+        previousSummaryFilledCount = filledCount;
     }
 
     function getRequiredFieldKey(fieldKey) {
@@ -1548,12 +1639,14 @@ function setupPlannerSummary() {
         }
 
         config.field.classList.remove('is-open');
+        config.field.classList.remove('is-submerging');
         config.field.classList.toggle('is-active', fieldKey === 'date'
             ? Boolean(dateInput.value)
             : Boolean(config.input.value));
         config.trigger.setAttribute('aria-expanded', 'false');
         config.panel.classList.remove('is-open');
         config.panel.classList.remove('opens-upward');
+        config.panel.classList.remove('is-submerged-panel');
         if (fieldKey === 'people') {
             hideCustomPeopleEditor();
         }
@@ -1561,6 +1654,8 @@ function setupPlannerSummary() {
         if (activePanelKey === fieldKey) {
             activePanelKey = null;
         }
+
+        document.body.dataset.tripActivePlannerField = '';
 
         config.panel._closeTimer = window.setTimeout(() => {
             config.panel.hidden = true;
@@ -1572,8 +1667,11 @@ function setupPlannerSummary() {
             config.panel._closeTimer = 0;
 
             if (!activePanelKey) {
+                floatingLayer.classList.remove('is-active', 'is-opening');
                 floatingLayer.hidden = true;
                 floatingLayer.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('trip-planner-submerge-active');
+                document.body.dataset.scrollMood = 'midwater';
             }
         }, 220);
         // 这里不立。hidden，而是等退场动画播完再藏。
@@ -1628,9 +1726,14 @@ function setupPlannerSummary() {
 
         floatingLayer.hidden = false;
         floatingLayer.setAttribute('aria-hidden', 'false');
-        config.field.classList.add('is-open', 'is-active');
+        floatingLayer.classList.add('is-active', 'is-opening');
+        document.body.classList.add('trip-planner-submerge-active');
+        document.body.dataset.tripActivePlannerField = targetFieldKey;
+        document.body.dataset.scrollMood = 'deep';
+        config.field.classList.add('is-open', 'is-active', 'is-submerging');
         config.trigger.setAttribute('aria-expanded', 'true');
         config.panel.hidden = false;
+        config.panel.classList.add('is-submerged-panel');
         activePanelKey = targetFieldKey;
         if (targetFieldKey === 'people') {
             const existingCustomCount = getCustomPeopleCount();
@@ -1644,6 +1747,7 @@ function setupPlannerSummary() {
         window.requestAnimationFrame(() => {
             positionPanel(targetFieldKey);
             config.panel.classList.add('is-open');
+            floatingLayer.classList.remove('is-opening');
             schedulePanelPosition();
         });
         // 先让浏览器知道“它已经显示了”，下一帧再计算位置和加打开态，
@@ -1805,6 +1909,7 @@ function setupPlannerSummary() {
         const hasDate = Boolean(dateInput.value);
         const hasPeople = Boolean(peopleInput.value);
         const dateLabel = hasDate ? formatPlannerDate(dateInput.value) : summaryMetaMap.date.emptyValue;
+        const stayLabel = hasSpot ? getPlannerSummaryStayLabel(spotInput.value) : '';
         const isConfirmed = hasSpot && hasDate && hasPeople;
         const filledCount = [hasSpot, hasDate, hasPeople].filter(Boolean).length;
         const summaryStage = getPlannerSummaryStage(hasSpot, hasDate, hasPeople);
@@ -1818,7 +1923,7 @@ function setupPlannerSummary() {
 
         summaryMetaMap.spot.valueNode.textContent = spotLabel;
         summaryMetaMap.spot.metaNode.textContent = hasSpot
-            ? summaryMetaMap.spot.filledMeta
+            ? (stayLabel ? `这片海先收成${stayLabel}的停驻。` : summaryMetaMap.spot.filledMeta)
             : summaryMetaMap.spot.emptyMeta;
         summaryMetaMap.spot.stateNode.textContent = hasSpot
             ? summaryMetaMap.spot.filledState
@@ -1847,7 +1952,8 @@ function setupPlannerSummary() {
             hasPeople,
             spotLabel,
             dateLabel,
-            peopleLabel
+            peopleLabel,
+            stayLabel
         });
         summaryRoot.dataset.summaryStage = summaryStage;
         summaryRoot.classList.toggle('is-empty', filledCount === 0);
@@ -1855,6 +1961,12 @@ function setupPlannerSummary() {
         // 当三项都收齐时，再额外叠加 is-confirmed，避免完成最后一步时把 has-progress 误撤掉。
         summaryRoot.classList.toggle('has-progress', filledCount > 0);
         summaryRoot.classList.toggle('is-confirmed', isConfirmed);
+        summaryRoot.classList.toggle('is-breathing', filledCount > 0 && !isConfirmed);
+        syncPlannerSummaryMeter(filledCount, isConfirmed, {
+            hasSpot,
+            hasDate,
+            hasPeople
+        });
 
         syncSummaryItemState('spot', hasSpot, nextValues.spot);
         syncSummaryItemState('date', hasDate, nextValues.date);
@@ -2432,6 +2544,10 @@ function setupTripReveal() {
     focusCards.forEach((card) => card.classList.add('trip-reveal-card'));
     prepCards.forEach((card) => card.classList.add('trip-reveal-card'));
 
+    applyTripRevealPreset([plannerDesk], 'trip-reveal-descent');
+    applyTripRevealPreset([focusHead, ...focusCards], 'trip-reveal-current');
+    applyTripRevealPreset([prepHead, prepPanel, ...prepCards], 'trip-reveal-ascent');
+
     observeTripRevealElements([plannerDesk], {
         baseDelay: 80,
         stepDelay: 0,
@@ -2441,8 +2557,24 @@ function setupTripReveal() {
         readyTopRatio: 0.74,
         readyBottomRatio: 0.12
     });
-    observeTripRevealElements([focusHead], { baseDelay: 20, stepDelay: 0 });
-    observeTripRevealElements(focusCards, { baseDelay: 60, stepDelay: 90 });
+    observeTripRevealElements([focusHead], {
+        baseDelay: 20,
+        stepDelay: 0,
+        threshold: 0.08,
+        rootMargin: '0px 0px -10% 0px',
+        requireViewportReady: true,
+        readyTopRatio: 0.92,
+        readyBottomRatio: 0.04
+    });
+    observeTripRevealElements(focusCards, {
+        baseDelay: 40,
+        stepDelay: 72,
+        threshold: 0.08,
+        rootMargin: '0px 0px -10% 0px',
+        requireViewportReady: true,
+        readyTopRatio: 0.94,
+        readyBottomRatio: 0.02
+    });
     observeTripRevealElements([prepHead], { baseDelay: 20, stepDelay: 0 });
     observeTripRevealElements(prepCards, { baseDelay: 70, stepDelay: 96 });
     observeTripRevealElements([prepPanel], { baseDelay: 110, stepDelay: 0 });
@@ -2796,6 +2928,45 @@ function getConfirmedBookingPriceView(booking) {
     };
 }
 
+const CONFIRMED_BOOKING_DURATION_BY_PACKAGE_ID = Object.freeze({
+    'leisure-1': '3天2晚',
+    'leisure-2': '4天3晚',
+    'advanced-1': '4天3晚',
+    'advanced-2': '5天4晚'
+});
+
+function getConfirmedBookingStayLabel(booking) {
+    const explicitDuration = String(booking?.packageDuration || '').trim();
+    if (explicitDuration) {
+        return explicitDuration;
+    }
+
+    const packageTitle = String(booking?.packageTitle || '').trim();
+    const titleMatch = packageTitle.match(/(\d+\s*天\s*\d+\s*晚)/);
+    if (titleMatch) {
+        return titleMatch[1].replace(/\s+/g, '');
+    }
+
+    const packageId = String(booking?.packageId || '').trim();
+    if (packageId && CONFIRMED_BOOKING_DURATION_BY_PACKAGE_ID[packageId]) {
+        return CONFIRMED_BOOKING_DURATION_BY_PACKAGE_ID[packageId];
+    }
+
+    const packageTags = Array.isArray(booking?.packageTags) ? booking.packageTags : [];
+    const durationTag = packageTags.find((tag) => /\d+\s*天\s*\d+\s*晚/.test(String(tag || '')));
+    if (durationTag) {
+        return String(durationTag).replace(/\s+/g, '');
+    }
+
+    const packageNote = String(booking?.packageNote || '').trim();
+    const durationMatch = packageNote.match(/(\d+\s*天\s*\d+\s*晚)/);
+    if (durationMatch) {
+        return durationMatch[1].replace(/\s+/g, '');
+    }
+
+    return '停留节奏待定';
+}
+
 /**
  * syncPlannerSelectionToConfirmedBookings(selection) - 把当前行程控制台的日期与同行写回已收进行程
  * @param {{spotValue: string, dateValue: string, dateLabel: string, peopleValue: string, peopleLabel: string}} selection - 当前控制台选择结果
@@ -2851,6 +3022,7 @@ function buildConfirmedBookingCardMarkup(booking) {
     const safeTagline = booking.spotTagline || CONFIRMED_BOOKING_COPY.emptyTagline;
     const safeDate = booking.selectedDateLabel || CONFIRMED_BOOKING_COPY.emptyDate;
     const safePeople = booking.selectedPeopleLabel || CONFIRMED_BOOKING_COPY.emptyPeople;
+    const safeStay = getConfirmedBookingStayLabel(booking);
     const packageTags = Array.isArray(booking.packageTags) ? booking.packageTags.filter(Boolean).slice(0, 3) : [];
     const priceView = getConfirmedBookingPriceView(booking);
 
@@ -2882,6 +3054,13 @@ function buildConfirmedBookingCardMarkup(booking) {
             </div>
 
             <div class="confirmed-booking-details">
+                <div
+                    class="confirmed-booking-detail confirmed-booking-detail-static"
+                    aria-label="这次行程停留时长"
+                >
+                    <span class="confirmed-booking-detail-label">停留</span>
+                    <strong>${escapeHtml(safeStay)}</strong>
+                </div>
                 <button
                     type="button"
                     class="confirmed-booking-detail"
@@ -3050,6 +3229,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupConfirmedBookingsStage();
     new PrepSystem();
     setupTripReveal();
+
+    if (!document.body.dataset.scrollMood) {
+        document.body.dataset.scrollMood = 'midwater';
+    }
 
     window.YanqiAvatarReturn?.bind({
         targetUrl: 'index.html'

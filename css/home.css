@@ -20,6 +20,25 @@
     background: linear-gradient(180deg, #e8f7ff 0%, #0d3f6d 100%);
 }
 
+.featured-destinations,
+.dive-match,
+.why-yanqi,
+.footer {
+    transition:
+        filter 780ms ease,
+        transform 920ms cubic-bezier(0.18, 0.8, 0.22, 1),
+        opacity 620ms ease;
+}
+
+[data-home-layer].is-home-current {
+    filter: saturate(1.04);
+    transform: translate3d(0, 0, 0);
+}
+
+[data-home-layer].is-home-passed:not(.is-home-current) {
+    filter: saturate(0.92) brightness(0.96);
+}
+
 /* ============================================
    首屏区
    ============================================ */
@@ -4174,21 +4193,22 @@
 .dive-match {
     position: relative;
     overflow: hidden;
-    padding: clamp(88px, 9vw, 136px) var(--spacing-lg);
+    margin-top: -24px;
+    padding: calc(clamp(88px, 9vw, 136px) + 24px) var(--spacing-lg) clamp(88px, 9vw, 136px);
     background:
-        radial-gradient(circle at 16% 18%, rgba(177, 214, 234, 0.14) 0%, rgba(177, 214, 234, 0) 20%),
-        radial-gradient(circle at 84% 20%, rgba(143, 200, 228, 0.12) 0%, rgba(143, 200, 228, 0) 22%),
-        linear-gradient(180deg, #10344f 0%, #0b2941 44%, #0a2237 100%);
+        radial-gradient(circle at 16% 18%, rgba(177, 214, 234, 0.1) 0%, rgba(177, 214, 234, 0) 18%),
+        radial-gradient(circle at 84% 20%, rgba(143, 200, 228, 0.08) 0%, rgba(143, 200, 228, 0) 20%),
+        linear-gradient(180deg, #0b2d46 0%, #0b2941 44%, #0a2237 100%);
 }
 
 /* 潜水匹配顶部一层柔和雾面过渡，让它从精选目的地平滑接进来。 */
 .dive-match::before {
     content: "";
     position: absolute;
-    inset: -7% 0 auto;
-    height: 124px;
-    background: linear-gradient(180deg, rgba(14, 54, 83, 0.12) 0%, rgba(14, 54, 83, 0) 100%);
-    filter: blur(30px);
+    inset: -8% 0 auto;
+    height: 144px;
+    background: linear-gradient(180deg, rgba(8, 34, 54, 0.22) 0%, rgba(8, 34, 54, 0.06) 52%, rgba(8, 34, 54, 0) 100%);
+    filter: blur(28px);
     pointer-events: none;
     z-index: 0;
 }
@@ -4396,6 +4416,7 @@
         box-shadow 0.28s ease,
         background-color 0.28s ease;
     transition-delay: 0ms;
+    overflow: hidden;
 }
 
 /* 舞台真正进入后，分类铭牌依次浮现。 */
@@ -4416,11 +4437,36 @@
     color: rgba(196, 222, 235, 0.56);
 }
 
+.dive-match-filter-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.dive-match-filter-depth {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(232, 244, 250, 0.12);
+    background: rgba(232, 244, 250, 0.06);
+    color: rgba(232, 244, 250, 0.72);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+}
+
 /* 标签主名称用更清楚的浅海盐白 */
 .dive-match-filter-label {
     font-size: 0.92rem;
     line-height: 1.35;
     color: rgba(242, 249, 253, 0.9);
+}
+
+.dive-match-filter-whisper {
+    display: block;
+    max-width: 22ch;
+    font-size: 0.76rem;
+    line-height: 1.62;
+    color: rgba(201, 223, 236, 0.6);
 }
 
 /* hover 时像触碰海中铭牌一样轻微上浮、提亮和扫光 */
@@ -4443,6 +4489,25 @@
         0 18px 36px rgba(4, 17, 27, 0.2),
         0 0 28px rgba(162, 214, 239, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.dive-match-filter::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(177, 223, 243, 0), rgba(221, 244, 255, 0.96), rgba(177, 223, 243, 0));
+    opacity: 0;
+    transform: scaleX(0.6);
+    transition: opacity 320ms ease, transform 520ms cubic-bezier(0.18, 0.84, 0.22, 1);
+}
+
+.dive-match-filter.is-active::after {
+    opacity: 1;
+    transform: scaleX(1);
 }
 
 /* 推荐内容区用绝对叠层承载切换，避免普通 tab 切换感。 */
@@ -4716,6 +4781,19 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
     align-content: start;
+    perspective: 1200px;
+}
+
+.dive-match-card:nth-child(1) {
+    transform-origin: left center;
+}
+
+.dive-match-card:nth-child(2) {
+    transform-origin: center center;
+}
+
+.dive-match-card:nth-child(3) {
+    transform-origin: right center;
 }
 
 /* 每张推荐潜点卡都像一张被轻轻托起的玻璃档案卡 */
@@ -4969,9 +5047,9 @@
     position: relative;
     overflow: hidden;
     background:
-        radial-gradient(circle at 1px 1px, rgba(143, 163, 186, 0.14) 0.8px, transparent 0.9px),
-        radial-gradient(circle at 9px 9px, rgba(255, 255, 255, 0.76) 0.7px, transparent 0.8px),
-        linear-gradient(180deg, #2a5f8e 0%, #0d2f50 100%);
+        radial-gradient(circle at 1px 1px, rgba(143, 163, 186, 0.12) 0.8px, transparent 0.9px),
+        radial-gradient(circle at 9px 9px, rgba(255, 255, 255, 0.34) 0.7px, transparent 0.8px),
+        linear-gradient(180deg, #204d75 0%, #0d2f50 100%);
     background-size: 18px 18px, 24px 24px, auto;
 }
 
@@ -4981,10 +5059,10 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: -30px;
-    height: 72px;
-    background: linear-gradient(180deg, rgba(244, 239, 233, 0.94) 0%, rgba(248, 250, 252, 0.72) 42%, rgba(248, 250, 252, 0) 100%);
-    filter: blur(20px);
+    top: -20px;
+    height: 56px;
+    background: linear-gradient(180deg, rgba(148, 193, 219, 0.3) 0%, rgba(148, 193, 219, 0.12) 44%, rgba(148, 193, 219, 0) 100%);
+    filter: blur(16px);
     pointer-events: none;
     z-index: 0;
 }
@@ -4997,8 +5075,8 @@
     right: 0;
     bottom: -30px;
     height: 76px;
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.68) 56%, rgba(248, 251, 255, 0.94) 100%);
-    filter: blur(20px);
+    background: linear-gradient(180deg, rgba(183, 217, 235, 0) 0%, rgba(183, 217, 235, 0.18) 56%, rgba(183, 217, 235, 0.34) 100%);
+    filter: blur(18px);
     pointer-events: none;
     z-index: 0;
 }
@@ -5244,6 +5322,298 @@
         transform: translateY(180px);
         opacity: 0.78;
     }
+}
+
+/* ============================================
+   Home Layer Flow Overrides
+   ============================================ */
+
+.home-page {
+    --home-layer-progress: 0;
+    --home-layer-index: 0;
+}
+
+.featured-destinations,
+.dive-match,
+.why-yanqi,
+.footer {
+    position: relative;
+    isolation: isolate;
+    transform: translate3d(0, calc(var(--home-layer-distance, 0) * 14px), 0);
+}
+
+[data-home-layer].is-home-current {
+    filter: saturate(1.06) brightness(1.02);
+    transform: translate3d(0, calc(var(--home-layer-progress, 0) * -10px), 0);
+}
+
+[data-home-layer].is-home-passed:not(.is-home-current) {
+    opacity: 0.992;
+    filter: saturate(0.94) brightness(0.97);
+    transform: translate3d(0, -6px, 0);
+}
+
+[data-home-layer].is-home-upcoming {
+    filter: saturate(0.94) brightness(0.98);
+}
+
+.featured-destinations.is-home-current {
+    margin-bottom: calc(-10px - var(--home-layer-progress, 0) * 18px);
+    padding-bottom: calc(clamp(92px, 9vw, 140px) + 10px + var(--home-layer-progress, 0) * 18px);
+}
+
+.featured-destinations.is-home-current .curated-waters-stage {
+    transform: translate3d(0, calc(var(--home-layer-progress, 0) * -8px), 0);
+    box-shadow:
+        0 44px 84px rgba(4, 16, 26, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.featured-destinations.is-home-passed {
+    margin-bottom: -28px;
+    padding-bottom: calc(clamp(92px, 9vw, 140px) + 28px);
+}
+
+.featured-destinations.is-home-passed .curated-waters-intro {
+    opacity: 0.88;
+}
+
+.dive-match {
+    --dive-match-depth-ratio: 0;
+}
+
+.dive-match-shell::before {
+    content: "";
+    position: absolute;
+    left: clamp(28px, 6vw, 88px);
+    right: clamp(28px, 6vw, 88px);
+    top: -18px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(119, 175, 205, 0), rgba(156, 205, 228, 0.12), rgba(119, 175, 205, 0));
+    opacity: calc(0.1 - var(--home-layer-progress, 0) * 0.08);
+    pointer-events: none;
+}
+
+.dive-match.is-home-current .dive-match-stage {
+    transform: translate3d(0, calc(var(--home-layer-progress, 0) * -14px), 0);
+    box-shadow:
+        0 40px 88px rgba(4, 16, 26, 0.34),
+        0 0 42px rgba(130, 194, 223, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dive-match.is-transitioning .dive-match-stage::before {
+    opacity: 0.96;
+    transform: translate3d(calc(var(--dive-match-depth-ratio, 0) * 16%), 0, 0);
+}
+
+.dive-match.is-switching-deeper .dive-match-stage {
+    transform: translate3d(0, 8px, 0) scale(0.996);
+}
+
+.dive-match.is-switching-shallower .dive-match-stage {
+    transform: translate3d(0, -8px, 0) scale(1.004);
+}
+
+.dive-match-rail {
+    padding: 10px 0 2px;
+}
+
+.dive-match-rail::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 38px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(196, 228, 241, 0.06), rgba(214, 239, 250, 0.34), rgba(196, 228, 241, 0.06));
+    pointer-events: none;
+}
+
+.dive-match-filter {
+    min-width: 148px;
+    padding: 14px 18px 16px;
+    border-radius: 24px;
+    transform-origin: center bottom;
+}
+
+.dive-match-filter-tide {
+    position: absolute;
+    inset: auto 16px 0;
+    height: 24px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 50% 100%, rgba(203, 236, 248, 0.24) 0%, rgba(203, 236, 248, 0) 72%);
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scaleX(0.6);
+    transition: opacity 360ms ease, transform 520ms cubic-bezier(0.18, 0.84, 0.22, 1);
+    pointer-events: none;
+}
+
+.dive-match-filter:hover .dive-match-filter-tide,
+.dive-match-filter.is-active .dive-match-filter-tide {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scaleX(1);
+}
+
+.dive-match-filter-depth {
+    display: inline-flex;
+    align-items: center;
+    min-width: 58px;
+    justify-content: center;
+    text-align: center;
+}
+
+.dive-match-filter-label {
+    font-size: 0.98rem;
+}
+
+.dive-match-filter.is-active {
+    transform: translate3d(0, -8px, 0);
+}
+
+.dive-match-focus-ritual,
+.dive-match-focus-group,
+.dive-match-focus-head,
+.dive-match-focus-audience,
+.dive-match-focus-guidance,
+.dive-match-focus-note {
+    position: relative;
+    z-index: 1;
+}
+
+.dive-match-focus-ritual {
+    margin: 0 0 18px;
+    max-width: 28ch;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    letter-spacing: 0.08em;
+    color: rgba(201, 228, 240, 0.62);
+    opacity: 0;
+    filter: blur(12px);
+    transform: translate3d(0, 14px, 0);
+    transition:
+        opacity 0.5s ease,
+        transform 0.64s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.64s ease;
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-ritual {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    transition-delay: 140ms;
+}
+
+.dive-match-card-grid {
+    transform: translate3d(0, calc(var(--dive-match-depth-ratio, 0) * -8px), 0);
+}
+
+.dive-match-card {
+    transform: translate3d(0, 22px, 0) rotateX(10deg);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(1) {
+    transform: translate3d(0, 0, 0) rotateY(-5deg);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(2) {
+    transform: translate3d(0, -4px, 0) rotateY(0deg);
+}
+
+.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(3) {
+    transform: translate3d(0, 2px, 0) rotateY(5deg);
+}
+
+.story-shell {
+    --story-progress: 0;
+}
+
+.why-yanqi.is-home-current {
+    filter: saturate(1.04) brightness(1.03);
+}
+
+.why-yanqi.is-story-awake .story-river-glow {
+    opacity: 1;
+}
+
+.story-intro {
+    transform: translate3d(0, calc((1 - var(--story-progress, 0)) * 28px), 0);
+    transition: transform 520ms cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+.story-river {
+    transform: translate3d(0, calc(var(--story-progress, 0) * -22px), 0);
+    opacity: calc(0.38 + var(--story-progress, 0) * 0.62);
+    transition: transform 520ms cubic-bezier(0.18, 0.8, 0.2, 1), opacity 520ms ease;
+}
+
+.story-grid {
+    perspective: 1400px;
+}
+
+.story-card {
+    --story-card-progress: 0;
+    opacity: calc(0.9 + var(--story-card-progress, 0) * 0.1);
+    transform:
+        translate3d(0, calc((1 - var(--story-card-progress, 0)) * 14px + var(--story-card-shift, 0px)), 0)
+        rotateX(calc((1 - var(--story-card-progress, 0)) * 2.2deg));
+    transition:
+        transform 640ms cubic-bezier(0.18, 0.8, 0.2, 1),
+        box-shadow 320ms ease,
+        border-color 320ms ease,
+        background 320ms ease,
+        opacity 560ms ease;
+}
+
+.story-card.story-reveal {
+    filter: blur(calc((1 - var(--story-card-progress, 0)) * 1.6px));
+}
+
+.story-card.story-reveal.is-visible {
+    opacity: 1;
+}
+
+.story-card:nth-child(1) {
+    transform-origin: left center;
+}
+
+.story-card:nth-child(2) {
+    transform-origin: center center;
+}
+
+.story-card:nth-child(3) {
+    transform-origin: right center;
+}
+
+.story-card-offset {
+    margin-left: calc(38px + var(--story-progress, 0) * 18px);
+}
+
+.why-yanqi.is-story-current .story-card:nth-child(1) {
+    transform:
+        translate3d(-3px, calc((1 - var(--story-card-progress, 0)) * 10px + var(--story-card-shift, 0px) - 1px), 0)
+        rotateX(calc((1 - var(--story-card-progress, 0)) * 1.5deg))
+        rotateY(-1deg);
+}
+
+.why-yanqi.is-story-current .story-card:nth-child(2) {
+    transform:
+        translate3d(0, calc((1 - var(--story-card-progress, 0)) * 8px + var(--story-card-shift, 0px) - 3px), 0)
+        rotateX(calc((1 - var(--story-card-progress, 0)) * 1deg))
+        rotateY(0deg);
+}
+
+.why-yanqi.is-story-current .story-card:nth-child(3) {
+    transform:
+        translate3d(4px, calc((1 - var(--story-card-progress, 0)) * 9px + var(--story-card-shift, 0px)), 0)
+        rotateX(calc((1 - var(--story-card-progress, 0)) * 1.2deg))
+        rotateY(1deg);
+}
+
+body[data-current-home-layer="story"] .story-river-line {
+    background: linear-gradient(180deg, rgba(200, 228, 243, 0.12), rgba(228, 243, 252, 0.84), rgba(200, 228, 243, 0.12));
 }
 
 /* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */

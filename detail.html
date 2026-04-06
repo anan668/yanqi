@@ -59,7 +59,10 @@
              图片是情绪入口，标题和标签负责快速交代这片海的进入节奏、深度和季节。 -->
         <section class="detail-hero" id="detailHero">
             <div class="hero-image-wrapper">
-                <img src="assets/images/diving-spot.jpg" alt="潜点风景" class="hero-image" loading="eager" fetchpriority="high" decoding="async">
+                <div class="hero-image-motion">
+                    <img src="assets/images/diving-spot.jpg" alt="潜点风景" class="hero-image" loading="eager" fetchpriority="high" decoding="async">
+                </div>
+                <div class="hero-atmosphere-layer" aria-hidden="true"></div>
                 <div class="hero-overlay"></div>
             </div>
             
@@ -89,7 +92,7 @@
                 <!-- 左侧信息主栏：
                      这里集中放海域档案、地图定位台和评论区。
                      之所以把三块放在一起，是为了让用户先读懂一片海，再决定要不要继续往下预订。 -->
-                <article class="intro-section" id="spotOverview">
+                <article class="intro-section detail-reading-section" id="spotOverview" data-detail-reading-section="overview">
                     <div class="intro-section-head">
                         <p class="intro-section-kicker">Sea Dossier</p>
                         <h2 class="intro-section-title">海域档案</h2>
@@ -127,25 +130,29 @@
 
                     <!-- 海域定位台：
                          不直接写死静态图片，而交给 JS 按当前潜点生成对应的地图 / 海图内容。 -->
-                    <h2 id="spotMapSection">潜点位置</h2>
-                    <div class="map-container" id="mapContainer">
-                        <!-- 海域定位台由脚本动态生成 -->
-                    </div>
+                    <section class="detail-reading-section detail-reading-section-map" data-detail-reading-section="map" aria-labelledby="spotMapSection">
+                        <h2 id="spotMapSection">潜点位置</h2>
+                        <div class="map-container" id="mapContainer">
+                            <!-- 海域定位台由脚本动态生成 -->
+                        </div>
+                    </section>
 
                     <!-- 用户评价区：
                          上方 filters 是评论筛选入口，下方列表才是真正的评论内容容器。 -->
-                    <h2 id="spotReviews">用户评价</h2>
-                    <div class="reviews-stage">
-                        <div class="reviews-intro">
-                            <p class="reviews-kicker">Travel Echoes</p>
-                            <p class="reviews-lead">这些不是打卡式短评，而是人真正进入这片海之后，留下来的住宿、饮食、风景和下潜回声。</p>
+                    <section class="detail-reading-section detail-reading-section-reviews" data-detail-reading-section="reviews" aria-labelledby="spotReviews">
+                        <h2 id="spotReviews">用户评价</h2>
+                        <div class="reviews-stage">
+                            <div class="reviews-intro">
+                                <p class="reviews-kicker">Travel Echoes</p>
+                                <p class="reviews-lead">这些不是打卡式短评，而是人真正进入这片海之后，留下来的住宿、饮食、风景和下潜回声。</p>
+                            </div>
+                            <div class="reviews-filters" id="reviewsFilters"></div>
                         </div>
-                        <div class="reviews-filters" id="reviewsFilters"></div>
-                    </div>
-                    <p id="reviewsLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
-                    <div class="reviews-section" id="reviewsSection">
-                        <!-- 评价会由脚本动态生成 -->
-                    </div>
+                        <p id="reviewsLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+                        <div class="reviews-section" id="reviewsSection">
+                            <!-- 评价会由脚本动态生成 -->
+                        </div>
+                    </section>
                 </article>
 
                 <!-- 右侧套餐侧栏：
@@ -223,23 +230,23 @@
         <!-- 相关推荐海域：
              这里不是普通列表，而是一块可切换的“相邻海域舞台”。
              用户可以像在附近海域之间潜游一样，从当前详情继续横向移动。 -->
-        <section class="related-spots" id="relatedSpots">
-    <div class="related-shell">
-        <div class="related-head">
-            <p class="related-kicker">Neighboring Waters</p>
-            <h2 class="related-title">还可以继续看的海</h2>
-            <p class="related-lead">
-                从这片海离开之前，也许还可以再看看另一种水色、流向和停驻方式。
-                不是更多的目的地，而是几片也许会让你继续停下来的海。
-            </p>
-        </div>
+        <section class="related-spots detail-reading-section" id="relatedSpots" data-detail-reading-section="related">
+            <div class="related-shell">
+                <div class="related-head">
+                    <p class="related-kicker">Neighboring Waters</p>
+                    <h2 class="related-title">还可以继续看的海</h2>
+                    <p class="related-lead">
+                        从这片海离开之前，也许还可以再看看另一种水色、流向和停驻方式。
+                        不是更多的目的地，而是几片也许会让你继续停下来的海。
+                    </p>
+                </div>
 
-        <p id="relatedLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
-        <div class="related-grid" id="relatedGrid">
-            <!-- 相邻海域舞台会由脚本动态生成 -->
-        </div>
-    </div>
-</section>
+                <p id="relatedLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+                <div class="related-grid" id="relatedGrid">
+                    <!-- 相邻海域舞台会由脚本动态生成 -->
+                </div>
+            </div>
+        </section>
 
         <!-- 详情页收束区：
              负责把这一片海的阅读余韵慢慢收住，同时给出下一步去哪里。 -->

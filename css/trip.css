@@ -367,6 +367,81 @@
     inset: 0;
     z-index: 120;
     pointer-events: none; /* 默认不拦截页面点击，只有真正打开的浮层自己接管交互。 */
+    opacity: 0;
+    transition: opacity 320ms ease;
+}
+
+.planner-floating-layer::before,
+.planner-floating-layer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 360ms ease, transform 560ms cubic-bezier(0.16, 0.82, 0.2, 1), filter 560ms ease;
+}
+
+.planner-floating-layer::before {
+    background:
+        radial-gradient(circle at 50% 26%, rgba(193, 230, 246, 0.18), rgba(193, 230, 246, 0) 30%),
+        linear-gradient(180deg, rgba(4, 16, 26, 0.12), rgba(4, 16, 26, 0.42));
+    filter: blur(20px);
+}
+
+.planner-floating-layer::after {
+    inset: 10% 12% auto;
+    height: min(54vh, 440px);
+    border-radius: 34px;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(235, 247, 252, 0.12), rgba(235, 247, 252, 0) 42%),
+        linear-gradient(180deg, rgba(6, 22, 34, 0.28), rgba(6, 22, 34, 0));
+    transform: translate3d(0, 18px, 0) scale(0.98);
+    filter: blur(28px);
+}
+
+.planner-floating-layer.is-active {
+    opacity: 1;
+}
+
+.planner-floating-layer.is-active::before,
+.planner-floating-layer.is-active::after {
+    opacity: 1;
+}
+
+.planner-floating-layer.is-active::after {
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+body.trip-planner-submerge-active .trip-page-planner .trip-search-bar {
+    box-shadow:
+        0 34px 62px rgba(2, 12, 20, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.trip-planner-submerge-active .planner-console-head {
+    opacity: 0.92;
+    transform: translate3d(0, -4px, 0);
+}
+
+body.trip-planner-submerge-active .planner-field:not(.is-open) {
+    opacity: 0.76;
+    filter: saturate(0.84);
+    transform: translate3d(0, 8px, 0) scale(0.985);
+}
+
+body.trip-planner-submerge-active .planner-field.is-submerging {
+    transform: translate3d(0, -8px, 0) scale(1.018);
+    border-color: rgba(214, 238, 248, 0.28);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 28px 48px rgba(4, 15, 24, 0.24),
+        0 0 34px rgba(118, 191, 222, 0.12);
+}
+
+body.trip-planner-submerge-active .planner-field.is-submerging::after {
+    opacity: 1;
+    filter: blur(8px);
+    transform: translate3d(0, 2px, 0) scale(1.02);
 }
 
 /* 设置行程控制台字段舱的玻璃外观、边框和交互层次。 */
@@ -738,6 +813,16 @@
     z-index: 40;
     scrollbar-width: thin;
     scrollbar-color: rgba(188, 222, 240, 0.22) rgba(255, 255, 255, 0.04);
+}
+
+.planner-option-panel.is-submerged-panel {
+    transform: translate3d(0, 26px, 0) scale(0.965);
+    filter: blur(18px);
+    transform-origin: 50% 0;
+    box-shadow:
+        0 30px 48px rgba(2, 12, 20, 0.32),
+        0 0 30px rgba(112, 188, 224, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* 紧凑型选项浮层：
@@ -1569,6 +1654,92 @@
     align-items: start;
 }
 
+.planner-summary-meter {
+    position: relative;
+    display: grid;
+    gap: 12px;
+    margin: 6px 0 4px;
+}
+
+.planner-summary-meter-track {
+    position: relative;
+    width: 100%;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.planner-summary-meter-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--planner-summary-progress, 0) * 100%);
+    min-width: 7px;
+    border-radius: inherit;
+    background:
+        linear-gradient(90deg, rgba(150, 214, 236, 0.42), rgba(231, 246, 252, 0.92) 52%, rgba(150, 214, 236, 0.52));
+    box-shadow:
+        0 0 20px rgba(151, 212, 235, 0.24),
+        0 0 30px rgba(151, 212, 235, 0.1);
+    transition: width 720ms cubic-bezier(0.16, 0.82, 0.2, 1), box-shadow 420ms ease, opacity 320ms ease;
+}
+
+.planner-summary-meter-orbs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.planner-summary-meter-orb {
+    position: relative;
+    display: block;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(198, 223, 237, 0.08);
+    overflow: hidden;
+    transition: border-color 320ms ease, background-color 320ms ease, box-shadow 320ms ease, transform 320ms ease;
+}
+
+.planner-summary-meter-orb::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(243, 251, 255, 0.82), rgba(153, 214, 236, 0.44));
+    opacity: 0;
+    transform: scaleX(0.3);
+    transform-origin: left center;
+    transition: opacity 320ms ease, transform 420ms cubic-bezier(0.16, 0.82, 0.2, 1);
+}
+
+.planner-summary-meter-orb.is-complete {
+    border-color: rgba(201, 231, 244, 0.18);
+    background: rgba(109, 178, 208, 0.12);
+    box-shadow: 0 0 18px rgba(151, 212, 235, 0.18);
+    transform: translate3d(0, -1px, 0);
+}
+
+.planner-summary-meter-orb.is-complete::before {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.planner-summary-meter-orb.is-current {
+    border-color: rgba(209, 236, 247, 0.24);
+    background: rgba(130, 193, 220, 0.1);
+    box-shadow:
+        0 0 16px rgba(151, 212, 235, 0.16),
+        inset 0 0 10px rgba(232, 246, 252, 0.04);
+    animation: planner-summary-orb-pulse 2.4s ease-in-out infinite;
+}
+
+.planner-summary-meter-orb.is-current::before {
+    opacity: 0.48;
+    transform: scaleX(0.56);
+}
+
 .planner-summary-heading {
     display: grid;
     gap: 4px;
@@ -1674,12 +1845,26 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+.planner-summary.has-progress .planner-summary-meter-fill {
+    opacity: 1;
+}
+
 .planner-summary.is-confirmed {
     border-color: rgba(210, 235, 247, 0.14);
     box-shadow:
         0 22px 40px rgba(4, 16, 25, 0.18),
         0 0 26px rgba(128, 196, 223, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.planner-summary.is-confirmed .planner-summary-meter-fill {
+    box-shadow:
+        0 0 22px rgba(151, 212, 235, 0.3),
+        0 0 38px rgba(151, 212, 235, 0.16);
+}
+
+.planner-summary.is-breathing .planner-summary-meter-fill {
+    animation: planner-summary-meter-breath 3.6s ease-in-out infinite;
 }
 
 .planner-summary.is-confirmed .planner-summary-status-note {
@@ -1714,6 +1899,14 @@
 .planner-summary.is-submit-feedback .planner-summary-status-note::before {
     background: rgba(188, 228, 242, 0.8);
     box-shadow: 0 0 22px rgba(152, 214, 236, 0.3);
+}
+
+.planner-summary.is-progress-shifting::after {
+    animation: planner-summary-shell-glow 760ms ease;
+}
+
+.planner-summary.is-progress-ready .planner-summary-status-note {
+    color: rgba(223, 239, 248, 0.82);
 }
 
 /* 回执里的三项明细不再做大卡，而是收成轻量条目。 */
@@ -1932,6 +2125,58 @@
         filter 940ms ease;
 }
 
+.trip-reveal-descent {
+    transform: translate3d(0, -34px, 0) scale(0.984);
+    filter: blur(20px);
+}
+
+.trip-reveal-current {
+    transform: translate3d(0, 18px, 0) scale(0.994);
+    filter: blur(12px);
+}
+
+.trip-focus-grid .trip-reveal-current {
+    transform: translate3d(0, 14px, 0) scale(0.995);
+    filter: blur(8px);
+}
+
+.trip-reveal-ascent {
+    transform: translate3d(0, 34px, 0) scale(0.99);
+    filter: blur(20px);
+}
+
+.trip-reveal-card.trip-reveal-current:nth-child(even) {
+    transform: translate3d(0, 20px, 0) scale(0.994);
+}
+
+.trip-focus-grid .trip-reveal-card.trip-reveal-current:nth-child(even) {
+    transform: translate3d(0, 16px, 0) scale(0.995);
+}
+
+.trip-focus-grid .trip-reveal-card.trip-reveal-current:nth-child(1) {
+    transform: translate3d(0, 18px, 0) scale(0.992);
+}
+
+.trip-focus-grid .trip-reveal-card.trip-reveal-current:nth-child(2) {
+    transform: translate3d(0, 12px, 0) scale(0.996);
+}
+
+.trip-focus-grid .trip-reveal-card.trip-reveal-current:nth-child(3) {
+    transform: translate3d(0, 20px, 0) scale(0.992);
+}
+
+.trip-focus-grid .trip-reveal-card.trip-reveal-current:nth-child(4) {
+    transform: translate3d(0, 16px, 0) scale(0.994);
+}
+
+.trip-focus-grid .trip-reveal-card {
+    transform-origin: center bottom;
+}
+
+.trip-reveal-panel.trip-reveal-ascent {
+    transform: translate3d(0, 36px, 0) scale(0.982);
+}
+
 .trip-reveal-block.is-visible,
 .trip-reveal-head.is-visible,
 .trip-reveal-card.is-visible,
@@ -1939,6 +2184,32 @@
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
     filter: blur(0);
+}
+
+@keyframes planner-summary-meter-breath {
+    0%,
+    100% {
+        box-shadow:
+            0 0 20px rgba(151, 212, 235, 0.24),
+            0 0 30px rgba(151, 212, 235, 0.1);
+    }
+
+    50% {
+        box-shadow:
+            0 0 26px rgba(182, 229, 247, 0.34),
+            0 0 42px rgba(151, 212, 235, 0.16);
+    }
+}
+
+@keyframes planner-summary-orb-pulse {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(0, -1px, 0);
+    }
 }
 
 /* 错落延迟：
@@ -3062,7 +3333,7 @@
 
 .confirmed-booking-details {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -3105,6 +3376,18 @@
     font-size: 0.94rem;
     line-height: 1.55;
     color: #eef6ff;
+}
+
+.confirmed-booking-detail-static {
+    cursor: default;
+}
+
+.confirmed-booking-detail-static:hover,
+.confirmed-booking-detail-static:focus-visible {
+    transform: none;
+    border-color: rgba(205, 229, 242, 0.06);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: none;
 }
 
 .confirmed-booking-actions {
