@@ -2812,6 +2812,15 @@ body.has-overlay-lock {
         filter 360ms ease;
 }
 
+.booking-focus-panel.is-originating {
+    opacity: 0.22 !important;
+    transform: translate3d(0, 0, 0) scale(0.994) !important;
+    filter: saturate(0.82) brightness(0.98);
+    box-shadow:
+        0 12px 24px rgba(22, 55, 80, 0.05),
+        0 0 0 1px rgba(173, 216, 236, 0.04) !important;
+}
+
 .booking-focus-panel::before {
     content: "";
     position: absolute;
@@ -4032,23 +4041,128 @@ body.has-overlay-lock {
 .related-grid {
     position: relative;
     display: block;
+    width: 100%;
     max-width: 1260px;
     margin: 0 auto;
 }
 
 /* 控制 .related-stage-shell 的布局、视觉和状态表现 */
 .related-stage-shell {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1.28fr) minmax(300px, 0.82fr);
     gap: 24px;
     align-items: stretch;
+    min-height: var(--related-stage-height, auto);
+    --related-flow-sign: 1;
+    --related-feature-tilt: 1.2deg;
+    --related-feature-exit-tilt: -0.9deg;
     opacity: 0;
     transform: translate3d(0, 30px, 0);
     filter: blur(18px);
     transition:
         opacity 620ms ease,
-        transform 820ms cubic-bezier(0.18, 0.78, 0.2, 1),
-        filter 540ms ease;
+        transform 820ms cubic-bezier(0.16, 0.8, 0.2, 1),
+        filter 620ms ease;
+    will-change: transform, opacity, filter;
+}
+
+.related-grid.is-stage-switching {
+    perspective: 1600px;
+    isolation: isolate;
+}
+
+.related-stage-shell.is-flow-backward {
+    --related-flow-sign: -1;
+    --related-feature-tilt: -2.8deg;
+    --related-feature-exit-tilt: 2deg;
+}
+
+.related-stage-shell::after {
+    content: "";
+    position: absolute;
+    inset: 14% 5% 15% 42%;
+    border-radius: 36px;
+    background:
+        radial-gradient(circle at 18% 30%, rgba(189, 234, 255, 0.28), transparent 42%),
+        linear-gradient(135deg, rgba(146, 212, 241, 0.18), rgba(146, 212, 241, 0));
+    mix-blend-mode: screen;
+    opacity: 0;
+    pointer-events: none;
+    filter: blur(22px);
+    transform: translate3d(calc(var(--related-flow-sign) * 24px), 20px, 0) scale(0.92);
+    transition:
+        opacity 680ms ease,
+        transform 860ms cubic-bezier(0.18, 0.78, 0.2, 1),
+        filter 680ms ease;
+}
+
+.related-stage-shell.is-stacked-stage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    z-index: 1;
+    pointer-events: none;
+    transition:
+        transform 820ms cubic-bezier(0.16, 0.8, 0.2, 1),
+        opacity 620ms ease,
+        filter 620ms ease;
+}
+
+.related-stage-shell.is-stage-outgoing {
+    z-index: 1;
+    opacity: 0.18;
+    filter: blur(9px) saturate(0.88);
+    pointer-events: none;
+    transform: translate3d(calc(var(--outgo-x, -64px) * 1.06), -6px, 0) scale(0.992);
+}
+
+.related-stage-shell.is-stage-incoming {
+    z-index: 2;
+    opacity: 0.38;
+    filter: blur(7px) saturate(0.95);
+    transform: translate3d(calc(var(--incoming-x, 72px) * 0.72), 6px, 0) scale(0.996);
+}
+
+.related-stage-shell.is-stage-active {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+    pointer-events: auto;
+}
+
+.related-stage-shell.is-stage-incoming.is-flow-forward {
+    --incoming-x: 72px;
+}
+
+.related-stage-shell.is-stage-incoming.is-flow-backward {
+    --incoming-x: -72px;
+}
+
+.related-stage-shell.is-stage-outgoing.is-flow-forward {
+    --outgo-x: -72px;
+}
+
+.related-stage-shell.is-stage-outgoing.is-flow-backward {
+    --outgo-x: 72px;
+}
+
+.related-stage-shell.is-stage-incoming::after {
+    opacity: 0.18;
+    transform: translate3d(calc(var(--related-flow-sign) * 18px), 10px, 0) scale(0.975);
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active::after,
+.related-stage-shell.is-stage-active::after {
+    opacity: 0.12;
+    filter: blur(18px);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.related-stage-shell.is-stage-outgoing::after {
+    opacity: 0.04;
+    filter: blur(24px);
+    transform: translate3d(calc(var(--related-flow-sign) * -16px), -10px, 0) scale(0.92);
 }
 
 /* 控制 .related-feature-card 的布局、视觉和状态表现 */
@@ -4056,6 +4170,7 @@ body.has-overlay-lock {
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+    height: 100%;
     min-height: 448px;
     border-radius: 34px;
     overflow: hidden;
@@ -4073,6 +4188,7 @@ body.has-overlay-lock {
         border-color 320ms ease,
         filter 420ms ease,
         opacity 320ms ease;
+    will-change: transform, opacity, filter;
 }
 
 /* .related-feature-card:hover 鼠标移入时的样式 */
@@ -4084,11 +4200,42 @@ body.has-overlay-lock {
         inset 0 1px 0 rgba(255, 255, 255, 0.84);
 }
 
+.related-stage-shell.is-stage-incoming .related-feature-card {
+    opacity: 0.98;
+    filter: blur(2px) saturate(0.96);
+    transform: translate3d(calc(var(--incoming-x, 72px) * 0.12), 5px, 0) scale(0.998) rotate(calc(var(--related-feature-tilt) * 0.58));
+    box-shadow:
+        0 24px 50px rgba(9, 38, 58, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.74);
+    transition-duration: 620ms;
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active .related-feature-card,
+.related-stage-shell.is-stage-active .related-feature-card {
+    opacity: 1;
+    filter: blur(0) saturate(1);
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+}
+
+.related-stage-shell.is-stage-outgoing .related-feature-card {
+    opacity: 0.24;
+    filter: blur(5px) saturate(0.88);
+    transform: translate3d(calc(var(--outgo-x, -72px) * 0.14), -5px, 0) scale(0.992) rotate(calc(var(--related-feature-exit-tilt) * 0.78));
+    box-shadow:
+        0 20px 38px rgba(9, 38, 58, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.66);
+    transition-duration: 560ms;
+}
+
 /* 控制 .related-feature-media 的布局、视觉和状态表现 */
 .related-feature-media {
     position: relative;
     min-height: 100%;
     overflow: hidden;
+    transition:
+        transform 820ms cubic-bezier(0.16, 0.8, 0.2, 1),
+        filter 680ms ease;
+    will-change: transform, filter;
 }
 
 /* 控制 .related-feature-image 的布局、视觉和状态表现 */
@@ -4122,6 +4269,47 @@ body.has-overlay-lock {
     align-content: center;
     gap: 14px;
     padding: 32px 30px 30px;
+    transition:
+        transform 720ms cubic-bezier(0.16, 0.8, 0.2, 1),
+        opacity 520ms ease,
+        filter 520ms ease;
+    will-change: transform, opacity, filter;
+}
+
+.related-stage-shell.is-stage-incoming .related-feature-media {
+    filter: blur(2px) saturate(0.97);
+    transform: translate3d(calc(var(--incoming-x, 72px) * -0.05), 0, 0) scale(1.012);
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active .related-feature-media,
+.related-stage-shell.is-stage-active .related-feature-media {
+    filter: blur(0) saturate(1);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.related-stage-shell.is-stage-outgoing .related-feature-media {
+    filter: blur(4px) saturate(0.9);
+    transform: translate3d(calc(var(--outgo-x, -72px) * 0.1), 0, 0) scale(0.982);
+}
+
+.related-stage-shell.is-stage-incoming .related-feature-copy {
+    opacity: 0.28;
+    filter: blur(6px);
+    transform: translate3d(calc(var(--incoming-x, 72px) * 0.1), 10px, 0);
+    transition-delay: 20ms;
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active .related-feature-copy,
+.related-stage-shell.is-stage-active .related-feature-copy {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+}
+
+.related-stage-shell.is-stage-outgoing .related-feature-copy {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translate3d(calc(var(--outgo-x, -72px) * 0.12), 10px, 0);
 }
 
 /* 控制 .related-feature-kicker 的布局、视觉和状态表现 */
@@ -4221,7 +4409,15 @@ body.has-overlay-lock {
 /* 控制 .related-neighbor-stack 的布局、视觉和状态表现 */
 .related-neighbor-stack {
     display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 18px;
+    height: 100%;
+    align-self: stretch;
+    transition:
+        transform 760ms cubic-bezier(0.16, 0.8, 0.2, 1),
+        opacity 560ms ease,
+        filter 560ms ease;
+    will-change: transform, opacity, filter;
 }
 
 /* 控制 .related-neighbor-card 的布局、视觉和状态表现 */
@@ -4232,6 +4428,8 @@ body.has-overlay-lock {
     align-items: stretch;
     gap: 16px;
     width: 100%;
+    height: 100%;
+    min-height: 0;
     padding: 16px;
     border-radius: 28px;
     border: 1px solid rgba(176, 213, 228, 0.34);
@@ -4251,6 +4449,96 @@ body.has-overlay-lock {
         opacity 320ms ease,
         border-color 260ms ease,
         filter 320ms ease;
+    will-change: transform, opacity, filter;
+}
+
+.related-grid.is-stage-switching .related-neighbor-card {
+    backface-visibility: hidden;
+}
+
+.related-stage-shell.is-stage-incoming .related-neighbor-stack {
+    opacity: 0.48;
+    filter: blur(5px) saturate(0.94);
+    transform: translate3d(calc(var(--incoming-x, 72px) * 0.16), 6px, 0) scale(0.996);
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active .related-neighbor-stack,
+.related-stage-shell.is-stage-active .related-neighbor-stack {
+    opacity: 1;
+    filter: blur(0) saturate(1);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.related-stage-shell.is-stage-outgoing .related-neighbor-stack {
+    opacity: 0.04;
+    filter: blur(11px) saturate(0.8);
+    transform: translate3d(calc(var(--outgo-x, -72px) * 0.28), -4px, 0) scale(0.99);
+}
+
+.related-stage-shell.is-stage-incoming .related-neighbor-card {
+    opacity: 0.92;
+    filter: none;
+    transition:
+        transform 620ms cubic-bezier(0.16, 0.8, 0.2, 1),
+        opacity 420ms ease,
+        box-shadow 520ms ease,
+        border-color 420ms ease;
+}
+
+.related-stage-shell.is-stage-outgoing .related-neighbor-card {
+    opacity: 0.9;
+    filter: none;
+}
+
+.related-stage-shell.is-stage-incoming .related-neighbor-card[data-neighbor-index="0"] {
+    transform: translate3d(0, 0, 0) scale(1);
+    transition-delay: 18ms;
+}
+
+.related-stage-shell.is-stage-incoming .related-neighbor-card[data-neighbor-index="1"] {
+    transform: translate3d(0, 5px, 0) scale(0.992);
+    transition-delay: 44ms;
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active .related-neighbor-card,
+.related-stage-shell.is-stage-active .related-neighbor-card {
+    opacity: 0.9;
+    filter: blur(0) saturate(1);
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active .related-neighbor-card[data-neighbor-index="0"],
+.related-stage-shell.is-stage-active .related-neighbor-card[data-neighbor-index="0"] {
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.related-stage-shell.is-stage-incoming.is-stage-active .related-neighbor-card[data-neighbor-index="1"],
+.related-stage-shell.is-stage-active .related-neighbor-card[data-neighbor-index="1"] {
+    transform: translate3d(0, 0, 0) scale(0.992);
+}
+
+.related-stage-shell.is-stage-outgoing .related-neighbor-card[data-neighbor-index="0"] {
+    transform: translate3d(0, -4px, 0) scale(0.996);
+}
+
+.related-stage-shell.is-stage-outgoing .related-neighbor-card[data-neighbor-index="1"] {
+    transform: translate3d(0, 4px, 0) scale(0.988);
+}
+
+.related-neighbor-card::before {
+    content: "";
+    position: absolute;
+    inset: auto 12px 12px;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(123, 196, 255, 0), rgba(123, 196, 255, 0.28), rgba(123, 196, 255, 0));
+    opacity: 0;
+    transition: opacity 520ms ease, transform 520ms ease;
+}
+
+.related-neighbor-card.is-pressed::before,
+.related-stage-shell.is-stage-active .related-neighbor-card::before {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.08);
 }
 
 /* .related-neighbor-card:hover 鼠标移入时的样式 */
@@ -4348,7 +4636,7 @@ body.has-overlay-lock {
 }
 
 /* .related-spots.is-visible .related-stage-shell 在对应状态下的样式 */
-.related-spots.is-visible .related-stage-shell {
+.related-spots.is-visible .related-grid:not(.is-stage-switching) .related-stage-shell.is-entry-reveal {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
@@ -4356,29 +4644,29 @@ body.has-overlay-lock {
 }
 
 /* .related-spots.is-visible .related-neighbor-card 在对应状态下的样式 */
-.related-spots.is-visible .related-neighbor-card {
+.related-spots.is-visible .related-grid:not(.is-stage-switching) .related-stage-shell.is-entry-reveal .related-neighbor-card {
     animation: relatedNeighborReveal 880ms cubic-bezier(0.18, 0.78, 0.2, 1) both;
 }
 
 /* 控制 .related-grid.is-switching.is-flow-forward .related-feature-card.is-leaving 的布局、视觉和状态表现 */
 .related-grid.is-switching.is-flow-forward .related-feature-card.is-leaving {
-    opacity: 0.24;
-    filter: blur(10px);
-    transform: translate3d(-54px, 10px, 0) scale(0.958);
+    opacity: 0.14;
+    filter: blur(12px);
+    transform: translate3d(-58px, 8px, 0) scale(0.952);
 }
 
 /* 控制 .related-grid.is-switching.is-flow-backward .related-feature-card.is-leaving 的布局、视觉和状态表现 */
 .related-grid.is-switching.is-flow-backward .related-feature-card.is-leaving {
-    opacity: 0.24;
-    filter: blur(10px);
-    transform: translate3d(54px, 10px, 0) scale(0.958);
+    opacity: 0.14;
+    filter: blur(12px);
+    transform: translate3d(58px, 8px, 0) scale(0.952);
 }
 
 /* 控制 .related-grid.is-switching .related-neighbor-card 的布局、视觉和状态表现 */
 .related-grid.is-switching .related-neighbor-card {
-    opacity: 0.42;
-    filter: blur(4px);
-    transform: translate3d(0, 10px, 0) scale(0.978);
+    opacity: 0.26;
+    filter: blur(5px);
+    transform: translate3d(0, 8px, 0) scale(0.974);
 }
 
 /* 控制 .related-grid.is-entering.is-flow-forward .related-feature-card 的布局、视觉和状态表现 */
@@ -4450,9 +4738,9 @@ body.has-overlay-lock {
 /* 定义 relatedFeatureEnterFromRight 动画关键帧 */
 @keyframes relatedFeatureEnterFromRight {
     0% {
-        opacity: 0;
-        transform: translate3d(64px, 0, 0) scale(0.972);
-        filter: blur(14px);
+        opacity: 0.22;
+        transform: translate3d(46px, 0, 0) scale(0.984);
+        filter: blur(8px);
     }
 
     100% {
@@ -4465,9 +4753,9 @@ body.has-overlay-lock {
 /* 定义 relatedFeatureEnterFromLeft 动画关键帧 */
 @keyframes relatedFeatureEnterFromLeft {
     0% {
-        opacity: 0;
-        transform: translate3d(-64px, 0, 0) scale(0.972);
-        filter: blur(14px);
+        opacity: 0.22;
+        transform: translate3d(-46px, 0, 0) scale(0.984);
+        filter: blur(8px);
     }
 
     100% {
@@ -4480,9 +4768,9 @@ body.has-overlay-lock {
 /* 定义 relatedNeighborSettle 动画关键帧 */
 @keyframes relatedNeighborSettle {
     0% {
-        opacity: 0.42;
-        transform: translate3d(0, 16px, 0) scale(0.97);
-        filter: blur(8px);
+        opacity: 0.58;
+        transform: translate3d(0, 10px, 0) scale(0.978);
+        filter: blur(5px);
     }
 
     100% {

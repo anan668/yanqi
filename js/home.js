@@ -486,6 +486,46 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
 }
 
 /**
+ * observeOnceInViewport(target, onReveal, options) - 统一的一次性进入视口触发器
+ * @param {Element|null} target - 需要观察的目标元素
+ * @param {(entry?: IntersectionObserverEntry) => void} onReveal - 进入视口后执行的回调
+ * @param {{ threshold?: number|number[], rootMargin?: string }} options - 观察器配置
+ * @returns {IntersectionObserver|null} - 观察器实例，或在降级场景下返回 null
+ */
+function observeOnceInViewport(target, onReveal, options = {}) {
+    if (!target || typeof onReveal !== 'function') {
+        return null;
+    }
+
+    const {
+        threshold = 0.18,
+        rootMargin = '0px 0px -10% 0px'
+    } = options;
+
+    if (!('IntersectionObserver' in window)) {
+        onReveal();
+        return null;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting && entry.intersectionRatio <= 0) {
+                return;
+            }
+
+            observer.unobserve(entry.target);
+            onReveal(entry);
+        });
+    }, {
+        threshold,
+        rootMargin
+    });
+
+    observer.observe(target);
+    return observer;
+}
+
+/**
  * clamp(value, min, max) - 提供首页多个模块共享的数值约束工具
  * @param {number} value - 原始数值
  * @param {number} min - 下限
@@ -1095,6 +1135,7 @@ class BambooScroll {
                             src="${spot.image}"
                             alt="${spot.name}"
                             class="bamboo-card-image"
+                            draggable="false"
                             decoding="async"
                             ${shouldDeferImage ? 'loading="lazy" fetchpriority="low"' : 'loading="eager"'}
                             onerror="this.src='https://via.placeholder.com/280x180?text=${encodeURIComponent(spot.name)}'"
@@ -1205,6 +1246,9 @@ class BambooScroll {
         this.wrapper.addEventListener('pointercancel', (event) => this.handlePointerUp(event));
         this.wrapper.addEventListener('lostpointercapture', (event) => this.handleLostPointerCapture(event));
         this.wrapper.addEventListener('click', (event) => this.handleCardClick(event));
+        this.wrapper.addEventListener('dragstart', (event) => {
+            event.preventDefault();
+        });
 
         this.wrapper.addEventListener('mouseenter', (event) => {
             this.pointerInsideWrapper = true;
@@ -1455,6 +1499,8 @@ class BambooScroll {
             return false;
         }
 
+        const normalizedDirection = Math.sign(direction || 0) || 1;
+
         if (this.autoStep && isAutoStep) {
             return false;
         }
@@ -1463,17 +1509,24 @@ class BambooScroll {
             return false;
         }
 
+        if (!isAutoStep && this.autoStep) {
+            if (normalizedDirection === this.autoStep.direction) {
+                this.finishStepScrollImmediately();
+            } else {
+                this.settleCurrentStepForDirection(normalizedDirection);
+            }
+        }
+
         this.inertia.active = false;
         this.trackVelocity = 0;
 
         const from = this.trackPosition;
-        const currentTarget = this.autoStep ? this.autoStep.to : from;
-        const to = currentTarget + direction * this.cardStride;
+        const to = from + normalizedDirection * this.cardStride;
 
         this.autoStep = {
             from,
             to,
-            direction,
+            direction: normalizedDirection,
             duration: this.randomBetween(this.autoStepDurationMin, this.autoStepDurationMax),
             elapsed: 0,
             brakeImpulseApplied: false
@@ -1689,6 +1742,7 @@ class BambooScroll {
                 this.trackPosition = this.autoStep.to;
                 this.trackVelocity = 0;
                 this.autoStep = null;
+                this.schedulePendingManualStep();
             }
         } else if (this.inertia.active && !this.isDragging) {
             if (this.inertia.boostTime > 0) {
@@ -1948,6 +2002,29 @@ class BambooScroll {
     }
 
     /**
+     * settleCurrentStepForDirection(direction) - 在用户中途反向点击时，把当前步进收回到更合理的卡位
+     * @param {number} direction - 用户这次最新点击的目标方向
+     * @returns {void}
+     */
+    settleCurrentStepForDirection(direction) {
+        if (!this.autoStep) {
+            return;
+        }
+
+        const normalizedDirection = Math.sign(direction || 0) || 1;
+        const stride = Math.max(this.cardStride, 1);
+        const stepIndex = normalizedDirection > 0
+            ? Math.ceil(this.trackPosition / stride)
+            : Math.floor(this.trackPosition / stride);
+
+        this.trackPosition = stepIndex * stride;
+        this.autoStep = null;
+        this.trackVelocity = 0;
+        this.recenterTrack();
+        this.updateTrackPosition();
+    }
+
+    /**
      * applyStepBrakeImpulse(direction) - 为步进滚动添加一次刹停阻尼脉冲
      * @param {number} direction - 当前滚动方向
      * @returns {void} - 无返回值，直接修改轨道速度
@@ -2124,32 +2201,30 @@ class BambooScroll {
     }
 }
 
-// 精选目的地舞台：负责主卡渲染、样本卡切换，以及不同海域之间的缓慢转场。
+// 精选目的地舞台：深海档案墙 — 左侧竖排导航 + 右侧展示面板，海流推移式切换。
 class CuratedWatersStage {
     /**
-     * constructor() - 初始化精选目的地舞台的 DOM 引用和当前激活索引
+     * constructor() - 初始化深海档案墙的 DOM 引用和状态
      */
     constructor() {
         this.section = document.getElementById('featured-destinations');
         this.shell = this.section ? this.section.querySelector('.curated-waters-shell') : null;
-        this.intro = this.section ? this.section.querySelector('.curated-waters-intro') : null;
         this.stage = document.getElementById('curatedWatersStage');
         this.mainCard = document.getElementById('curatedMainCard');
         this.liveSummary = document.getElementById('curatedLiveSummary');
-        this.sampleCloud = document.getElementById('destinationsGrid');
+        this.navRail = document.getElementById('destinationsGrid');
         this.currentIndex = 0;
+        this.sampleBatchSize = 3;
+        this.sampleBatchCursor = 0;
+        this.activeSampleSlot = 0;
         this.switchTimer = 0;
-        this.phaseRaf = 0;
-        this.hasUserSelected = true;
-        this.sampleCardsObserver = null;
-        this.layoutMetrics = {
-            stackedShellHeight: 0,
-            leftShellHeight: 0,
-            measuredViewportWidth: 0
-        };
+        this.batchSwitchTimer = 0;
+        this.batchRevealTimer = 0;
+        this.revealTimer = 0;
+        this.stageSettleTimer = 0;
         this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
 
-        if (!this.section || !this.shell || !this.intro || !this.mainCard || !this.sampleCloud) {
+        if (!this.section || !this.shell || !this.mainCard || !this.navRail) {
             return;
         }
 
@@ -2157,190 +2232,216 @@ class CuratedWatersStage {
     }
 
     /**
-     * init() - 启动精选目的地舞台的渲染、事件绑定和预加载
-     * @returns {void} - 无返回值，直接初始化舞台
+     * init() - 启动档案墙的渲染、事件绑定和预加载
      */
     init() {
-        this.renderSampleCloud();
+        this.renderNavRail();
         this.renderMainCard(this.currentIndex, { immediate: true });
-        this.updateLayoutMetrics();
         this.attachEvents();
         this.setupReveal();
-        this.setupScrollPhases();
         this.preloadNearby(this.currentIndex);
     }
 
     /**
-     * updateLayoutMetrics() - 记录精选目的地在堆叠态与左侧收束态下的壳层高度
-     * @returns {void} - 无返回值，直接更新内部布局测量缓存
+     * renderNavRail() - 渲染左侧竖排导航按钮
      */
-    updateLayoutMetrics() {
-        if (!this.section || !this.shell) {
-            return;
-        }
+    renderNavRail() {
+        const sampleIndices = this.getVisibleSampleIndices();
+        const canCycleSamples = destinationsData.length > this.sampleBatchSize;
 
-        const previousPhase = this.section.dataset.curatedPhase || 'top';
-        const previousTransition = this.shell.style.transition;
-        const previousShellMinHeight = this.shell.style.minHeight;
-        const previousSectionTransition = this.section.style.transition;
-
-        this.shell.style.transition = 'none';
-        this.section.style.transition = 'none';
-        this.shell.style.minHeight = '';
-        this.section.dataset.curatedPhase = 'top';
-        const stackedShellHeight = this.shell.offsetHeight;
-
-        this.section.dataset.curatedPhase = 'left';
-        const leftShellHeight = this.shell.offsetHeight;
-
-        this.section.dataset.curatedPhase = previousPhase;
-        this.shell.style.transition = previousTransition;
-        this.section.style.transition = previousSectionTransition;
-        this.shell.style.minHeight = previousShellMinHeight;
-
-        this.layoutMetrics.stackedShellHeight = stackedShellHeight;
-        this.layoutMetrics.leftShellHeight = leftShellHeight;
-        this.layoutMetrics.measuredViewportWidth = window.innerWidth || 0;
-    }
-
-    /**
-     * renderSampleCloud() - 渲染右侧样本卡片云层
-     * @returns {void} - 无返回值，直接更新样本卡 DOM
-     */
-    renderSampleCloud() {
-        if (this.sampleCardsObserver) {
-            this.sampleCardsObserver.disconnect();
-            this.sampleCardsObserver = null;
-        }
-
-        this.sampleCloud.classList.remove('is-samples-awakened');
-
-        const offsets = [
-            { x: 0, y: -10 },
-            { x: 12, y: 10 },
-            { x: -14, y: 16 },
-            { x: 16, y: -8 },
-            { x: -10, y: 6 },
-            { x: 8, y: 18 }
-        ];
-
-        this.sampleCloud.innerHTML = destinationsData.map((dest, index) => {
-            const offset = offsets[index] || { x: 0, y: 0 };
+        const sampleMarkup = sampleIndices.map((index, railIndex) => {
+            const dest = destinationsData[index];
+            const isActive = index === this.currentIndex;
+            const revealDelay = 120 + railIndex * 56;
+            const cycleDelay = 32 + railIndex * 42;
+            const cycleShift = 12 + railIndex * 3;
             return `
                 <button
                     type="button"
-                    class="curated-sample-card${index === this.currentIndex ? ' is-active' : ''}"
+                    class="curated-nav-btn${isActive ? ' is-active' : ''}"
                     data-index="${index}"
                     data-id="${dest.id}"
-                    style="--sample-delay: ${index * 90}ms; --sample-offset-x: ${offset.x}px; --sample-offset-y: ${offset.y}px;"
+                    data-slot="${railIndex}"
+                    aria-pressed="${isActive ? 'true' : 'false'}"
+                    aria-current="${isActive ? 'true' : 'false'}"
+                    style="--sample-reveal-delay: ${revealDelay}ms; --sample-cycle-delay: ${cycleDelay}ms; --sample-cycle-shift: ${cycleShift}px;"
                 >
-                    <span class="curated-sample-image-wrap">
-                        <img src="${dest.image}" alt="${dest.name}" class="curated-sample-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/240x220?text=${encodeURIComponent(dest.name)}'">
+                    <span class="curated-nav-thumb">
+                        <img src="${dest.image}" alt="" class="curated-nav-thumb-img" loading="lazy" decoding="async" fetchpriority="low" onerror="this.style.display='none'">
                     </span>
-                    <span class="curated-sample-copy">
-                        <span class="curated-sample-name">${dest.name}</span>
-                        <span class="curated-sample-keyword">${dest.sampleKeyword}</span>
-                        <span class="curated-sample-meta">${dest.sampleMeta}</span>
+                    <span class="curated-nav-label">
+                        <span class="curated-nav-index">${String(index + 1).padStart(2, '0')}</span>
+                        <span class="curated-nav-name-row">
+                            <span class="curated-nav-name">${dest.name}</span>
+                            <span class="curated-nav-state">${dest.archiveLabel}</span>
+                        </span>
+                        <span class="curated-nav-eng">${dest.englishName}</span>
+                        <span class="curated-nav-keyword">${dest.sampleKeyword}</span>
+                        <span class="curated-nav-meta">${dest.sampleMeta}</span>
                     </span>
                 </button>
             `;
         }).join('');
+
+        const refreshMarkup = canCycleSamples ? `
+            <button
+                type="button"
+                class="curated-nav-refresh"
+                data-action="cycle-samples"
+                style="--sample-reveal-delay: ${132 + sampleIndices.length * 56}ms; --sample-cycle-delay: ${54 + sampleIndices.length * 34}ms;"
+            >
+                <span class="curated-nav-refresh-title">另一组海域</span>
+                <span class="curated-nav-refresh-copy">换一批相邻海域，让中央这片继续安静停留。</span>
+            </button>
+        ` : '';
+
+        this.navRail.innerHTML = sampleMarkup + refreshMarkup;
     }
 
-    /**
-     * revealSampleCards() - 让右侧样本卡在真正滑进视口时才各自显形
-     * @returns {void} - 无返回值，直接给样本卡设置观察器
-     */
-    revealSampleCards() {
-        if (!this.sampleCloud) {
-            return;
+    getAvailableSampleIndices() {
+        return destinationsData
+            .map((_, index) => index)
+            .filter((index) => index !== this.currentIndex);
+    }
+
+    getVisibleSampleIndices() {
+        const totalVisibleCount = Math.min(this.sampleBatchSize, destinationsData.length);
+        if (totalVisibleCount <= 0) {
+            return [];
         }
 
-        const cards = Array.from(this.sampleCloud.querySelectorAll('.curated-sample-card'));
-        if (!cards.length) {
-            return;
-        }
+        const available = this.getAvailableSampleIndices();
+        const activeSlot = Math.max(0, Math.min(this.activeSampleSlot, totalVisibleCount - 1));
+        const visible = Array(totalVisibleCount).fill(null);
+        const used = new Set([this.currentIndex]);
+        let cursor = available.length ? this.sampleBatchCursor % available.length : 0;
+        let guard = 0;
 
-        this.sampleCloud.classList.add('is-samples-awakened');
+        visible[activeSlot] = this.currentIndex;
 
-        if (!('IntersectionObserver' in window)) {
-            cards.forEach((card) => card.classList.add('is-sample-visible'));
-            return;
-        }
+        for (let slot = 0; slot < totalVisibleCount; slot += 1) {
+            if (slot === activeSlot) {
+                continue;
+            }
 
-        if (this.sampleCardsObserver) {
-            this.sampleCardsObserver.disconnect();
-        }
+            while (guard < available.length * 2 + totalVisibleCount) {
+                const candidate = available.length ? available[cursor % available.length] : null;
+                cursor += 1;
+                guard += 1;
 
-        this.sampleCardsObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
+                if (!Number.isInteger(candidate) || used.has(candidate)) {
+                    continue;
                 }
 
-                entry.target.classList.add('is-sample-visible');
-                this.sampleCardsObserver?.unobserve(entry.target);
-            });
-        }, {
-            threshold: 0.28,
-            rootMargin: '0px 0px -8% 0px'
-        });
+                visible[slot] = candidate;
+                used.add(candidate);
+                break;
+            }
+        }
 
-        cards.forEach((card) => {
-            this.sampleCardsObserver.observe(card);
-        });
+        return visible.filter((index) => Number.isInteger(index));
+    }
+
+    cycleSampleBatch() {
+        const available = this.getAvailableSampleIndices();
+        const otherCount = Math.max(1, this.sampleBatchSize - 1);
+        if (available.length <= otherCount || this.navRail.classList.contains('is-cycling')) {
+            return;
+        }
+
+        if (this.batchSwitchTimer) {
+            window.clearTimeout(this.batchSwitchTimer);
+            this.batchSwitchTimer = 0;
+        }
+
+        if (this.batchRevealTimer) {
+            window.clearTimeout(this.batchRevealTimer);
+            this.batchRevealTimer = 0;
+        }
+
+        this.navRail.classList.remove('is-cycle-prime', 'is-cycle-reveal');
+        this.navRail.classList.add('is-cycling');
+
+        this.batchSwitchTimer = window.setTimeout(() => {
+            this.sampleBatchCursor = (this.sampleBatchCursor + otherCount) % available.length;
+            this.renderNavRail();
+            this.syncActiveNav();
+
+            requestAnimationFrame(() => {
+                this.navRail.classList.remove('is-cycling');
+                this.navRail.classList.add('is-cycle-prime');
+
+                requestAnimationFrame(() => {
+                    this.navRail.classList.remove('is-cycle-prime');
+                    this.navRail.classList.add('is-cycle-reveal');
+
+                    this.batchRevealTimer = window.setTimeout(() => {
+                        this.navRail.classList.remove('is-cycle-reveal');
+                        this.batchRevealTimer = 0;
+                    }, 980);
+                });
+            });
+
+            this.batchSwitchTimer = 0;
+        }, 240);
     }
 
     /**
-     * createMainSurface(dest, index, directionClass) - 创建主舞台卡片的 DOM 结构
-     * @param {Object} dest - 当前目的地数据
-     * @param {number} index - 当前目的地索引
-     * @param {string} directionClass - 切换方向对应的附加 class
-     * @returns {HTMLDivElement} - 创建好的主舞台卡片元素
+     * createDisplaySurface(dest, index, directionClass) - 创建右侧展示面板的 DOM
+     * @param {Object} dest - 目的地数据
+     * @param {number} index - 索引
+     * @param {string} directionClass - 入场方向 class
+     * @returns {HTMLDivElement}
      */
-    createMainSurface(dest, index, directionClass) {
+    createDisplaySurface(dest, index, directionClass) {
         const surface = document.createElement('div');
-        surface.className = `curated-main-surface${directionClass ? ` ${directionClass}` : ''}${this.hasUserSelected ? ' is-shifted-layout' : ''}`;
+        surface.className = `curated-display-surface${directionClass ? ` ${directionClass}` : ''}`;
         surface.innerHTML = `
-            <div class="curated-main-media">
-                <img src="${dest.image}" alt="${dest.name}" class="curated-main-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/760x720?text=${encodeURIComponent(dest.name)}'">
+            <div class="curated-display-media">
+                <img src="${dest.image}" alt="${dest.name}" class="curated-display-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/760x720?text=${encodeURIComponent(dest.name)}'">
+                <div class="curated-display-sea-note" aria-hidden="true">
+                    <span class="curated-display-sea-note-label">Sea Signal</span>
+                    <span class="curated-display-sea-note-value">${dest.sampleKeyword}</span>
+                </div>
             </div>
 
-            <div class="curated-main-copy">
-                <p class="curated-main-kicker">${dest.archiveLabel}</p>
+            <div class="curated-display-copy">
+                <p class="curated-display-kicker">${dest.archiveLabel}</p>
 
-                <div class="curated-main-heading">
-                    <h3 class="curated-main-name">${dest.name}</h3>
-                    <p class="curated-main-english">${dest.englishName}</p>
+                <div class="curated-display-heading">
+                    <h3 class="curated-display-name">${dest.name}</h3>
+                    <p class="curated-display-english">${dest.englishName}</p>
                 </div>
 
-                <p class="curated-main-atmosphere">${dest.atmosphere}</p>
+                <p class="curated-display-atmosphere">${dest.atmosphere}</p>
 
-                <div class="curated-main-facts">
-                    <div class="curated-main-fact">
-                        <span class="curated-main-fact-label">适合等级</span>
-                        <span class="curated-main-fact-value">${dest.level}</span>
+                <div class="curated-display-facts">
+                    <div class="curated-display-fact">
+                        <span class="curated-display-fact-label">适合等级</span>
+                        <span class="curated-display-fact-value">${dest.level}</span>
                     </div>
-                    <div class="curated-main-fact">
-                        <span class="curated-main-fact-label">最佳季节</span>
-                        <span class="curated-main-fact-value">${dest.season}</span>
+                    <div class="curated-display-fact">
+                        <span class="curated-display-fact-label">最佳季节</span>
+                        <span class="curated-display-fact-value">${dest.season}</span>
                     </div>
-                    <div class="curated-main-fact">
-                        <span class="curated-main-fact-label">适合人群</span>
-                        <span class="curated-main-fact-value">${dest.audience}</span>
+                    <div class="curated-display-fact">
+                        <span class="curated-display-fact-label">适合人群</span>
+                        <span class="curated-display-fact-value">${dest.audience}</span>
                     </div>
                 </div>
 
-                <div class="curated-main-conditions">
+                <div class="curated-display-conditions">
                     ${dest.conditions.map((condition) => `
-                        <span class="curated-main-condition">${condition}</span>
+                        <span class="curated-display-condition">${condition}</span>
                     `).join('')}
                 </div>
 
-                <p class="curated-main-worth">
-                    <span class="curated-main-worth-label">值得去</span>
-                    <span class="curated-main-worth-text">${dest.worthIt}</span>
+                <p class="curated-display-worth">
+                    <span class="curated-display-worth-label">值得去</span>
+                    <span class="curated-display-worth-text">${dest.worthIt}</span>
                 </p>
+
+                <p class="curated-display-footnote">${dest.sampleMeta}</p>
 
                 <button type="button" class="curated-detail-button" data-detail-url="detail.html?id=${dest.id}">
                     <span>查看详情</span>
@@ -2356,68 +2457,64 @@ class CuratedWatersStage {
     }
 
     /**
-     * renderMainCard(nextIndex, options) - 切换并渲染当前激活的主舞台卡片
+     * renderMainCard(nextIndex, options) - 海流推移式切换展示面板
      * @param {number} nextIndex - 目标目的地索引
-     * @param {Object} options - 渲染配置项
-     * @returns {void} - 无返回值，直接更新主舞台内容
+     * @param {Object} options - 配置项
      */
     renderMainCard(nextIndex, options = {}) {
-        const { immediate = false } = options;
+        const { immediate = false, refreshNav = false } = options;
         const dest = destinationsData[nextIndex];
         if (!dest) {
             return;
         }
 
-        const currentSurface = this.mainCard.querySelector('.curated-main-surface.is-active')
-            || this.mainCard.querySelector('.curated-main-surface');
-        const movingForward = nextIndex >= this.currentIndex;
-        const enterClass = immediate ? '' : (movingForward ? 'from-right is-entering' : 'from-left is-entering');
-        const leavingClass = movingForward ? 'to-left' : 'to-right';
-        // 这里不是简单替换 innerHTML，而是区分“当前卡离场”和“下一张卡入场”的方向，
-        // 让精选目的地像在同一片海域陈列廊里缓慢平移，而不是瞬间换页。
-        const nextSurface = this.createMainSurface(dest, nextIndex, enterClass);
-        this.stage.classList.toggle('is-shifted', this.hasUserSelected);
+        const currentSurface = this.mainCard.querySelector('.curated-display-surface.is-active')
+            || this.mainCard.querySelector('.curated-display-surface');
+        const enterClass = immediate ? '' : 'from-depth is-entering';
+        const leavingClass = 'to-depth';
+
+        const nextSurface = this.createDisplaySurface(dest, nextIndex, enterClass);
 
         if (this.switchTimer) {
             window.clearTimeout(this.switchTimer);
             this.switchTimer = 0;
         }
 
-        Array.from(this.mainCard.querySelectorAll('.curated-main-surface.is-leaving')).forEach((surface) => {
-            surface.remove();
+        Array.from(this.mainCard.querySelectorAll('.curated-display-surface.is-leaving')).forEach((s) => {
+            s.remove();
         });
 
         if (currentSurface && !immediate) {
             currentSurface.classList.remove('is-active', 'is-resting');
             currentSurface.classList.add('is-leaving', leavingClass);
         } else {
-            Array.from(this.mainCard.querySelectorAll('.curated-main-surface')).forEach((surface) => {
-                surface.remove();
+            Array.from(this.mainCard.querySelectorAll('.curated-display-surface')).forEach((s) => {
+                s.remove();
             });
         }
 
         this.mainCard.appendChild(nextSurface);
 
-        requestAnimationFrame(() => {
-            nextSurface.classList.add('is-active');
-        });
-        // 先插入 DOM，再下一帧加 is-active，浏览器才能识别“从初始态到激活态”的动画差异。
-
         if (immediate) {
-            nextSurface.classList.add('is-resting');
+            nextSurface.classList.add('is-active');
         } else {
+            requestAnimationFrame(() => {
+                nextSurface.classList.add('is-active');
+            });
             this.switchTimer = window.setTimeout(() => {
-                Array.from(this.mainCard.querySelectorAll('.curated-main-surface.is-leaving')).forEach((surface) => {
-                    surface.remove();
+                Array.from(this.mainCard.querySelectorAll('.curated-display-surface.is-leaving')).forEach((s) => {
+                    s.remove();
                 });
-                nextSurface.classList.remove('is-entering', 'from-right', 'from-left');
-                nextSurface.classList.add('is-resting');
+                nextSurface.classList.remove('from-depth', 'is-entering');
                 this.switchTimer = 0;
-            }, 760);
+            }, 980);
         }
 
         this.currentIndex = nextIndex;
-        this.syncActiveSample();
+        if (refreshNav) {
+            this.renderNavRail();
+        }
+        this.syncActiveNav();
         this.preloadNearby(nextIndex);
 
         if (!immediate) {
@@ -2426,53 +2523,75 @@ class CuratedWatersStage {
     }
 
     /**
-     * syncActiveSample() - 同步右侧样本卡的激活态显示
-     * @returns {void} - 无返回值，直接更新样本卡状态
+     * syncActiveNav() - 同步左侧导航按钮的激活态
      */
-    syncActiveSample() {
-        this.sampleCloud.querySelectorAll('.curated-sample-card').forEach((card) => {
-            const isActive = Number(card.dataset.index) === this.currentIndex;
-            card.classList.toggle('is-active', isActive);
-            card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    syncActiveNav() {
+        this.navRail.querySelectorAll('.curated-nav-btn').forEach((btn) => {
+            const index = Number(btn.dataset.index);
+            const isActive = index === this.currentIndex;
+            const total = destinationsData.length;
+            const clockwiseDistance = (index - this.currentIndex + total) % total;
+            const distance = Math.min(
+                Math.abs(index - this.currentIndex),
+                total - Math.abs(index - this.currentIndex)
+            );
+            const clampedDistance = Math.min(distance, 4);
+            const directionSign = isActive
+                ? 0
+                : (clockwiseDistance === 0
+                    ? 0
+                    : (clockwiseDistance <= total / 2 ? 1 : -1));
+            btn.classList.toggle('is-active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            btn.setAttribute('aria-current', isActive ? 'true' : 'false');
+            btn.style.setProperty('--sample-shift-x', `${isActive ? 0 : directionSign * (6 + clampedDistance * 4)}px`);
+            btn.style.setProperty('--sample-shift-y', `${isActive ? 0 : clampedDistance * 9}px`);
+            btn.style.setProperty('--sample-scale', `${isActive ? 1 : Math.max(0.92, 1 - clampedDistance * 0.018)}`);
+            btn.style.setProperty('--sample-opacity', `${isActive ? 1 : Math.max(0.52, 0.88 - clampedDistance * 0.08)}`);
         });
     }
 
     /**
-     * preloadNearby(index) - 预加载当前主卡附近的目的地图片资源
-     * @param {number} index - 当前激活目的地索引
-     * @returns {void} - 无返回值，直接触发资源预加载
+     * preloadNearby(index) - 预加载附近目的地图片
      */
     preloadNearby(index) {
-        const preloadTargets = [
+        const targets = [
             destinationsData[index],
             destinationsData[(index + 1) % destinationsData.length],
             destinationsData[(index - 1 + destinationsData.length) % destinationsData.length]
         ].filter(Boolean);
 
-        preloadTargets.forEach((dest) => {
-            const image = new Image();
-            image.decoding = 'async';
-            image.src = dest.image;
+        targets.forEach((dest) => {
+            const img = new Image();
+            img.decoding = 'async';
+            img.src = dest.image;
         });
     }
 
     /**
-     * attachEvents() - 绑定样本卡点击和主卡详情跳转事件
-     * @returns {void} - 无返回值，直接注册交互事件
+     * attachEvents() - 绑定导航按钮点击和详情按钮跳转
      */
     attachEvents() {
-        this.sampleCloud.addEventListener('click', (event) => {
-            const card = event.target.closest('.curated-sample-card');
-            if (!card) {
+        this.navRail.addEventListener('click', (event) => {
+            const refreshButton = event.target.closest('.curated-nav-refresh');
+            if (refreshButton) {
+                this.cycleSampleBatch();
                 return;
             }
 
-            const nextIndex = Number(card.dataset.index);
+            const btn = event.target.closest('.curated-nav-btn');
+            if (!btn) {
+                return;
+            }
+
+            const nextIndex = Number(btn.dataset.index);
             if (!Number.isFinite(nextIndex) || nextIndex === this.currentIndex) {
                 return;
             }
 
-            this.hasUserSelected = true;
+            this.activeSampleSlot = Number.isFinite(Number(btn.dataset.slot))
+                ? Number(btn.dataset.slot)
+                : this.activeSampleSlot;
             this.renderMainCard(nextIndex);
         });
 
@@ -2489,136 +2608,43 @@ class CuratedWatersStage {
         });
     }
 
-    /**
-     * setupReveal() - 初始化精选目的地区块的进入视口唤醒效果
-     * @returns {void} - 无返回值，直接设置观察器或降级显示
-     */
-    setupReveal() {
-        if (!('IntersectionObserver' in window)) {
-            this.section.classList.add('is-visible');
-            this.revealSampleCards();
+    triggerRevealSequence() {
+        if (this.section.classList.contains('is-stage-visible')) {
             return;
         }
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
+        this.section.classList.add('is-visible', 'is-intro-visible');
+        this.section.classList.remove('is-stage-settled');
 
-                this.section.classList.add('is-visible');
-                this.revealSampleCards();
-                observer.unobserve(entry.target);
-            });
+        if (this.revealTimer) {
+            return;
+        }
+
+        this.revealTimer = window.setTimeout(() => {
+            this.section.classList.add('is-stage-visible');
+            this.revealTimer = 0;
+
+            if (this.stageSettleTimer) {
+                window.clearTimeout(this.stageSettleTimer);
+            }
+
+            this.stageSettleTimer = window.setTimeout(() => {
+                this.section.classList.add('is-stage-settled');
+                this.stageSettleTimer = 0;
+            }, 1400);
+        }, 220);
+    }
+
+    /**
+     * setupReveal() - 进入视口时唤醒档案墙
+     */
+    setupReveal() {
+        observeOnceInViewport(this.section, () => {
+            this.triggerRevealSequence();
         }, {
             threshold: 0.18,
             rootMargin: '0px 0px -8% 0px'
         });
-
-        observer.observe(this.section);
-    }
-
-    /**
-     * setupScrollPhases() - 监听滚动并切换精选目的地的三段式进入阶段
-     * @returns {void} - 无返回值，直接登记滚动和尺寸变化监听
-     */
-    setupScrollPhases() {
-        const requestPhaseSync = () => {
-            if (
-                !this.layoutMetrics.measuredViewportWidth ||
-                Math.abs(this.layoutMetrics.measuredViewportWidth - (window.innerWidth || 0)) > 1
-            ) {
-                this.updateLayoutMetrics();
-            }
-
-            if (this.phaseRaf) {
-                return;
-            }
-
-            this.phaseRaf = window.requestAnimationFrame(() => {
-                this.phaseRaf = 0;
-                this.syncScrollPhase();
-            });
-        };
-
-        window.addEventListener('scroll', requestPhaseSync, { passive: true });
-        window.addEventListener('resize', requestPhaseSync, { passive: true });
-        window.setTimeout(() => {
-            this.updateLayoutMetrics();
-            requestPhaseSync();
-        }, 260);
-        requestPhaseSync();
-    }
-
-    /**
-     * syncScrollPhase() - 让精选目的地先完整交代，再平滑收束到左侧舞台
-     * @returns {void} - 无返回值，直接更新 section 的滚动阶段状态
-     */
-    syncScrollPhase() {
-        if (!this.section) {
-            return;
-        }
-
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const scrollY = window.scrollY || window.pageYOffset || 0;
-        const sectionTop = this.section.getBoundingClientRect().top + scrollY;
-        const sectionHeight = this.section.offsetHeight;
-        const diveMatchSection = document.getElementById('dive-match');
-        const diveMatchTop = diveMatchSection
-            ? diveMatchSection.getBoundingClientRect().top + scrollY
-            : Number.POSITIVE_INFINITY;
-
-        const introVisibleThreshold = Math.max(0, sectionTop - viewportHeight * 0.94);
-        const settlingThreshold = Math.max(0, sectionTop - viewportHeight * 0.54);
-        const leftShiftStartThreshold = Math.max(
-            settlingThreshold + viewportHeight * 0.22,
-            sectionTop + Math.min(sectionHeight * 0.44, 560) - viewportHeight * 0.08
-        );
-        const leftThreshold = Math.max(
-            leftShiftStartThreshold + viewportHeight * 0.16,
-            diveMatchTop - viewportHeight * 0.84
-        );
-        const stageProgressRaw = clamp(
-            (scrollY - introVisibleThreshold) / Math.max(settlingThreshold - introVisibleThreshold, 1),
-            0,
-            1
-        );
-        const leftProgressRaw = window.innerWidth <= 1024
-            ? 0
-            : clamp(
-                (scrollY - leftShiftStartThreshold) / Math.max(leftThreshold - leftShiftStartThreshold, 1),
-                0,
-                1
-            );
-        const stageProgress = 1 - Math.pow(1 - stageProgressRaw, 1.45);
-        const leftProgress = leftProgressRaw * leftProgressRaw * (3 - 2 * leftProgressRaw);
-        let nextPhase = 'top';
-
-        if (window.innerWidth <= 1024) {
-            nextPhase = scrollY >= settlingThreshold ? 'settling' : 'top';
-        } else if (scrollY >= leftThreshold) {
-            nextPhase = 'left';
-        } else if (scrollY >= settlingThreshold) {
-            nextPhase = 'settling';
-        }
-
-        if (scrollY >= introVisibleThreshold && !this.section.classList.contains('is-visible')) {
-            this.section.classList.add('is-visible');
-            this.revealSampleCards();
-        }
-
-        this.section.style.setProperty('--curated-stage-progress', stageProgress.toFixed(4));
-        this.section.style.setProperty('--curated-left-progress', leftProgress.toFixed(4));
-
-        if (window.innerWidth > 1024 && this.layoutMetrics.stackedShellHeight > 0) {
-            this.shell.style.minHeight = `${this.layoutMetrics.stackedShellHeight.toFixed(2)}px`;
-        } else {
-            this.shell.style.removeProperty('min-height');
-        }
-
-        if (this.section.dataset.curatedPhase !== nextPhase) {
-            this.section.dataset.curatedPhase = nextPhase;
-        }
     }
 }
 
@@ -2638,6 +2664,7 @@ class DiveMatchStage {
         this.activeKey = getDiveMatchKeyFromLocation() || readStoredDiveMatchKey() || DIVE_MATCH_DEFAULT_KEY;
         this.switchTimer = 0;
         this.focusTimer = 0;
+        this.stageSettleTimer = 0;
         this.shouldAutoFocus = window.location.hash === '#dive-match' || Boolean(getDiveMatchKeyFromLocation());
         this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
 
@@ -2902,47 +2929,42 @@ class DiveMatchStage {
         });
     }
 
+    revealIntro() {
+        this.section.classList.add('is-visible');
+    }
+
+    revealStage() {
+        this.section.classList.add('is-stage-visible');
+        this.section.classList.remove('is-stage-settled');
+
+        if (this.stageSettleTimer) {
+            window.clearTimeout(this.stageSettleTimer);
+        }
+
+        this.stageSettleTimer = window.setTimeout(() => {
+            this.section.classList.add('is-stage-settled');
+            this.stageSettleTimer = 0;
+        }, 1500);
+    }
+
     /**
      * setupReveal() - 在模块进入视口时触发整组匹配档案的显现动画
      * @returns {void} - 无返回值，直接设置显现状态
      */
     setupReveal() {
-        if (!('IntersectionObserver' in window)) {
-            this.section.classList.add('is-visible', 'is-stage-visible');
-            return;
-        }
-
-        const sectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
-
-                this.section.classList.add('is-visible');
-                sectionObserver.unobserve(entry.target);
-            });
+        observeOnceInViewport(this.section, () => {
+            this.revealIntro();
         }, {
             threshold: 0.18,
             rootMargin: '0px 0px -8% 0px'
         });
 
-        sectionObserver.observe(this.section);
-
-        const stageObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
-
-                this.section.classList.add('is-stage-visible');
-                stageObserver.unobserve(entry.target);
-            });
+        observeOnceInViewport(this.stage, () => {
+            this.revealStage();
         }, {
             threshold: 0.12,
             rootMargin: '0px 0px 0px 0px'
         });
-
-        stageObserver.observe(this.stage);
     }
 }
 
@@ -3516,31 +3538,19 @@ function consumePendingHomeScrollTarget() {
  * @returns {void} - 无返回值，直接设置观察器或降级显示
  */
 function setupStoryReveal() {
-    const revealItems = document.querySelectorAll('.story-reveal');
+    const revealItems = document.querySelectorAll('#why-yanqi .story-reveal');
     if (revealItems.length === 0) {
         return;
     }
 
-    if (!('IntersectionObserver' in window)) {
-        revealItems.forEach((item) => item.classList.add('is-visible'));
-        return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-                return;
-            }
-
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
+    revealItems.forEach((item) => {
+        observeOnceInViewport(item, () => {
+            item.classList.add('is-visible');
+        }, {
+            threshold: 0.18,
+            rootMargin: '0px 0px -8% 0px'
         });
-    }, {
-        threshold: 0.18,
-        rootMargin: '0px 0px -8% 0px'
     });
-
-    revealItems.forEach((item) => observer.observe(item));
 }
 
 // 首页海图导览：用浮层式海图导航替代普通回顶按钮，负责快速跳转和当前位置反馈。
@@ -3807,11 +3817,34 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     consumePendingHomeScrollTarget();
+    setupHeroAnimationPause();
 
     window.YanqiAvatarReturn?.bind({
         targetUrl: 'index.html'
     });
 });
+
+/**
+ * setupHeroAnimationPause() - 首屏滚出视口时暂停无限循环装饰动画以节省 GPU
+ * @returns {void}
+ */
+function setupHeroAnimationPause() {
+    const hero = document.querySelector('.hero-section');
+    if (!hero || !('IntersectionObserver' in window)) {
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            hero.style.setProperty(
+                '--hero-play-state',
+                entry.isIntersecting ? 'running' : 'paused'
+            );
+        });
+    }, { threshold: 0 });
+
+    observer.observe(hero);
+}
 
 
 

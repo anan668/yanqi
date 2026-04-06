@@ -1551,17 +1551,6 @@ body.page-transition-active .login-stage-hud {
 }
 
 /* 减少动态效果模式：只收敛长期漂浮装饰，不关闭登录页本身的入场动画。*/
-@media (prefers-reduced-motion: reduce) {
-/* 只降低背景里的长期漂浮装饰，不关闭登录页本身的入场动画。*/
-    .glass-card::before,
-    .gradient-bg,
-    .gradient-bg::after,
-    .particle,
-    .social-btn:active {
-        animation: none !important;
-    }
-}
-
 /* 平板断点：开始收紧登录舞台的宽度和左右结构。*/
 @media (max-width: 980px) {
     .login-page .stage-debug-toggle {

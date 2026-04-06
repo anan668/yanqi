@@ -425,31 +425,6 @@ body.trip-page.page-ocean-surface-enter > .navbar {
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    :root {
-        --page-stage-translation: 18vh;
-        --page-stage-blur: 0px;
-        --page-ocean-translation: 10vh;
-    }
-
-    body.page-exit-up .page-stage,
-    body.page-exit-down .page-stage,
-    body.page-enter-from-bottom .page-stage,
-    body.page-enter-from-top .page-stage,
-    body.page-ocean-dive-exit .page-stage,
-    body.page-ocean-dive-enter .page-stage,
-    body.page-ocean-surface-exit .page-stage,
-    body.page-ocean-surface-enter .page-stage,
-    body.page-transition-active .navbar {
-        filter: none !important;
-    }
-
-    .page-transition-overlay {
-        transition: none;
-        opacity: 1;
-    }
-}
-
 /* 定义 login-home-bubble-rise 动画的关键帧 */
 @keyframes login-home-bubble-rise {
 /* 控制动画在 0% 阶段的状态 */

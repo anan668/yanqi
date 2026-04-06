@@ -159,27 +159,28 @@
         </section>
 
         <!-- 精选目的地 -->
-        <section class="featured-destinations" id="featured-destinations" data-curated-phase="top">
+        <section class="featured-destinations" id="featured-destinations">
             <div class="curated-waters-shell">
                 <header class="curated-waters-intro curated-reveal">
                     <p class="curated-waters-kicker">Curated Waters</p>
                     <h2 class="curated-waters-title">精选目的地</h2>
                     <p class="curated-waters-subtitle">不是更多的海，而是更适合你的那一片蓝。</p>
-                    <p class="curated-waters-lead">有的海适合第一次安静地下去，有的海适合把鱼群风暴留给更进阶的潜水员。盐憩想做的，是替你把每一片海的性格、光线与节奏，看得更清楚一些。</p>
+                    <p class="curated-waters-lead">让当前这一片海先靠近，旁边的几片蓝留在一侧，慢慢等你看见。</p>
                 </header>
 
-                <!-- 海域档案舞台：
-                     左侧主卡是当前主角，右侧样本卡是切换入口。
-                     这样的分组是为了让“看海域”更像在翻看同一片海图，而不是普通卡片列表。 -->
-                <div class="curated-waters-stage curated-reveal" id="curatedWatersStage">
+                <!-- 深海档案墙：
+                     左侧是目的地竖排导航按钮，右侧是当前海域的大展示区。
+                     点击左侧按钮时，右侧内容以海流推移的方式过渡切换。 -->
+                <div class="curated-waters-stage curated-archive-wall curated-reveal" id="curatedWatersStage">
                     <p id="curatedLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
-                    <article class="curated-main-card" id="curatedMainCard">
-                        <!-- 主舞台卡片由脚本动态生成 -->
-                    </article>
 
-                    <div class="curated-sample-cloud" id="destinationsGrid" aria-label="海域样本卡">
-                        <!-- 海域样本卡由脚本动态生成 -->
-                    </div>
+                    <nav class="curated-nav-rail" id="destinationsGrid" aria-label="海域导航">
+                        <!-- 导航按钮由脚本动态生成 -->
+                    </nav>
+
+                    <article class="curated-main-card curated-display" id="curatedMainCard">
+                        <!-- 展示区内容由脚本动态生成 -->
+                    </article>
                 </div>
             </div>
         </section>

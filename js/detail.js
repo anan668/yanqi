@@ -1704,6 +1704,8 @@ class DetailPage {
         this.relatedTransitionCleanupTimer = 0;
         this.relatedStageSwitchTimer = 0;
         this.relatedStageCleanupTimer = 0;
+        this.relatedEntryRevealTimer = 0;
+        this.relatedStageStableHeight = 0;
         this.pressedRelatedCard = null;
         this.activeRelatedSpotId = this.spotData.related?.[0]?.id || null;
         this.relatedSection = document.getElementById('relatedSpots');
@@ -3356,6 +3358,9 @@ class DetailPage {
 
         if (this.bookingFocusAction) {
             this.bookingFocusAction.dataset.packageId = pkg.id;
+        }
+        if (this.bookingFocusPanel) {
+            this.bookingFocusPanel.dataset.packageId = pkg.id;
         }
     }
 
@@ -6272,21 +6277,37 @@ class DetailPage {
     }
 
     /**
-     * getPackageSourceCard(packageId, sourceCard) - 找到当前被展开的套餐卡 DOM
+     * getPackageSourceCard(packageId, sourceCard) - 找到当前被展开的来源舱体 DOM
      * @param {string} packageId - 套餐 ID
-     * @param {HTMLElement|null} sourceCard - 点击来源节点，可能是卡片本身，也可能是按钮
-     * @returns {HTMLElement|null} - 对应的套餐卡 DOM
+     * @param {HTMLElement|null} sourceCard - 点击来源节点，可能是套餐卡、焦点舱或它们内部按钮
+     * @returns {HTMLElement|null} - 对应的套餐卡或焦点舱 DOM
      */
     getPackageSourceCard(packageId, sourceCard = null) {
         if (sourceCard instanceof HTMLElement) {
-            if (sourceCard.classList.contains('package-card')) {
+            if (
+                sourceCard.classList.contains('package-card') ||
+                sourceCard.classList.contains('booking-focus-panel')
+            ) {
                 return sourceCard;
+            }
+
+            const focusPanel = sourceCard.closest('.booking-focus-panel');
+            if (focusPanel) {
+                return focusPanel;
             }
 
             const closestCard = sourceCard.closest('.package-card');
             if (closestCard) {
                 return closestCard;
             }
+        }
+
+        if (
+            this.bookingFocusPanel &&
+            this.isBookingFocusOnlyContext() &&
+            this.bookingFocusPanel.dataset.packageId === packageId
+        ) {
+            return this.bookingFocusPanel;
         }
 
         if (!this.itineraryList) {
@@ -6378,6 +6399,7 @@ class DetailPage {
 
         return {
             packageId,
+            sourceElement: originCard,
             rect: {
                 top: visibleTop,
                 left: visibleLeft,
@@ -6439,7 +6461,7 @@ class DetailPage {
      */
     startBookingModalMorph(packageId, sourceState = null) {
         const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
-        const originCard = this.getPackageSourceCard(packageId);
+        const originCard = sourceState?.sourceElement || this.getPackageSourceCard(packageId);
 
         if (!modalContent || window.innerWidth < 920) {
             modalContent?.classList.remove('is-morphing');
@@ -7002,8 +7024,9 @@ class DetailPage {
                                 type="button"
                                 class="related-neighbor-card"
                                 data-id="${spot.id}"
+                                data-neighbor-index="${index}"
                                 aria-label="切换到 ${spot.name}"
-                                style="animation-delay: ${index * 0.12}s"
+                                style="animation-delay: ${index * 0.12}s; --related-neighbor-delay: ${index * 120}ms;"
                             >
                                 <div class="related-neighbor-media">
                                     <img
@@ -7033,14 +7056,15 @@ class DetailPage {
      * bindRelatedStageInteractions() - 为主海域卡和相邻海域卡绑定切换与进入详情交互
      * @returns {void} - 无返回值，直接注册相关推荐舞台事件
      */
-    bindRelatedStageInteractions() {
-        if (!this.relatedGrid) {
+    bindRelatedStageInteractions(stageRoot = null) {
+        const scope = stageRoot || this.relatedGrid;
+        if (!scope) {
             return;
         }
 
-        const featureCard = this.relatedGrid.querySelector('.related-feature-card');
-        const featureAction = this.relatedGrid.querySelector('.related-feature-action');
-        const neighborCards = Array.from(this.relatedGrid.querySelectorAll('.related-neighbor-card'));
+        const featureCard = scope.querySelector('.related-feature-card');
+        const featureAction = scope.querySelector('.related-feature-action');
+        const neighborCards = Array.from(scope.querySelectorAll('.related-neighbor-card'));
 
         if (featureCard) {
             featureCard.addEventListener('pointerdown', () => {
@@ -7105,42 +7129,90 @@ class DetailPage {
      * @returns {void} - 无返回值，直接更新相关推荐舞台状态
      */
     switchRelatedStage(targetId) {
-        if (!this.relatedGrid || !Number.isFinite(targetId) || targetId === this.activeRelatedSpotId) {
+        if (
+            !this.relatedGrid ||
+            !Number.isFinite(targetId) ||
+            targetId === this.activeRelatedSpotId ||
+            this.relatedTransitionTimer
+        ) {
             return;
         }
 
         const relatedSpots = Array.isArray(this.spotData.related) ? this.spotData.related : [];
         const currentIndex = relatedSpots.findIndex((spot) => spot.id === this.activeRelatedSpotId);
         const targetIndex = relatedSpots.findIndex((spot) => spot.id === targetId);
-        if (targetIndex === -1 || this.relatedStageSwitchTimer) {
+        const currentStage = this.relatedGrid.querySelector('.related-stage-shell:not(.is-stage-outgoing)')
+            || this.relatedGrid.querySelector('.related-stage-shell');
+        if (targetIndex === -1 || this.relatedStageSwitchTimer || !currentStage) {
             return;
         }
 
         const flowClass = targetIndex > currentIndex ? 'is-flow-forward' : 'is-flow-backward';
-        const featureCard = this.relatedGrid.querySelector('.related-feature-card');
-        this.relatedGrid.classList.add('is-switching', flowClass);
+        const featureCard = currentStage.querySelector('.related-feature-card');
+        const currentStageHeight = currentStage.offsetHeight || this.relatedGrid.offsetHeight || 0;
+        if (currentStageHeight > 0) {
+            this.relatedStageStableHeight = Math.max(this.relatedStageStableHeight, currentStageHeight);
+            this.relatedGrid.style.setProperty('--related-stage-height', `${this.relatedStageStableHeight}px`);
+        }
+        if (currentStageHeight > 0) {
+            this.relatedGrid.style.minHeight = `${currentStageHeight}px`;
+        }
+
+        this.relatedGrid.classList.add('is-stage-switching');
+        currentStage.classList.remove('is-entry-reveal');
+        currentStage.classList.remove('is-stage-active');
+        currentStage.classList.add('is-stage-outgoing', 'is-stacked-stage', flowClass);
+        currentStage.setAttribute('aria-hidden', 'true');
         featureCard?.classList.add('is-leaving');
 
-        this.relatedStageSwitchTimer = window.setTimeout(() => {
-            this.activeRelatedSpotId = targetId;
-            this.relatedGrid.innerHTML = this.buildRelatedStageMarkup(flowClass);
-            this.relatedGrid.classList.remove('is-switching');
-            this.relatedGrid.classList.add('is-entering', flowClass);
-            this.bindRelatedStageInteractions();
-            this.syncRelatedTextLayout();
-            this.announceRelatedSummary(`已切换到相邻海域${relatedSpots[targetIndex].name}。`);
+        this.activeRelatedSpotId = targetId;
+        currentStage.insertAdjacentHTML('afterend', this.buildRelatedStageMarkup(flowClass));
+        const stageShells = Array.from(this.relatedGrid.querySelectorAll('.related-stage-shell'));
+        const incomingStage = stageShells[stageShells.length - 1] || null;
 
-            this.relatedStageSwitchTimer = 0;
-
-            if (this.relatedStageCleanupTimer) {
-                window.clearTimeout(this.relatedStageCleanupTimer);
+        if (incomingStage) {
+            const incomingStageHeight = incomingStage.offsetHeight || 0;
+            if (incomingStageHeight > currentStageHeight) {
+                this.relatedGrid.style.minHeight = `${incomingStageHeight}px`;
+            }
+            if (incomingStageHeight > 0) {
+                this.relatedStageStableHeight = Math.max(this.relatedStageStableHeight, incomingStageHeight);
+                this.relatedGrid.style.setProperty('--related-stage-height', `${this.relatedStageStableHeight}px`);
+                this.relatedGrid.style.minHeight = `${this.relatedStageStableHeight}px`;
             }
 
-            this.relatedStageCleanupTimer = window.setTimeout(() => {
-                this.relatedGrid?.classList.remove('is-entering', 'is-flow-forward', 'is-flow-backward');
-                this.relatedStageCleanupTimer = 0;
-            }, 760);
-        }, 260);
+            incomingStage.classList.add('is-stage-incoming', 'is-stacked-stage');
+            incomingStage.setAttribute('aria-hidden', 'true');
+            this.bindRelatedStageInteractions(incomingStage);
+        }
+
+        this.syncRelatedTextLayout();
+        this.announceRelatedSummary(`已切换到相邻海域${relatedSpots[targetIndex].name}。`);
+
+        this.relatedStageSwitchTimer = window.setTimeout(() => {
+            window.requestAnimationFrame(() => {
+                incomingStage?.classList.add('is-stage-active');
+                this.relatedStageSwitchTimer = 0;
+            });
+        }, 24);
+
+        if (this.relatedStageCleanupTimer) {
+            window.clearTimeout(this.relatedStageCleanupTimer);
+        }
+
+        this.relatedStageCleanupTimer = window.setTimeout(() => {
+            currentStage.remove();
+            incomingStage?.classList.remove(
+                'is-stage-incoming',
+                'is-stacked-stage',
+                'is-flow-forward',
+                'is-flow-backward'
+            );
+            incomingStage?.removeAttribute('aria-hidden');
+            this.relatedGrid?.classList.remove('is-stage-switching');
+            this.relatedGrid?.style.removeProperty('min-height');
+            this.relatedStageCleanupTimer = 0;
+        }, 780);
     }
 
     /**
@@ -7159,6 +7231,12 @@ class DetailPage {
         const relatedSpots = Array.isArray(this.spotData.related) ? this.spotData.related : [];
         if (relatedSpots.length === 0) {
             this.relatedGrid.innerHTML = '';
+            if (this.relatedEntryRevealTimer) {
+                window.clearTimeout(this.relatedEntryRevealTimer);
+                this.relatedEntryRevealTimer = 0;
+            }
+            this.relatedStageStableHeight = 0;
+            this.relatedGrid.style.removeProperty('--related-stage-height');
             this.relatedTextLayoutController?.disconnect?.();
             this.relatedTextLayoutController = null;
             return;
@@ -7169,9 +7247,45 @@ class DetailPage {
         }
 
         this.relatedGrid.innerHTML = this.buildRelatedStageMarkup();
-        this.bindRelatedStageInteractions();
+        const initialStage = this.relatedGrid.querySelector('.related-stage-shell');
+        initialStage?.classList.add('is-entry-reveal');
+        this.bindRelatedStageInteractions(initialStage);
         this.syncRelatedTextLayout();
+        const initialStageHeight = initialStage?.offsetHeight || 0;
+        if (initialStageHeight > 0) {
+            this.relatedStageStableHeight = Math.max(this.relatedStageStableHeight, initialStageHeight);
+            this.relatedGrid.style.setProperty('--related-stage-height', `${this.relatedStageStableHeight}px`);
+        }
+        if (this.relatedSection?.classList.contains('is-visible')) {
+            this.activateRelatedInitialStage();
+        }
         this.preloadRelatedAssets(relatedSpots);
+    }
+
+    /**
+     * activateRelatedInitialStage() - 在相关推荐首次进入视口时激活舞台显现，并在显现完成后清理首屏 reveal 类
+     * @returns {void} - 无返回值，直接更新相关推荐首屏舞台状态
+     */
+    activateRelatedInitialStage() {
+        const initialStage = this.relatedGrid?.querySelector('.related-stage-shell');
+        if (!initialStage) {
+            return;
+        }
+
+        initialStage.classList.add('is-stage-active');
+
+        if (!initialStage.classList.contains('is-entry-reveal')) {
+            return;
+        }
+
+        if (this.relatedEntryRevealTimer) {
+            window.clearTimeout(this.relatedEntryRevealTimer);
+        }
+
+        this.relatedEntryRevealTimer = window.setTimeout(() => {
+            initialStage.classList.remove('is-entry-reveal');
+            this.relatedEntryRevealTimer = 0;
+        }, 1100);
     }
 
     /**
@@ -7223,6 +7337,7 @@ class DetailPage {
 
         if (!('IntersectionObserver' in window)) {
             this.relatedSection.classList.add('is-visible');
+            this.activateRelatedInitialStage();
             return;
         }
 
@@ -7233,6 +7348,7 @@ class DetailPage {
                 }
 
                 entry.target.classList.add('is-visible');
+                this.activateRelatedInitialStage();
                 this.relatedRevealObserver?.unobserve(entry.target);
             });
         }, {
@@ -7455,8 +7571,8 @@ class DetailPage {
                     return;
                 }
 
-                const sourceCard = (this.activeBookingGuideKey || 'overview') === 'reviews'
-                    ? null
+                const sourceCard = this.isBookingFocusOnlyContext()
+                    ? this.bookingFocusPanel
                     : this.getPackageCardById(packageId);
                 this.openBookingModal(packageId, sourceCard);
             });
@@ -7941,6 +8057,11 @@ class DetailPage {
         });
 
         window.addEventListener('pagehide', () => {
+            if (this.relatedEntryRevealTimer) {
+                window.clearTimeout(this.relatedEntryRevealTimer);
+                this.relatedEntryRevealTimer = 0;
+            }
+
             if (this.relatedTransitionCleanupTimer) {
                 window.clearTimeout(this.relatedTransitionCleanupTimer);
                 this.relatedTransitionCleanupTimer = 0;
@@ -7957,8 +8078,37 @@ class DetailPage {
             }
 
             if (this.relatedGrid) {
-                this.relatedGrid.classList.remove('is-navigating', 'is-entering', 'is-flow-forward', 'is-flow-backward', 'is-switching');
+                const stageShells = Array.from(this.relatedGrid.querySelectorAll('.related-stage-shell'));
+                const preservedStage = stageShells[stageShells.length - 1]
+                    || this.relatedGrid.querySelector('.related-stage-shell');
+
+                this.relatedGrid.classList.remove(
+                    'is-navigating',
+                    'is-entering',
+                    'is-flow-forward',
+                    'is-flow-backward',
+                    'is-switching',
+                    'is-stage-switching'
+                );
+                this.relatedGrid.style.removeProperty('min-height');
                 this.relatedGrid.querySelectorAll('.is-leaving').forEach((card) => card.classList.remove('is-leaving'));
+
+                stageShells.forEach((stage) => {
+                    if (preservedStage && stage !== preservedStage) {
+                        stage.remove();
+                        return;
+                    }
+
+                    stage.classList.remove(
+                        'is-stage-outgoing',
+                        'is-stage-incoming',
+                        'is-stage-active',
+                        'is-stacked-stage',
+                        'is-flow-forward',
+                        'is-flow-backward'
+                    );
+                    stage.removeAttribute('aria-hidden');
+                });
             }
 
             this.resetRelatedSwapClasses();

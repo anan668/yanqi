@@ -1685,6 +1685,52 @@
         }
 
         /**
+         * normalizeHomeThresholdPoints(rawPoints) - 把首页 section 的原始文档位置映射到真实可滚动范围里
+         * @param {Array<Object>} rawPoints - 首页 section 对应的原始位置点
+         * @returns {Array<Object>} - 归一化后的首页阈值点
+         */
+        normalizeHomeThresholdPoints(rawPoints) {
+            if (rawPoints.length <= 1) {
+                return rawPoints.map((point, index) => ({
+                    ...point,
+                    threshold: index === 0 ? 0 : Math.max(window.innerHeight || document.documentElement.clientHeight || 0, 1)
+                }));
+            }
+
+            const documentHeight = Math.max(
+                document.documentElement?.scrollHeight || 0,
+                document.body?.scrollHeight || 0
+            );
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const scrollLimit = Math.max(documentHeight - viewportHeight, 1);
+            const firstTop = rawPoints[0]?.top ?? 0;
+            const lastTop = rawPoints[rawPoints.length - 1]?.top ?? firstTop;
+            const topRange = Math.max(lastTop - firstTop, 1);
+
+            return rawPoints.map((point, index) => {
+                if (index === 0) {
+                    return {
+                        ...point,
+                        threshold: 0
+                    };
+                }
+
+                if (index === rawPoints.length - 1) {
+                    return {
+                        ...point,
+                        threshold: scrollLimit
+                    };
+                }
+
+                const ratio = clamp((point.top - firstTop) / topRange, 0, 1);
+                return {
+                    ...point,
+                    threshold: ratio * scrollLimit
+                };
+            });
+        }
+
+        /**
          * getPageScrollThresholdPoints() - 把当前页面的 section 停靠点整理成带滚动阈值的可计算数组
          * @returns {Array<Object>} - 当前页面用于深度插值的阈值点
          */
@@ -1694,10 +1740,12 @@
             }
 
             const rawPoints = this.pageScrollDepthStops.map((stop, index) => {
+                const top = stop.element.getBoundingClientRect().top + window.scrollY;
                 if (index === 0) {
                     return {
                         selector: stop.selector,
                         depth: stop.depth,
+                        top: top,
                         threshold: 0
                     };
                 }
@@ -1705,12 +1753,17 @@
                 return {
                     selector: stop.selector,
                     depth: stop.depth,
+                    top: top,
                     threshold: Math.max(
                         0,
-                        stop.element.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.42
+                        top - window.innerHeight * 0.42
                     )
                 };
             });
+
+            if (this.pageId === 'home') {
+                return this.normalizeHomeThresholdPoints(rawPoints);
+            }
 
             if (this.pageId !== 'detail') {
                 return rawPoints;
@@ -1960,11 +2013,38 @@
         }
 
         /**
+         * computeHomeLinearDepth() - 按首页整页可滚动进度均匀计算基础海层深度
+         * @returns {number} - 首页当前滚动位置对应的线性基础深度
+         */
+        computeHomeLinearDepth() {
+            const points = this.getPageScrollThresholdPoints();
+            if (points.length === 0) {
+                return this.targetDepth;
+            }
+
+            const documentHeight = Math.max(
+                document.documentElement?.scrollHeight || 0,
+                document.body?.scrollHeight || 0
+            );
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const scrollLimit = Math.max(documentHeight - viewportHeight, 1);
+            const scrollY = clamp(window.scrollY || window.pageYOffset || 0, 0, scrollLimit);
+            const progress = clamp(scrollY / scrollLimit, 0, 1);
+            const startDepth = points[0].depth;
+            const endDepth = points[points.length - 1].depth;
+
+            return startDepth + (endDepth - startDepth) * progress;
+        }
+
+        /**
          * computeHomeScrollDepth() - 根据首页 section 与潜水匹配舞台位置计算当前应显示的深度
          * @returns {number} - 当前滚动位置对应的首页目标深度
          */
         computeHomeScrollDepth() {
-            const baseDepth = this.computeScrollDepthFromStops();
+            const linearDepth = this.computeHomeLinearDepth();
+            const stopDepth = this.computeScrollDepthFromStops();
+            const sectionInfluence = 0.34;
+            const baseDepth = linearDepth + (stopDepth - linearDepth) * sectionInfluence;
 
             if (this.homeDiveMatchDepth === null) {
                 return baseDepth;
