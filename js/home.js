@@ -627,6 +627,24 @@ const divingSpotsData = convertSpotCardPrices([
         price: getSpotBasePriceText(10, '¥6,880'),
         rating: '4.9',
         difficulty: '★★'
+    },
+    {
+        id: 11,
+        name: '科隆',
+        tagline: '把黑石、浅湾与沉船线索慢慢排进同一片蓝',
+        image: 'assets/images/coron-review-1-island-chain.jpg',
+        price: getSpotBasePriceText(11, '¥4,980'),
+        rating: '4.8',
+        difficulty: '★★'
+    },
+    {
+        id: 12,
+        name: '薄荷岛',
+        tagline: '把白沙岸线和轻船潜排进更轻一点的假期',
+        image: 'assets/images/bohol.jpg',
+        price: getSpotBasePriceText(12, '¥3,980'),
+        rating: '4.7',
+        difficulty: '★'
     }
 ]);
 
@@ -751,6 +769,36 @@ const destinationsData = [
         sampleKeyword: '环礁之间醒来',
         sampleMeta: '船宿 / 环礁 / 蓝水',
         archiveLabel: 'Current Water 08'
+    },
+    {
+        id: 11,
+        name: '科隆',
+        image: 'assets/images/coron-review-1-island-chain.jpg',
+        englishName: 'Coron',
+        atmosphere: '黑色石灰岩、玻璃水海湾与沉船线索在这里一起靠近，适合把海面以上和海面以下都收进同一段停驻。',
+        level: 'OW / AOW',
+        season: '11月–次年5月',
+        audience: '沉船初体验 / 岛湾风景偏爱者',
+        conditions: ['沉船线索', '石灰岩海湾', '玻璃浅水'],
+        worthIt: '适合把第一次既有地形感又有停驻感的菲律宾群岛之旅，留给更安静的蓝。',
+        sampleKeyword: '黑石与玻璃水',
+        sampleMeta: '沉船 / 石灰岩 / 海湾',
+        archiveLabel: 'Current Water 09'
+    },
+    {
+        id: 12,
+        name: '薄荷岛',
+        image: 'assets/images/bohol.jpg',
+        englishName: 'Bohol',
+        atmosphere: '白沙岸线、浅礁色带和轻船潜一起把节奏放轻，适合把潜水安放进更明亮、更容易靠近的一段海边假期。',
+        level: '入门 / OW',
+        season: '11月–次年6月',
+        audience: '轻船潜入门 / 风景度假偏好',
+        conditions: ['浅礁色带', '短船程', '白沙岸线'],
+        worthIt: '适合把第一次不太紧张、也很有海岸画面感的菲律宾潜旅，留给一条更轻的岸线。',
+        sampleKeyword: '白沙与浅礁线',
+        sampleMeta: '轻船潜 / 岸线 / 玻璃水',
+        archiveLabel: 'Current Water 10'
     }
 ];
 
@@ -772,7 +820,7 @@ const DIVE_MATCH_DATA = Object.freeze([
         note: '更温和的窗口、更轻的流速和更容易安顿下来的节奏，会让第一次靠近海自然很多。',
         cards: [
             { id: 9, reason: '码头、浅礁和岛上慢生活放得很近，第一次下潜也不会太紧张。', tags: ['入门友好', '浅礁', '慢节奏'] },
-            { id: 4, reason: '光线温和、礁坡层次清楚，适合把第一次热带海域留得更舒服。', tags: ['OW', '温柔光线', '珊瑚坡'] },
+            { id: 12, reason: '白沙岸线、短船程和更轻的出海节奏，会让第一次船潜更容易放松。', tags: ['入门 / OW', '轻船潜', '岸线'] },
             { id: 6, reason: '海墙和海龟都很明亮，但整体节奏不会逼得太快。', tags: ['OW / AOW', '海龟', '清澈'] }
         ]
     },
@@ -786,7 +834,7 @@ const DIVE_MATCH_DATA = Object.freeze([
         note: '这类海域会开始给你更多蓝水和鱼群，但还保留足够清楚的节奏。',
         cards: [
             { id: 1, reason: '在更友好的窗口里安排诗巴丹，会让第一次大景体验更完整。', tags: ['OW / AOW', '鱼群', '中等流'] },
-            { id: 4, reason: '帝汶岛的珊瑚坡和柔和光线，很适合 OW 把呼吸放稳。', tags: ['OW', '舒展', '珊瑚'] },
+            { id: 11, reason: '科隆把石灰岩海湾、玻璃水和沉船初体验放进同一段更好读的节奏里。', tags: ['OW / AOW', '海湾', '沉船初体验'] },
             { id: 6, reason: '布纳肯能给你墙潜感和海龟线索，但整体仍然明亮好读。', tags: ['OW / AOW', '墙潜', '海龟'] }
         ]
     },
@@ -814,7 +862,7 @@ const DIVE_MATCH_DATA = Object.freeze([
         note: '这些海域更像一段被拉长的呼吸，而不是密集完成的清单。',
         cards: [
             { id: 9, reason: '马布岛很擅长把潜前潜后的停驻感也算进行程本身。', tags: ['慢节奏', '码头', '海岛生活'] },
-            { id: 4, reason: '帝汶岛的珊瑚坡和日光很适合慢慢潜、慢慢看。', tags: ['舒展', '珊瑚坡', '光线'] },
+            { id: 12, reason: '薄荷岛会先用岸线、浅礁和短船程把整天节奏慢慢放轻。', tags: ['慢节奏', '岸线', '轻船潜'] },
             { id: 5, reason: '波纳佩岛把注意力拉回微距和静水，节奏天然更慢。', tags: ['微距', '静水', '安静'] }
         ]
     },
@@ -829,7 +877,7 @@ const DIVE_MATCH_DATA = Object.freeze([
         cards: [
             { id: 9, reason: '水屋、码头和浅礁都离得近，潜后休息感很完整。', tags: ['舒适度', '水屋', '慢住'] },
             { id: 4, reason: '岸线和珊瑚坡都更温柔，适合把潜水和度假放进同一节奏。', tags: ['舒展', '度假', 'OW'] },
-            { id: 8, reason: '图阿莫图的通透蓝水很开阔，停留感也很安静。', tags: ['蓝水', '开阔', '停驻'] }
+            { id: 12, reason: '从岸边到船上都不需要太多折返，薄荷岛很适合把身体先安顿好。', tags: ['舒适度', '短船程', '轻假期'] }
         ]
     },
     {
@@ -842,8 +890,8 @@ const DIVE_MATCH_DATA = Object.freeze([
         note: '风景不只是背景，它决定了这趟潜水被记住的方式。',
         cards: [
             { id: 2, reason: '帕劳的蓝色层次和断层光线，会让海景和水下都很完整。', tags: ['光线', '蓝洞', '断层'] },
-            { id: 8, reason: '图阿莫图适合把通透海面和通道蓝水一起留在记忆里。', tags: ['玻璃海', '通道', '蓝水'] },
-            { id: 9, reason: '马布岛的码头、木栈道和海风，会让海面以上也一样好看。', tags: ['海岛生活', '码头', '慢行'] }
+            { id: 11, reason: '科隆会把黑石、白沙、玻璃水和沉船线索一起留在同一段岸线记忆里。', tags: ['石灰岩', '玻璃水', '海湾'] },
+            { id: 12, reason: '薄荷岛会把白沙、浅礁、停船线和轻一点的海边日常一起留在记忆里。', tags: ['白沙岸线', '浅礁', '海边日常'] }
         ]
     },
     {
@@ -1085,6 +1133,7 @@ class BambooScroll {
         this.frameRafId = 0;
         this.lastFrameTs = 0;
         this.lastAppliedTrackPosition = Number.NaN;
+        this.trackPositionDirty = false;
         this.lastActivePhysicsRange = null;
         this.lastHoverSyncTs = 0;
         this.lastHoverTrackPosition = this.trackPosition;
@@ -1315,6 +1364,7 @@ class BambooScroll {
         this.pointerClientY = event.clientY;
         this.pressedCard = event.target.closest('.bamboo-card');
         this.setHoveredCard(null);
+        this.trackPositionDirty = false;
 
         this.wrapper.classList.add('is-dragging');
         this.ensureFrameLoop();
@@ -1346,7 +1396,7 @@ class BambooScroll {
 
         this.trackPosition = this.startTrackPosition - dragDeltaX;
         this.recenterTrack();
-        this.updateTrackPosition();
+        this.trackPositionDirty = true;
 
         const dt = Math.max((now - this.lastPointerTime) / 1000, 0.001);
         const deltaX = event.clientX - this.lastPointerX;
@@ -1451,7 +1501,7 @@ class BambooScroll {
             if (isHeroHotspotCard) {
                 runHeroDeparture(() => {
                     navigateWithDepth(url);
-                }, { shouldReset: false, callbackDelay: 300 });
+                }, { shouldReset: false, callbackDelay: HERO_ROUTE_READY_DELAY });
                 return;
             }
 
@@ -1707,6 +1757,10 @@ class BambooScroll {
         this.lastFrameTs = timestamp;
 
         this.updateTrackMotion(dt);
+        if (this.trackPositionDirty) {
+            this.updateTrackPosition();
+            this.trackPositionDirty = false;
+        }
         this.updateCardPhysics(dt, timestamp / 1000);
         this.syncHoverWhileTrackMoves(timestamp);
 
@@ -1771,6 +1825,7 @@ class BambooScroll {
                 this.trackVelocity = delta / dt;
             }
             this.updateTrackPosition();
+            this.trackPositionDirty = false;
         }
     }
 
@@ -1999,6 +2054,7 @@ class BambooScroll {
         this.trackVelocity = 0;
         this.recenterTrack();
         this.updateTrackPosition();
+        this.trackPositionDirty = false;
     }
 
     /**
@@ -2022,6 +2078,7 @@ class BambooScroll {
         this.trackVelocity = 0;
         this.recenterTrack();
         this.updateTrackPosition();
+        this.trackPositionDirty = false;
     }
 
     /**
@@ -3154,16 +3211,34 @@ function setupHomeNavState() {
     }
 
     let rafId = 0;
+    let measureRaf = 0;
+    let navOffset = (navbar ? navbar.offsetHeight : 70) + 18;
+    let featuredTop = 0;
+    let storyTop = 0;
+    const featuredAnchor = featuredSection.querySelector('#curatedWatersStage') || featuredSection;
+
+    const measureAnchors = () => {
+        measureRaf = 0;
+        navOffset = (navbar ? navbar.offsetHeight : 70) + 18;
+        featuredTop = featuredAnchor.getBoundingClientRect().top + window.scrollY - navOffset;
+        storyTop = storySection.getBoundingClientRect().top + window.scrollY - navOffset;
+    };
+
+    const scheduleMeasure = () => {
+        if (measureRaf) {
+            return;
+        }
+
+        measureRaf = window.requestAnimationFrame(() => {
+            measureAnchors();
+            updateNavState();
+        });
+    };
 
     const updateNavState = () => {
         rafId = 0;
 
-        const navOffset = (navbar ? navbar.offsetHeight : 70) + 18;
         const probeY = (window.scrollY || window.pageYOffset || 0) + navOffset + Math.min(window.innerHeight * 0.24, 220);
-
-        const featuredAnchor = featuredSection.querySelector('#curatedWatersStage') || featuredSection;
-        const featuredTop = featuredAnchor.getBoundingClientRect().top + window.scrollY - navOffset;
-        const storyTop = storySection.getBoundingClientRect().top + window.scrollY - navOffset;
 
         if (probeY >= storyTop - 24) {
             setHomeActiveNavLink(storyLink);
@@ -3187,8 +3262,22 @@ function setupHomeNavState() {
     };
 
     window.addEventListener('scroll', queueUpdate, { passive: true });
-    window.addEventListener('resize', queueUpdate);
-    window.setTimeout(updateNavState, 60);
+    window.addEventListener('resize', scheduleMeasure);
+
+    if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(scheduleMeasure);
+        observer.observe(featuredAnchor);
+        observer.observe(storySection);
+        if (navbar) {
+            observer.observe(navbar);
+        }
+    }
+
+    measureAnchors();
+    window.setTimeout(() => {
+        measureAnchors();
+        updateNavState();
+    }, 60);
 }
 
 // 英雄区入场：控制首页首屏的渐进式开场状态。
@@ -3241,6 +3330,8 @@ function runHeroDeparture(callback, options = {}) {
     }
 }
 
+const HERO_ROUTE_READY_DELAY = 300;
+
 // 首屏离场：点击入口时先播放轻微失焦与下潜感，再执行实际跳转。
 /**
  * setupHeroActions() - 绑定首屏区域内主要按钮和今日海域卡片的交互
@@ -3258,7 +3349,7 @@ function setupHeroActions() {
 
             runHeroDeparture(() => {
                 navigateWithDepth(url);
-            }, { shouldReset: false, callbackDelay: 300 });
+            }, { shouldReset: false, callbackDelay: HERO_ROUTE_READY_DELAY });
         });
     }
 
@@ -3288,7 +3379,7 @@ function setupHeroActions() {
 
             runHeroDeparture(() => {
                 navigateWithDepth(url);
-            }, { shouldReset: false, callbackDelay: 300 });
+            }, { shouldReset: false, callbackDelay: HERO_ROUTE_READY_DELAY });
         });
     }
 }
@@ -3602,17 +3693,39 @@ function setupStoryReveal() {
     const revealItems = Array.from(section.querySelectorAll('.story-reveal'));
     const cards = Array.from(section.querySelectorAll('.story-card'));
     let rafId = 0;
+    let measureRaf = 0;
+    let sectionTop = 0;
+    let sectionHeight = 0;
+
+    const measureSection = () => {
+        measureRaf = 0;
+        sectionTop = section.getBoundingClientRect().top + window.scrollY;
+        sectionHeight = section.offsetHeight || section.getBoundingClientRect().height || 0;
+    };
+
+    const scheduleMeasure = () => {
+        if (measureRaf) {
+            return;
+        }
+
+        measureRaf = window.requestAnimationFrame(() => {
+            measureSection();
+            updateStoryState();
+        });
+    };
 
     const updateStoryState = () => {
         rafId = 0;
 
-        const rect = section.getBoundingClientRect();
+        const scrollY = window.scrollY || window.pageYOffset || 0;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const progress = clamp((viewportHeight * 0.9 - rect.top) / (rect.height + viewportHeight * 0.72), 0, 1);
-        const isAwake = rect.top < viewportHeight * 0.86 && rect.bottom > viewportHeight * 0.22;
+        const rectTop = sectionTop - scrollY;
+        const rectBottom = rectTop + sectionHeight;
+        const progress = clamp((viewportHeight * 0.9 - rectTop) / (sectionHeight + viewportHeight * 0.72), 0, 1);
+        const isAwake = rectTop < viewportHeight * 0.86 && rectBottom > viewportHeight * 0.22;
 
         section.classList.toggle('is-story-awake', isAwake);
-        section.classList.toggle('is-story-current', rect.top < viewportHeight * 0.5 && rect.bottom > viewportHeight * 0.45);
+        section.classList.toggle('is-story-current', rectTop < viewportHeight * 0.5 && rectBottom > viewportHeight * 0.45);
         section.style.setProperty('--story-progress', progress.toFixed(3));
 
         if (intro && progress >= 0.06) {
@@ -3651,9 +3764,15 @@ function setupStoryReveal() {
         rafId = window.requestAnimationFrame(updateStoryState);
     };
 
+    measureSection();
     queueStoryState();
     window.addEventListener('scroll', queueStoryState, { passive: true });
-    window.addEventListener('resize', queueStoryState);
+    window.addEventListener('resize', scheduleMeasure);
+
+    if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(scheduleMeasure);
+        observer.observe(section);
+    }
 }
 
 // 首页海图导览：用浮层式海图导航替代普通回顶按钮，负责快速跳转和当前位置反馈。
@@ -3668,6 +3787,9 @@ class HomeSeaGuide {
         this.entries = Array.from(document.querySelectorAll('#homeSeaGuide .sea-guide-entry'));
         this.isOpen = false;
         this.updateRaf = 0;
+        this.measureRaf = 0;
+        this.targetTops = new Map();
+        this.resizeObserver = null;
 
         if (this.guide && this.trigger && this.panel && this.entries.length) {
             this.init();
@@ -3707,6 +3829,43 @@ class HomeSeaGuide {
         }
 
         return target;
+    }
+
+    /**
+     * measureTargets() - 预先测量首页海图导览各区块的绝对位置，减少滚动时布局读取
+     * @returns {void}
+     */
+    measureTargets() {
+        const offset = this.getOffset();
+        this.targetTops.clear();
+
+        this.entries.forEach((entry) => {
+            const selector = entry.dataset.target;
+            const target = this.getProbeTarget(selector);
+            if (!selector || !target) {
+                return;
+            }
+
+            this.targetTops.set(
+                selector,
+                target.getBoundingClientRect().top + window.scrollY - offset
+            );
+        });
+    }
+
+    /**
+     * scheduleMeasureTargets() - 把首页海图区块重测压到下一帧，避免频繁 resize/布局更新时抖动
+     * @returns {void}
+     */
+    scheduleMeasureTargets() {
+        if (this.measureRaf) {
+            return;
+        }
+
+        this.measureRaf = window.requestAnimationFrame(() => {
+            this.measureRaf = 0;
+            this.measureTargets();
+        });
     }
 
     /**
@@ -3752,7 +3911,8 @@ class HomeSeaGuide {
                 return;
             }
 
-            const sectionTop = target.getBoundingClientRect().top + window.scrollY - this.getOffset();
+            const sectionTop = this.targetTops.get(entry.dataset.target)
+                ?? (target.getBoundingClientRect().top + window.scrollY - this.getOffset());
             if (probeY >= sectionTop - 24) {
                 currentKey = entry.dataset.key || currentKey;
             }
@@ -3797,6 +3957,10 @@ class HomeSeaGuide {
                 this.updateState();
             });
         };
+        const handleLayoutChange = () => {
+            this.scheduleMeasureTargets();
+            requestStateUpdate();
+        };
         // 滚动时不直接频繁计算当前 section，而是压到 requestAnimationFrame 里统一做。
         // 这样能减少抖动，也更符合“海图导览跟着页面呼吸”这种缓和节奏。
 
@@ -3828,8 +3992,23 @@ class HomeSeaGuide {
         });
 
         window.addEventListener('scroll', requestStateUpdate, { passive: true });
-        window.addEventListener('resize', requestStateUpdate);
-        window.setTimeout(() => this.updateState(), 80);
+        window.addEventListener('resize', handleLayoutChange);
+
+        if ('ResizeObserver' in window) {
+            this.resizeObserver = new ResizeObserver(handleLayoutChange);
+            this.entries.forEach((entry) => {
+                const target = this.getProbeTarget(entry.dataset.target);
+                if (target) {
+                    this.resizeObserver.observe(target);
+                }
+            });
+        }
+
+        this.measureTargets();
+        window.setTimeout(() => {
+            this.measureTargets();
+            this.updateState();
+        }, 80);
     }
 }
 
@@ -3894,6 +4073,27 @@ function setupHomeLayerFlow() {
     };
 
     let rafId = 0;
+    let measureRaf = 0;
+    let sectionMetrics = [];
+
+    const measureSections = () => {
+        measureRaf = 0;
+        sectionMetrics = layerSections.map((section) => ({
+            section,
+            top: section.getBoundingClientRect().top + window.scrollY
+        }));
+    };
+
+    const scheduleMeasure = () => {
+        if (measureRaf) {
+            return;
+        }
+
+        measureRaf = window.requestAnimationFrame(() => {
+            measureSections();
+            updateLayerState();
+        });
+    };
 
     const updateLayerState = () => {
         rafId = 0;
@@ -3903,17 +4103,17 @@ function setupHomeLayerFlow() {
         const probeY = scrollY + Math.min(viewportHeight * 0.42, 320);
         let currentIndex = 0;
 
-        layerSections.forEach((section, index) => {
-            const top = section.getBoundingClientRect().top + scrollY;
-            if (probeY >= top - viewportHeight * 0.18) {
+        sectionMetrics.forEach((metric, index) => {
+            if (probeY >= metric.top - viewportHeight * 0.18) {
                 currentIndex = index;
             }
         });
 
         const currentSection = layerSections[currentIndex];
         const nextSection = layerSections[Math.min(currentIndex + 1, layerSections.length - 1)];
-        const currentTop = currentSection.getBoundingClientRect().top + scrollY;
-        const nextTop = nextSection.getBoundingClientRect().top + scrollY;
+        const currentTop = sectionMetrics[currentIndex]?.top || (currentSection.getBoundingClientRect().top + scrollY);
+        const nextTop = sectionMetrics[Math.min(currentIndex + 1, sectionMetrics.length - 1)]?.top
+            || (nextSection.getBoundingClientRect().top + scrollY);
         const layerDistance = Math.max(1, nextTop - currentTop);
         const layerProgress = clamp((probeY - currentTop) / layerDistance, 0, 1);
 
@@ -3938,9 +4138,15 @@ function setupHomeLayerFlow() {
         rafId = window.requestAnimationFrame(updateLayerState);
     };
 
+    measureSections();
     queueLayerState();
     window.addEventListener('scroll', queueLayerState, { passive: true });
-    window.addEventListener('resize', queueLayerState);
+    window.addEventListener('resize', scheduleMeasure);
+
+    if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(scheduleMeasure);
+        layerSections.forEach((section) => observer.observe(section));
+    }
 }
 
 // 页面初始化：创建首页主要组件，并绑定头像退出、首屏、故事区等交互。

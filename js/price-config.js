@@ -15,6 +15,11 @@
         priceDisplayVersion: '2026-04-03-cny-native-v1'
     });
 
+    const EXTRA_DESTINATION_BASE_PRICES = Object.freeze({
+        11: 4980,
+        12: 3980
+    });
+
     // 这里保存的是“盐憩内部统一使用的参考起价”，不是实时价格。
     // 单独收口成一份不可变配置，后续调整海域价格时只需要维护这一处。
     // 起价参考来自 2025-2026 年公开潜水套餐页面的粗略行情，
@@ -73,8 +78,9 @@
     function getDestinationBasePrice(spotId) {
         // 外部传入的 spotId 可能来自 URL、dataset 或对象字段，所以先统一转成整数。
         const normalizedId = Number.parseInt(spotId, 10);
-        return Number.isFinite(normalizedId) && DESTINATION_BASE_PRICES[normalizedId]
-            ? DESTINATION_BASE_PRICES[normalizedId]
+        const extraPrice = EXTRA_DESTINATION_BASE_PRICES[normalizedId];
+        return Number.isFinite(normalizedId) && (extraPrice || DESTINATION_BASE_PRICES[normalizedId])
+            ? (extraPrice || DESTINATION_BASE_PRICES[normalizedId])
             : 0;
     }
 
@@ -97,7 +103,10 @@
     window.YanqiPriceConfig = Object.freeze({
         PRICE_CONFIG,
         PRICE_DISPLAY_VERSION: PRICE_CONFIG.priceDisplayVersion,
-        DESTINATION_BASE_PRICES,
+        DESTINATION_BASE_PRICES: Object.freeze({
+            ...DESTINATION_BASE_PRICES,
+            ...EXTRA_DESTINATION_BASE_PRICES
+        }),
         extractCurrencyAmount,
         formatPrice,
         normalizePriceText,

@@ -95,6 +95,7 @@ html {
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: #081923;
 }
 
 /* 设置页面根节点与全局背景联动效果 */
@@ -103,7 +104,7 @@ body {
     font-size: 1rem;
     line-height: 1.6;
     color: var(--text-dark);
-    background-color: var(--bg-white);
+    background-color: #081923;
     overflow-x: hidden;
 }
 

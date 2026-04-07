@@ -144,6 +144,8 @@
             return;
         }
 
+        restoreNativeScrollBehavior(animation);
+
         if (animation.frameId) {
             cancelAnimationFrame(animation.frameId);
         }
@@ -167,6 +169,47 @@
      */
     function cancelActiveAnimation() {
         teardownAnimation(activeScrollAnimation, true);
+    }
+
+    /**
+     * forceNativeScrollBehaviorAuto(animation) - 在自定义逐帧滚动期间临时关闭浏览器原生 smooth
+     * @param {Object} animation - 当前滚动动画状态对象
+     * @returns {void}
+     */
+    function forceNativeScrollBehaviorAuto(animation) {
+        const root = document.documentElement;
+        const body = document.body;
+        if (!animation || !root) {
+            return;
+        }
+
+        animation.previousRootScrollBehavior = root.style.scrollBehavior;
+        animation.previousBodyScrollBehavior = body ? body.style.scrollBehavior : null;
+        root.style.scrollBehavior = 'auto';
+
+        if (body) {
+            body.style.scrollBehavior = 'auto';
+        }
+    }
+
+    /**
+     * restoreNativeScrollBehavior(animation) - 还原自定义滚动前的原生 smooth 配置
+     * @param {Object} animation - 当前滚动动画状态对象
+     * @returns {void}
+     */
+    function restoreNativeScrollBehavior(animation) {
+        const root = document.documentElement;
+        const body = document.body;
+        if (!animation || !root || animation.nativeScrollBehaviorRestored) {
+            return;
+        }
+
+        animation.nativeScrollBehaviorRestored = true;
+        root.style.scrollBehavior = animation.previousRootScrollBehavior || '';
+
+        if (body) {
+            body.style.scrollBehavior = animation.previousBodyScrollBehavior || '';
+        }
     }
 
     /**
@@ -227,10 +270,14 @@
                 frameId: 0,
                 resolve,
                 cleanupHandlers: [],
-                moodName: mood.name
+                moodName: mood.name,
+                previousRootScrollBehavior: '',
+                previousBodyScrollBehavior: null,
+                nativeScrollBehaviorRestored: false
             };
 
             activeScrollAnimation = animation;
+            forceNativeScrollBehaviorAuto(animation);
             createInterruptHandlers(animation);
 
             const startedAt = performance.now();

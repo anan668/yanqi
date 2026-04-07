@@ -263,6 +263,9 @@ class TripSeaGuide {
         this.entries = Array.from(document.querySelectorAll('#tripSeaGuide .sea-guide-entry'));
         this.isOpen = false;
         this.updateRaf = 0;
+        this.measureRaf = 0;
+        this.targetTops = new Map();
+        this.resizeObserver = null;
 
         if (this.guide && this.trigger && this.panel && this.entries.length) {
             this.init();
@@ -285,6 +288,43 @@ class TripSeaGuide {
      */
     getProbeTarget(selector) {
         return selector ? document.querySelector(selector) : null;
+    }
+
+    /**
+     * measureTargets() - 预先测量海图导览各 section 的绝对位置，避免滚动时反复读布局
+     * @returns {void}
+     */
+    measureTargets() {
+        const offset = this.getOffset();
+        this.targetTops.clear();
+
+        this.entries.forEach((entry) => {
+            const selector = entry.dataset.target;
+            const target = this.getProbeTarget(selector);
+            if (!selector || !target) {
+                return;
+            }
+
+            this.targetTops.set(
+                selector,
+                target.getBoundingClientRect().top + window.scrollY - offset
+            );
+        });
+    }
+
+    /**
+     * scheduleMeasureTargets() - 把 section 位置重测压到下一帧，避免 resize/布局变化时重复执行
+     * @returns {void}
+     */
+    scheduleMeasureTargets() {
+        if (this.measureRaf) {
+            return;
+        }
+
+        this.measureRaf = window.requestAnimationFrame(() => {
+            this.measureRaf = 0;
+            this.measureTargets();
+        });
     }
 
     /**
@@ -330,7 +370,8 @@ class TripSeaGuide {
                 return;
             }
 
-            const sectionTop = target.getBoundingClientRect().top + window.scrollY - this.getOffset();
+            const sectionTop = this.targetTops.get(entry.dataset.target)
+                ?? (target.getBoundingClientRect().top + window.scrollY - this.getOffset());
             if (probeY >= sectionTop - 24) {
                 currentKey = entry.dataset.key || currentKey;
             }
@@ -375,6 +416,10 @@ class TripSeaGuide {
                 this.updateState();
             });
         };
+        const handleLayoutChange = () => {
+            this.scheduleMeasureTargets();
+            requestStateUpdate();
+        };
 
         this.trigger.addEventListener('click', (event) => {
             event.preventDefault();
@@ -403,8 +448,23 @@ class TripSeaGuide {
         });
 
         window.addEventListener('scroll', requestStateUpdate, { passive: true });
-        window.addEventListener('resize', requestStateUpdate);
-        window.setTimeout(() => this.updateState(), 80);
+        window.addEventListener('resize', handleLayoutChange);
+
+        if ('ResizeObserver' in window) {
+            this.resizeObserver = new ResizeObserver(handleLayoutChange);
+            this.entries.forEach((entry) => {
+                const target = this.getProbeTarget(entry.dataset.target);
+                if (target) {
+                    this.resizeObserver.observe(target);
+                }
+            });
+        }
+
+        this.measureTargets();
+        window.setTimeout(() => {
+            this.measureTargets();
+            this.updateState();
+        }, 80);
     }
 }
 
@@ -735,6 +795,7 @@ function setupPlannerSummary() {
 
     let activePanelKey = null;
     let panelPositionFrame = 0;
+    let panelPositionListenersAttached = false;
     let calendarViewDate = null;
     let autoAdvanceTimer = 0;
     let submitContinueTimer = 0;
@@ -1553,6 +1614,39 @@ function setupPlannerSummary() {
     }
 
     /**
+     * attachPanelPositionListeners() - 仅在浮层打开时监听滚动和尺寸变化
+     * @returns {void}
+     */
+    function attachPanelPositionListeners() {
+        if (panelPositionListenersAttached) {
+            return;
+        }
+
+        window.addEventListener('resize', schedulePanelPosition);
+        window.addEventListener('scroll', schedulePanelPosition, { passive: true });
+        panelPositionListenersAttached = true;
+    }
+
+    /**
+     * detachPanelPositionListeners() - 在没有打开浮层时移除定位监听，避免整页滚动白跑
+     * @returns {void}
+     */
+    function detachPanelPositionListeners() {
+        if (!panelPositionListenersAttached) {
+            return;
+        }
+
+        window.removeEventListener('resize', schedulePanelPosition);
+        window.removeEventListener('scroll', schedulePanelPosition);
+        panelPositionListenersAttached = false;
+
+        if (panelPositionFrame) {
+            window.cancelAnimationFrame(panelPositionFrame);
+            panelPositionFrame = 0;
+        }
+    }
+
+    /**
      * renderPlannerCalendar(direction) - 渲染自定义潮汐日历面板
      * @param {string} direction - 月份切换方向，用于触发切换动画
      * @returns {void} - 无返回值，直接更新日历视图
@@ -1653,6 +1747,7 @@ function setupPlannerSummary() {
 
         if (activePanelKey === fieldKey) {
             activePanelKey = null;
+            detachPanelPositionListeners();
         }
 
         document.body.dataset.tripActivePlannerField = '';
@@ -1735,6 +1830,7 @@ function setupPlannerSummary() {
         config.panel.hidden = false;
         config.panel.classList.add('is-submerged-panel');
         activePanelKey = targetFieldKey;
+        attachPanelPositionListeners();
         if (targetFieldKey === 'people') {
             const existingCustomCount = getCustomPeopleCount();
             if (existingCustomCount) {
@@ -2207,11 +2303,6 @@ function setupPlannerSummary() {
         }
     });
     // ESC 是最自然的“收起浮层”键盘语义，也补上桌面端可访问性。
-
-    window.addEventListener('resize', schedulePanelPosition);
-    window.addEventListener('scroll', schedulePanelPosition, { passive: true });
-    // 视口变化或页面滚动后，字段按钮的位置会变，所以要重新定位浮层。
-    // 这里不直接关闭，而是尽量让浮层继续跟着目标字段。
 
     const defaultPeopleOption = peoplePanel.querySelector('.planner-option.is-selected') || peopleOptions[0];
 

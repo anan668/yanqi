@@ -23,6 +23,7 @@
         trip: -42,
         detail: -54
     });
+    const INFO_PAGE_IDS = Object.freeze(['contact', 'terms', 'privacy']);
 
     // 首页分层深度：随着浏览从首屏进入不同 section，深度计会缓慢下潜到更深一层。
     // 这些停靠点不是硬跳，而是后面通过滚动插值平滑过渡成连续的下潜曲线。
@@ -147,6 +148,78 @@
             navigateLeadMs: 120,
             overlayBoost: 0.2,
             pageshowOverlayBoost: 0.14
+        })
+    });
+    const TRANSITION_MOTION_PRESETS = Object.freeze({
+        default: Object.freeze({
+            stageTranslation: '54vh',
+            stageBlur: '4.2px',
+            oceanTranslation: '17vh',
+            oceanSwimShift: '3vw',
+            oceanSwimDriftY: '0.24vh'
+        }),
+        plannerDive: Object.freeze({
+            stageTranslation: '56vh',
+            stageBlur: '4.4px',
+            oceanTranslation: '18vh',
+            oceanSwimShift: '3.1vw',
+            oceanSwimDriftY: '0.26vh'
+        }),
+        plannerSurface: Object.freeze({
+            stageTranslation: '52vh',
+            stageBlur: '4px',
+            oceanTranslation: '16.5vh',
+            oceanSwimShift: '2.9vw',
+            oceanSwimDriftY: '0.22vh'
+        }),
+        detailDive: Object.freeze({
+            stageTranslation: '60vh',
+            stageBlur: '4.8px',
+            oceanTranslation: '19vh',
+            oceanSwimShift: '3.2vw',
+            oceanSwimDriftY: '0.28vh'
+        }),
+        detailSurface: Object.freeze({
+            stageTranslation: '54vh',
+            stageBlur: '4.2px',
+            oceanTranslation: '17vh',
+            oceanSwimShift: '3vw',
+            oceanSwimDriftY: '0.24vh'
+        }),
+        detailSwim: Object.freeze({
+            stageTranslation: '16vh',
+            stageBlur: '1.8px',
+            oceanTranslation: '6vh',
+            oceanSwimShift: '2.4vw',
+            oceanSwimDriftY: '0.14vh'
+        }),
+        infoDive: Object.freeze({
+            stageTranslation: '40vh',
+            stageBlur: '3.2px',
+            oceanTranslation: '13vh',
+            oceanSwimShift: '2.8vw',
+            oceanSwimDriftY: '0.2vh'
+        }),
+        infoSurface: Object.freeze({
+            stageTranslation: '34vh',
+            stageBlur: '2.8px',
+            oceanTranslation: '11vh',
+            oceanSwimShift: '2.6vw',
+            oceanSwimDriftY: '0.16vh'
+        }),
+        infoSwim: Object.freeze({
+            stageTranslation: '14vh',
+            stageBlur: '1.6px',
+            oceanTranslation: '5vh',
+            oceanSwimShift: '2.2vw',
+            oceanSwimDriftY: '0.12vh'
+        }),
+        loginSurface: Object.freeze({
+            stageTranslation: '38vh',
+            stageBlur: '3px',
+            oceanTranslation: '12vh',
+            oceanSwimShift: '2.6vw',
+            oceanSwimDriftY: '0.18vh'
         })
     });
     const SPECIAL_TRANSITION_LOGIN_HOME = 'login-home-ocean';
@@ -575,6 +648,30 @@
     }
 
     /**
+     * getPageFamily(pageId) - 把页面归到统一的海层家族，便于切换样式按层级细分
+     * @param {string} pageId - 页面标识
+     * @returns {string} - entry、surface、mid、deep、info 或 default
+     */
+    function getPageFamily(pageId) {
+        switch (pageId) {
+        case 'login':
+            return 'entry';
+        case 'home':
+            return 'surface';
+        case 'trip':
+            return 'mid';
+        case 'detail':
+            return 'deep';
+        case 'contact':
+        case 'terms':
+        case 'privacy':
+            return 'info';
+        default:
+            return 'default';
+        }
+    }
+
+    /**
      * getVisualDirection(fromDepth, toDepth) - 判断深度变化对应的视觉方向
      * @param {number} fromDepth - 起始深度
      * @param {number} toDepth - 目标深度
@@ -599,7 +696,136 @@
      */
     function getAmbientOverlayOpacity(depth) {
         const progress = clamp(Math.abs(depth) / Math.abs(MIN_DEPTH), 0, 1);
-        return 0.02 + progress * 0.19;
+        return 0.015 + progress * 0.12;
+    }
+
+    /**
+     * isInfoPage(pageId) - 判断页面是否属于浅层信息页
+     * @param {string} pageId - 页面标识
+     * @returns {boolean} - 是否为信息页
+     */
+    function isInfoPage(pageId) {
+        return INFO_PAGE_IDS.includes(pageId);
+    }
+
+    /**
+     * getInfoPageOrder(pageId) - 获取信息页在浅层航线里的顺序索引
+     * @param {string} pageId - 页面标识
+     * @returns {number} - 信息页顺序值
+     */
+    function getInfoPageOrder(pageId) {
+        return INFO_PAGE_IDS.indexOf(pageId);
+    }
+
+    /**
+     * getSameLayerVisualDirection(fromPage, toPage, targetUrl) - 计算同层页面之间更适合的潜游方向
+     * @param {string} fromPage - 来源页面标识
+     * @param {string} toPage - 目标页面标识
+     * @param {URL} targetUrl - 目标 URL
+     * @returns {string} - forward 或 backward
+     */
+    function getSameLayerVisualDirection(fromPage, toPage, targetUrl) {
+        if (fromPage === 'detail' && toPage === 'detail') {
+            const currentId = Number(new URL(window.location.href).searchParams.get('id'));
+            const targetId = Number(targetUrl?.searchParams?.get('id'));
+
+            if (Number.isFinite(currentId) && Number.isFinite(targetId) && currentId !== targetId) {
+                return targetId > currentId ? 'forward' : 'backward';
+            }
+
+            return 'forward';
+        }
+
+        if (isInfoPage(fromPage) && isInfoPage(toPage) && fromPage !== toPage) {
+            return getInfoPageOrder(toPage) >= getInfoPageOrder(fromPage)
+                ? 'forward'
+                : 'backward';
+        }
+
+        return 'forward';
+    }
+
+    /**
+     * buildSwimTransitionConfig(options) - 生成同层潜游过渡配置
+     * @param {Object} options - 配置项
+     * @returns {Object} - 统一的潜游过渡配置
+     */
+    function buildSwimTransitionConfig(options = {}) {
+        return {
+            navTransition: 'same-layer-swim',
+            exitClass: 'page-ocean-swim-exit',
+            entryClass: 'page-ocean-swim-enter',
+            exitDuration: clamp(
+                Math.round(readNumber(options.exitDuration) ?? (TRANSITION.exitPageMs * 0.82)),
+                320,
+                3200
+            ),
+            entryDuration: clamp(
+                Math.round(readNumber(options.entryDuration) ?? (TRANSITION.enterPageMs * 0.88)),
+                280,
+                2800
+            ),
+            overlayBoost: clamp(
+                readNumber(options.overlayBoost) ?? (TRANSITION.overlayBoost * 0.42),
+                0,
+                0.45
+            ),
+            navigateLeadMs: clamp(
+                Math.round(readNumber(options.navigateLeadMs) ?? TRANSITION.exitNavigateLeadMs),
+                80,
+                860
+            ),
+            pageshowOverlayBoost: clamp(
+                readNumber(options.pageshowOverlayBoost) ?? (TRANSITION.pageshowOverlayBoost * 0.68),
+                0,
+                0.35
+            ),
+            motionPreset: options.motionPreset || 'default'
+        };
+    }
+
+    /**
+     * buildOceanRouteConfig(direction, options) - 生成跨海层潜浮过渡配置
+     * @param {string} direction - forward 表示继续下潜，backward 表示缓慢上浮
+     * @param {Object} options - 配置项
+     * @returns {Object} - 统一的海层过渡配置
+     */
+    function buildOceanRouteConfig(direction, options = {}) {
+        const isForward = direction === 'forward';
+        const baseExitDuration = isForward ? OCEAN_NAV.diveExitMs : OCEAN_NAV.surfaceExitMs;
+        const baseEntryDuration = isForward ? OCEAN_NAV.diveEnterMs : OCEAN_NAV.surfaceEnterMs;
+
+        return {
+            navTransition: NAV_TRANSITION_OCEAN,
+            exitClass: isForward ? 'page-ocean-dive-exit' : 'page-ocean-surface-exit',
+            entryClass: isForward ? 'page-ocean-dive-enter' : 'page-ocean-surface-enter',
+            exitDuration: clamp(
+                Math.round(baseExitDuration * (readNumber(options.exitMultiplier) ?? 1)),
+                420,
+                3600
+            ),
+            entryDuration: clamp(
+                Math.round(baseEntryDuration * (readNumber(options.entryMultiplier) ?? 1)),
+                320,
+                3200
+            ),
+            overlayBoost: clamp(
+                readNumber(options.overlayBoost) ?? OCEAN_NAV.overlayBoost,
+                0,
+                0.45
+            ),
+            navigateLeadMs: clamp(
+                Math.round(readNumber(options.navigateLeadMs) ?? OCEAN_NAV.navigateLeadMs),
+                80,
+                860
+            ),
+            pageshowOverlayBoost: clamp(
+                readNumber(options.pageshowOverlayBoost) ?? OCEAN_NAV.pageshowOverlayBoost,
+                0,
+                0.35
+            ),
+            motionPreset: options.motionPreset || 'default'
+        };
     }
 
     /**
@@ -610,16 +836,25 @@
      */
     function getSameLayerNavConfig(fromPage, toPage) {
         if (fromPage === 'detail' && toPage === 'detail') {
-            return {
-                navTransition: 'same-layer-swim',
-                exitClass: 'page-ocean-swim-exit',
-                entryClass: 'page-ocean-swim-enter',
-                exitDuration: Math.round(OCEAN_NAV.diveExitMs * 0.82),
-                entryDuration: Math.round(OCEAN_NAV.diveEnterMs * 0.84),
-                overlayBoost: clamp(OCEAN_NAV.overlayBoost * 0.72, 0, 0.45),
+            return buildSwimTransitionConfig({
+                exitDuration: OCEAN_NAV.diveExitMs * 0.82,
+                entryDuration: OCEAN_NAV.diveEnterMs * 0.84,
+                overlayBoost: OCEAN_NAV.overlayBoost * 0.72,
                 navigateLeadMs: OCEAN_NAV.navigateLeadMs,
-                pageshowOverlayBoost: clamp(OCEAN_NAV.pageshowOverlayBoost * 0.82, 0, 0.35)
-            };
+                pageshowOverlayBoost: OCEAN_NAV.pageshowOverlayBoost * 0.82,
+                motionPreset: 'detailSwim'
+            });
+        }
+
+        if (isInfoPage(fromPage) && isInfoPage(toPage) && fromPage !== toPage) {
+            return buildSwimTransitionConfig({
+                exitDuration: TRANSITION.exitPageMs * 0.8,
+                entryDuration: TRANSITION.enterPageMs * 0.86,
+                overlayBoost: TRANSITION.overlayBoost * 0.38,
+                navigateLeadMs: TRANSITION.exitNavigateLeadMs,
+                pageshowOverlayBoost: TRANSITION.pageshowOverlayBoost * 0.62,
+                motionPreset: 'infoSwim'
+            });
         }
 
         return null;
@@ -686,14 +921,6 @@
      * @returns {Object} - pageshow 入场配置对象
      */
     function getPageshowTransitionConfig(pageId, visualDirection) {
-        if (pageId === 'detail' && visualDirection === 'none') {
-            return {
-                entryClass: 'page-ocean-swim-enter',
-                entryDuration: Math.round(OCEAN_NAV.diveEnterMs * 0.84),
-                overlayBoostStart: clamp(OCEAN_NAV.pageshowOverlayBoost * 0.82, 0, 0.35)
-            };
-        }
-
         if (pageId === 'trip' && visualDirection === 'forward') {
             return {
                 entryClass: 'page-ocean-dive-enter',
@@ -753,6 +980,7 @@
                 entryClass: parsed.entryClass || null,
                 entryDuration: readNumber(parsed.entryDuration),
                 depthDuration: readNumber(parsed.depthDuration),
+                motionPreset: typeof parsed.motionPreset === 'string' ? parsed.motionPreset : 'default',
                 animatedOnSource: Boolean(parsed.animatedOnSource),
                 continueDepthOnEntry: Boolean(parsed.continueDepthOnEntry),
                 entryStartDepth: clamp(
@@ -909,6 +1137,9 @@
             this.pageScrollFrameId = 0;
             this.pageScrollSyncTimerId = 0;
             this.pageScrollTargetDepth = null;
+            this.pageScrollMetricsDirty = true;
+            this.pageScrollThresholdPoints = [];
+            this.pageScrollMetricsObserver = null;
             this.pageStateDepthObserver = null;
             this.pageStateDepthRules = [];
             this.homeDiveMatchDepth = null;
@@ -917,6 +1148,7 @@
                 : null;
             this.detailGaugeStepSize = null;
             this.detailGaugeLayoutReady = false;
+            this.lastRenderedDepthText = '';
 
             this.rootElement = document.documentElement;
             this.body = document.body;
@@ -928,6 +1160,7 @@
             this.rightCurrent = document.getElementById('rightGaugeCurrent');
             this.bubbleContainer = null;
 
+            this.applyPageIdentityData();
             this.ensureSpecialOverlayLayers();
             this.buildMarkersIfNeeded();
             this.refreshDetailGaugeViewportLayout();
@@ -1040,6 +1273,19 @@
             bubbleContainer.setAttribute('aria-hidden', 'true');
             this.overlayElement.appendChild(bubbleContainer);
             this.bubbleContainer = bubbleContainer;
+        }
+
+        /**
+         * applyPageIdentityData() - 给当前页面写入稳定的页面身份标记，便于样式按海层家族区分
+         * @returns {void}
+         */
+        applyPageIdentityData() {
+            if (!this.body) {
+                return;
+            }
+
+            this.body.dataset.pageId = this.pageId;
+            this.body.dataset.pageFamily = getPageFamily(this.pageId);
         }
 
         /**
@@ -1211,9 +1457,9 @@
                 return false;
             }
 
-            const tape = container.querySelector('.gauge-scale-tape');
-            const topSpacer = tape?.querySelector('.gauge-scale-spacer-top');
-            const bottomSpacer = tape?.querySelector('.gauge-scale-spacer-bottom');
+            const tape = container._depthTape || container.querySelector('.gauge-scale-tape');
+            const topSpacer = container._depthTopSpacer || tape?.querySelector('.gauge-scale-spacer-top');
+            const bottomSpacer = container._depthBottomSpacer || tape?.querySelector('.gauge-scale-spacer-bottom');
             if (!tape || !topSpacer || !bottomSpacer) {
                 return false;
             }
@@ -1248,14 +1494,20 @@
                 this.refreshDetailGaugeViewportLayout();
             }
 
-            const tape = container.querySelector('.gauge-scale-tape');
+            const tape = container._depthTape || container.querySelector('.gauge-scale-tape');
             if (!tape) {
                 return;
             }
 
             const stepSize = this.getDetailGaugeStepSize();
             const offset = -Math.abs(currentDepth) * stepSize;
-            tape.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+            const nextTransform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+            if (container._lastTapeTransform === nextTransform) {
+                return;
+            }
+
+            tape.style.transform = nextTransform;
+            container._lastTapeTransform = nextTransform;
         }
 
         // 刻度初始化：在左右两侧深度计容器中生成完整刻度，保证跨页面样式一致。
@@ -1308,6 +1560,7 @@
         buildMarkers(container, side) {
             const fragment = document.createDocumentFragment();
             const gaugeBounds = this.getGaugeDepthBounds();
+            const markerCache = [];
 
             for (let depth = gaugeBounds.maxDepth; depth >= gaugeBounds.minDepth; depth -= STEP) {
                 const marker = document.createElement('div');
@@ -1339,6 +1592,10 @@
                 }
 
                 fragment.appendChild(marker);
+                markerCache.push({
+                    node: marker,
+                    depth
+                });
             }
 
             const tape = document.createElement('div');
@@ -1355,6 +1612,13 @@
 
             container.innerHTML = '';
             container.appendChild(tape);
+            container._depthMarkerCache = markerCache;
+            container._depthTape = tape;
+            container._depthTopSpacer = topSpacer;
+            container._depthBottomSpacer = bottomSpacer;
+            container._lastReachedDepth = null;
+            container._lastNearestDepth = null;
+            container._lastTapeTransform = '';
         }
 
         // 动画清理：统一停止当前深度、覆盖层、交互 wobble 和特殊登录过渡。
@@ -1527,14 +1791,14 @@
             const depthProgress = clamp(Math.abs(safeDepth) / Math.abs(MIN_DEPTH), 0, 1);
             const baseOpacity = getAmbientOverlayOpacity(safeDepth);
             const extraOpacity = clamp(boost, 0, 0.45);
-            const surfaceOpacity = clamp((1 - depthProgress) * 0.28 + extraOpacity * 0.18, 0, 0.36);
-            const particleOpacity = clamp(0.06 + depthProgress * 0.24 + extraOpacity * 0.22, 0, 0.44);
-            const hazeOpacity = clamp(0.04 + depthProgress * 0.38 + extraOpacity * 0.32, 0, 0.62);
-            const visibility = clamp(1 - depthProgress * 0.22 - extraOpacity * 0.18, 0.52, 1);
+            const surfaceOpacity = clamp((1 - depthProgress) * 0.16 + extraOpacity * 0.06, 0, 0.2);
+            const particleOpacity = clamp(0.035 + depthProgress * 0.08 + extraOpacity * 0.08, 0.035, 0.16);
+            const hazeOpacity = clamp(0.02 + depthProgress * 0.11 + extraOpacity * 0.12, 0.02, 0.2);
+            const visibility = clamp(0.98 - depthProgress * 0.04 - extraOpacity * 0.04, 0.9, 1);
             const gaugeCompression = clamp(1 + depthProgress * 0.08, 1, 1.1);
             const gaugeShift = clamp(depthProgress * 10, 0, 10);
             const gaugePulse = clamp(1 + extraOpacity * 0.12 + depthProgress * 0.02, 1, 1.12);
-            const mediumBlur = clamp(10 + depthProgress * 12 + extraOpacity * 18, 10, 28);
+            const mediumBlur = clamp(4 + depthProgress * 4 + extraOpacity * 6, 4, 9);
 
             this.rootElement.style.setProperty('--ocean-base-opacity', baseOpacity.toFixed(3));
             this.rootElement.style.setProperty('--ocean-cover-opacity', extraOpacity.toFixed(3));
@@ -1559,14 +1823,15 @@
             const renderedGaugeDepth = this.getRenderedGaugeDepth(safeDepth);
             const depthText = formatDepth(renderedGaugeDepth);
 
-            if (this.leftCurrent) {
+            if (this.leftCurrent && this.lastRenderedDepthText !== depthText) {
                 this.leftCurrent.textContent = depthText;
             }
 
-            if (this.rightCurrent) {
+            if (this.rightCurrent && this.lastRenderedDepthText !== depthText) {
                 this.rightCurrent.textContent = depthText;
             }
 
+            this.lastRenderedDepthText = depthText;
             this.updateMarkersForContainer(this.leftMarkersContainer, renderedGaugeDepth);
             this.updateMarkersForContainer(this.rightMarkersContainer, renderedGaugeDepth);
             this.updateDetailGaugeTapePosition(this.leftMarkersContainer, renderedGaugeDepth);
@@ -1586,29 +1851,66 @@
                 return;
             }
 
-            const markers = Array.from(container.querySelectorAll('.depth-marker'));
+            const markers = Array.isArray(container._depthMarkerCache)
+                ? container._depthMarkerCache
+                : [];
             if (markers.length === 0) {
                 return;
             }
 
-            let nearestDepth = MAX_DEPTH;
-            let nearestDistance = Number.POSITIVE_INFINITY;
+            const reachedDepth = Math.ceil(currentDepth);
+            const nearestDepth = Math.round(currentDepth);
+            if (
+                container._lastReachedDepth === reachedDepth
+                && container._lastNearestDepth === nearestDepth
+            ) {
+                return;
+            }
 
-            markers.forEach((marker) => {
-                const markerDepth = Number(marker.dataset.depth);
-                const distance = Math.abs(markerDepth - currentDepth);
+            markers.forEach((markerMeta) => {
+                markerMeta.node.classList.toggle('is-reached', markerMeta.depth >= currentDepth);
+                markerMeta.node.classList.toggle('is-current', markerMeta.depth === nearestDepth);
+            });
+            container._lastReachedDepth = reachedDepth;
+            container._lastNearestDepth = nearestDepth;
+        }
 
-                if (distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestDepth = markerDepth;
+        /**
+         * markPageScrollMetricsDirty() - 标记当前页面 section 阈值缓存已过期
+         * @returns {void}
+         */
+        markPageScrollMetricsDirty() {
+            this.pageScrollMetricsDirty = true;
+            this.pageScrollThresholdPoints = [];
+        }
+
+        /**
+         * setupPageScrollMetricsObserver() - 监听关键区块尺寸变化，只在布局变动后重算 section 阈值
+         * @returns {void}
+         */
+        setupPageScrollMetricsObserver() {
+            if (!window.ResizeObserver || this.pageScrollDepthStops.length === 0) {
+                return;
+            }
+
+            if (this.pageScrollMetricsObserver) {
+                this.pageScrollMetricsObserver.disconnect();
+            }
+
+            this.pageScrollMetricsObserver = new ResizeObserver(() => {
+                this.markPageScrollMetricsDirty();
+                this.queuePageScrollDepthUpdate();
+            });
+
+            this.pageScrollDepthStops.forEach((stop) => {
+                if (stop.element) {
+                    this.pageScrollMetricsObserver.observe(stop.element);
                 }
             });
 
-            markers.forEach((marker) => {
-                const markerDepth = Number(marker.dataset.depth);
-                marker.classList.toggle('is-reached', markerDepth >= currentDepth);
-                marker.classList.toggle('is-current', markerDepth === nearestDepth);
-            });
+            if (this.pageStage) {
+                this.pageScrollMetricsObserver.observe(this.pageStage);
+            }
         }
 
         /**
@@ -1788,8 +2090,15 @@
                 return [];
             }
 
+            if (!this.pageScrollMetricsDirty && this.pageScrollThresholdPoints.length) {
+                return this.pageScrollThresholdPoints;
+            }
+
             const rawPoints = this.pageScrollDepthStops.map((stop, index) => {
                 const top = stop.element.getBoundingClientRect().top + window.scrollY;
+                const height = stop.element.offsetHeight || stop.element.getBoundingClientRect().height || 0;
+                stop.cachedTop = top;
+                stop.cachedHeight = height;
                 if (index === 0) {
                     return {
                         selector: stop.selector,
@@ -1810,35 +2119,37 @@
                 };
             });
 
+            let nextPoints = rawPoints;
+
             if (this.pageId === 'home') {
-                return this.normalizeHomeThresholdPoints(rawPoints);
-            }
+                nextPoints = this.normalizeHomeThresholdPoints(rawPoints);
+            } else if (this.pageId === 'detail') {
+                nextPoints = rawPoints.reduce((normalizedPoints, point, index) => {
+                    if (index === 0) {
+                        normalizedPoints.push(point);
+                        return normalizedPoints;
+                    }
 
-            if (this.pageId !== 'detail') {
-                return rawPoints;
-            }
+                    const previousPoint = normalizedPoints[normalizedPoints.length - 1];
+                    const minGap = Math.max(window.innerHeight * 0.18, 170);
+                    const maxGap = Math.max(window.innerHeight * 0.56, 520);
+                    const preferredThreshold = clamp(
+                        point.threshold,
+                        previousPoint.threshold + minGap,
+                        previousPoint.threshold + maxGap
+                    );
 
-            return rawPoints.reduce((normalizedPoints, point, index) => {
-                if (index === 0) {
-                    normalizedPoints.push(point);
+                    normalizedPoints.push({
+                        ...point,
+                        threshold: preferredThreshold
+                    });
                     return normalizedPoints;
-                }
+                }, []);
+            }
 
-                const previousPoint = normalizedPoints[normalizedPoints.length - 1];
-                const minGap = Math.max(window.innerHeight * 0.18, 170);
-                const maxGap = Math.max(window.innerHeight * 0.56, 520);
-                const preferredThreshold = clamp(
-                    point.threshold,
-                    previousPoint.threshold + minGap,
-                    previousPoint.threshold + maxGap
-                );
-
-                normalizedPoints.push({
-                    ...point,
-                    threshold: preferredThreshold
-                });
-                return normalizedPoints;
-            }, []);
+            this.pageScrollThresholdPoints = nextPoints;
+            this.pageScrollMetricsDirty = false;
+            return nextPoints;
         }
 
         /**
@@ -1987,12 +2298,16 @@
                 return;
             }
 
+            this.markPageScrollMetricsDirty();
+            this.setupPageScrollMetricsObserver();
+
             // 页面滚动和 resize 都会影响区块在视口中的位置，所以两者都需要触发深度重算。
             window.addEventListener('scroll', () => {
                 this.queuePageScrollDepthUpdate();
             }, { passive: true });
 
             window.addEventListener('resize', () => {
+                this.markPageScrollMetricsDirty();
                 this.queuePageScrollDepthUpdate();
             }, { passive: true });
         }
@@ -2104,10 +2419,16 @@
                 return baseDepth;
             }
 
-            const rect = diveMatchStop.element.getBoundingClientRect();
+            const scrollY = window.scrollY || window.pageYOffset || 0;
+            const sectionTop = Number.isFinite(diveMatchStop.cachedTop)
+                ? diveMatchStop.cachedTop
+                : diveMatchStop.element.getBoundingClientRect().top + scrollY;
+            const sectionHeight = Number.isFinite(diveMatchStop.cachedHeight)
+                ? diveMatchStop.cachedHeight
+                : (diveMatchStop.element.offsetHeight || diveMatchStop.element.getBoundingClientRect().height || 0);
             const focusY = window.innerHeight * 0.48;
-            const sectionMid = rect.top + Math.max(rect.height * 0.42, 120);
-            const fadeDistance = Math.max(window.innerHeight * 0.54, rect.height * 0.65, 240);
+            const sectionMid = sectionTop - scrollY + Math.max(sectionHeight * 0.42, 120);
+            const fadeDistance = Math.max(window.innerHeight * 0.54, sectionHeight * 0.65, 240);
             const influence = clamp(1 - (Math.abs(sectionMid - focusY) / fadeDistance), 0, 1);
 
             if (influence <= 0.001) {
@@ -2377,6 +2698,101 @@
         }
 
         /**
+         * setTransitionContext(context) - 写入当前切页的来源、目标与方向信息，供样式细分层级动画
+         * @param {Object} context - 当前切换上下文
+         * @returns {void}
+         */
+        setTransitionContext(context = {}) {
+            if (!this.body) {
+                return;
+            }
+
+            const phase = context.phase
+                || (context.className && context.className.includes('enter') ? 'enter' : 'exit');
+            const fromPage = context.fromPage || (phase === 'exit' ? this.pageId : '');
+            const toPage = context.toPage || (phase === 'enter' ? this.pageId : '');
+            const fromFamily = fromPage ? getPageFamily(fromPage) : '';
+            const toFamily = toPage ? getPageFamily(toPage) : '';
+            const navTransition = String(context.navTransition || '');
+            const visualDirection = String(context.visualDirection || '');
+            const axis = navTransition === 'same-layer-swim' ? 'lateral' : 'vertical';
+
+            this.body.dataset.transitionPhase = phase;
+            this.body.dataset.transitionFrom = fromPage;
+            this.body.dataset.transitionTo = toPage;
+            this.body.dataset.transitionFromFamily = fromFamily;
+            this.body.dataset.transitionToFamily = toFamily;
+            this.body.dataset.transitionMode = navTransition;
+            this.body.dataset.transitionDirection = visualDirection;
+            this.body.dataset.transitionAxis = axis;
+        }
+
+        /**
+         * clearTransitionContext() - 清除本次切页上下文，避免旧路由状态残留到后续动画
+         * @returns {void}
+         */
+        clearTransitionContext() {
+            if (!this.body) {
+                return;
+            }
+
+            delete this.body.dataset.transitionPhase;
+            delete this.body.dataset.transitionFrom;
+            delete this.body.dataset.transitionTo;
+            delete this.body.dataset.transitionFromFamily;
+            delete this.body.dataset.transitionToFamily;
+            delete this.body.dataset.transitionMode;
+            delete this.body.dataset.transitionDirection;
+            delete this.body.dataset.transitionAxis;
+        }
+
+        /**
+         * clearTransitionMotionPreset() - 清理本次切页写入的动态运动变量
+         * @returns {void}
+         */
+        clearTransitionMotionPreset() {
+            if (!this.rootElement) {
+                return;
+            }
+
+            this.rootElement.style.removeProperty('--page-stage-translation');
+            this.rootElement.style.removeProperty('--page-stage-blur');
+            this.rootElement.style.removeProperty('--page-ocean-translation');
+            this.rootElement.style.removeProperty('--page-ocean-swim-shift');
+            this.rootElement.style.removeProperty('--page-ocean-swim-drift-y');
+            this.rootElement.style.removeProperty('--page-ocean-swim-direction');
+        }
+
+        /**
+         * applyTransitionMotionPreset(presetName, className, visualDirection) - 根据路由类型写入本次切页的运动参数
+         * @param {string} presetName - 预设名
+         * @param {string} className - 当前动画 class
+         * @param {string} visualDirection - 当前切换方向
+         * @returns {void}
+         */
+        applyTransitionMotionPreset(presetName, className, visualDirection) {
+            if (!this.rootElement) {
+                return;
+            }
+
+            const preset = TRANSITION_MOTION_PRESETS[presetName] || TRANSITION_MOTION_PRESETS.default;
+            const swimDirection = (
+                className
+                && className.includes('page-ocean-swim')
+                && visualDirection === 'backward'
+            )
+                ? '-1'
+                : '1';
+
+            this.rootElement.style.setProperty('--page-stage-translation', preset.stageTranslation);
+            this.rootElement.style.setProperty('--page-stage-blur', preset.stageBlur);
+            this.rootElement.style.setProperty('--page-ocean-translation', preset.oceanTranslation);
+            this.rootElement.style.setProperty('--page-ocean-swim-shift', preset.oceanSwimShift);
+            this.rootElement.style.setProperty('--page-ocean-swim-drift-y', preset.oceanSwimDriftY);
+            this.rootElement.style.setProperty('--page-ocean-swim-direction', swimDirection);
+        }
+
+        /**
          * clearTransitionClasses() - 清理页面当前所有通用切换 class
          * @returns {void} - 无返回值，直接移除页面过渡状态
          */
@@ -2394,6 +2810,8 @@
                 'page-ocean-swim-exit',
                 'page-ocean-swim-enter'
             );
+            this.clearTransitionContext();
+            this.clearTransitionMotionPreset();
 
             if (this.cleanupTimerId) {
                 window.clearTimeout(this.cleanupTimerId);
@@ -2569,6 +2987,13 @@
             this.clearSpecialTransitionState();
 
             this.specialTransitionMode = SPECIAL_TRANSITION_LOGIN_HOME;
+            this.setTransitionContext({
+                phase: 'exit',
+                fromPage: 'login',
+                toPage: 'home',
+                navTransition: SPECIAL_TRANSITION_LOGIN_HOME,
+                visualDirection: 'forward'
+            });
             this.body.classList.add('page-transition-active', 'page-login-home-special-active');
             this.buildSpecialBubbles();
             this.setSpecialBlueOpacity(0);
@@ -2639,6 +3064,13 @@
             this.renderDepth(this.currentDepth);
             this.setSpecialBlueOpacity(specialBlueOpacity);
             this.buildSpecialBubbles();
+            this.setTransitionContext({
+                phase: 'enter',
+                fromPage: incomingState.fromPage,
+                toPage: incomingState.toPage,
+                navTransition: incomingState.specialTransition,
+                visualDirection: incomingState.visualDirection
+            });
 
             this.body.classList.add(
                 'page-transition-active',
@@ -2716,9 +3148,10 @@
         /**
          * navigateTo(rawUrl) - 接管站内跨页面跳转并按深度逻辑播放对应离场动画
          * @param {string} rawUrl - 目标页面地址
+         * @param {Object} options - 可选导航配置，可用于跳过源页面动画并直接写入目标页入场状态
          * @returns {void} - 无返回值，直接决定导航方式并执行跳转
          */
-        navigateTo(rawUrl) {
+        navigateTo(rawUrl, options = {}) {
             if (this.isNavigating) {
                 return;
             }
@@ -2742,13 +3175,10 @@
             const fromDepth = this.getCurrentDepth();
             const pendingHomeEntryDepth = consumePendingHomeEntryDepth(parsedUrl);
             const toDepth = pendingHomeEntryDepth ?? this.getTargetDepth(toPage);
-            const sameLayerConfig = getSameLayerNavConfig(this.pageId, toPage);
-            const visualDirection = sameLayerConfig
-                ? 'none'
-                : getVisualDirection(fromDepth, toDepth);
             // 目标页面先被翻译成一个“目标深度”，再根据深浅判断是继续下潜还是缓慢上浮。
+            const visualDirection = getVisualDirection(fromDepth, toDepth);
 
-            if (!sameLayerConfig && visualDirection === 'none') {
+            if (visualDirection === 'none') {
                 sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(toDepth)));
                 window.location.href = rawUrl;
                 return;
@@ -2762,9 +3192,7 @@
                 return;
             }
 
-            const transitionConfig = sameLayerConfig
-                || getOceanNavConfig(this.pageId, toPage)
-                || getDefaultTransitionConfig(visualDirection);
+            const transitionConfig = getOceanNavConfig(this.pageId, toPage) || getDefaultTransitionConfig(visualDirection);
             const exitClass = transitionConfig.exitClass;
             const depthDuration = transitionConfig.navTransition === NAV_TRANSITION_OCEAN
                 ? transitionConfig.exitDuration - transitionConfig.navigateLeadMs - 120

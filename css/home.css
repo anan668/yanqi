@@ -780,12 +780,12 @@
     margin-bottom: 32px;
     text-align: center;
     opacity: 0;
-    filter: blur(14px);
-    transform: translate3d(0, 18px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 10px, 0);
     transition:
-        opacity 0.72s ease,
-        transform 0.84s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.84s ease;
+        opacity 0.56s ease,
+        transform 0.68s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.68s ease;
 }
 
 /* 首屏 唤醒后，让标题区恢复清晰和稳定位置。 */
@@ -793,7 +793,7 @@
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
-    transition-delay: 980ms;
+    transition-delay: 300ms;
 }
 
 /* 首屏 热门潜点英文小标：维持轻量的日志感。 */
@@ -842,12 +842,12 @@
     gap: 18px;
     padding: 8px 6px 12px;
     opacity: 0;
-    filter: blur(16px);
-    transform: translate3d(0, 24px, 0);
+    filter: blur(10px);
+    transform: translate3d(0, 14px, 0);
     transition:
-        opacity 0.82s ease,
-        transform 0.96s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.96s ease;
+        opacity 0.62s ease,
+        transform 0.76s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.76s ease;
 }
 
 .hero-bamboo-scroll-container::before {
@@ -870,7 +870,7 @@
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
-    transition-delay: 1120ms;
+    transition-delay: 360ms;
 }
 /* 首屏 内的卡片轨道留更舒服的呼吸空间。 */
 .hero-bamboo-cards-wrapper {
@@ -5331,6 +5331,8 @@
 .home-page {
     --home-layer-progress: 0;
     --home-layer-index: 0;
+    --home-story-overlap-top: clamp(24px, 3vw, 38px);
+    --home-story-overlap-bottom: clamp(30px, 4vw, 52px);
 }
 
 .featured-destinations,
@@ -5531,7 +5533,18 @@
 }
 
 .why-yanqi.is-home-current {
+    margin-top: calc(var(--home-story-overlap-top) * -1);
+    padding-top: calc(var(--spacing-2xl) + var(--home-story-overlap-top));
+    margin-bottom: calc((var(--home-story-overlap-bottom) + var(--home-layer-progress, 0) * 16px) * -1);
+    padding-bottom: calc(var(--spacing-2xl) + var(--home-story-overlap-bottom) + var(--home-layer-progress, 0) * 16px);
     filter: saturate(1.04) brightness(1.03);
+}
+
+.why-yanqi.is-home-passed {
+    margin-top: calc(var(--home-story-overlap-top) * -1);
+    padding-top: calc(var(--spacing-2xl) + var(--home-story-overlap-top));
+    margin-bottom: calc(var(--home-story-overlap-bottom) * -1);
+    padding-bottom: calc(var(--spacing-2xl) + var(--home-story-overlap-bottom));
 }
 
 .why-yanqi.is-story-awake .story-river-glow {
@@ -5551,28 +5564,32 @@
 
 .story-grid {
     perspective: 1400px;
+    transform: translate3d(0, calc(var(--story-progress, 0) * -10px), 0);
+    transition: transform 560ms cubic-bezier(0.18, 0.8, 0.2, 1);
 }
 
 .story-card {
     --story-card-progress: 0;
-    opacity: calc(0.9 + var(--story-card-progress, 0) * 0.1);
+    opacity: calc(0.04 + var(--story-card-progress, 0) * 0.96);
     transform:
-        translate3d(0, calc((1 - var(--story-card-progress, 0)) * 14px + var(--story-card-shift, 0px)), 0)
-        rotateX(calc((1 - var(--story-card-progress, 0)) * 2.2deg));
+        translate3d(0, calc((1 - var(--story-card-progress, 0)) * 22px + var(--story-card-shift, 0px)), 0)
+        rotateX(calc((1 - var(--story-card-progress, 0)) * 3.2deg));
     transition:
-        transform 640ms cubic-bezier(0.18, 0.8, 0.2, 1),
+        transform 720ms cubic-bezier(0.18, 0.8, 0.2, 1),
         box-shadow 320ms ease,
         border-color 320ms ease,
         background 320ms ease,
-        opacity 560ms ease;
+        opacity 620ms ease,
+        filter 620ms ease;
 }
 
 .story-card.story-reveal {
-    filter: blur(calc((1 - var(--story-card-progress, 0)) * 1.6px));
+    filter: blur(calc((1 - var(--story-card-progress, 0)) * 6px));
 }
 
 .story-card.story-reveal.is-visible {
     opacity: 1;
+    filter: blur(0);
 }
 
 .story-card:nth-child(1) {
@@ -5614,6 +5631,12 @@
 
 body[data-current-home-layer="story"] .story-river-line {
     background: linear-gradient(180deg, rgba(200, 228, 243, 0.12), rgba(228, 243, 252, 0.84), rgba(200, 228, 243, 0.12));
+}
+
+.footer.is-home-current,
+.footer.is-home-upcoming {
+    margin-top: calc(var(--home-story-overlap-bottom) * -1);
+    padding-top: calc(clamp(64px, 8vw, 92px) + var(--home-story-overlap-bottom));
 }
 
 /* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */

@@ -1163,6 +1163,190 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 price: '¥4,280'
             }
         ]
+    },
+    11: {
+        name: '科隆',
+        tagline: '把黑色石灰岩、玻璃水与沉船的安静轮廓，一层层排进同一次靠近。',
+        image: 'assets/images/coron-review-1-island-chain.jpg',
+        difficulty: '适合沉船初体验',
+        depth: '5-30m',
+        season: '11月-次年5月',
+        priceFrom: '¥4,980',
+        mapLocation: '菲律宾巴拉望 · 科隆湾 Coron Bay',
+        coordinates: '北纬 11.99°, 东经 120.20°',
+        features: {
+            location: '科隆的海不是单一一层蓝。黑色石灰岩、浅色礁缘、静水海湾与沉船线索会交替出现，很多人是为了 wreck 而来，但真正留在记忆里的，往往是船慢慢切进岛湾时，海面以上也一样有层次。',
+            wildlife: [
+                '海龟、梭鱼与礁坡上的笛鲷群',
+                '沉船结构周围常见蝙蝠鱼、石斑与狮子鱼',
+                '浅区有海鳗、裸鳃与更细碎的小型礁鱼',
+                '静水海湾和石灰岩岸线本身就是整段行程的重要风景',
+                '天气稳定时，海面颜色和礁缘层次会非常清楚'
+            ],
+            warnings: [
+                '部分沉船点位深度和结构更复杂，进舱或更深路线需按证照与经验安排',
+                '上岛、换船和靠岸常会踩到石灰岩或湿滑船沿，动作要放慢',
+                '日晒、船程与跳岛节奏叠加，补水和防晒都要提前准备',
+                '能见度与出海顺序会受风向和降雨影响，行程需要留一点弹性'
+            ],
+            weather: {
+                season: '11月-次年5月',
+                temperature: '27-30°C',
+                visibility: '10-25米'
+            }
+        },
+        itineraries: [
+            {
+                name: '4天3晚黑石与玻璃水初识线',
+                includes: '2次沉船潜 + 1次礁坡 + 海湾巡游 + 中文向导',
+                price: '¥4,980'
+            },
+            {
+                name: '6天5晚科隆沉船主线',
+                includes: '4次核心 wreck + 岛湾停驻 + 潜前 briefing + 机场接送',
+                price: '¥7,280'
+            },
+            {
+                name: '7天6晚科隆海湾与沉船线',
+                includes: '6次潜水 + 跳岛水面日 + 酒店接送 + 每日早餐',
+                price: '¥9,980'
+            }
+        ],
+        reviews: [
+            {
+                user: '飞进群岛时',
+                rating: '★★★★★',
+                date: '2026-03-04',
+                text: '很多人记住科隆是因为沉船，但我先记住的是从空中看见黑色岛影被浅色礁缘轻轻托住的那一下。'
+            },
+            {
+                user: '黑石之间',
+                rating: '★★★★★',
+                date: '2025-12-18',
+                text: '这里的好看不只在水下。白沙、浅水和石灰岩靠得很近，人刚靠岸就会自然慢下来。'
+            },
+            {
+                user: '回到码头以后',
+                rating: '★★★★☆',
+                date: '2025-10-06',
+                text: '整好装备、再看一眼镇边的山和水色，会觉得科隆是一片从海面以上就开始讲故事的海。'
+            }
+        ],
+        related: [
+            {
+                id: 2,
+                name: '帕劳',
+                description: '同样有石灰岩岛屿与通透蓝色，但帕劳会更偏断层、蓝洞和更清楚的流线。',
+                image: 'assets/images/palau.jpg',
+                price: '¥4,280'
+            },
+            {
+                id: 7,
+                name: '科莫多',
+                description: '如果想把地形张力继续往更完整的海况里推深，科莫多会更强一些。',
+                image: 'assets/images/komodo.jpg',
+                price: '¥3,880'
+            },
+            {
+                id: 9,
+                name: '马布岛',
+                description: '如果想把节奏收得更慢，让海面以上也更贴近日常停驻，马布岛会更柔和。',
+                image: 'assets/images/mabul.jpg',
+                price: '¥3,580'
+            }
+        ]
+    },
+    12: {
+        name: '薄荷岛',
+        tagline: '把白沙岸线、浅礁色带和轻船潜的出发线，安静地排进同一次停驻。',
+        image: 'assets/images/bohol.jpg',
+        difficulty: '适合轻船潜入门',
+        depth: '5-25m',
+        season: '11月-次年6月',
+        priceFrom: '¥3,980',
+        mapLocation: '菲律宾薄荷 · 邦劳 / 巴里卡萨 Bohol / Balicasag',
+        coordinates: '北纬 9.53°, 东经 123.68°',
+        features: {
+            location: '薄荷岛不是先用强烈海况把人抓住的海。白沙岸线、浅礁色带和停在外侧的小船会先把节奏放轻，很多人从邦劳或巴里卡萨一带开始认识它，真正留在记忆里的，常常是那条从浅青慢慢过渡到深蓝的岸线。',
+            wildlife: [
+                '海龟、杰克鱼群与浅礁鱼类更常在光线好的时段出现',
+                '岸线外侧的浅礁与 drop-off 过渡清楚，适合先把节奏读懂',
+                '晴天时海色会从白沙边一路过渡到更稳的外海深蓝',
+                '短船程和近岸出发让整天的潜旅体感更轻',
+                '水面平静时，停船线和浅礁纹理本身就是很完整的风景'
+            ],
+            warnings: [
+                '中午前后日晒很强，防晒和补水都要提前准备',
+                '小船上下和背滚入水时要注意脚下和器材摆放',
+                '风浪变化时，外侧点位和出海顺序可能会调整',
+                '浅礁区拍照或观察时要更留意中性浮力和踢蹼距离'
+            ],
+            weather: {
+                season: '11月-次年6月',
+                temperature: '27-30°C',
+                visibility: '12-22米'
+            }
+        },
+        itineraries: [
+            {
+                name: '4天3晚薄荷岛轻潜假期',
+                includes: '2次船潜 + 巴里卡萨外侧巡游 + 机场接送 + 中文协助',
+                price: '¥3,980'
+            },
+            {
+                name: '5天4晚薄荷岛岸线与浅礁线',
+                includes: '4次船潜 + 邦劳住店 + 每日早餐 + 潜店接送',
+                price: '¥5,680'
+            },
+            {
+                name: '6天5晚薄荷岛海岸停驻线',
+                includes: '6次潜水 + 船上 briefing + 酒店接送 + 中文向导',
+                price: '¥7,580'
+            }
+        ],
+        reviews: [
+            {
+                user: '先看见岸线',
+                rating: '★★★★★',
+                date: '2026-03-09',
+                text: '薄荷岛先让人记住的，是白沙、浅礁和外侧深蓝排得很清楚的那条边。'
+            },
+            {
+                user: '船停在外侧',
+                rating: '★★★★★',
+                date: '2025-12-14',
+                text: '小船就停在浅水边，岸上房子和树线都还看得见，整趟出海会自然轻下来。'
+            },
+            {
+                user: 'briefing 开始前',
+                rating: '★★★★☆',
+                date: '2025-10-02',
+                text: '大家围坐在船上听 brief 的时候，薄荷岛那种轻一点的日常感就已经开始了。'
+            }
+        ],
+        related: [
+            {
+                id: 9,
+                name: '马布岛',
+                description: '如果想把岸边停驻感再放慢一点，让潜前潜后都更贴近岛上日常，马布岛会更柔和。',
+                image: 'assets/images/mabul.jpg',
+                price: '¥3,580'
+            },
+            {
+                id: 6,
+                name: '布纳肯',
+                description: '如果想把薄荷岛的轻船潜再往更清澈的海墙层次里延伸，布纳肯会更开阔。',
+                image: 'assets/images/timor.jpg',
+                price: '¥3,680'
+            },
+            {
+                id: 11,
+                name: '科隆',
+                description: '如果想把菲律宾这一段继续往更明显的海湾层次和岸线记忆里推深，科隆会更有画面感。',
+                image: 'assets/images/coron-review-1-island-chain.jpg',
+                price: '¥4,980'
+            }
+        ]
     }
 });
 
@@ -1177,18 +1361,21 @@ const REVIEW_IMAGE_PREFIX = Object.freeze({
     7: 'komodo',
     8: 'tuamotu',
     9: 'mabul',
-    10: 'maldives-liveaboard'
+    10: 'maldives-liveaboard',
+    11: 'coron',
+    12: 'bohol'
 });
 
 // 相关推荐切换配置：控制详情页之间的卡片式切页时长、状态存储和方向 class。
 /**
  * navigateWithDepth(url) - 带深度切换效果地跳转到目标页面
  * @param {string} url - 目标页面地址
+ * @param {Object} options - 可选导航配置
  * @returns {void} - 无返回值，直接执行页面跳转
  */
-function navigateWithDepth(url) {
+function navigateWithDepth(url, options = {}) {
     if (window.DepthManager && typeof window.DepthManager.navigateTo === 'function') {
-        window.DepthManager.navigateTo(url);
+        window.DepthManager.navigateTo(url, options);
         return;
     }
 
@@ -1255,6 +1442,18 @@ const RELATED_SPOT_PROFILES = Object.freeze({
         mood: '把好几片蓝收进同一段航线里，更适合愿意在船上慢慢进入海的人。',
         fitTags: ['OW / AOW', '船宿', '环礁巡航'],
         why: '如果你想把潜点与海面上的停泊感一起记住，船宿会是一种更完整也更流动的靠近方式。'
+    },
+    11: {
+        englishName: 'Coron',
+        mood: '黑色石灰岩、玻璃水与沉船轮廓会一起展开，更适合把海面以上也记进潜旅的人。',
+        fitTags: ['OW / AOW', '沉船线索', '风景体验'],
+        why: '如果你希望一片海从空中、海湾到下潜前的准备都有层次，它会是更完整也更安静的一种靠近方式。'
+    },
+    12: {
+        englishName: 'Bohol',
+        mood: '白沙岸线、浅礁色带和轻船潜一起铺开，更适合把潜水放进轻一些假期的人。',
+        fitTags: ['入门 / OW', '风景体验', '轻船潜'],
+        why: '如果你想先让海岸线、briefing 和短船程把身体放松下来，它会是更明亮也更从容的一种靠近方式。'
     }
 });
 
@@ -1709,6 +1908,8 @@ class DetailPage {
         this.relatedStageSwitchTimer = 0;
         this.relatedStageCleanupTimer = 0;
         this.relatedEntryRevealTimer = 0;
+        this.inDocumentDetailSwapTimer = 0;
+        this.isInDocumentDetailSwapping = false;
         this.relatedStageStableHeight = 0;
         this.pressedRelatedCard = null;
         this.activeRelatedSpotId = this.spotData.related?.[0]?.id || null;
@@ -1832,6 +2033,255 @@ class DetailPage {
         this.setupNavigation();
         this.setupRelatedTransitionLifecycle();
         this.setupRelatedReveal();
+    }
+
+    /**
+     * shouldInterceptDetailAnchorClick(event, anchor) - 判断当前点击是否应由详情页内换海逻辑接管
+     * @param {MouseEvent} event - 当前点击事件
+     * @param {HTMLAnchorElement|null} anchor - 目标链接
+     * @returns {boolean} - 是否应拦截为同页换海
+     */
+    shouldInterceptDetailAnchorClick(event, anchor) {
+        if (
+            !anchor ||
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey ||
+            anchor.target === '_blank' ||
+            anchor.hasAttribute('download') ||
+            anchor.closest('.related-feature-card')
+        ) {
+            return false;
+        }
+
+        let parsedUrl = null;
+        try {
+            parsedUrl = new URL(anchor.href, window.location.href);
+        } catch (error) {
+            return false;
+        }
+
+        if (parsedUrl.origin !== window.location.origin) {
+            return false;
+        }
+
+        const samePath = parsedUrl.pathname === window.location.pathname;
+        const targetId = Number(parsedUrl.searchParams.get('id'));
+        return samePath && Number.isFinite(targetId) && targetId !== this.spotId;
+    }
+
+    /**
+     * primeDetailHistoryState() - 给当前详情页 history entry 写入 spotId，方便同页换海时回退
+     * @returns {void}
+     */
+    primeDetailHistoryState() {
+        try {
+            const currentState = window.history.state && typeof window.history.state === 'object'
+                ? window.history.state
+                : {};
+            window.history.replaceState({
+                ...currentState,
+                yanqiDetailSpotId: this.spotId
+            }, '', window.location.href);
+        } catch (error) {
+            // 忽略 history 不可写的极少数情况，保留默认浏览器行为。
+        }
+    }
+
+    /**
+     * syncDepthManagerAfterSpotSwap() - 同页换海后让深度计按新页面顶部位置重新接管
+     * @returns {void}
+     */
+    syncDepthManagerAfterSpotSwap() {
+        window.requestAnimationFrame(() => {
+            if (window.DepthManager && typeof window.DepthManager.queuePageScrollDepthUpdate === 'function') {
+                window.DepthManager.queuePageScrollDepthUpdate();
+            }
+        });
+    }
+
+    /**
+     * swapSpotContentInDocument(targetId, options) - 在当前详情页文档内切到另一片海，避免整页重载空白帧
+     * @param {number} targetId - 目标潜点 ID
+     * @param {{ direction?: string, updateHistory?: 'push'|'replace'|'skip', entryClass?: string }} [options={}] - 切换配置
+     * @returns {void}
+     */
+    swapSpotContentInDocument(targetId, options = {}) {
+        if (!Number.isFinite(targetId) || targetId === this.spotId) {
+            return;
+        }
+
+        const {
+            direction = targetId > this.spotId ? 'forward' : 'backward',
+            updateHistory = 'push',
+            entryClass = 'detail-swap-enter'
+        } = options;
+
+        const nextSpotData = divingSpotDetails[targetId];
+        if (!nextSpotData) {
+            window.location.href = `detail.html?id=${targetId}`;
+            return;
+        }
+
+        if (updateHistory === 'push') {
+            try {
+                const nextUrl = new URL(window.location.href);
+                nextUrl.searchParams.set('id', String(targetId));
+                window.history.pushState({
+                    yanqiDetailSpotId: targetId
+                }, '', nextUrl);
+            } catch (error) {
+                // history 写入失败时继续更新页面内容，不阻断当前切换。
+            }
+        } else if (updateHistory === 'replace') {
+            this.primeDetailHistoryState();
+        }
+
+        if (this.bookingModal?.classList.contains('active')) {
+            this.closeBookingModal();
+        }
+        if (this.reviewDetailModal?.classList.contains('active')) {
+            this.closeReviewDetail();
+        }
+        if (this.reviewLightbox?.classList.contains('active')) {
+            this.closeReviewLightbox();
+        }
+        this.hideBookingConfirmedFeedback({ immediate: true });
+        this.clearBookingModalMorph();
+        this.clearPressedRelatedCard();
+        this.clearBookingCopySwapTimers();
+        this.clearBookingFocusSwapTimers();
+        this.resetBookingCopySwapState();
+        this.resetBookingFocusSwapState();
+        this.resetRelatedSwapClasses();
+        sessionStorage.removeItem(DETAIL_SWAP_STORAGE_KEY);
+        if (this.pageStage) {
+            this.pageStage.style.opacity = '0';
+            this.pageStage.style.filter = 'blur(0px)';
+            this.pageStage.style.willChange = 'transform, opacity, filter';
+            void this.pageStage.offsetWidth;
+        }
+
+        this.spotId = targetId;
+        this.spotData = nextSpotData;
+        this.packageData = [];
+        this.reviewData = [];
+        this.activeReviewFilter = 'all';
+        this.activeReviewLinkedPackageId = null;
+        this.selectedPackageId = null;
+        this.bookedPackageIds = new Set();
+        this.activeRelatedSpotId = nextSpotData.related?.[0]?.id || null;
+        this.activeBookingGuideKey = 'overview';
+        this.activeBookingFocusPackageId = '';
+        this.activeBookingFocusContextKey = '';
+        this.bookingModalDrafts = new Map();
+        this.relatedStageStableHeight = 0;
+        this.relatedGrid?.style.removeProperty('--related-stage-height');
+        this.relatedGrid?.style.removeProperty('min-height');
+
+        window.scrollTo(0, 0);
+        this.renderSpotData();
+        this.updateSeaGuideState?.();
+        this.primeDetailHistoryState();
+        this.syncDepthManagerAfterSpotSwap();
+
+        this.playRelatedSwapAnimation(entryClass, direction);
+        window.requestAnimationFrame(() => {
+            if (!this.pageStage) {
+                return;
+            }
+
+            this.pageStage.style.removeProperty('opacity');
+            this.pageStage.style.removeProperty('filter');
+            this.pageStage.style.removeProperty('will-change');
+        });
+    }
+
+    /**
+     * startInDocumentDetailSwap(targetId, options) - 以同页换海方式切到另一片详情，减少整页重载带来的断裂
+     * @param {number} targetId - 目标潜点 ID
+     * @param {{ direction?: string, skipSourceAnimation?: boolean, updateHistory?: 'push'|'replace'|'skip', entryClass?: string }} [options={}] - 切换配置
+     * @returns {boolean} - 是否已接管此次切换
+     */
+    startInDocumentDetailSwap(targetId, options = {}) {
+        if (!Number.isFinite(targetId) || targetId === this.spotId || this.isInDocumentDetailSwapping) {
+            return false;
+        }
+
+        const {
+            direction = targetId > this.spotId ? 'forward' : 'backward',
+            skipSourceAnimation = false,
+            updateHistory = 'push',
+            entryClass = 'detail-swap-enter'
+        } = options;
+
+        this.isInDocumentDetailSwapping = true;
+
+        const commitSwap = () => {
+            this.inDocumentDetailSwapTimer = 0;
+            this.swapSpotContentInDocument(targetId, {
+                direction,
+                updateHistory,
+                entryClass
+            });
+
+            window.setTimeout(() => {
+                this.isInDocumentDetailSwapping = false;
+            }, DETAIL_SWAP_DURATION_MS + 80);
+        };
+
+        if (skipSourceAnimation) {
+            commitSwap();
+            return true;
+        }
+
+        this.resetRelatedSwapClasses();
+        this.playRelatedSwapAnimation('detail-swap-exit', direction);
+
+        this.inDocumentDetailSwapTimer = window.setTimeout(() => {
+            commitSwap();
+        }, DETAIL_SWAP_NAVIGATE_DELAY_MS);
+
+        return true;
+    }
+
+    /**
+     * setupInDocumentDetailNavigation() - 让详情页之间的跳转优先在当前文档内完成，减少重载闪烁
+     * @returns {void}
+     */
+    setupInDocumentDetailNavigation() {
+        this.primeDetailHistoryState();
+
+        document.addEventListener('click', (event) => {
+            const anchor = event.target.closest('a[href]');
+            if (!this.shouldInterceptDetailAnchorClick(event, anchor)) {
+                return;
+            }
+
+            event.preventDefault();
+            const targetUrl = new URL(anchor.href, window.location.href);
+            const targetId = Number(targetUrl.searchParams.get('id'));
+            this.startInDocumentDetailSwap(targetId, {
+                direction: targetId > this.spotId ? 'forward' : 'backward'
+            });
+        }, true);
+
+        window.addEventListener('popstate', () => {
+            const targetId = this.getSpotIdFromUrl();
+            if (!Number.isFinite(targetId) || targetId === this.spotId || this.isInDocumentDetailSwapping) {
+                return;
+            }
+
+            this.startInDocumentDetailSwap(targetId, {
+                direction: targetId > this.spotId ? 'forward' : 'backward',
+                skipSourceAnimation: true,
+                updateHistory: 'skip',
+                entryClass: 'detail-swap-back-enter'
+            });
+        });
     }
 
     // 套餐数据构建：根据当前潜点生成休闲/进阶两组能力匹配套餐及其详情内容。
@@ -2113,88 +2563,153 @@ class DetailPage {
                 { key: 'sea-at-dusk', caption: `${name} · 傍晚海面`, position: '50% 32%' }
             ];
 
-        if (this.spotId === 10) {
+        if (this.spotId === 1) {
             return finalizeReviews([
                 {
                     id: 'review-1',
-                    user: '第一夜的甲板',
-                    date: '2026年2月',
+                    user: '先经过那道蓝',
+                    date: '2026年3月',
                     level: 'OW / AOW',
                     ratingStars: '★★★★★',
                     ratingScore: '4.9 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '马尔代夫船宿 · 环礁醒来',
-                    subtitle: '在船上醒来的清晨，会把这趟下潜先变成一段更安静的海上生活。',
-                    summary: '马尔代夫船宿最打动我的，不是某一潜单独有多强，而是每天醒来时，你已经在另一片海面上了。清晨推开舱门，先看见甲板、风和浅蓝色的海，再慢慢去准备当天第一潜，会觉得整趟旅程像被海一点点往前推开。',
-                    diving: '水下体验本身很完整，环礁、航道和蓝水会把每天的节奏拉得很开。不是每一潜都要追求强烈刺激，但那种连续几天都生活在海上的感觉，会让下潜变得更有整体性。',
-                    stay: '船舱空间当然不会像海岛酒店那样舒展，但真正住进去以后，反而会喜欢这种“海就在门外”的紧密感。每次潜完回到甲板、冲淡水、坐一会儿，看整条船慢慢安静下来，是船宿里很重要的一部分。',
-                    food: '船上的三餐比预期细致，潜后热食和水果会让身体恢复得更快。晚上大家坐在一起吃饭，也会让整趟行程不像连续赶路，而像同一条海上生活线慢慢展开。',
-                    scenery: '我最喜欢的是太阳刚升起来时，海面像一层很轻的银蓝色，船体轻轻晃着，但并不让人紧张。那一刻会明白，船宿的风景不只在水下，也在每次醒来时看见的第一片海。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '马尔代夫船宿 · 环礁醒来', '50% 52%'),
+                    focus: ['diving', 'scenery'],
+                    title: '诗巴丹 · 龟洞入口',
+                    subtitle: '真正让人记住诗巴丹的，不只是热闹，而是先被龟洞入口那道忽然亮起来的蓝收住。',
+                    summary: '这组图把诗巴丹的开场拍得很准。一边是洞口里被光拉开的水层，一边是鲨鱼贴着沙地慢慢过去。它不是直接把最大声的部分砸过来，而是先让海安静一下，再让你看见压迫感从侧面靠近。',
+                    diving: '先经过这种洞口和结构，再遇到鲨鱼，会更能感觉诗巴丹的层次感。不是单点刺激，而是明暗、地形和生物一起把节奏铺开。',
+                    stay: '诗巴丹真正舒服的地方，在于岸上准备通常很直接，出海以后很快就能进入状态，不会把精力浪费在多余折返里。',
+                    food: '潜后热食和补水会显得格外重要，因为水下记忆太强，身体反而需要被慢慢接回来。',
+                    scenery: '洞口那一下的蓝和沙地上的鲨鱼放在一起，会让人明白诗巴丹不是只靠“多”好看，而是靠空间突然被打开。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '诗巴丹 · 龟洞入口', '50% 42%'),
                     photos: makeReviewPhotos(1, [
-                        { key: 'deck-first-light', caption: '马尔代夫船宿 · 甲板第一道光', position: '50% 44%' },
-                        { key: 'cabin-window', caption: '马尔代夫船宿 · 舷窗外的清晨', position: '50% 56%' }
+                        { key: 'reef-shark', caption: '诗巴丹 · 鲨鱼从沙地过去', position: '50% 52%' }
                     ])
                 },
                 {
                     id: 'review-2',
-                    user: '航线之间',
+                    user: '鱼群贴得很近',
                     date: '2025年12月',
                     level: 'AOW',
                     ratingStars: '★★★★★',
                     ratingScore: '4.8 / 5',
                     focus: ['diving', 'scenery'],
-                    title: '马尔代夫船宿 · 环礁之间',
-                    subtitle: '不是住在某一座岛上，而是在几片蓝之间慢慢移动。',
-                    summary: '船宿最特别的地方，是你不会只记得某一个点位，而会记得整条航线。白天在不同环礁和航道之间下潜，晚上回到船上，再看海图和第二天的 brief，会觉得自己像真的住进了一段海流里。',
-                    diving: '这一条线更适合喜欢“连贯体验”的潜水员。你会看到不同海况、不同蓝水和不同节奏，但它们不是零散的，而是被同一条船慢慢串起来。',
-                    stay: '住在船上意味着一切都更直接。起床、下潜、回船、再前往下一段水域，都发生在同一个空间里，所以这趟潜旅会有很强的连续感。',
-                    food: '餐食节奏会跟着航线走，不夸张，但很实用。潜后回来能马上吃到热的东西，再上甲板吹一会儿风，会让人觉得船宿的体感比想象中轻松。',
-                    scenery: '最难忘的是船从一片环礁慢慢离开、另一片海开始显影的过程。不是突然切换，而是真的能感觉自己在海上移动。那种连续的开阔感，是岛宿很难替代的。',
+                    title: '诗巴丹 · 鱼群风暴贴到身边',
+                    subtitle: '等鱼群不再只是一面墙，而是直接从潜水员身边合拢过来，诗巴丹才真正开始变大。',
+                    summary: '这组图最动人的地方，是水下和海面以上的尺度被连在了一起。一边是潜水员几乎被整个鱼群包进去，另一边从空中看见外礁和深蓝一起把这片海围成很清楚的边。诗巴丹那种“海忽然变大”的感觉，就是这样同时发生的。',
+                    diving: '比起远远看见鱼墙，更难忘的是自己在里面时仍然能保持节奏。诗巴丹的鱼群不是背景，而是会主动把空间改写掉。',
+                    stay: '回到岸上以后，你会需要一点真正安静的时间，把这种高密度的蓝慢慢从身体里放下来。',
+                    food: '潜后坐下来喝水、吃点热的东西，反而更能感到刚刚那种鱼群贴脸而过的场面有多强。',
+                    scenery: '一张把潜水员留在鱼群正中，一张把鱼墙真正立起来的密度留下来，另一张则从上面把外礁、深蓝和浅色边界一起摊开。它让“鱼群风暴”不只是一堵墙，也是一整片海的轮廓。',
+                    featurePhoto: createReviewPhoto(2, 'feature', '诗巴丹 · 鱼群从身边合拢', '50% 48%'),
                     photos: makeReviewPhotos(2, [
-                        { key: 'dhoni-boarding', caption: '马尔代夫船宿 · 追着第一潜上小艇', position: '50% 52%' },
-                        { key: 'blue-channel', caption: '马尔代夫船宿 · 蓝水航道', position: '50% 48%' }
+                        { key: 'jack-wall', caption: '诗巴丹 · 鱼墙慢慢立起来', position: '42% 52%' },
+                        { key: 'atoll-rim', caption: '诗巴丹 · 从空中看见外礁边界', position: '50% 52%' }
                     ])
                 },
                 {
                     id: 'review-3',
-                    user: '潜后还很长',
+                    user: '风暴还没散',
+                    date: '2025年10月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'stay', 'scenery'],
+                    title: '诗巴丹 · 在鱼墙边继续前进',
+                    subtitle: '当鱼群没有立刻散开，而是一路陪着潜水员往前，诗巴丹最著名的那种推力就会一直跟着你。',
+                    summary: '最后这组图更像风暴的后半段。一张把珊瑚平台、潜水员和鱼群同时留住，另一张从更远的海面上把浅色礁盘和岛影轻轻托出来。它提醒人，诗巴丹不是只有某一个瞬间最强，而是整段下潜和整片海的形状都会一起留下来。',
+                    diving: '这种连续感是诗巴丹最难替代的部分。鱼群、礁坡和人的移动不会被切成几段，而是一直在同一口呼吸里进行。',
+                    stay: '真正好的安排，是让人出水以后能马上有地方收拾设备、把刚刚那片海慢慢消化完。',
+                    food: '等情绪慢慢落下来以后，再去吃饭和复盘这一潜，记忆反而会更清楚。',
+                    scenery: '鱼群、珊瑚平台和潜水员一起入镜，会让诗巴丹的推力变得很具体；而从上面看出去时，浅色礁盘像一道安静的弧线把深蓝切开，又把这股力量重新收回到整片海里。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '诗巴丹 · 鱼墙边继续前进', '50% 58%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'school-close', caption: '诗巴丹 · 风暴贴到呼吸边', position: '50% 46%' },
+                        { key: 'lagoon-window', caption: '诗巴丹 · 浅色礁盘把深蓝切开', position: '50% 52%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 10) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '和蝠鲼擦身而过',
+                    date: '2026年2月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['diving', 'stay', 'scenery'],
+                    title: '马尔代夫船宿 · 与蝠鲼同潜',
+                    subtitle: '真正把人拉进这条船宿线里的，往往不是登船那一刻，而是第一次在蓝水里看见它从身边掠过去。',
+                    summary: '这组图里最直接的一张，就是蝠鲼从潜水员头顶掠过去的那一刻。马尔代夫船宿当然会先用水下把人打动，但真正让这趟旅程变完整的，是你回到船上以后没有立刻从海里掉出来，而是继续在一条会移动的船上住下、休息、再准备下一潜。',
+                    diving: '马代这条线最难忘的，往往就是这种和大体型生物同处一片蓝水里的时刻。不是一直追着刺激跑，而是在沙地和清水里慢慢等它靠近，那种压迫感和安静感会一起留下来。',
+                    stay: '客舱比我原本想象得更舒展，床、木地板和窗边留白都很完整。潜完回来以后能直接回到一个像真正房间一样的空间里，这件事会让船宿的体感从“连续出海”变成“真的住在海上”。',
+                    food: '船上的三餐还是偏照顾潜水员节奏的路线，热食、水果和汤都来得很及时。它不是华丽型的用餐记忆，但会把身体接得很稳，让人有力气继续下一段海况。',
+                    scenery: '最打动我的反而是两种画面靠得很近: 一张是蓝水里巨大的蝠鲼，另一张是回到船舱后安静下来的木色和床。船宿真正迷人的地方，就是海下和海上的生活不会被切断。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '马尔代夫船宿 · 与蝠鲼同潜', '56% 36%'),
+                    photos: makeReviewPhotos(1, [
+                        { key: 'deck-first-light', caption: '马尔代夫船宿 · 船上的客舱', position: '54% 48%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '船上的白天',
+                    date: '2025年12月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '马尔代夫船宿 · 白天的公共区',
+                    subtitle: '真正把节奏拉顺的，不只是潜导和航线，还有这些潜前潜后可以慢慢停一下的公共空间。',
+                    summary: '这两张图把船上的白天拍得很准确: 一边是半露天的船尾休息区，大家可以坐着等风、说话、看海；另一边是室内公共沙龙，光线很亮，沙发也足够松弛。船宿不像一直在赶潜点，更像在同一条海上生活线里来回进出。',
+                    diving: '有这些公共区以后，潜水前后的状态会被照顾得更完整。brief 不会显得仓促，回船以后也不是马上散掉，而是自然地在船尾或室内继续把这一潜消化完。',
+                    stay: '很多人会以为船宿公共区只是“能坐一下”，但这条船看起来更像真的把日常停驻考虑进去了。半露天区和室内沙龙都不局促，所以连续住几天也不会觉得被空间压住。',
+                    food: '餐和茶点大概率也会在这些区域前后接上。对船宿来说，真正舒服的不是某一道菜，而是潜完以后有地方慢慢坐下、喝点东西、把身体收回来。',
+                    scenery: '这类空间最好的地方，是海不会被关在外面。船尾的风、室内窗边的亮光、坐着时还能看见的海平线，都会让船宿比普通酒店更有“海一直在旁边”的感觉。',
+                    photos: makeReviewPhotos(2, [
+                        { key: 'dhoni-boarding', caption: '马尔代夫船宿 · 半露天船尾休息区', position: '52% 50%' },
+                        { key: 'blue-channel', caption: '马尔代夫船宿 · 白天的公共沙龙', position: '50% 48%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '风从上层来',
                     date: '2025年10月',
                     level: 'OW',
                     ratingStars: '★★★★☆',
                     ratingScore: '4.7 / 5',
-                    focus: ['food', 'stay', 'scenery'],
-                    title: '马尔代夫船宿 · 潜后甲板',
-                    subtitle: '一天的海不会在最后一潜结束，它会继续停在晚饭前的甲板风里。',
-                    summary: '很多人会记得水下的大景，但我后来记住的，是潜完之后回到甲板、把毛巾搭好、等太阳慢慢偏下去的那段时间。船宿让潜水和休息之间没有断开，反而会把每一天都收得很完整。',
-                    diving: '潜水安排比较紧凑，但节奏并不乱。你知道自己潜完以后不用再赶回酒店，也不用再去适应下一段路，这会让整天的注意力留在海上本身。',
-                    stay: '船舱、餐厅和甲板之间的动线很顺，时间久了会有一种很稳定的节奏感。哪怕只是坐着喝一杯热茶，也会觉得自己还在这条航线上，没有突然从海里掉出来。',
-                    food: '晚饭前后的甲板最舒服。吃的不是重点，但热汤、甜点和一杯茶，都会让潜后那种稍微空掉的感觉慢慢被收回来。',
-                    scenery: '太阳往下落时，整条船和海面会一起安静下来。那种风不大、颜色也不夸张的时刻，反而很像这趟船宿真正留在心里的部分。',
+                    focus: ['stay', 'scenery'],
+                    title: '马尔代夫船宿 · 上层甲板',
+                    subtitle: '白色甲板、泡池和离水面更远一点的风，会把船宿的停驻感慢慢托出来。',
+                    summary: '这张图不是水下，也不是房间，而是船最松弛的一层。上到顶层以后，视线会一下子打开，白色甲板和泡池把整条船变得很轻，潜后那种还没完全收住的身体，也会在这里慢慢回到平稳。',
+                    diving: '真正好的船宿，不会让潜水只剩下“下去、上来、换下一站”。像这样的上层甲板，会把每一潜之间留出呼吸，让整天的节奏更像慢慢排开的海流，而不是被行程推着走。',
+                    stay: '船上有这种完全朝海打开的空间，其实很重要。它让人不会总被关在舱内，而是能在白天风平的时候走上去，把目光重新放远，住起来就会轻很多。',
+                    food: '哪怕只是带一杯水或者潜后简单吃点东西上来坐一会儿，也会比一直待在室内舒服很多。船宿里很多真正放松的瞬间，反而都发生在这种没有太多安排的甲板空档里。',
+                    scenery: '这张图里最动人的不是设施本身，而是白色、海面和远处岛影靠在一起的那种开阔感。它会让人记住，船宿不只是“住在船上”，而是真的一直漂在海中间。',
                     photos: makeReviewPhotos(3, [
-                        { key: 'sundeck-tea', caption: '马尔代夫船宿 · 甲板茶歇', position: '52% 46%' },
-                        { key: 'after-dive-briefing', caption: '马尔代夫船宿 · 潜后 brief', position: '50% 54%' }
+                        { key: 'sundeck-tea', caption: '马尔代夫船宿 · 上层甲板的泡池', position: '50% 56%' }
                     ])
                 },
                 {
                     id: 'review-4',
-                    user: '停泊在夜里',
+                    user: '夜里回到船里',
                     date: '2025年8月',
                     level: 'AOW',
                     ratingStars: '★★★★★',
                     ratingScore: '4.9 / 5',
                     focus: ['stay', 'scenery'],
-                    title: '马尔代夫船宿 · 夜泊之前',
-                    subtitle: '最后那一点光线落下去以后，这条船会把整天的海慢慢收住。',
-                    summary: '船宿并不只是白天的潜点安排。到了夜里，船停下来，甲板上的灯开得很轻，远处什么都没有，只剩风和水声。那时候会突然觉得，这趟旅程真正特别的地方，是你把自己完整地交给了一段海上的时间。',
-                    diving: '白天的海况、环礁和蓝水会给你很多记忆，但到了晚上，那些水下经历会被重新收成更安静的一团，不再只是“我今天潜了几个点”。',
-                    stay: '停泊以后，船舱会变得特别安静。那种和海面一起轻轻晃动、但又很稳定的感觉，会让人比住在岸上更快进入另一种休息状态。',
-                    food: '夜里不会有太多仪式感很重的安排，反而是简单的一顿饭和餐后留在甲板上的几分钟，更容易让人记住整天的节奏。',
-                    scenery: '这一组照片里最重要的，是环礁边的傍晚和停泊前后的夜色。它们不是最热闹的风景，却最能说明船宿为什么会让人留恋：你不是短暂停在某一座岛，而是真的跟着海走了一段。',
-                    photos: makeReviewPhotos(4, [
-                        { key: 'lagoon-dusk', caption: '马尔代夫船宿 · 环礁傍晚', position: '50% 48%' },
-                        { key: 'night-at-anchor', caption: '马尔代夫船宿 · 夜泊之前', position: '50% 52%' }
-                    ])
+                    title: '马尔代夫船宿 · 傍晚以后',
+                    subtitle: '等光线慢慢退下去，船上的白色甲板会安静下来，室内的木色和灯光再把一天收住。',
+                    summary: '这一组更像船宿真正的后半段: 天还没完全黑时，上层甲板对着海先留下一片安静的白；再晚一点回到室内，灯光、走道和休息区会把白天那些下潜记忆慢慢收拢。马代船宿真正让人留恋的，往往就是这种“海和生活一起慢下来”的收尾方式。',
+                    diving: '船宿厉害的地方，是水下强烈的部分不会在出水后立刻断掉。到了傍晚，你还会带着白天那片蓝回到甲板和室内区，所以整天不会被切成零碎的几潜。',
+                    stay: '夜里的室内区看起来安静、稳定，而且有很明显的木色温度。对连续住在船上的人来说，这种从海风切回灯光的落差，会让休息变得特别具体，也更容易真正放松下来。',
+                    food: '晚饭后的记忆通常也会留在这个时段。不是热闹型的夜生活，而是吃完以后慢慢走回室内、坐一会儿、听见船和水声还在外面，整个人就自然收住了。',
+                    scenery: '如果白天的马代船宿是清亮的蓝，那傍晚以后的好看就在于它不再往外推，而是慢慢往里收。甲板的白和室内灯光一起，让整条船像一片被夜色轻轻包住的海面。',
+                    photos: [
+                        createReviewPhoto(4, 'lagoon-dusk', '马尔代夫船宿 · 靠海的上层甲板', '50% 54%'),
+                        createReviewPhoto(1, 'cabin-window', '马尔代夫船宿 · 夜里回到室内区', '50% 46%')
+                    ]
                 }
             ]);
         }
@@ -2280,6 +2795,188 @@ class DetailPage {
                     photos: makeReviewPhotos(4, [
                         { key: 'afternoon-chat', caption: '马布岛 · 桌边午睡', position: '50% 48%' },
                         { key: 'sea-under-shade', caption: '马布岛 · 岛上学校', position: '52% 42%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 11) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '飞进群岛时',
+                    date: '2026年3月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '科隆 · 先从海面以上开始',
+                    subtitle: '很多人因为沉船记住科隆，但真正让人进入状态的，往往是机窗外那圈一层层亮起来的礁缘。',
+                    summary: '这组图最能说明科隆为什么会让人一到就安静下来。它先从机窗外的深蓝和浅礁边界开始，再把视线慢慢压低到黑色石灰岩贴近海面的那一下。还没下水，就已经知道这里不会只有单一的“潜点感”，而是海面以上也有很完整的过渡。',
+                    diving: '如果先从空中看见这些浅礁边界，再去下沉船或礁坡，会更容易理解科隆的节奏: 深的、浅的、开的、收住的，都挨得很近。它不是一上来就把强度推满，而是先让人把这一片海的层次看懂。',
+                    stay: '抵达科隆前，身体会先被这种群岛和海湾的密度提醒“节奏要慢一点”。这对后面的上船、换港、出海其实很重要，因为这里舒服的方式从来不是赶。',
+                    food: '科隆不是靠餐桌先打动人的地方。抵达日真正重要的，反而是把水补够、把身体从飞行和日晒里收回来，让第二天出海时人已经稳住。',
+                    scenery: '这组图的顺序很像科隆真正的开场: 先从空中看见更完整的岛群轮廓和浅礁边界，再在靠近海面时看见黑色石灰岩把一小片清水轻轻收住。很多人后来记住 wreck，其实是从这种海面以上的层次开始的。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '科隆 · 飞进群岛时', '50% 52%'),
+                    photos: [
+                        createReviewPhoto(1, 'reef-rim', '科隆 · 礁缘先亮起来', '50% 54%'),
+                        {
+                            src: 'assets/images/coron.jpg',
+                            caption: '科隆 · 黑石把海湾轻轻收住',
+                            position: '50% 52%'
+                        }
+                    ]
+                },
+                {
+                    id: 'review-2',
+                    user: '黑石之间',
+                    date: '2025年12月',
+                    level: 'OW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'stay', 'scenery'],
+                    title: '科隆 · 黑石与白沙',
+                    subtitle: '真正靠近岸边时，才会发现这里的黑色石灰岩、白沙和玻璃水离得非常近。',
+                    summary: '科隆岸边最动人的不是“大景”，而是这些很近的关系: 黑色石灰岩把空间收住，脚下却是很白的沙，水浅得能直接看见底。人从船边走到岸上，动作会自然放慢，因为这里的好看不需要追，停一下就已经够完整。',
+                    diving: '哪怕这些照片拍的是海面以上，也能看见科隆为什么适合沉船初体验和节奏型潜旅。石灰岩海湾会先把人带进一种更安静的状态，真正下水时反而不容易慌，呼吸也会更稳。',
+                    stay: '跳岛或住在镇上时，这种黑石、浅湾和短暂停靠的节奏会一直跟着你。它不是那种被酒店完全包起来的海，而是一片需要你自己慢慢走近的海。',
+                    food: '岛上简餐和船上午餐通常都不会喧宾夺主，反而和这种轻一点的海况很合。吃完再看一眼浅水和石壁，会觉得科隆适合把一整天排得留白一些。',
+                    scenery: '这一组最准确的地方，是它把科隆的“近景美感”拍出来了: 岩石的黑、沙的白、玻璃水下那层淡青色，以及被海湾收住后的安静。它不是只靠远处好看，而是靠近以后更好看。',
+                    featurePhoto: createReviewPhoto(2, 'white-sand-cove', '科隆 · 白沙与黑石之间', '50% 56%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'lagoon-glasswater', caption: '科隆 · 海湾里更静的一层水', position: '50% 54%' },
+                        { key: 'limestone-shallows', caption: '科隆 · 玻璃水下的石灰岩', position: '50% 48%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '船切进海湾时',
+                    date: '2025年10月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'stay', 'scenery'],
+                    title: '科隆 · 船切进石灰岩海湾',
+                    subtitle: '船一慢下来，阴影、岩壁和水色会一起把声音压低，像在靠近另一层更静的海。',
+                    summary: '这组图把科隆最像“进入”的时刻拍出来了。不是站上观景台，而是船慢慢切进石灰岩海湾，黑色岩壁把四周收住，水色一下子从亮青变深，再在船边变得几乎透明。人在这种地方会很自然地把动作放轻，连说话都变慢。',
+                    diving: '如果科隆的沉船是水下的骨架，那这些海湾就是整段旅程的呼吸区。潜前经过这样的入口，潜后再从这里出来，旅程不会只剩一个个点位，而会被海湾之间的移动慢慢连起来。',
+                    stay: '科隆舒服的地方，是船程本身也算体验的一部分。坐在 bangka 上看岩壁和阴影移过去，不会觉得自己只是在被运去下一个点，而是真的在同一片海里平移。',
+                    food: '这种海湾里最合适的通常不是丰盛的东西，而是潜前潜后的一点水、果和热量补给。它把身体接住就够了，剩下的让海自己说。',
+                    scenery: '一张是绿船停在高耸岩壁前，一张是阴影压下来的海湾入口，一张是紧贴岩壁的透明水线。它们一起把科隆最迷人的张力说明白了: 既有石头的重量，也有水的轻。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '科隆 · 船切进石灰岩海湾', '50% 50%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'boat-under-cliffs', caption: '科隆 · 阴影里的绿船', position: '50% 48%' },
+                        { key: 'cliffside-water', caption: '科隆 · 岩壁边的透明水线', position: '50% 58%' }
+                    ])
+                },
+                {
+                    id: 'review-4',
+                    user: '回到岸边以后',
+                    date: '2025年8月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['diving', 'stay', 'food', 'scenery'],
+                    title: '科隆 · 靠岸后的节奏',
+                    subtitle: '看见岸线、装备和镇边的山以后，才会发现科隆不是只用水下记住人的地方。',
+                    summary: '很多地方的评论会把“岸上”写成过场，但科隆不是。你会记得回港前那片宽一点的海湾、岸边低低的房子和码头边排好的装备。它们会把整天从风景收回到生活里，让这趟旅程不只剩几潜，而是真的有开始、有准备、也有回来的落点。',
+                    diving: '装备摆出来的那张照片很能说明科隆潜旅的质感: 没有过分用力的华丽感，但动线清楚、准备直接，下水之前人会很容易进入状态。对想试 wreck 或者把潜旅排得更完整的人，这种岸上节奏很重要。',
+                    stay: '科隆镇边的岸线和小码头不会把自己包装得很夸张，但正因为如此，潜后回去会有一种很具体的落地感。洗完澡、整理器材、再看一眼山和水色，整个人会慢慢收住。',
+                    food: '回到镇上以后，真正让人舒服的往往也不是“吃到什么名菜”，而是热的、咸的、能把海风和日晒慢慢接住的一顿饭。科隆适合这种不吵的收尾。',
+                    scenery: '这一组从回程海湾、岸边小屋到装备台，刚好把科隆的后半段串起来。它提醒人，这里之所以耐看，不只是因为某一潜，而是因为海和岸一直贴得很近。',
+                    featurePhoto: createReviewPhoto(4, 'bay-return', '科隆 · 回港前的海湾', '50% 52%'),
+                    photos: makeReviewPhotos(4, [
+                        { key: 'shore-village', caption: '科隆 · 岸线慢慢出现', position: '50% 54%' },
+                        { key: 'dock-gear', caption: '科隆 · 下水前的装备台', position: '52% 50%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 12) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '先看见岸线',
+                    date: '2026年3月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '薄荷岛 · 白沙外侧的第一条浅礁线',
+                    subtitle: '很多人对薄荷岛的第一印象，不是某一潜，而是先看见深蓝、浅礁和白沙排成一条很轻的边。',
+                    summary: '这些航拍最能说明薄荷岛为什么适合把潜水放进更轻一点的假期。岸线不夸张，浅礁贴着白沙慢慢往外过渡，外侧才是更深的蓝。海还没真正开始，呼吸已经先被放慢。',
+                    diving: '这种岸线和浅礁的过渡会让人对当天水况很有感觉。不是先追强度，而是先把海读清楚，再慢慢下去。',
+                    stay: '如果住在近岸一带，很多出海日都会从这种看得见白沙和树线的节奏开始，身体很容易放松。',
+                    food: '薄荷岛更适合吃完早一点的早餐就出海，回来再把热食和水果慢慢接上，整天不会被推得太满。',
+                    scenery: '三张图放在一起刚好把它的气质说明白了：岸线是白的，浅礁是亮的，外海的蓝却很稳。它不是喧闹型的美，而是一直轻轻展开。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '薄荷岛 · 白沙外侧的第一条浅礁线', '52% 52%'),
+                    photos: makeReviewPhotos(1, [
+                        { key: 'reef-line', caption: '薄荷岛 · 岸线慢慢弯进去', position: '50% 52%' },
+                        { key: 'coast-boats', caption: '薄荷岛 · 岸边停着几条小船', position: '52% 54%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '船停在外侧',
+                    date: '2025年12月',
+                    level: 'OW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'stay', 'scenery'],
+                    title: '薄荷岛 · 船停在浅水边',
+                    subtitle: '船离岸不远，脚下已经是清透的蓝和浅礁，真正的船潜会从这种不太用力的靠近开始。',
+                    summary: '这几张图把薄荷岛最舒服的地方拍得很直接：bangka 没有开到很远的外海，而是先停在白沙外侧的清水里。你能看见岸线，还能看见船下浅礁和色带，整个人不会被突然扔进完全陌生的节奏里。',
+                    diving: '这种轻船潜很适合作为入门或恢复状态。上船、brief、下水都很清楚，海况再复杂也会先被拆成更好读的几步。',
+                    stay: '住在岸边潜店附近时，来回动线通常很短，潜后不会有太强的奔波感，这对想把假期放轻的人很重要。',
+                    food: '这种日程通常会把午餐和简单补给安排得比较顺，你出水之后不需要再被推着走，很容易慢慢收回来。',
+                    scenery: '船停在清透浅水上的那一下，其实就已经解释了为什么薄荷岛会让人放松：岸线近，水色浅，外侧深蓝又没有压得太重。',
+                    featurePhoto: createReviewPhoto(2, 'feature', '薄荷岛 · 船停在浅水边', '50% 54%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'bangka-close', caption: '薄荷岛 · 跳下去前的停靠', position: '50% 56%' },
+                        { key: 'topdown-boat', caption: '薄荷岛 · 浅礁和深蓝之间', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: 'briefing 开始前',
+                    date: '2025年10月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'stay', 'food', 'scenery'],
+                    title: '薄荷岛 · briefing 在船上开始',
+                    subtitle: '大家围坐在船上听 brief 的时候，岸边的房子、树线和器材会一起把这趟出海收进一种很日常的节奏里。',
+                    summary: '薄荷岛这组图和很多“只拍海”的地方不一样。大家坐在船上，器材堆在脚边，岸上房子和水面都还很近，这种普通又松弛的出海感，反而很容易让人记住。它不装成冒险，也不急着制造压迫感，就是把一整天慢慢展开。',
+                    diving: 'briefing 清楚、上船节奏稳，对轻船潜来说非常重要。它会让整天的呼吸从一开始就是顺的，而不是到了水里才临时适应。',
+                    stay: '能从住的地方很自然地接到这条出海线，是薄荷岛的一大优点。你不会觉得自己被硬切进“景点”，更像从岸边生活慢慢走进海里。',
+                    food: '这种出海日最舒服的部分，往往也是船上那些简单的水、零食和回去以后的一顿正餐。它不会抢戏，但会把身体接得很稳。',
+                    scenery: '一张是人和器材在船上围成一圈，一张是船刚离开岸边后还停在浅礁上方。它们让薄荷岛的海不是只有风景，也有很真实的出发感。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '薄荷岛 · briefing 在船上开始', '50% 48%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'briefing-circle', caption: '薄荷岛 · 先把这一潜说清楚', position: '50% 46%' },
+                        { key: 'topdown-glasswater', caption: '薄荷岛 · 刚离岸不久的清水', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-4',
+                    user: '再往外看一点',
+                    date: '2025年8月',
+                    level: 'OW',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '薄荷岛 · 岸线慢慢弯过去',
+                    subtitle: '从上面看时，才会发现这片海不是一块平蓝，而是白沙、浅礁、停船线和云影一层层往外排开。',
+                    summary: '最后这组更像薄荷岛真正留在记忆里的方式：岸线在下面慢慢弯过去，浅礁颜色一块块散开，停在外侧的船把尺度变得更轻。就算云压下来一点，这片海也不会显得沉，反而更有呼吸感。',
+                    diving: '这样的海况很适合把潜水安排得从容一些。你知道船会从哪里出去，也知道浅礁和深水的边界在哪里，下去时心里会更稳。',
+                    stay: '回到岸边以后再看这种海岸线，会觉得整趟旅程不是围着某一个点转，而是围着一整条海边生活慢慢展开。',
+                    food: '薄荷岛很适合把晚饭留给潜后那段慢下来的时间，海风、盐分和疲惫一起退下去以后，整天才真正收住。',
+                    scenery: '一张是云影压下来的岸线，一张是白沙和浅礁继续往前铺开。它们把薄荷岛最舒服的地方留得很具体：轻、亮，而且不急。',
+                    featurePhoto: createReviewPhoto(4, 'feature', '薄荷岛 · 岸线慢慢弯过去', '50% 52%'),
+                    photos: makeReviewPhotos(4, [
+                        { key: 'cloudline', caption: '薄荷岛 · 云影压下来时的岸线', position: '50% 50%' },
+                        { key: 'reef-curve', caption: '薄荷岛 · 白沙外侧的浅礁带', position: '52% 54%' }
                     ])
                 }
             ]);
@@ -2465,7 +3162,12 @@ class DetailPage {
 
         this.packageData = this.buildPackageData();
         this.reviewData = this.buildReviewData();
-        this.selectedPackageId = this.selectedPackageId || this.getPackageFlowPackages()[0]?.id || this.packageData[0]?.id || null;
+        this.bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
+        this.selectedPackageId = this.selectedPackageId
+            || this.getLatestBookedPackageIdForCurrentSpot()
+            || this.getPackageFlowPackages()[0]?.id
+            || this.packageData[0]?.id
+            || null;
 
         const minPackagePrice = this.packageData.reduce((lowestPrice, pkg) => {
             const packagePrice = parsePriceValue(pkg.price);
@@ -3323,15 +4025,17 @@ class DetailPage {
      * @param {Object} pkg - 当前套餐对象
      * @returns {string} - 芯片 HTML 字符串
      */
-    buildBookingFocusMetaMarkup(pkg) {
+    buildBookingFocusMetaMarkup(pkg, options = {}) {
+        const { isBooked = false } = options;
         const metaItems = [
+            isBooked ? '已收进行程' : '',
             pkg?.group,
             pkg?.duration,
             Array.isArray(pkg?.fitTags) ? pkg.fitTags[0] : ''
         ].filter(Boolean);
 
         return metaItems.map((item) => `
-            <span class="booking-focus-chip">${escapeHtml(item)}</span>
+            <span class="booking-focus-chip ${item === '已收进行程' ? 'booking-focus-chip-booked' : ''}">${escapeHtml(item)}</span>
         `).join('');
     }
 
@@ -3341,7 +4045,8 @@ class DetailPage {
      * @param {string} sectionKey - 当前阅读区块 key
      * @returns {string} - 对应的摘要文案
      */
-    getBookingFocusSummary(pkg, sectionKey) {
+    getBookingFocusSummary(pkg, sectionKey, options = {}) {
+        const { isBooked = false } = options;
         const summaryParts = [
             pkg?.audience ? `适合 ${pkg.audience}` : '',
             pkg?.diveSummary || '',
@@ -3355,7 +4060,9 @@ class DetailPage {
             related: '就算继续往相邻海域平移，这一程也还留在这里'
         };
 
-        return `${leadMap[sectionKey] || leadMap.overview}：${summaryParts.join(' · ')}`;
+        const lead = leadMap[sectionKey] || leadMap.overview;
+        const bookedLead = isBooked ? '这套安排已经轻轻收进你的行程里' : lead;
+        return `${bookedLead}：${summaryParts.join(' · ')}`;
     }
 
     /**
@@ -3422,14 +4129,17 @@ class DetailPage {
             isFocusOnlyContext,
             animatePrice = false
         } = payload;
+        const isBooked = this.bookedPackageIds.has(pkg.id);
 
-        this.bookingFocusState.textContent = contextContent.state;
+        this.bookingFocusState.textContent = isBooked ? '这套安排已经收进行程' : contextContent.state;
         this.bookingFocusOverline.textContent = contextContent.overline;
         this.bookingFocusTitle.textContent = pkg.name;
-        this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg);
+        this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg, { isBooked });
         this.updateBookingFocusPrice(pkg.price, { animate: animatePrice });
-        this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey);
+        this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey, { isBooked });
         this.bookingSticky?.classList.toggle('is-focus-only-context', isFocusOnlyContext);
+        this.bookingSticky?.classList.toggle('has-booked-focus-package', isBooked);
+        this.bookingFocusPanel.classList.toggle('is-booked', isBooked);
         this.bookingFocusPanel.classList.toggle('is-review-context', isReviewContext);
         this.itineraryList?.classList.toggle('is-focus-only-context', isFocusOnlyContext);
         if (this.itineraryList) {
@@ -3447,6 +4157,21 @@ class DetailPage {
 
         if (this.bookingFocusAction) {
             this.bookingFocusAction.dataset.packageId = pkg.id;
+            this.bookingFocusAction.textContent = isBooked ? '再看这套安排' : '展开这套安排';
+            const actionIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            actionIcon.setAttribute('viewBox', '0 0 24 24');
+            actionIcon.setAttribute('aria-hidden', 'true');
+            actionIcon.innerHTML = `
+                <path
+                    d="M5 12h14M13 6l6 6-6 6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            `;
+            this.bookingFocusAction.appendChild(actionIcon);
         }
         if (this.bookingFocusPanel) {
             this.bookingFocusPanel.dataset.packageId = pkg.id;
@@ -6897,6 +7622,29 @@ class DetailPage {
     }
 
     /**
+     * getLatestBookedPackageIdForCurrentSpot() - 找出当前潜点最近一次被收进行程的套餐
+     * @returns {string} - 最近一次确认的套餐 ID；若不存在则返回空字符串
+     */
+    getLatestBookedPackageIdForCurrentSpot() {
+        if (!this.tripStore || typeof this.tripStore.getConfirmedBookings !== 'function') {
+            return '';
+        }
+
+        const currentSpotKey = String(this.spotId);
+        const confirmedBookings = this.tripStore.getConfirmedBookings()
+            .filter((booking) => String(booking.spotKey) === currentSpotKey);
+
+        for (let index = confirmedBookings.length - 1; index >= 0; index -= 1) {
+            const packageId = confirmedBookings[index]?.packageId;
+            if (packageId && this.packageData.some((pkg) => pkg.id === packageId)) {
+                return packageId;
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * buildConfirmedBooking(pkg) - 用当前潜点数据生成一条已确认行程
      * 新加入的套餐不继承既有同行人数，避免上一份安排把新的套餐直接预设掉。
      * @param {Object} pkg - 当前套餐对象
@@ -7006,21 +7754,32 @@ class DetailPage {
 
     /**
      * hideBookingConfirmedFeedback() - 关闭“已收进行程”反馈层并恢复页面浏览
+     * @param {Object} options - 关闭选项，支持 immediate 直接收起不播放退场动画
      * @returns {void} - 无返回值，直接执行关闭动画
      */
-    hideBookingConfirmedFeedback() {
+    hideBookingConfirmedFeedback(options = {}) {
+        if (!this.bookingConfirmFeedback) {
+            return;
+        }
+
+        this.bookingConfirmFeedback.setAttribute('aria-hidden', 'true');
+        window.clearTimeout(this.bookingConfirmCloseTimer);
+
+        if (options.immediate) {
+            this.bookingConfirmFeedback.classList.remove('active', 'is-closing');
+            this.syncOverlayLock();
+            return;
+        }
+
         if (
-            !this.bookingConfirmFeedback ||
             !this.bookingConfirmFeedback.classList.contains('active') ||
             this.bookingConfirmFeedback.classList.contains('is-closing')
         ) {
+            this.syncOverlayLock();
             return;
         }
 
         this.bookingConfirmFeedback.classList.add('is-closing');
-        this.bookingConfirmFeedback.setAttribute('aria-hidden', 'true');
-
-        window.clearTimeout(this.bookingConfirmCloseTimer);
         this.bookingConfirmCloseTimer = window.setTimeout(() => {
             if (!this.bookingConfirmFeedback) {
                 return;
@@ -7043,7 +7802,14 @@ class DetailPage {
         }
 
         const booking = this.tripStore.upsertConfirmedBooking(this.buildConfirmedBooking(pkg));
+        this.selectedPackageId = pkg.id;
         this.bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
+        this.applyPackageCardSelectionState(pkg.id);
+        this.syncBookingFocusPanel({
+            force: true,
+            immediate: true,
+            animatePrice: false
+        });
         this.showBookingConfirmation(booking);
         this.closeBookingModal();
         window.setTimeout(() => {
@@ -7707,6 +8473,10 @@ class DetailPage {
         }
 
         this.detailFooter.addEventListener('click', (event) => {
+            if (event.defaultPrevented) {
+                return;
+            }
+
             const scrollTrigger = event.target.closest('[data-detail-scroll]');
             if (scrollTrigger) {
                 event.preventDefault();
@@ -7885,6 +8655,16 @@ class DetailPage {
 
         if (this.bookingConfirmFeedback) {
             this.bookingConfirmFeedback.addEventListener('click', (event) => {
+                const goTripLink = event.target.closest('#bookingConfirmGoTrip[href]');
+                if (goTripLink) {
+                    event.preventDefault();
+                    this.hideBookingConfirmedFeedback({ immediate: true });
+                    window.requestAnimationFrame(() => {
+                        navigateWithDepth(goTripLink.getAttribute('href'));
+                    });
+                    return;
+                }
+
                 if (
                     event.target === this.bookingConfirmFeedback ||
                     event.target.closest('[data-close-booking-feedback]') ||
@@ -8332,6 +9112,13 @@ class DetailPage {
         });
 
         window.addEventListener('pagehide', () => {
+            if (this.inDocumentDetailSwapTimer) {
+                window.clearTimeout(this.inDocumentDetailSwapTimer);
+                this.inDocumentDetailSwapTimer = 0;
+            }
+
+            this.isInDocumentDetailSwapping = false;
+
             if (this.relatedEntryRevealTimer) {
                 window.clearTimeout(this.relatedEntryRevealTimer);
                 this.relatedEntryRevealTimer = 0;
