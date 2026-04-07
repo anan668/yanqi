@@ -3685,94 +3685,19 @@ function consumePendingHomeScrollTarget() {
  */
 function setupStoryReveal() {
     const section = document.getElementById('why-yanqi');
-    if (!section) {
+    const revealItems = document.querySelectorAll('#why-yanqi .story-reveal');
+    if (!section || revealItems.length === 0) {
         return;
     }
 
-    const intro = section.querySelector('.story-intro');
-    const revealItems = Array.from(section.querySelectorAll('.story-reveal'));
-    const cards = Array.from(section.querySelectorAll('.story-card'));
-    let rafId = 0;
-    let measureRaf = 0;
-    let sectionTop = 0;
-    let sectionHeight = 0;
-
-    const measureSection = () => {
-        measureRaf = 0;
-        sectionTop = section.getBoundingClientRect().top + window.scrollY;
-        sectionHeight = section.offsetHeight || section.getBoundingClientRect().height || 0;
-    };
-
-    const scheduleMeasure = () => {
-        if (measureRaf) {
-            return;
-        }
-
-        measureRaf = window.requestAnimationFrame(() => {
-            measureSection();
-            updateStoryState();
+    observeOnceInViewport(section, () => {
+        revealItems.forEach((item) => {
+            item.classList.add('is-visible');
         });
-    };
-
-    const updateStoryState = () => {
-        rafId = 0;
-
-        const scrollY = window.scrollY || window.pageYOffset || 0;
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const rectTop = sectionTop - scrollY;
-        const rectBottom = rectTop + sectionHeight;
-        const progress = clamp((viewportHeight * 0.9 - rectTop) / (sectionHeight + viewportHeight * 0.72), 0, 1);
-        const isAwake = rectTop < viewportHeight * 0.86 && rectBottom > viewportHeight * 0.22;
-
-        section.classList.toggle('is-story-awake', isAwake);
-        section.classList.toggle('is-story-current', rectTop < viewportHeight * 0.5 && rectBottom > viewportHeight * 0.45);
-        section.style.setProperty('--story-progress', progress.toFixed(3));
-
-        if (intro && progress >= 0.06) {
-            intro.classList.add('is-visible');
-        }
-
-        let revealIndex = 0;
-        revealItems.forEach((item, index) => {
-            if (item.classList.contains('story-intro')) {
-                return;
-            }
-
-            const threshold = 0.08 + revealIndex * 0.08;
-            const itemProgress = clamp((progress - threshold) / 0.22, 0, 1);
-            item.style.setProperty('--story-item-progress', itemProgress.toFixed(3));
-
-            if (progress >= threshold) {
-                item.classList.add('is-visible');
-            }
-
-            revealIndex += 1;
-        });
-
-        cards.forEach((card, index) => {
-            const threshold = 0.06 + index * 0.08;
-            const cardProgress = clamp((progress - threshold) / 0.22, 0, 1);
-            card.style.setProperty('--story-card-progress', cardProgress.toFixed(3));
-        });
-    };
-
-    const queueStoryState = () => {
-        if (rafId) {
-            return;
-        }
-
-        rafId = window.requestAnimationFrame(updateStoryState);
-    };
-
-    measureSection();
-    queueStoryState();
-    window.addEventListener('scroll', queueStoryState, { passive: true });
-    window.addEventListener('resize', scheduleMeasure);
-
-    if ('ResizeObserver' in window) {
-        const observer = new ResizeObserver(scheduleMeasure);
-        observer.observe(section);
-    }
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -14% 0px'
+    });
 }
 
 // 首页海图导览：用浮层式海图导航替代普通回顶按钮，负责快速跳转和当前位置反馈。

@@ -1139,6 +1139,11 @@
             this.pageScrollTargetDepth = null;
             this.pageScrollMetricsDirty = true;
             this.pageScrollThresholdPoints = [];
+            this.pageScrollLastScrollY = window.scrollY || window.pageYOffset || 0;
+            this.pageScrollLastScrollAt = 0;
+            this.pageScrollLastDeltaPx = 0;
+            this.pageScrollLastDeltaMs = 16;
+            this.pageScrollShouldSnap = false;
             this.pageScrollMetricsObserver = null;
             this.pageStateDepthObserver = null;
             this.pageStateDepthRules = [];
@@ -1149,6 +1154,7 @@
             this.detailGaugeStepSize = null;
             this.detailGaugeLayoutReady = false;
             this.lastRenderedDepthText = '';
+            this.lastStoredDepthValue = sessionStorage.getItem(STORAGE_KEY_CURRENT);
 
             this.rootElement = document.documentElement;
             this.body = document.body;
@@ -1501,13 +1507,13 @@
 
             const stepSize = this.getDetailGaugeStepSize();
             const offset = -Math.abs(currentDepth) * stepSize;
-            const nextTransform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
-            if (container._lastTapeTransform === nextTransform) {
+            const nextOffset = `${offset.toFixed(2)}px`;
+            if (container._lastTapeOffset === nextOffset) {
                 return;
             }
 
-            tape.style.transform = nextTransform;
-            container._lastTapeTransform = nextTransform;
+            tape.style.setProperty('--depth-gauge-tape-offset', nextOffset);
+            container._lastTapeOffset = nextOffset;
         }
 
         // 刻度初始化：在左右两侧深度计容器中生成完整刻度，保证跨页面样式一致。
@@ -1517,7 +1523,7 @@
          */
         buildMarkersIfNeeded() {
             if (!this.leftMarkersContainer || !this.rightMarkersContainer) {
-                sessionStorage.setItem(STORAGE_KEY_CURRENT, String(this.targetDepth));
+                this.persistCurrentDepth(this.targetDepth, true);
                 return;
             }
 
@@ -1618,7 +1624,7 @@
             container._depthBottomSpacer = bottomSpacer;
             container._lastReachedDepth = null;
             container._lastNearestDepth = null;
-            container._lastTapeTransform = '';
+            container._lastTapeOffset = '';
         }
 
         // 动画清理：统一停止当前深度、覆盖层、交互 wobble 和特殊登录过渡。
@@ -1748,7 +1754,7 @@
                 () => {
                     this.currentDepth = to;
                     this.renderDepth(this.currentDepth);
-                    sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(this.currentDepth)));
+                    this.persistCurrentDepth(this.currentDepth, true);
                 }
             );
         }
@@ -1808,9 +1814,11 @@
             this.rootElement.style.setProperty('--ocean-haze-opacity', hazeOpacity.toFixed(3));
             this.rootElement.style.setProperty('--ocean-visibility', visibility.toFixed(3));
             this.rootElement.style.setProperty('--ocean-medium-blur', `${mediumBlur.toFixed(2)}px`);
-            this.rootElement.style.setProperty('--depth-gauge-compression', gaugeCompression.toFixed(3));
-            this.rootElement.style.setProperty('--depth-gauge-shift', `${gaugeShift.toFixed(2)}px`);
-            this.rootElement.style.setProperty('--depth-gauge-current-scale', gaugePulse.toFixed(3));
+
+            const gaugeVariableTarget = this.body || this.rootElement;
+            gaugeVariableTarget.style.setProperty('--depth-gauge-compression', gaugeCompression.toFixed(3));
+            gaugeVariableTarget.style.setProperty('--depth-gauge-shift', `${gaugeShift.toFixed(2)}px`);
+            gaugeVariableTarget.style.setProperty('--depth-gauge-current-scale', gaugePulse.toFixed(3));
         }
 
         /**
@@ -1876,6 +1884,22 @@
         }
 
         /**
+         * persistCurrentDepth(depth, force) - 以最小必要频率缓存当前深度，避免滚动时每帧同步写存储
+         * @param {number} depth - 当前需要缓存的深度值
+         * @param {boolean} force - 是否强制写入，即使取整结果未变化
+         * @returns {void}
+         */
+        persistCurrentDepth(depth, force = false) {
+            const nextValue = String(Math.round(clamp(depth, MIN_DEPTH, MAX_DEPTH)));
+            if (!force && this.lastStoredDepthValue === nextValue) {
+                return;
+            }
+
+            sessionStorage.setItem(STORAGE_KEY_CURRENT, nextValue);
+            this.lastStoredDepthValue = nextValue;
+        }
+
+        /**
          * markPageScrollMetricsDirty() - 标记当前页面 section 阈值缓存已过期
          * @returns {void}
          */
@@ -1921,7 +1945,7 @@
         finishDepth(depth) {
             this.currentDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
             this.renderDepth(this.currentDepth);
-            sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(this.currentDepth)));
+            this.persistCurrentDepth(this.currentDepth, true);
         }
 
         // 页面滚动深度：首页按 section 和潜水匹配细分层次，
@@ -2356,6 +2380,18 @@
                 return;
             }
 
+            const scrollY = window.scrollY || window.pageYOffset || 0;
+            const now = performance.now();
+            const scrollDeltaPx = Math.abs(scrollY - this.pageScrollLastScrollY);
+            const elapsedMs = this.pageScrollLastScrollAt > 0
+                ? Math.max(now - this.pageScrollLastScrollAt, 1)
+                : 16;
+            const jumpThreshold = Math.max(window.innerHeight * 0.32, 260);
+            this.pageScrollLastDeltaPx = scrollDeltaPx;
+            this.pageScrollLastDeltaMs = elapsedMs;
+            this.pageScrollShouldSnap = scrollDeltaPx >= jumpThreshold;
+            this.pageScrollLastScrollY = scrollY;
+            this.pageScrollLastScrollAt = now;
             this.pageScrollTargetDepth = this.computePageScrollDepth();
 
             if (this.pageScrollFrameId) {
@@ -2512,20 +2548,39 @@
                 MAX_DEPTH
             );
             const delta = targetDepth - this.currentDepth;
+            const deltaMagnitude = Math.abs(delta);
+            const shouldSnapToTarget = this.pageScrollShouldSnap && deltaMagnitude >= 0.85;
 
-            const settleThreshold = this.pageId === 'detail' ? 0.035 : 0.05;
-            if (Math.abs(delta) <= settleThreshold) {
+            if (shouldSnapToTarget) {
+                this.pageScrollShouldSnap = false;
                 this.currentDepth = targetDepth;
                 this.renderDepth(targetDepth);
-                sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(targetDepth)));
+                this.persistCurrentDepth(targetDepth, true);
                 return;
             }
 
-            const responseFactor = this.pageId === 'detail' ? 0.14 : 0.1;
+            const settleThreshold = this.pageId === 'detail' ? 0.035 : 0.05;
+            if (deltaMagnitude <= settleThreshold) {
+                this.currentDepth = targetDepth;
+                this.renderDepth(targetDepth);
+                this.persistCurrentDepth(targetDepth, true);
+                return;
+            }
+
+            const baseResponseFactor = this.pageId === 'detail' ? 0.14 : 0.1;
+            const maxResponseFactor = this.pageId === 'detail' ? 0.46 : 0.42;
+            const deltaBoost = clamp(deltaMagnitude * 0.02, 0, 0.2);
+            const scrollVelocity = this.pageScrollLastDeltaPx / Math.max(this.pageScrollLastDeltaMs, 1);
+            const velocityBoost = clamp(scrollVelocity * 0.045, 0, 0.12);
+            const responseFactor = clamp(
+                baseResponseFactor + deltaBoost + velocityBoost,
+                baseResponseFactor,
+                maxResponseFactor
+            );
             const nextDepth = this.currentDepth + delta * responseFactor;
             this.currentDepth = clamp(nextDepth, MIN_DEPTH, MAX_DEPTH);
             this.renderDepth(this.currentDepth);
-            sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(this.currentDepth)));
+            this.persistCurrentDepth(this.currentDepth);
 
             this.pageScrollFrameId = requestAnimationFrame(() => {
                 this.stepPageScrollDepth();

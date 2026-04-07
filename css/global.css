@@ -96,6 +96,13 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #081923;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 /* 设置页面根节点与全局背景联动效果 */
@@ -106,6 +113,13 @@ body {
     color: var(--text-dark);
     background-color: #081923;
     overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 /* 舞台调试开关：收进导航右侧，让调试入口留在页面框架里，

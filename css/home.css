@@ -5047,9 +5047,9 @@
     position: relative;
     overflow: hidden;
     background:
-        radial-gradient(circle at 1px 1px, rgba(143, 163, 186, 0.12) 0.8px, transparent 0.9px),
-        radial-gradient(circle at 9px 9px, rgba(255, 255, 255, 0.34) 0.7px, transparent 0.8px),
-        linear-gradient(180deg, #204d75 0%, #0d2f50 100%);
+        radial-gradient(circle at 1px 1px, rgba(143, 163, 186, 0.14) 0.8px, transparent 0.9px),
+        radial-gradient(circle at 9px 9px, rgba(255, 255, 255, 0.76) 0.7px, transparent 0.8px),
+        linear-gradient(180deg, #2a5f8e 0%, #0d2f50 100%);
     background-size: 18px 18px, 24px 24px, auto;
 }
 
@@ -5059,10 +5059,10 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: -20px;
-    height: 56px;
-    background: linear-gradient(180deg, rgba(148, 193, 219, 0.3) 0%, rgba(148, 193, 219, 0.12) 44%, rgba(148, 193, 219, 0) 100%);
-    filter: blur(16px);
+    top: -30px;
+    height: 72px;
+    background: linear-gradient(180deg, rgba(244, 239, 233, 0.94) 0%, rgba(248, 250, 252, 0.72) 42%, rgba(248, 250, 252, 0) 100%);
+    filter: blur(20px);
     pointer-events: none;
     z-index: 0;
 }
@@ -5075,8 +5075,8 @@
     right: 0;
     bottom: -30px;
     height: 76px;
-    background: linear-gradient(180deg, rgba(183, 217, 235, 0) 0%, rgba(183, 217, 235, 0.18) 56%, rgba(183, 217, 235, 0.34) 100%);
-    filter: blur(18px);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.68) 56%, rgba(248, 251, 255, 0.94) 100%);
+    filter: blur(20px);
     pointer-events: none;
     z-index: 0;
 }
@@ -5528,10 +5528,6 @@
     transform: translate3d(0, 2px, 0) rotateY(5deg);
 }
 
-.story-shell {
-    --story-progress: 0;
-}
-
 .why-yanqi.is-home-current {
     margin-top: calc(var(--home-story-overlap-top) * -1);
     padding-top: calc(var(--spacing-2xl) + var(--home-story-overlap-top));
@@ -5545,88 +5541,6 @@
     padding-top: calc(var(--spacing-2xl) + var(--home-story-overlap-top));
     margin-bottom: calc(var(--home-story-overlap-bottom) * -1);
     padding-bottom: calc(var(--spacing-2xl) + var(--home-story-overlap-bottom));
-}
-
-.why-yanqi.is-story-awake .story-river-glow {
-    opacity: 1;
-}
-
-.story-intro {
-    transform: translate3d(0, calc((1 - var(--story-progress, 0)) * 28px), 0);
-    transition: transform 520ms cubic-bezier(0.18, 0.8, 0.2, 1);
-}
-
-.story-river {
-    transform: translate3d(0, calc(var(--story-progress, 0) * -22px), 0);
-    opacity: calc(0.38 + var(--story-progress, 0) * 0.62);
-    transition: transform 520ms cubic-bezier(0.18, 0.8, 0.2, 1), opacity 520ms ease;
-}
-
-.story-grid {
-    perspective: 1400px;
-    transform: translate3d(0, calc(var(--story-progress, 0) * -10px), 0);
-    transition: transform 560ms cubic-bezier(0.18, 0.8, 0.2, 1);
-}
-
-.story-card {
-    --story-card-progress: 0;
-    opacity: calc(0.04 + var(--story-card-progress, 0) * 0.96);
-    transform:
-        translate3d(0, calc((1 - var(--story-card-progress, 0)) * 22px + var(--story-card-shift, 0px)), 0)
-        rotateX(calc((1 - var(--story-card-progress, 0)) * 3.2deg));
-    transition:
-        transform 720ms cubic-bezier(0.18, 0.8, 0.2, 1),
-        box-shadow 320ms ease,
-        border-color 320ms ease,
-        background 320ms ease,
-        opacity 620ms ease,
-        filter 620ms ease;
-}
-
-.story-card.story-reveal {
-    filter: blur(calc((1 - var(--story-card-progress, 0)) * 6px));
-}
-
-.story-card.story-reveal.is-visible {
-    opacity: 1;
-    filter: blur(0);
-}
-
-.story-card:nth-child(1) {
-    transform-origin: left center;
-}
-
-.story-card:nth-child(2) {
-    transform-origin: center center;
-}
-
-.story-card:nth-child(3) {
-    transform-origin: right center;
-}
-
-.story-card-offset {
-    margin-left: calc(38px + var(--story-progress, 0) * 18px);
-}
-
-.why-yanqi.is-story-current .story-card:nth-child(1) {
-    transform:
-        translate3d(-3px, calc((1 - var(--story-card-progress, 0)) * 10px + var(--story-card-shift, 0px) - 1px), 0)
-        rotateX(calc((1 - var(--story-card-progress, 0)) * 1.5deg))
-        rotateY(-1deg);
-}
-
-.why-yanqi.is-story-current .story-card:nth-child(2) {
-    transform:
-        translate3d(0, calc((1 - var(--story-card-progress, 0)) * 8px + var(--story-card-shift, 0px) - 3px), 0)
-        rotateX(calc((1 - var(--story-card-progress, 0)) * 1deg))
-        rotateY(0deg);
-}
-
-.why-yanqi.is-story-current .story-card:nth-child(3) {
-    transform:
-        translate3d(4px, calc((1 - var(--story-card-progress, 0)) * 9px + var(--story-card-shift, 0px)), 0)
-        rotateX(calc((1 - var(--story-card-progress, 0)) * 1.2deg))
-        rotateY(1deg);
 }
 
 body[data-current-home-layer="story"] .story-river-line {

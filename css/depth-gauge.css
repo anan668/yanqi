@@ -19,6 +19,7 @@ body {
     --depth-gauge-bottom: 20px;
     --depth-gauge-side: 3px;
     --depth-gauge-step-size: 18px;
+    --depth-gauge-tape-offset: 0px;
     --depth-gauge-compression: 1;
     --depth-gauge-shift: 0px;
     --depth-gauge-current-scale: 1;
@@ -161,7 +162,7 @@ body {
     inset: 0 0 auto 0;
     display: block;
     will-change: transform;
-    transform: translate3d(0, var(--depth-gauge-shift), 0) scaleY(var(--depth-gauge-compression));
+    transform: translate3d(0, calc(var(--depth-gauge-tape-offset) + var(--depth-gauge-shift)), 0) scaleY(var(--depth-gauge-compression));
     transform-origin: center top;
     opacity: calc(0.72 + var(--ocean-depth-progress) * 0.18);
 }
