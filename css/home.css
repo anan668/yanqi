@@ -57,6 +57,31 @@ body[data-home-performance='lite'] [data-home-layer].is-home-passed:not(.is-home
     filter: saturate(0.96) brightness(0.98);
 }
 
+body.home-scroll-traveling .featured-destinations,
+body.home-scroll-traveling .dive-match,
+body.home-scroll-traveling .why-yanqi,
+body.home-scroll-traveling .footer {
+    transition: opacity 220ms ease;
+}
+
+body[data-home-interaction='locked'] .hero-ocean-glow-one,
+body[data-home-interaction='locked'] .hero-ocean-glow-two,
+body[data-home-interaction='locked'] .hero-ocean-wave-one,
+body[data-home-interaction='locked'] .hero-ocean-wave-two,
+body[data-home-interaction='locked'] .hero-plankton,
+body[data-home-interaction='locked'] .home-page.hero-awakened .today-sea-card,
+body[data-home-interaction='locked'] .scroll-arrow,
+body[data-home-interaction='locked'] .dive-match.is-stage-visible .dive-match-surface.is-resting,
+body[data-home-interaction='locked'] .story-river-glow,
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger {
+    animation-play-state: paused !important;
+}
+
+body[data-home-interaction='locked'] .curated-display-media::after,
+body[data-home-interaction='locked'] .curated-nav-rail.is-cycling .curated-nav-refresh::after {
+    animation-play-state: paused !important;
+}
+
 /* ============================================
    首屏区
    ============================================ */
@@ -6082,29 +6107,11 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
     max-height: min(62vh, 560px);
     overflow: auto;
     overscroll-behavior: contain;
+    scroll-padding: 18px 0 26px;
     scrollbar-width: thin;
     scrollbar-color: rgba(168, 218, 234, 0.38) rgba(7, 24, 36, 0.16);
-    padding: 18px;
+    padding: 18px 18px 26px;
     border-radius: 26px;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(16px);
-    transition:
-        opacity 300ms ease,
-        transform 360ms cubic-bezier(0.22, 0.72, 0.2, 1);
-}
-
-.sea-guide-home .sea-guide-panel::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: inherit;
     background:
         radial-gradient(circle at 16% 14%, rgba(124, 194, 219, 0.15), transparent 28%),
         linear-gradient(150deg, rgba(10, 36, 53, 0.86), rgba(12, 50, 70, 0.8));
@@ -6114,7 +6121,16 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
         inset 0 1px 0 rgba(255, 255, 255, 0.09);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
+    opacity: 0;
     pointer-events: none;
+    transform: translateY(16px);
+    transition:
+        opacity 300ms ease,
+        transform 360ms cubic-bezier(0.22, 0.72, 0.2, 1);
+}
+
+.sea-guide-home .sea-guide-panel::before {
+    content: none;
 }
 
 .sea-guide-home .sea-guide-panel > * {
@@ -6123,6 +6139,10 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
 }
 
 body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel::before {
+    content: none;
+}
+
+body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     box-shadow:
@@ -6171,6 +6191,7 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel::before {
 .sea-guide-home .sea-guide-list {
     display: grid;
     gap: 10px;
+    padding-bottom: 12px;
 }
 
 /* 每一个海图导览条目：像一张小型海域索引卡 */
@@ -6178,6 +6199,7 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel::before {
     all: unset;
     position: relative;
     display: block;
+    scroll-margin-block: 12px 20px;
     padding: 14px 16px;
     border-radius: 18px;
     cursor: pointer;
@@ -6818,7 +6840,7 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel::before {
 
     .sea-guide-home .sea-guide-panel {
         width: min(286px, calc(100vw - 18px));
-        padding: 15px;
+        padding: 15px 15px 24px;
         border-radius: 22px;
     }
 

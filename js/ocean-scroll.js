@@ -144,6 +144,10 @@
             return;
         }
 
+        if (animation.managedDepthSync && window.DepthManager && typeof window.DepthManager.finishManagedScroll === 'function') {
+            window.DepthManager.finishManagedScroll();
+        }
+
         restoreNativeScrollBehavior(animation);
 
         if (animation.frameId) {
@@ -273,12 +277,18 @@
                 moodName: mood.name,
                 previousRootScrollBehavior: '',
                 previousBodyScrollBehavior: null,
-                nativeScrollBehaviorRestored: false
+                nativeScrollBehaviorRestored: false,
+                managedDepthSync: false
             };
 
             activeScrollAnimation = animation;
             forceNativeScrollBehaviorAuto(animation);
             createInterruptHandlers(animation);
+
+            if (window.DepthManager && typeof window.DepthManager.beginManagedScroll === 'function') {
+                window.DepthManager.beginManagedScroll(duration);
+                animation.managedDepthSync = true;
+            }
 
             const startedAt = performance.now();
 

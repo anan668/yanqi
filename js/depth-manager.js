@@ -858,29 +858,9 @@
      */
     function getOceanNavConfig(fromPage, toPage) {
         if (fromPage === 'home' && toPage === 'trip') {
-            return {
-                navTransition: NAV_TRANSITION_OCEAN,
-                exitClass: 'page-ocean-dive-exit',
-                entryClass: 'page-ocean-dive-enter',
-                exitDuration: OCEAN_NAV.diveExitMs,
-                entryDuration: OCEAN_NAV.diveEnterMs,
-                overlayBoost: OCEAN_NAV.overlayBoost,
-                navigateLeadMs: OCEAN_NAV.navigateLeadMs,
-                pageshowOverlayBoost: OCEAN_NAV.pageshowOverlayBoost
-            };
-        }
-
-        if (fromPage === 'trip' && toPage === 'home') {
-            return {
-                navTransition: NAV_TRANSITION_OCEAN,
-                exitClass: 'page-ocean-surface-exit',
-                entryClass: 'page-ocean-surface-enter',
-                exitDuration: OCEAN_NAV.surfaceExitMs,
-                entryDuration: OCEAN_NAV.surfaceEnterMs,
-                overlayBoost: OCEAN_NAV.overlayBoost,
-                navigateLeadMs: OCEAN_NAV.navigateLeadMs,
-                pageshowOverlayBoost: OCEAN_NAV.pageshowOverlayBoost
-            };
+            // 用户希望首页进入行程页时，完全复用 home -> contact 的现有效果；
+            // 这里显式沿用默认 backward 这一组视觉 class，而不再走更重的专用潜浮动画。
+            return getDefaultTransitionConfig('backward');
         }
 
         return null;
@@ -1134,6 +1114,13 @@
             this.pageScrollLastDeltaPx = 0;
             this.pageScrollLastDeltaMs = 16;
             this.pageScrollShouldSnap = false;
+            this.pageScrollManagedActive = false;
+            this.pageScrollManagedUntil = 0;
+            this.pageScrollManagedMinIntervalMs = this.pageId === 'home' ? 120 : 96;
+            this.pageScrollLastQueuedAt = 0;
+            this.pageScrollManagedResumeEnabled = false;
+            this.pageScrollManagedFinishTimerId = 0;
+            this.lastOverlayState = null;
             this.pageScrollMetricsObserver = null;
             this.pageStateDepthObserver = null;
             this.pageStateDepthRules = [];
@@ -1666,6 +1653,116 @@
                 window.clearTimeout(this.pageScrollSyncTimerId);
                 this.pageScrollSyncTimerId = 0;
             }
+
+            if (this.pageScrollManagedFinishTimerId) {
+                window.clearTimeout(this.pageScrollManagedFinishTimerId);
+                this.pageScrollManagedFinishTimerId = 0;
+            }
+        }
+
+        /**
+         * isPageScrollManagedActive() - 判断当前是否处于程序化滚动主导的深度联动降载窗口
+         * @returns {boolean}
+         */
+        isPageScrollManagedActive() {
+            if (!this.pageScrollManagedActive) {
+                return false;
+            }
+
+            if (performance.now() <= this.pageScrollManagedUntil) {
+                return true;
+            }
+
+            this.pageScrollManagedActive = false;
+            this.pageScrollManagedUntil = 0;
+            return false;
+        }
+
+        /**
+         * beginManagedScroll(durationMs) - 在程序化滚动开始时临时切换到低频深度联动模式
+         * @param {number} durationMs - 预计持续时间
+         * @returns {void}
+         */
+        beginManagedScroll(durationMs = 0) {
+            if (!this.hasScrollDepthConfig()) {
+                return;
+            }
+
+            const hadPendingScrollSync = Boolean(this.pageScrollSyncTimerId);
+            if (hadPendingScrollSync) {
+                window.clearTimeout(this.pageScrollSyncTimerId);
+                this.pageScrollSyncTimerId = 0;
+            }
+
+            const safeDuration = clamp(
+                Math.round(readNumber(durationMs) ?? 0),
+                0,
+                6000
+            );
+
+            this.pageScrollManagedActive = true;
+            this.pageScrollManagedUntil = performance.now() + safeDuration + 160;
+            this.pageScrollLastQueuedAt = 0;
+            this.pageScrollManagedResumeEnabled = this.pageScrollDepthEnabled || hadPendingScrollSync;
+            this.pageScrollDepthEnabled = false;
+
+            if (this.pageScrollManagedFinishTimerId) {
+                window.clearTimeout(this.pageScrollManagedFinishTimerId);
+                this.pageScrollManagedFinishTimerId = 0;
+            }
+
+            if (this.pageScrollFrameId) {
+                cancelAnimationFrame(this.pageScrollFrameId);
+                this.pageScrollFrameId = 0;
+            }
+        }
+
+        /**
+         * finishManagedScroll() - 在程序化滚动结束后恢复正常滚动深度联动并立刻对齐一次
+         * @returns {void}
+         */
+        finishManagedScroll() {
+            if (!this.pageScrollManagedActive && !this.pageScrollManagedUntil) {
+                return;
+            }
+
+            const shouldResumeEnabled = this.pageScrollManagedResumeEnabled;
+            this.pageScrollManagedActive = false;
+            this.pageScrollManagedUntil = 0;
+            this.pageScrollLastQueuedAt = 0;
+            this.pageScrollManagedResumeEnabled = false;
+            this.pageScrollDepthEnabled = shouldResumeEnabled;
+            this.pageScrollLastScrollY = window.scrollY || window.pageYOffset || 0;
+            this.pageScrollLastScrollAt = performance.now();
+
+            if (shouldResumeEnabled) {
+                const targetDepth = clamp(this.computePageScrollDepth(), MIN_DEPTH, MAX_DEPTH);
+                const deltaMagnitude = Math.abs(targetDepth - this.currentDepth);
+                this.pageScrollTargetDepth = targetDepth;
+
+                if (this.pageId === 'home' && deltaMagnitude <= 1.8) {
+                    this.finishDepth(targetDepth);
+                    return;
+                }
+
+                if (this.pageScrollManagedFinishTimerId) {
+                    window.clearTimeout(this.pageScrollManagedFinishTimerId);
+                }
+
+                const resumeDelay = this.pageId === 'home' ? 84 : 48;
+                this.pageScrollManagedFinishTimerId = window.setTimeout(() => {
+                    this.pageScrollManagedFinishTimerId = 0;
+                    if (
+                        !this.pageScrollDepthEnabled ||
+                        this.isNavigating ||
+                        this.specialTransitionMode
+                    ) {
+                        return;
+                    }
+
+                    this.queuePageScrollDepthUpdate(true);
+                }, resumeDelay);
+            }
         }
 
         // 通用数值动画：供深度、覆盖层、特殊蓝层等连续变化复用同一套补间逻辑。
@@ -1784,9 +1881,16 @@
          */
         setOverlayState(depth, boost) {
             const safeDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
-            const depthProgress = clamp(Math.abs(safeDepth) / Math.abs(MIN_DEPTH), 0, 1);
-            const baseOpacity = getAmbientOverlayOpacity(safeDepth);
-            const extraOpacity = clamp(boost, 0, 0.45);
+            const managedScroll = this.isPageScrollManagedActive();
+            const overlayDepth = managedScroll
+                ? Math.round(safeDepth * 2) / 2
+                : Math.round(safeDepth * 5) / 5;
+            const overlayBoost = managedScroll
+                ? Math.round(clamp(boost, 0, 0.45) * 50) / 50
+                : Math.round(clamp(boost, 0, 0.45) * 100) / 100;
+            const depthProgress = clamp(Math.abs(overlayDepth) / Math.abs(MIN_DEPTH), 0, 1);
+            const baseOpacity = getAmbientOverlayOpacity(overlayDepth);
+            const extraOpacity = overlayBoost;
             const surfaceOpacity = clamp((1 - depthProgress) * 0.16 + extraOpacity * 0.06, 0, 0.2);
             const particleOpacity = clamp(0.035 + depthProgress * 0.08 + extraOpacity * 0.08, 0.035, 0.16);
             const hazeOpacity = clamp(0.02 + depthProgress * 0.11 + extraOpacity * 0.12, 0.02, 0.2);
@@ -1795,20 +1899,57 @@
             const gaugeShift = clamp(depthProgress * 10, 0, 10);
             const gaugePulse = clamp(1 + extraOpacity * 0.12 + depthProgress * 0.02, 1, 1.12);
             const mediumBlur = clamp(4 + depthProgress * 4 + extraOpacity * 6, 4, 9);
-
-            this.rootElement.style.setProperty('--ocean-base-opacity', baseOpacity.toFixed(3));
-            this.rootElement.style.setProperty('--ocean-cover-opacity', extraOpacity.toFixed(3));
-            this.rootElement.style.setProperty('--ocean-depth-progress', depthProgress.toFixed(3));
-            this.rootElement.style.setProperty('--ocean-surface-glow-opacity', surfaceOpacity.toFixed(3));
-            this.rootElement.style.setProperty('--ocean-particle-opacity', particleOpacity.toFixed(3));
-            this.rootElement.style.setProperty('--ocean-haze-opacity', hazeOpacity.toFixed(3));
-            this.rootElement.style.setProperty('--ocean-visibility', visibility.toFixed(3));
-            this.rootElement.style.setProperty('--ocean-medium-blur', `${mediumBlur.toFixed(2)}px`);
-
             const gaugeVariableTarget = this.body || this.rootElement;
-            gaugeVariableTarget.style.setProperty('--depth-gauge-compression', gaugeCompression.toFixed(3));
-            gaugeVariableTarget.style.setProperty('--depth-gauge-shift', `${gaugeShift.toFixed(2)}px`);
-            gaugeVariableTarget.style.setProperty('--depth-gauge-current-scale', gaugePulse.toFixed(3));
+            const nextOverlayState = {
+                oceanBaseOpacity: baseOpacity.toFixed(2),
+                oceanCoverOpacity: extraOpacity.toFixed(2),
+                oceanDepthProgress: depthProgress.toFixed(2),
+                oceanSurfaceGlowOpacity: surfaceOpacity.toFixed(2),
+                oceanParticleOpacity: particleOpacity.toFixed(2),
+                oceanHazeOpacity: hazeOpacity.toFixed(2),
+                oceanVisibility: visibility.toFixed(2),
+                oceanMediumBlur: `${mediumBlur.toFixed(1)}px`,
+                depthGaugeCompression: gaugeCompression.toFixed(2),
+                depthGaugeShift: `${gaugeShift.toFixed(1)}px`,
+                depthGaugeCurrentScale: gaugePulse.toFixed(2)
+            };
+            const previousOverlayState = this.lastOverlayState || {};
+
+            if (previousOverlayState.oceanBaseOpacity !== nextOverlayState.oceanBaseOpacity) {
+                this.rootElement.style.setProperty('--ocean-base-opacity', nextOverlayState.oceanBaseOpacity);
+            }
+            if (previousOverlayState.oceanCoverOpacity !== nextOverlayState.oceanCoverOpacity) {
+                this.rootElement.style.setProperty('--ocean-cover-opacity', nextOverlayState.oceanCoverOpacity);
+            }
+            if (previousOverlayState.oceanDepthProgress !== nextOverlayState.oceanDepthProgress) {
+                this.rootElement.style.setProperty('--ocean-depth-progress', nextOverlayState.oceanDepthProgress);
+            }
+            if (previousOverlayState.oceanSurfaceGlowOpacity !== nextOverlayState.oceanSurfaceGlowOpacity) {
+                this.rootElement.style.setProperty('--ocean-surface-glow-opacity', nextOverlayState.oceanSurfaceGlowOpacity);
+            }
+            if (previousOverlayState.oceanParticleOpacity !== nextOverlayState.oceanParticleOpacity) {
+                this.rootElement.style.setProperty('--ocean-particle-opacity', nextOverlayState.oceanParticleOpacity);
+            }
+            if (previousOverlayState.oceanHazeOpacity !== nextOverlayState.oceanHazeOpacity) {
+                this.rootElement.style.setProperty('--ocean-haze-opacity', nextOverlayState.oceanHazeOpacity);
+            }
+            if (previousOverlayState.oceanVisibility !== nextOverlayState.oceanVisibility) {
+                this.rootElement.style.setProperty('--ocean-visibility', nextOverlayState.oceanVisibility);
+            }
+            if (previousOverlayState.oceanMediumBlur !== nextOverlayState.oceanMediumBlur) {
+                this.rootElement.style.setProperty('--ocean-medium-blur', nextOverlayState.oceanMediumBlur);
+            }
+            if (previousOverlayState.depthGaugeCompression !== nextOverlayState.depthGaugeCompression) {
+                gaugeVariableTarget.style.setProperty('--depth-gauge-compression', nextOverlayState.depthGaugeCompression);
+            }
+            if (previousOverlayState.depthGaugeShift !== nextOverlayState.depthGaugeShift) {
+                gaugeVariableTarget.style.setProperty('--depth-gauge-shift', nextOverlayState.depthGaugeShift);
+            }
+            if (previousOverlayState.depthGaugeCurrentScale !== nextOverlayState.depthGaugeCurrentScale) {
+                gaugeVariableTarget.style.setProperty('--depth-gauge-current-scale', nextOverlayState.depthGaugeCurrentScale);
+            }
+
+            this.lastOverlayState = nextOverlayState;
         }
 
         /**
@@ -2342,12 +2483,24 @@
             }
 
             const enable = () => {
+                if (this.isPageScrollManagedActive()) {
+                    // 程序化滚动接管期间，不要让延迟启用定时器在中途把深度联动重新打开。
+                    this.pageScrollManagedResumeEnabled = true;
+                    this.pageScrollSyncTimerId = 0;
+                    return;
+                }
+
                 this.pageScrollDepthEnabled = true;
                 this.pageScrollSyncTimerId = 0;
                 this.queuePageScrollDepthUpdate();
             };
 
             if (delayMs <= 0) {
+                if (this.isPageScrollManagedActive()) {
+                    this.pageScrollManagedResumeEnabled = true;
+                    return;
+                }
+
                 enable();
                 return;
             }
@@ -2360,7 +2513,7 @@
          * queuePageScrollDepthUpdate() - 请求下一帧刷新当前页面滚动驱动的目标深度
          * @returns {void} - 无返回值，直接排队执行深度同步
          */
-        queuePageScrollDepthUpdate() {
+        queuePageScrollDepthUpdate(force = false) {
             if (
                 !this.hasScrollDepthConfig() ||
                 !this.pageScrollDepthEnabled ||
@@ -2374,8 +2527,20 @@
                 return;
             }
 
+            const isManaged = this.isPageScrollManagedActive();
+            if (isManaged && !force) {
+                const now = performance.now();
+                if (now - this.pageScrollLastQueuedAt < this.pageScrollManagedMinIntervalMs) {
+                    return;
+                }
+
+                this.pageScrollLastQueuedAt = now;
+            }
+
             this.pageScrollFrameId = requestAnimationFrame(() => {
-                this.stepPageScrollDepth();
+                this.stepPageScrollDepth({
+                    managedScroll: isManaged
+                });
             });
         }
 
@@ -2505,7 +2670,7 @@
          * stepPageScrollDepth() - 以缓和阻尼方式把当前页面深度显示推进到滚动目标深度
          * @returns {void} - 无返回值，直接更新深度计显示
          */
-        stepPageScrollDepth() {
+        stepPageScrollDepth(options = {}) {
             this.pageScrollFrameId = 0;
 
             if (
@@ -2517,13 +2682,17 @@
                 return;
             }
 
+            const managedScroll = Boolean(options.managedScroll) || this.isPageScrollManagedActive();
+
             const scrollY = window.scrollY || window.pageYOffset || 0;
             const now = performance.now();
             const scrollDeltaPx = Math.abs(scrollY - this.pageScrollLastScrollY);
             const elapsedMs = this.pageScrollLastScrollAt > 0
                 ? Math.max(now - this.pageScrollLastScrollAt, 1)
                 : 16;
-            const jumpThreshold = Math.max(window.innerHeight * 0.32, 260);
+            const jumpThreshold = managedScroll
+                ? Math.max(window.innerHeight * 0.18, 180)
+                : Math.max(window.innerHeight * 0.32, 260);
 
             this.pageScrollLastDeltaPx = scrollDeltaPx;
             this.pageScrollLastDeltaMs = elapsedMs;
@@ -2536,7 +2705,7 @@
             this.pageScrollTargetDepth = targetDepth;
             const delta = targetDepth - this.currentDepth;
             const deltaMagnitude = Math.abs(delta);
-            const shouldSnapToTarget = this.pageScrollShouldSnap && deltaMagnitude >= 0.85;
+            const shouldSnapToTarget = this.pageScrollShouldSnap && deltaMagnitude >= (managedScroll ? 0.55 : 0.85);
 
             if (shouldSnapToTarget) {
                 this.pageScrollShouldSnap = false;
@@ -2554,11 +2723,15 @@
                 return;
             }
 
-            const baseResponseFactor = this.pageId === 'detail' ? 0.14 : 0.1;
-            const maxResponseFactor = this.pageId === 'detail' ? 0.46 : 0.42;
+            const baseResponseFactor = managedScroll
+                ? (this.pageId === 'detail' ? 0.24 : 0.22)
+                : (this.pageId === 'detail' ? 0.14 : 0.1);
+            const maxResponseFactor = managedScroll
+                ? (this.pageId === 'detail' ? 0.64 : 0.6)
+                : (this.pageId === 'detail' ? 0.46 : 0.42);
             const deltaBoost = clamp(deltaMagnitude * 0.02, 0, 0.2);
             const scrollVelocity = this.pageScrollLastDeltaPx / Math.max(this.pageScrollLastDeltaMs, 1);
-            const velocityBoost = clamp(scrollVelocity * 0.045, 0, 0.12);
+            const velocityBoost = clamp(scrollVelocity * (managedScroll ? 0.02 : 0.045), 0, managedScroll ? 0.08 : 0.12);
             const responseFactor = clamp(
                 baseResponseFactor + deltaBoost + velocityBoost,
                 baseResponseFactor,
@@ -2568,6 +2741,10 @@
             this.currentDepth = clamp(nextDepth, MIN_DEPTH, MAX_DEPTH);
             this.renderDepth(this.currentDepth);
             this.persistCurrentDepth(this.currentDepth);
+
+            if (managedScroll) {
+                return;
+            }
 
             this.pageScrollFrameId = requestAnimationFrame(() => {
                 this.stepPageScrollDepth();

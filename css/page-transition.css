@@ -123,7 +123,7 @@ body.page-login-home-bubbles .page-transition-bubble {
     transform-origin: center center;
     opacity: 1;
     filter: none;
-    will-change: transform, opacity;
+    will-change: auto;
     backface-visibility: hidden;
 }
 
@@ -134,7 +134,7 @@ body.trip-page > .navbar {
     transform: translate3d(0, 0, 0);
     opacity: 1;
     filter: none;
-    will-change: transform, opacity;
+    will-change: auto;
     backface-visibility: hidden;
 }
 
@@ -150,6 +150,7 @@ body.page-transition-active.detail-page > .navbar,
 body.page-transition-active.trip-page > .navbar {
     pointer-events: none;
     user-select: none;
+    will-change: transform, opacity;
 }
 
 /* 控制页面过渡遮罩、气泡层和海洋切换特效 */
