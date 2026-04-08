@@ -242,6 +242,25 @@ function createBufferedLiveAnnouncer(target, delay = 320) {
     };
 }
 
+/**
+ * restartTransientClassAnimation(element, className) - 用下一帧重新挂载状态类，避免为了重启动画强制回流。
+ * @param {HTMLElement|null} element - 目标节点
+ * @param {string} className - 需要重启的状态类
+ * @returns {void}
+ */
+function restartTransientClassAnimation(element, className) {
+    if (!element || !className) {
+        return;
+    }
+
+    element.classList.remove(className);
+    window.requestAnimationFrame(() => {
+        if (element.isConnected) {
+            element.classList.add(className);
+        }
+    });
+}
+
 // 潜点主数据：这里集中定义每个潜点的文案、图片、套餐、评论与相关推荐信息。
 const divingSpotDetails = convertSpotPriceDisplay({
     1: {
@@ -1957,6 +1976,15 @@ class DetailPage {
         this.seaGuideTrigger = document.getElementById('seaGuideTrigger');
         this.seaGuidePanel = document.getElementById('seaGuidePanel');
         this.seaGuideEntries = Array.from(document.querySelectorAll('.sea-guide-entry'));
+        this.detailScrollMetricRaf = 0;
+        this.detailSeaGuideOffset = Number.NaN;
+        this.bookingReadingGuideMetrics = [];
+        this.bookingReadingGuideSpecialMetrics = {
+            reviews: null,
+            firstReview: null
+        };
+        this.seaGuideMetrics = [];
+        this.reviewCardMetrics = [];
         this.introSection = document.getElementById('spotOverview');
         this.detailReadingSections = Array.from(document.querySelectorAll('[data-detail-reading-section]'));
         this.detailFooter = document.getElementById('detailFooter');
@@ -1980,6 +2008,7 @@ class DetailPage {
         this.bookingFeedbackTimer = 0;
         this.seaGuideOpen = false;
         this.seaGuideUpdateRaf = 0;
+        this.detailScrollMetricsResizeObserver = null;
         this.footerRevealObserver = null;
         this.relatedRevealObserver = null;
         this.introRevealObserver = null;
@@ -2162,7 +2191,6 @@ class DetailPage {
             this.pageStage.style.opacity = '0';
             this.pageStage.style.filter = 'blur(0px)';
             this.pageStage.style.willChange = 'transform, opacity, filter';
-            void this.pageStage.offsetWidth;
         }
 
         this.spotId = targetId;
@@ -3195,6 +3223,7 @@ class DetailPage {
         this.renderReviews();
         this.renderRelatedSpots();
         this.renderFooter();
+        this.measureDetailScrollMetrics();
         this.syncBookingReadingGuide({ force: true, immediate: true });
         this.syncBookingCopyDepthState();
         this.setupHeroCopyReveal();
@@ -3733,22 +3762,22 @@ class DetailPage {
             return true;
         }
 
-        const reviewsAnchor = this.spotReviewsHeading || this.reviewsStage || this.reviewsSection;
-        if (!reviewsAnchor) {
+        const reviewsMetric = this.bookingReadingGuideSpecialMetrics.reviews;
+        if (!reviewsMetric) {
             return false;
         }
 
-        const probeY = window.scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.28, 240);
-        const firstReviewCard = this.reviewsSection?.querySelector('.review-card');
-        if (firstReviewCard) {
-            const collapseStart = this.getElementReadingAnchorY(
-                firstReviewCard,
-                firstReviewCard.classList.contains('has-feature-photo') ? 0.82 : 0.92
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const probeY = scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.28, 240);
+        const firstReviewMetric = this.bookingReadingGuideSpecialMetrics.firstReview;
+        if (firstReviewMetric) {
+            const collapseStart = firstReviewMetric.top + (
+                firstReviewMetric.height * (firstReviewMetric.hasFeaturePhoto ? 0.82 : 0.92)
             );
             return probeY >= collapseStart;
         }
 
-        return probeY >= this.getElementReadingAnchorY(reviewsAnchor, 0.42);
+        return probeY >= (reviewsMetric.top + reviewsMetric.height * 0.42);
     }
 
     /**
@@ -3838,6 +3867,96 @@ class DetailPage {
     }
 
     /**
+     * measureDetailScrollMetrics() - 统一缓存详情页阅读引导、评论联动和海图导览所需的布局信息。
+     * @returns {void}
+     */
+    measureDetailScrollMetrics() {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const offset = this.getSeaGuideOffset(true);
+        const readingSections = this.getBookingReadingGuideSections();
+
+        this.bookingReadingGuideMetrics = readingSections
+            .map(({ key, element }) => {
+                if (!element) {
+                    return null;
+                }
+
+                const rect = element.getBoundingClientRect();
+                return {
+                    key,
+                    top: rect.top + scrollY - offset,
+                    height: rect.height
+                };
+            })
+            .filter(Boolean);
+
+        const sectionMetricMap = new Map(
+            this.bookingReadingGuideMetrics.map((metric) => [metric.key, metric])
+        );
+        const reviewsMetric = sectionMetricMap.get('reviews') || null;
+        const relatedMetric = sectionMetricMap.get('related') || null;
+        const firstReviewCard = this.reviewsSection?.querySelector('.review-card');
+        const firstReviewRect = firstReviewCard?.getBoundingClientRect();
+
+        this.bookingReadingGuideSpecialMetrics = {
+            reviews: reviewsMetric,
+            related: relatedMetric,
+            firstReview: firstReviewCard && firstReviewRect ? {
+                top: firstReviewRect.top + scrollY,
+                height: firstReviewRect.height,
+                hasFeaturePhoto: firstReviewCard.classList.contains('has-feature-photo')
+            } : null
+        };
+
+        this.reviewCardMetrics = this.reviewsSection
+            ? Array.from(this.reviewsSection.querySelectorAll('.review-card[data-linked-package-id]'))
+                .map((card) => {
+                    const rect = card.getBoundingClientRect();
+                    return {
+                        packageId: card.dataset.linkedPackageId || '',
+                        top: rect.top + scrollY,
+                        height: rect.height,
+                        hasFeaturePhoto: card.classList.contains('has-feature-photo')
+                    };
+                })
+            : [];
+
+        this.seaGuideMetrics = this.seaGuideEntries
+            .map((entry) => {
+                const selector = entry.dataset.target;
+                const target = selector ? document.querySelector(selector) : null;
+                if (!selector || !target) {
+                    return null;
+                }
+
+                const rect = target.getBoundingClientRect();
+                return {
+                    key: entry.dataset.key || '',
+                    selector,
+                    top: rect.top + scrollY - offset
+                };
+            })
+            .filter(Boolean);
+
+        this.detailSeaGuideOffset = offset;
+    }
+
+    /**
+     * scheduleDetailScrollMetricsMeasure() - 把阅读与导览的重测压到下一帧，避免滚动中重复读布局。
+     * @returns {void}
+     */
+    scheduleDetailScrollMetricsMeasure() {
+        if (this.detailScrollMetricRaf) {
+            return;
+        }
+
+        this.detailScrollMetricRaf = window.requestAnimationFrame(() => {
+            this.detailScrollMetricRaf = 0;
+            this.measureDetailScrollMetrics();
+        });
+    }
+
+    /**
      * updateDetailReadingAtmosphere() - 同步当前阅读章节，让正文与右侧 sticky 共用一套安静的区块状态。
      * @param {string} sectionKey - 当前阅读区块 key
      * @returns {void} - 无返回值，直接更新页面状态
@@ -3886,55 +4005,55 @@ class DetailPage {
      * @returns {string} - 当前应在右侧显示的陪读区块 key
      */
     getCurrentBookingReadingGuideKey() {
-        const sections = this.getBookingReadingGuideSections();
+        const sections = this.bookingReadingGuideMetrics;
         if (!sections.length) {
             return 'overview';
         }
 
-        const probeY = window.scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.24, 220);
-        const relatedRect = this.relatedSection?.getBoundingClientRect();
-        const relatedEnterThreshold = window.innerHeight * 0.52;
-        const relatedHoldThreshold = window.innerHeight * 0.84;
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const offset = this.getSeaGuideOffset();
+        const probeY = scrollY + offset + Math.min(viewportHeight * 0.24, 220);
+        const relatedMetric = this.bookingReadingGuideSpecialMetrics.related;
+        const firstReviewMetric = this.bookingReadingGuideSpecialMetrics.firstReview;
+        const relatedEnterThreshold = viewportHeight * 0.52;
+        const relatedHoldThreshold = viewportHeight * 0.84;
         if (
-            relatedRect &&
-            relatedRect.bottom > Math.max(window.innerHeight * 0.12, 72) &&
-            relatedRect.top <= (
+            relatedMetric &&
+            relatedMetric.top + relatedMetric.height > scrollY + Math.max(viewportHeight * 0.12, 72) &&
+            relatedMetric.top <= (
                 this.activeBookingGuideKey === 'related'
-                    ? relatedHoldThreshold
-                    : relatedEnterThreshold
+                    ? scrollY + relatedHoldThreshold
+                    : scrollY + relatedEnterThreshold
             )
         ) {
             return 'related';
         }
 
-        const reviewsAnchor = this.spotReviewsHeading || this.reviewsStage || this.reviewsSection;
-        const reviewsRect = reviewsAnchor?.getBoundingClientRect();
-        const reviewAnchorThreshold = window.innerHeight * (
+        const reviewsMetric = this.bookingReadingGuideSpecialMetrics.reviews;
+        const reviewAnchorThreshold = viewportHeight * (
             this.activeBookingGuideKey === 'reviews' || this.activeBookingGuideKey === 'related' ? 0.92 : 0.8
         );
         if (
-            reviewsRect &&
-            reviewsRect.top <= reviewAnchorThreshold &&
-            reviewsRect.bottom > Math.max(window.innerHeight * 0.12, 72)
+            reviewsMetric &&
+            reviewsMetric.top - scrollY <= reviewAnchorThreshold &&
+            reviewsMetric.top + reviewsMetric.height > Math.max(viewportHeight * 0.12, 72)
         ) {
             return 'reviews';
         }
 
-        const firstReviewCard = this.reviewsSection?.querySelector('.review-card');
-        const firstReviewRect = firstReviewCard?.getBoundingClientRect();
         if (
-            firstReviewRect &&
-            firstReviewRect.top <= window.innerHeight * 0.82 &&
-            firstReviewRect.bottom > Math.max(window.innerHeight * 0.12, 72)
+            firstReviewMetric &&
+            firstReviewMetric.top - scrollY <= viewportHeight * 0.82 &&
+            firstReviewMetric.top + firstReviewMetric.height > Math.max(viewportHeight * 0.12, 72)
         ) {
             return 'reviews';
         }
 
         let currentKey = sections[0].key;
 
-        sections.forEach(({ key, element }) => {
-            const sectionTop = element.getBoundingClientRect().top + window.scrollY - this.getSeaGuideOffset();
-            if (probeY >= sectionTop - 42) {
+        sections.forEach(({ key, top }) => {
+            if (probeY >= top - 42) {
                 currentKey = key;
             }
         });
@@ -4188,9 +4307,7 @@ class DetailPage {
         }
 
         window.clearTimeout(this.bookingFocusPulseTimer);
-        this.bookingFocusPanel.classList.remove('is-pulsing');
-        void this.bookingFocusPanel.offsetWidth;
-        this.bookingFocusPanel.classList.add('is-pulsing');
+        restartTransientClassAnimation(this.bookingFocusPanel, 'is-pulsing');
 
         this.bookingFocusPulseTimer = window.setTimeout(() => {
             this.bookingFocusPanel?.classList.remove('is-pulsing');
@@ -4278,8 +4395,11 @@ class DetailPage {
 
             this.writeBookingFocusPanelContent(focusPanelPayload);
             this.bookingFocusPanel.classList.remove('is-swapping-out');
-            void this.bookingFocusPanel.offsetWidth;
-            this.bookingFocusPanel.classList.add('is-swapping-in');
+            window.requestAnimationFrame(() => {
+                if (this.bookingFocusPanel && transitionVersion === this.bookingFocusSwapVersion) {
+                    this.bookingFocusPanel.classList.add('is-swapping-in');
+                }
+            });
 
             this.queueBookingFocusSwapTimeout(() => {
                 if (!this.bookingFocusPanel || transitionVersion !== this.bookingFocusSwapVersion) {
@@ -4331,7 +4451,6 @@ class DetailPage {
 
         this.bookingCopy.classList.add('is-typed');
         this.bookingCopy.style.willChange = 'opacity, transform, filter';
-        void this.bookingCopy.offsetWidth;
         this.bookingCopy.classList.add('is-swapping-out');
 
         this.queueBookingCopySwapTimeout(() => {
@@ -4341,8 +4460,11 @@ class DetailPage {
 
             this.writeBookingReadingGuideCopy(nextGuideCopy);
             this.bookingCopy.classList.remove('is-swapping-out');
-            void this.bookingCopy.offsetWidth;
-            this.bookingCopy.classList.add('is-swapping-in');
+            window.requestAnimationFrame(() => {
+                if (this.bookingCopy && transitionVersion === this.bookingCopySwapVersion) {
+                    this.bookingCopy.classList.add('is-swapping-in');
+                }
+            });
 
             this.queueBookingCopySwapTimeout(() => {
                 if (!this.bookingCopy || transitionVersion !== this.bookingCopySwapVersion) {
@@ -6090,29 +6212,24 @@ class DetailPage {
      * @returns {string} - 当前评论对应的套餐 ID
      */
     getCurrentReviewLinkedPackageId() {
-        if (!this.reviewsSection) {
+        if (!this.reviewCardMetrics.length) {
             return '';
         }
 
-        const reviewCards = Array.from(this.reviewsSection.querySelectorAll('.review-card[data-linked-package-id]'));
-        if (!reviewCards.length) {
-            return '';
-        }
-
-        const focusLine = Math.min(window.innerHeight * 0.42, 320);
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const focusLine = scrollY + Math.min(window.innerHeight * 0.42, 320);
         let currentCard = null;
         let bestScore = Number.POSITIVE_INFINITY;
         let activeCardScore = Number.POSITIVE_INFINITY;
 
-        reviewCards.forEach((card) => {
-            const rect = card.getBoundingClientRect();
-            const intersectsViewport = rect.bottom > 0 && rect.top < window.innerHeight;
+        this.reviewCardMetrics.forEach((card) => {
+            const intersectsViewport = card.top + card.height > scrollY && card.top < scrollY + window.innerHeight;
             if (!intersectsViewport) {
                 return;
             }
 
-            const cardCenter = rect.top + (rect.height / 2);
-            const featureBias = card.classList.contains('has-feature-photo') ? -70 : 0;
+            const cardCenter = card.top + (card.height / 2);
+            const featureBias = card.hasFeaturePhoto ? -70 : 0;
             const score = Math.abs(cardCenter - focusLine) + featureBias;
 
             if (score < bestScore) {
@@ -6120,7 +6237,7 @@ class DetailPage {
                 currentCard = card;
             }
 
-            if (card.dataset.linkedPackageId === this.activeReviewLinkedPackageId && score < activeCardScore) {
+            if (card.packageId === this.activeReviewLinkedPackageId && score < activeCardScore) {
                 activeCardScore = score;
             }
         });
@@ -6137,7 +6254,7 @@ class DetailPage {
             return '';
         }
 
-        return currentCard.dataset.linkedPackageId || '';
+        return currentCard.packageId || '';
     }
 
     /**
@@ -6382,6 +6499,7 @@ class DetailPage {
 
         this.activeReviewLinkedPackageId = null;
         this.syncReviewExpandButtons();
+        this.measureDetailScrollMetrics();
         window.requestAnimationFrame(() => {
             this.syncBookingReadingGuide({ force: true, immediate: true });
             this.syncBookingCopyDepthState();
@@ -7442,8 +7560,6 @@ class DetailPage {
         modalContent.style.opacity = '1';
         modalContent.style.filter = 'blur(0px)';
 
-        void modalContent.offsetWidth;
-
         window.requestAnimationFrame(() => {
             modalContent.style.transition =
                 'transform 880ms cubic-bezier(0.18, 0.84, 0.18, 1), opacity 520ms ease, filter 520ms ease';
@@ -7555,8 +7671,6 @@ class DetailPage {
                 modalContent.style.transform = 'translate3d(0, 0, 0) scale(1, 1)';
                 modalContent.style.opacity = '1';
                 modalContent.style.filter = 'blur(0px)';
-
-                void modalContent.offsetWidth;
 
                 window.requestAnimationFrame(() => {
                     modalContent.style.transition =
@@ -8918,9 +9032,14 @@ class DetailPage {
      * getSeaGuideOffset() - 计算海图导览滚动定位时需要避开的顶部导航偏移量
      * @returns {number} - 用于滚动定位的顶部偏移值
      */
-    getSeaGuideOffset() {
+    getSeaGuideOffset(forceMeasure = false) {
+        if (!forceMeasure && Number.isFinite(this.detailSeaGuideOffset)) {
+            return this.detailSeaGuideOffset;
+        }
+
         const navbar = document.querySelector('.navbar');
-        return (navbar ? navbar.offsetHeight : 72) + 18;
+        this.detailSeaGuideOffset = (navbar ? navbar.offsetHeight : 72) + 18;
+        return this.detailSeaGuideOffset;
     }
 
     /**
@@ -8970,23 +9089,17 @@ class DetailPage {
      * @returns {string} - 当前应高亮的海图导览 key
      */
     getCurrentSeaGuideKey() {
-        if (!this.seaGuideEntries.length) {
+        if (!this.seaGuideMetrics.length) {
             return '';
         }
 
-        const probeY = window.scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.24, 220);
-        let currentKey = this.seaGuideEntries[0].dataset.key || '';
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const probeY = scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.24, 220);
+        let currentKey = this.seaGuideMetrics[0].key || '';
 
-        this.seaGuideEntries.forEach((entry) => {
-            const selector = entry.dataset.target;
-            const target = selector ? document.querySelector(selector) : null;
-            if (!target) {
-                return;
-            }
-
-            const sectionTop = target.getBoundingClientRect().top + window.scrollY - this.getSeaGuideOffset();
-            if (probeY >= sectionTop - 24) {
-                currentKey = entry.dataset.key || currentKey;
+        this.seaGuideMetrics.forEach((metric) => {
+            if (probeY >= metric.top - 24) {
+                currentKey = metric.key || currentKey;
             }
         });
 
@@ -9042,6 +9155,10 @@ class DetailPage {
                 this.updateSeaGuideState();
             });
         };
+        const requestLayoutMeasure = () => {
+            this.scheduleDetailScrollMetricsMeasure();
+            requestStateUpdate();
+        };
         // 和首页海图导览一样，这里把滚动状态更新压到动画帧中，
         // 避免滚动过程中连续读布局导致高亮抖动。
 
@@ -9083,8 +9200,29 @@ class DetailPage {
         });
 
         window.addEventListener('scroll', requestStateUpdate, { passive: true });
-        window.addEventListener('resize', requestStateUpdate);
-        window.setTimeout(() => this.updateSeaGuideState(), 80);
+        window.addEventListener('resize', requestLayoutMeasure);
+
+        if ('ResizeObserver' in window) {
+            this.detailScrollMetricsResizeObserver = new ResizeObserver(requestLayoutMeasure);
+            [
+                this.introSection,
+                this.spotMapHeading,
+                this.mapContainer,
+                this.spotReviewsHeading,
+                this.reviewsStage,
+                this.reviewsSection,
+                this.relatedSection
+            ].forEach((element) => {
+                if (element) {
+                    this.detailScrollMetricsResizeObserver.observe(element);
+                }
+            });
+        }
+
+        window.setTimeout(() => {
+            this.measureDetailScrollMetrics();
+            this.updateSeaGuideState();
+        }, 80);
     }
 
     /**
@@ -9222,13 +9360,14 @@ class DetailPage {
         }
 
         this.resetRelatedSwapClasses();
-        void this.pageStage.offsetWidth;
 
-        this.body.classList.add(
-            'detail-swap-active',
-            className,
-            normalizeDetailSwapDirection(direction) === 'backward' ? 'detail-swap-flow-backward' : 'detail-swap-flow-forward'
-        );
+        window.requestAnimationFrame(() => {
+            this.body.classList.add(
+                'detail-swap-active',
+                className,
+                normalizeDetailSwapDirection(direction) === 'backward' ? 'detail-swap-flow-backward' : 'detail-swap-flow-forward'
+            );
+        });
 
         if (this.relatedTransitionCleanupTimer) {
             window.clearTimeout(this.relatedTransitionCleanupTimer);

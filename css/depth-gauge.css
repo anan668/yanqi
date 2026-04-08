@@ -75,7 +75,7 @@ body {
         rgba(9, 58, 94, 0.08) 68%,
         rgba(183, 227, 255, 0.12) 100%
     );
-    filter: blur(14px);
+    filter: blur(8px);
     opacity: calc(0.18 + var(--ocean-depth-progress) * 0.32);
 }
 
@@ -109,9 +109,9 @@ body {
         0 0 0 1px rgba(202, 235, 255, 0.08),
         0 0 18px rgba(141, 214, 255, calc(0.1 + var(--ocean-depth-progress) * 0.16));
     transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.18), 0) scale(var(--depth-gauge-current-scale));
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(3px);
     /* 当前深度数字始终悬在页面最前层，轻微模糊能让它像仪表窗，而不是普通标签。 */
-    -webkit-backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(3px);
 }
 
 /* .gauge-markers 的主要视觉与布局效果 */
@@ -143,7 +143,7 @@ body {
         rgba(219, 241, 255, 0.04) 56%,
         rgba(219, 241, 255, 0.16) 100%
     );
-    filter: blur(12px);
+    filter: blur(6px);
     opacity: calc(0.2 + var(--ocean-depth-progress) * 0.28);
 }
 
@@ -273,6 +273,22 @@ body {
     text-shadow:
         0 1px 4px rgba(0, 0, 0, 0.35),
         0 0 12px rgba(161, 223, 255, 0.16);
+}
+
+@media (max-width: 780px), (prefers-reduced-motion: reduce) {
+    .depth-gauge::after {
+        filter: blur(4px);
+        opacity: calc(0.14 + var(--ocean-depth-progress) * 0.24);
+    }
+
+    .gauge-current {
+        backdrop-filter: blur(1px);
+        -webkit-backdrop-filter: blur(1px);
+    }
+
+    .gauge-markers::before {
+        filter: blur(3px);
+    }
 }
 
 /* 设置当前深度数字的样式和发光效果 */

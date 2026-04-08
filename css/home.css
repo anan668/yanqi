@@ -39,6 +39,24 @@
     filter: saturate(0.92) brightness(0.96);
 }
 
+body[data-home-performance='lite'] .featured-destinations,
+body[data-home-performance='lite'] .dive-match,
+body[data-home-performance='lite'] .why-yanqi,
+body[data-home-performance='lite'] .footer {
+    transition:
+        transform 620ms cubic-bezier(0.18, 0.8, 0.22, 1),
+        opacity 420ms ease;
+}
+
+body[data-home-performance='lite'] [data-home-layer] {
+    will-change: auto;
+    filter: none;
+}
+
+body[data-home-performance='lite'] [data-home-layer].is-home-passed:not(.is-home-current) {
+    filter: saturate(0.96) brightness(0.98);
+}
+
 /* ============================================
    首屏区
    ============================================ */
@@ -151,6 +169,14 @@
     /* 背后海面被轻柔模糊后，今日海域卡更像浮在水上的玻璃片，而不是一块实心白卡。 */
     -webkit-backdrop-filter: blur(22px) saturate(140%);
     animation: sea-card-float 1s ease-out;
+}
+
+body[data-home-performance='lite'] .today-sea-card {
+    backdrop-filter: blur(14px) saturate(128%);
+    -webkit-backdrop-filter: blur(14px) saturate(128%);
+    box-shadow:
+        0 18px 34px rgba(14, 60, 94, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 /* .today-sea-head 的主要视觉与布局效果 */
@@ -414,6 +440,10 @@
         linear-gradient(180deg, rgba(16, 57, 84, 0) 0%, rgba(58, 125, 163, 0.32) 42%, rgba(234, 246, 253, 0.9) 100%);
     filter: blur(30px);
     z-index: 0;
+}
+
+body[data-home-performance='lite'] .hero-section::after {
+    filter: blur(18px);
 }
 
 /* .hero-ocean-layers 的主要视觉与布局效果 */
@@ -2138,12 +2168,33 @@
     user-select: none;
 }
 
+body[data-home-performance='lite'] .bamboo-cards-content,
+body[data-home-performance='lite'] .bamboo-card {
+    will-change: auto;
+}
+
+body[data-home-performance='lite'] .bamboo-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 12px 22px rgba(18, 67, 102, 0.12);
+    transition:
+        box-shadow 180ms ease,
+        border-color 180ms ease,
+        opacity 180ms ease,
+        transform 180ms ease;
+}
+
 /* .bamboo-card:hover 鼠标移入时的样式 */
 .bamboo-card:hover {
     --lift-y: -8px;
     --card-scale: 1.016;
     opacity: 1;
     box-shadow: var(--shadow-lg);
+}
+
+body[data-home-performance='lite'] .bamboo-card:hover {
+    --lift-y: -4px;
+    --card-scale: 1.008;
 }
 
 /* .bamboo-card.active：当前激活卡片用更亮的描边和阴影提示。 */
@@ -2155,11 +2206,22 @@
     filter: saturate(1.03);
 }
 
+body[data-home-performance='lite'] .bamboo-card.active {
+    --card-scale: 1.02;
+    box-shadow: 0 14px 24px rgba(30, 136, 229, 0.18), 0 0 0 1px rgba(30, 136, 229, 0.14);
+    filter: none;
+}
+
 
 /* .bamboo-card.active:hover 鼠标移入时的样式 */
 .bamboo-card.active:hover {
     --lift-y: -9px;
     --card-scale: 1.05;
+}
+
+body[data-home-performance='lite'] .bamboo-card.active:hover {
+    --lift-y: -5px;
+    --card-scale: 1.024;
 }
 
 /* 定义 bamboo-card-reveal 动画的关键帧 */
@@ -2192,6 +2254,10 @@
     transform: scale(1.1);
 }
 
+body[data-home-performance='lite'] .bamboo-card:hover .bamboo-card-image {
+    transform: scale(1.04);
+}
+
 /* Bamboo Card Content */
 /* 设置热门潜点卡片的外观、层次和悬停反馈 */
 .bamboo-card-content {
@@ -2205,6 +2271,12 @@
     box-shadow: 0 -14px 30px rgba(18, 67, 102, 0.12);
     backdrop-filter: blur(16px) saturate(145%);
     -webkit-backdrop-filter: blur(16px) saturate(145%);
+}
+
+body[data-home-performance='lite'] .bamboo-card-content {
+    backdrop-filter: blur(10px) saturate(128%);
+    -webkit-backdrop-filter: blur(10px) saturate(128%);
+    box-shadow: 0 -10px 20px rgba(18, 67, 102, 0.1);
 }
 
 /* 设置热门潜点卡片的外观、层次和悬停反馈 */
@@ -5091,8 +5163,6 @@
     grid-template-columns: minmax(0, 0.92fr) 72px minmax(0, 1.08fr);
     gap: clamp(24px, 4vw, 54px);
     align-items: start;
-    content-visibility: auto;
-    contain-intrinsic-size: 760px;
 }
 
 /* 故事区引导文案：制制标题、副文案和说明的宽度。 */
@@ -5543,6 +5613,7 @@
     padding-bottom: calc(var(--spacing-2xl) + var(--home-story-overlap-bottom));
 }
 
+/* why-yanqi 故事区：把三张卡重新拉回更接近备份版的分层节奏。 */
 body[data-current-home-layer="story"] .story-river-line {
     background: linear-gradient(180deg, rgba(200, 228, 243, 0.12), rgba(228, 243, 252, 0.84), rgba(200, 228, 243, 0.12));
 }
@@ -5859,7 +5930,7 @@ body[data-current-home-layer="story"] .story-river-line {
     gap: 14px;
     opacity: 0;
     pointer-events: none;
-    transform: translate3d(0, 20px, 0);
+    transform: translateY(20px);
     transition:
         opacity 300ms ease,
         transform 420ms cubic-bezier(0.22, 0.72, 0.2, 1);
@@ -5868,7 +5939,7 @@ body[data-current-home-layer="story"] .story-river-line {
 /* 首页滚动到一定深度后，显示海图导览浮标。 */
 .sea-guide-home.is-visible {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: none;
 }
 
 /* 当用户滚动更深时，让海图导览入口的存在感稍微增强 */
@@ -5910,6 +5981,15 @@ body[data-current-home-layer="story"] .story-river-line {
     animation-play-state: paused;
 }
 
+body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+        0 16px 30px rgba(6, 20, 31, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    animation-duration: 10.4s;
+}
+
 /* 海图导览可见时才播放漂浮动画，节省离屏 GPU 开销 */
 .sea-guide-home.is-visible .sea-guide-trigger {
     animation-play-state: running;
@@ -5931,12 +6011,16 @@ body[data-current-home-layer="story"] .story-river-line {
 
 /* 鼠标移入时，入口轻微上浮并增强玻璃边缘高光*/
 .sea-guide-home .sea-guide-trigger:hover {
-    transform: translate3d(0, -3px, 0);
+    transform: translateY(-3px);
     border-color: rgba(200, 235, 245, 0.34);
     box-shadow:
         0 24px 44px rgba(6, 20, 31, 0.28),
         inset 0 1px 0 rgba(255, 255, 255, 0.14),
         0 0 20px rgba(144, 202, 226, 0.12);
+}
+
+body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
+    transform: translateY(-2px);
 }
 
 /* 展开或悬停时，让潮光沿着按钮轻微移动 */
@@ -5948,7 +6032,7 @@ body[data-current-home-layer="story"] .story-river-line {
 
 /* 点击时保留柔和按压，不做机械按钮。*/
 .sea-guide-home .sea-guide-trigger:active {
-    transform: translate3d(0, -1px, 0);
+    transform: translateY(-1px);
 }
 
 /* 海图导览入口图标的尺寸和居中方式 */
@@ -5992,6 +6076,8 @@ body[data-current-home-layer="story"] .story-river-line {
 /* 首页海图导览浮层：展开后承载所有快速跳转入口。 */
 .sea-guide-home .sea-guide-panel {
     order: -1;
+    position: relative;
+    isolation: isolate;
     width: min(326px, calc(100vw - 28px));
     max-height: min(62vh, 560px);
     overflow: auto;
@@ -6000,6 +6086,25 @@ body[data-current-home-layer="story"] .story-river-line {
     scrollbar-color: rgba(168, 218, 234, 0.38) rgba(7, 24, 36, 0.16);
     padding: 18px;
     border-radius: 26px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(16px);
+    transition:
+        opacity 300ms ease,
+        transform 360ms cubic-bezier(0.22, 0.72, 0.2, 1);
+}
+
+.sea-guide-home .sea-guide-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
     background:
         radial-gradient(circle at 16% 14%, rgba(124, 194, 219, 0.15), transparent 28%),
         linear-gradient(150deg, rgba(10, 36, 53, 0.86), rgba(12, 50, 70, 0.8));
@@ -6009,15 +6114,20 @@ body[data-current-home-layer="story"] .story-river-line {
         inset 0 1px 0 rgba(255, 255, 255, 0.09);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
-    opacity: 0;
     pointer-events: none;
-    filter: blur(8px);
-    transform: translate3d(0, 16px, 0) scale(0.985);
-    transform-origin: 100% 100%;
-    transition:
-        opacity 300ms ease,
-        transform 360ms cubic-bezier(0.22, 0.72, 0.2, 1),
-        filter 320ms ease;
+}
+
+.sea-guide-home .sea-guide-panel > * {
+    position: relative;
+    z-index: 1;
+}
+
+body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel::before {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow:
+        0 22px 44px rgba(6, 20, 31, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* 给导览面板换成细窄的深海滚动条，避免浏览器默认白轨破坏玻璃感。 */
@@ -6045,8 +6155,7 @@ body[data-current-home-layer="story"] .story-river-line {
 .sea-guide-home.is-open .sea-guide-panel {
     opacity: 1;
     pointer-events: auto;
-    filter: blur(0);
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: none;
 }
 
 /* 浮层顶部的英文小标题 */
@@ -6078,7 +6187,7 @@ body[data-current-home-layer="story"] .story-river-line {
     border: 1px solid rgba(192, 227, 239, 0.12);
     color: #f0f9fc;
     opacity: 0;
-    transform: translate3d(0, 14px, 0);
+    transform: translateY(14px);
     transition:
         transform 260ms ease,
         opacity 260ms ease,
@@ -6090,7 +6199,7 @@ body[data-current-home-layer="story"] .story-river-line {
 /* 浮层打开时，让条目依次淡入出现。 */
 .sea-guide-home.is-open .sea-guide-entry {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: none;
 }
 
 /* 条目逐个加延迟，让海图导览浮层展开时更有层次。 */
@@ -6117,7 +6226,7 @@ body[data-current-home-layer="story"] .story-river-line {
 
 /* 悬停时让条目像轻碰一块海图索引卡 */
 .sea-guide-home .sea-guide-entry:hover {
-    transform: translate3d(0, -2px, 0);
+    transform: translateY(-2px);
     border-color: rgba(204, 233, 244, 0.22);
     box-shadow:
         0 18px 30px rgba(6, 20, 31, 0.16),

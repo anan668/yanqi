@@ -153,70 +153,60 @@
     const TRANSITION_MOTION_PRESETS = Object.freeze({
         default: Object.freeze({
             stageTranslation: '54vh',
-            stageBlur: '4.2px',
             oceanTranslation: '17vh',
             oceanSwimShift: '3vw',
             oceanSwimDriftY: '0.24vh'
         }),
         plannerDive: Object.freeze({
             stageTranslation: '56vh',
-            stageBlur: '4.4px',
             oceanTranslation: '18vh',
             oceanSwimShift: '3.1vw',
             oceanSwimDriftY: '0.26vh'
         }),
         plannerSurface: Object.freeze({
             stageTranslation: '52vh',
-            stageBlur: '4px',
             oceanTranslation: '16.5vh',
             oceanSwimShift: '2.9vw',
             oceanSwimDriftY: '0.22vh'
         }),
         detailDive: Object.freeze({
             stageTranslation: '60vh',
-            stageBlur: '4.8px',
             oceanTranslation: '19vh',
             oceanSwimShift: '3.2vw',
             oceanSwimDriftY: '0.28vh'
         }),
         detailSurface: Object.freeze({
             stageTranslation: '54vh',
-            stageBlur: '4.2px',
             oceanTranslation: '17vh',
             oceanSwimShift: '3vw',
             oceanSwimDriftY: '0.24vh'
         }),
         detailSwim: Object.freeze({
             stageTranslation: '16vh',
-            stageBlur: '1.8px',
             oceanTranslation: '6vh',
             oceanSwimShift: '2.4vw',
             oceanSwimDriftY: '0.14vh'
         }),
         infoDive: Object.freeze({
             stageTranslation: '40vh',
-            stageBlur: '3.2px',
             oceanTranslation: '13vh',
             oceanSwimShift: '2.8vw',
             oceanSwimDriftY: '0.2vh'
         }),
         infoSurface: Object.freeze({
             stageTranslation: '34vh',
-            stageBlur: '2.8px',
             oceanTranslation: '11vh',
             oceanSwimShift: '2.6vw',
             oceanSwimDriftY: '0.16vh'
         }),
         infoSwim: Object.freeze({
             stageTranslation: '14vh',
-            stageBlur: '1.6px',
             oceanTranslation: '5vh',
             oceanSwimShift: '2.2vw',
             oceanSwimDriftY: '0.12vh'
         }),
         loginSurface: Object.freeze({
             stageTranslation: '38vh',
-            stageBlur: '3px',
             oceanTranslation: '12vh',
             oceanSwimShift: '2.6vw',
             oceanSwimDriftY: '0.18vh'
@@ -2380,20 +2370,6 @@
                 return;
             }
 
-            const scrollY = window.scrollY || window.pageYOffset || 0;
-            const now = performance.now();
-            const scrollDeltaPx = Math.abs(scrollY - this.pageScrollLastScrollY);
-            const elapsedMs = this.pageScrollLastScrollAt > 0
-                ? Math.max(now - this.pageScrollLastScrollAt, 1)
-                : 16;
-            const jumpThreshold = Math.max(window.innerHeight * 0.32, 260);
-            this.pageScrollLastDeltaPx = scrollDeltaPx;
-            this.pageScrollLastDeltaMs = elapsedMs;
-            this.pageScrollShouldSnap = scrollDeltaPx >= jumpThreshold;
-            this.pageScrollLastScrollY = scrollY;
-            this.pageScrollLastScrollAt = now;
-            this.pageScrollTargetDepth = this.computePageScrollDepth();
-
             if (this.pageScrollFrameId) {
                 return;
             }
@@ -2541,12 +2517,23 @@
                 return;
             }
 
+            const scrollY = window.scrollY || window.pageYOffset || 0;
+            const now = performance.now();
+            const scrollDeltaPx = Math.abs(scrollY - this.pageScrollLastScrollY);
+            const elapsedMs = this.pageScrollLastScrollAt > 0
+                ? Math.max(now - this.pageScrollLastScrollAt, 1)
+                : 16;
+            const jumpThreshold = Math.max(window.innerHeight * 0.32, 260);
+
+            this.pageScrollLastDeltaPx = scrollDeltaPx;
+            this.pageScrollLastDeltaMs = elapsedMs;
+            this.pageScrollShouldSnap = scrollDeltaPx >= jumpThreshold;
+            this.pageScrollLastScrollY = scrollY;
+            this.pageScrollLastScrollAt = now;
+
             // 这里不用 animateDepth 做固定时长动画，而是每帧按差值推进，形成更像水下阻尼的深度变化。
-            const targetDepth = clamp(
-                this.pageScrollTargetDepth ?? this.computePageScrollDepth(),
-                MIN_DEPTH,
-                MAX_DEPTH
-            );
+            const targetDepth = clamp(this.computePageScrollDepth(), MIN_DEPTH, MAX_DEPTH);
+            this.pageScrollTargetDepth = targetDepth;
             const delta = targetDepth - this.currentDepth;
             const deltaMagnitude = Math.abs(delta);
             const shouldSnapToTarget = this.pageScrollShouldSnap && deltaMagnitude >= 0.85;
@@ -2811,7 +2798,6 @@
             }
 
             this.rootElement.style.removeProperty('--page-stage-translation');
-            this.rootElement.style.removeProperty('--page-stage-blur');
             this.rootElement.style.removeProperty('--page-ocean-translation');
             this.rootElement.style.removeProperty('--page-ocean-swim-shift');
             this.rootElement.style.removeProperty('--page-ocean-swim-drift-y');
@@ -2840,7 +2826,6 @@
                 : '1';
 
             this.rootElement.style.setProperty('--page-stage-translation', preset.stageTranslation);
-            this.rootElement.style.setProperty('--page-stage-blur', preset.stageBlur);
             this.rootElement.style.setProperty('--page-ocean-translation', preset.oceanTranslation);
             this.rootElement.style.setProperty('--page-ocean-swim-shift', preset.oceanSwimShift);
             this.rootElement.style.setProperty('--page-ocean-swim-drift-y', preset.oceanSwimDriftY);

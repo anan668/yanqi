@@ -411,15 +411,11 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
     let hasBootstrapped = false;
     let cancelIdleTask = () => {};
     let observer = null;
-    let viewportCheckRaf = 0;
+    let detachViewportBootstrap = () => {};
 
-    const detachViewportBootstrap = () => {
-        window.removeEventListener('scroll', requestViewportBootstrapCheck);
-        window.removeEventListener('resize', requestViewportBootstrapCheck);
-        if (viewportCheckRaf) {
-            window.cancelAnimationFrame(viewportCheckRaf);
-            viewportCheckRaf = 0;
-        }
+    const releaseViewportBootstrap = () => {
+        detachViewportBootstrap();
+        detachViewportBootstrap = () => {};
     };
 
     const shouldBootstrapFromViewport = () => {
@@ -433,16 +429,13 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
     };
 
     function requestViewportBootstrapCheck() {
-        if (hasBootstrapped || viewportCheckRaf) {
+        if (hasBootstrapped) {
             return;
         }
 
-        viewportCheckRaf = window.requestAnimationFrame(() => {
-            viewportCheckRaf = 0;
-            if (shouldBootstrapFromViewport()) {
-                runBootstrap();
-            }
-        });
+        if (shouldBootstrapFromViewport()) {
+            runBootstrap();
+        }
     }
 
     const runBootstrap = () => {
@@ -452,12 +445,15 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
 
         hasBootstrapped = true;
         cancelIdleTask();
-        detachViewportBootstrap();
+        releaseViewportBootstrap();
         if (observer) {
             observer.disconnect();
             observer = null;
         }
         bootstrap();
+        if (typeof homeViewportCoordinator !== 'undefined') {
+            homeViewportCoordinator.requestMeasure();
+        }
     };
 
     if (!target || immediate) {
@@ -466,8 +462,21 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
     }
 
     cancelIdleTask = scheduleIdleTask(runBootstrap, idleTimeoutMs);
-    window.addEventListener('scroll', requestViewportBootstrapCheck, { passive: true });
-    window.addEventListener('resize', requestViewportBootstrapCheck, { passive: true });
+
+    if (typeof homeViewportCoordinator !== 'undefined') {
+        detachViewportBootstrap = homeViewportCoordinator.register({
+            measure: requestViewportBootstrapCheck,
+            update: requestViewportBootstrapCheck
+        });
+    } else {
+        window.addEventListener('scroll', requestViewportBootstrapCheck, { passive: true });
+        window.addEventListener('resize', requestViewportBootstrapCheck, { passive: true });
+        detachViewportBootstrap = () => {
+            window.removeEventListener('scroll', requestViewportBootstrapCheck);
+            window.removeEventListener('resize', requestViewportBootstrapCheck);
+        };
+    }
+
     requestViewportBootstrapCheck();
 
     if ('IntersectionObserver' in window) {
@@ -535,6 +544,140 @@ function observeOnceInViewport(target, onReveal, options = {}) {
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
+
+/**
+ * resolveHomePerformanceProfile() - 根据设备能力和交互方式，给首页选择合适的性能档位
+ * @returns {{mode:string,reducedMotion:boolean,coarsePointer:boolean,compactViewport:boolean,lowMemory:boolean,lowConcurrency:boolean,lowEnd:boolean,lite:boolean}}
+ */
+function resolveHomePerformanceProfile() {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
+    const coarsePointer = window.matchMedia?.('(any-pointer: coarse)')?.matches || false;
+    const compactViewport = window.matchMedia?.('(max-width: 1180px)')?.matches || false;
+    const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory <= 4;
+    const lowConcurrency = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4;
+    const lowEnd = lowMemory || lowConcurrency;
+    const lite = reducedMotion || lowEnd || (coarsePointer && compactViewport);
+
+    return {
+        mode: lite ? 'lite' : (coarsePointer || compactViewport ? 'balanced' : 'full'),
+        reducedMotion,
+        coarsePointer,
+        compactViewport,
+        lowMemory,
+        lowConcurrency,
+        lowEnd,
+        lite
+    };
+}
+
+/**
+ * applyHomePerformanceProfile(profile) - 把首页性能档位写到 body 上，供样式表降载
+ * @param {{mode:string}|null} profile - 首页性能档位
+ * @returns {void}
+ */
+function applyHomePerformanceProfile(profile) {
+    if (!document.body) {
+        return;
+    }
+
+    const mode = profile?.mode || 'full';
+    document.body.dataset.homePerformance = mode;
+    document.body.classList.toggle('home-performance-lite', mode === 'lite');
+    document.body.classList.toggle('home-performance-balanced', mode === 'balanced');
+}
+
+/**
+ * createHomeViewportCoordinator() - 把首页滚动、尺寸和可见状态同步收拢到单一调度入口
+ * @returns {{register:function,requestUpdate:function,requestMeasure:function}}
+ */
+function createHomeViewportCoordinator() {
+    const listeners = new Set();
+    let updateRaf = 0;
+    let measureRaf = 0;
+    let attached = false;
+    let lastLockedUpdateAt = 0;
+
+    const shouldDeferLockedUpdate = () => {
+        if (typeof isHomeInteractionLocked !== 'function' || !isHomeInteractionLocked()) {
+            return false;
+        }
+
+        const now = performance.now();
+        if (now - lastLockedUpdateAt < 84) {
+            return true;
+        }
+
+        lastLockedUpdateAt = now;
+        return false;
+    };
+
+    const runPhase = (phase) => {
+        listeners.forEach((entry) => {
+            const handler = phase === 'measure' ? entry.measure : entry.update;
+            if (typeof handler === 'function') {
+                handler();
+            }
+        });
+    };
+
+    const requestUpdate = () => {
+        if (updateRaf) {
+            return;
+        }
+
+        updateRaf = window.requestAnimationFrame(() => {
+            updateRaf = 0;
+            if (shouldDeferLockedUpdate()) {
+                return;
+            }
+            runPhase('update');
+        });
+    };
+
+    const requestMeasure = () => {
+        if (measureRaf) {
+            return;
+        }
+
+        measureRaf = window.requestAnimationFrame(() => {
+            measureRaf = 0;
+            runPhase('measure');
+            if (shouldDeferLockedUpdate()) {
+                return;
+            }
+            runPhase('update');
+        });
+    };
+
+    const attach = () => {
+        if (attached) {
+            return;
+        }
+
+        attached = true;
+        window.addEventListener('scroll', requestUpdate, { passive: true });
+        window.addEventListener('resize', requestMeasure);
+    };
+
+    return {
+        register({ measure, update } = {}) {
+            attach();
+            const entry = {
+                measure: typeof measure === 'function' ? measure : null,
+                update: typeof update === 'function' ? update : null
+            };
+
+            listeners.add(entry);
+            return () => {
+                listeners.delete(entry);
+            };
+        },
+        requestUpdate,
+        requestMeasure
+    };
+}
+
+const homeViewportCoordinator = createHomeViewportCoordinator();
 
 // 热门潜点数据：用于竹签滚动推荐区的卡片渲染、价格展示和详情页跳转。
 const divingSpotsData = convertSpotCardPrices([
@@ -1068,6 +1211,64 @@ function navigateWithDepth(url) {
     window.location.href = url;
 }
 
+const HOME_INTERACTION_STATE = {
+    guideOpen: false,
+    lockUntil: 0,
+    unlockTimer: 0
+};
+
+/**
+ * scheduleHomeInteractionRefresh(delayMs) - 在交互降载结束后刷新首页的滚动联动状态。
+ * @param {number} delayMs - 延迟毫秒数
+ * @returns {void}
+ */
+function scheduleHomeInteractionRefresh(delayMs = 0) {
+    if (HOME_INTERACTION_STATE.unlockTimer) {
+        window.clearTimeout(HOME_INTERACTION_STATE.unlockTimer);
+        HOME_INTERACTION_STATE.unlockTimer = 0;
+    }
+
+    const delay = Math.max(0, delayMs);
+    HOME_INTERACTION_STATE.unlockTimer = window.setTimeout(() => {
+        HOME_INTERACTION_STATE.unlockTimer = 0;
+        if (typeof homeViewportCoordinator !== 'undefined') {
+            homeViewportCoordinator.requestMeasure();
+            homeViewportCoordinator.requestUpdate();
+        }
+    }, delay);
+}
+
+/**
+ * beginHomeInteractionLock(durationMs) - 在程序化滚动期间短暂压低首页交互开销。
+ * @param {number} durationMs - 预计持续时间
+ * @returns {void}
+ */
+function beginHomeInteractionLock(durationMs = 0) {
+    const nextUntil = performance.now() + Math.max(0, durationMs);
+    HOME_INTERACTION_STATE.lockUntil = Math.max(HOME_INTERACTION_STATE.lockUntil, nextUntil);
+    scheduleHomeInteractionRefresh(Math.max(0, Math.ceil(HOME_INTERACTION_STATE.lockUntil - performance.now()) + 48));
+}
+
+/**
+ * setHomeGuideOpenState(isOpen) - 记录海图导览是否处于展开态，用来暂停底层高频动画。
+ * @param {boolean} isOpen - 是否展开
+ * @returns {void}
+ */
+function setHomeGuideOpenState(isOpen) {
+    HOME_INTERACTION_STATE.guideOpen = Boolean(isOpen);
+    if (!HOME_INTERACTION_STATE.guideOpen) {
+        scheduleHomeInteractionRefresh(40);
+    }
+}
+
+/**
+ * isHomeInteractionLocked() - 判断首页当前是否处于程序化滚动或导览展开的降载窗口中。
+ * @returns {boolean}
+ */
+function isHomeInteractionLocked() {
+    return HOME_INTERACTION_STATE.guideOpen || performance.now() < HOME_INTERACTION_STATE.lockUntil;
+}
+
 // 竹签滚动推荐控制器：负责热门潜点卡片的渲染、拖拽、自动滑动、惯性与点击跳转。
 class BambooScroll {
     /**
@@ -1078,12 +1279,14 @@ class BambooScroll {
         this.wrapper = document.querySelector('.bamboo-cards-wrapper');
         this.leftBtn = document.getElementById('scroll-left');
         this.rightBtn = document.getElementById('scroll-right');
-        this.enableAutoStep = true;
-        this.enableInertia = false;
-        this.dragThreshold = 8;
+        this.performanceProfile = resolveHomePerformanceProfile();
+        this.enableAutoStep = !(this.performanceProfile.lite || this.performanceProfile.coarsePointer);
+        this.enableInertia = !(this.performanceProfile.lite || this.performanceProfile.coarsePointer);
+        this.enableHoverTracking = !(this.performanceProfile.coarsePointer || this.performanceProfile.reducedMotion);
+        this.dragThreshold = this.performanceProfile.lite ? 10 : 8;
 
         this.totalCards = divingSpotsData.length;
-        this.cloneSets = 3;
+        this.cloneSets = this.performanceProfile.lite ? 2 : 3;
         this.cards = [];
         this.cardPhysics = [];
         this.cardCenterOffsets = [];
@@ -1092,10 +1295,12 @@ class BambooScroll {
         this.setWidth = this.totalCards * this.cardStride;
         this.trackPosition = this.setWidth;
         this.trackVelocity = 0;
+        this.trackLoopMinFactor = this.cloneSets <= 2 ? 0.3 : 0.5;
+        this.trackLoopMaxFactor = this.cloneSets <= 2 ? 1.5 : 2.5;
         this.wrapperWidth = 0;
         this.wrapperCenter = 0;
         this.centerWeightMaxDist = 0;
-        this.physicsRangeRadius = 5;
+        this.physicsRangeRadius = this.performanceProfile.lite ? 4 : 5;
 
         this.isDragging = false;
         this.pointerId = null;
@@ -1122,14 +1327,16 @@ class BambooScroll {
 
         this.autoStep = null;
         this.autoTimer = null;
-        this.autoIntervalMs = 3800;
-        this.autoIntervalJitterMinMs = -600;
-        this.autoIntervalJitterMaxMs = 600;
-        this.autoStepDurationMin = 1.02;
-        this.autoStepDurationMax = 1.18;
+        this.autoIntervalMs = this.performanceProfile.lite ? 4600 : 3800;
+        this.autoIntervalJitterMinMs = this.performanceProfile.lite ? -360 : -600;
+        this.autoIntervalJitterMaxMs = this.performanceProfile.lite ? 360 : 600;
+        this.autoStepDurationMin = this.performanceProfile.lite ? 1.08 : 1.02;
+        this.autoStepDurationMax = this.performanceProfile.lite ? 1.24 : 1.18;
 
         this.shakeEnergy = 0;
 
+        this.pointerMoveRafId = 0;
+        this.pendingPointerMove = null;
         this.frameRafId = 0;
         this.lastFrameTs = 0;
         this.lastAppliedTrackPosition = Number.NaN;
@@ -1256,8 +1463,14 @@ class BambooScroll {
         this.setWidth = this.totalCards * this.cardStride;
         this.wrapperWidth = this.wrapper.clientWidth;
         this.wrapperCenter = this.wrapperWidth * 0.5;
-        this.centerWeightMaxDist = Math.max(this.wrapperWidth * 0.7, this.cardStride * 2.2);
-        this.physicsRangeRadius = Math.max(4, Math.ceil(this.wrapperWidth / Math.max(this.cardStride, 1)) + 2);
+        this.centerWeightMaxDist = Math.max(
+            this.wrapperWidth * (this.performanceProfile.lite ? 0.58 : 0.7),
+            this.cardStride * (this.performanceProfile.lite ? 1.8 : 2.2)
+        );
+        this.physicsRangeRadius = Math.max(
+            this.performanceProfile.lite ? 3 : 4,
+            Math.ceil(this.wrapperWidth / Math.max(this.cardStride, 1)) + (this.performanceProfile.lite ? 1 : 2)
+        );
         this.cardCenterOffsets = this.cards.map((card) => card.offsetLeft + card.offsetWidth * 0.5);
 
         if (!Number.isFinite(this.trackPosition) || this.trackPosition <= 0) {
@@ -1299,34 +1512,36 @@ class BambooScroll {
             event.preventDefault();
         });
 
-        this.wrapper.addEventListener('mouseenter', (event) => {
-            this.pointerInsideWrapper = true;
-            this.pointerClientX = event.clientX;
-            this.pointerClientY = event.clientY;
-            this.lastHoverSyncTs = 0;
-            this.lastHoverTrackPosition = this.trackPosition;
-            this.cancelAutoStep();
-            this.updateHoverFromPointer();
-        });
+        if (this.enableHoverTracking) {
+            this.wrapper.addEventListener('mouseenter', (event) => {
+                this.pointerInsideWrapper = true;
+                this.pointerClientX = event.clientX;
+                this.pointerClientY = event.clientY;
+                this.lastHoverSyncTs = 0;
+                this.lastHoverTrackPosition = this.trackPosition;
+                this.cancelAutoStep();
+                this.updateHoverFromPointer();
+            });
 
-        this.wrapper.addEventListener('mousemove', (event) => {
-            this.pointerInsideWrapper = true;
-            this.pointerClientX = event.clientX;
-            this.pointerClientY = event.clientY;
-            if (this.isDragging) {
-                return;
-            }
-            this.updateHoverFromPointer();
-        });
+            this.wrapper.addEventListener('mousemove', (event) => {
+                this.pointerInsideWrapper = true;
+                this.pointerClientX = event.clientX;
+                this.pointerClientY = event.clientY;
+                if (this.isDragging) {
+                    return;
+                }
+                this.updateHoverFromPointer();
+            });
 
-        this.wrapper.addEventListener('mouseleave', () => {
-            this.pointerInsideWrapper = false;
-            this.setHoveredCard(null);
-            this.lastHoverSyncTs = 0;
-            if (!this.isDragging) {
-                this.scheduleAutoStep();
-            }
-        });
+            this.wrapper.addEventListener('mouseleave', () => {
+                this.pointerInsideWrapper = false;
+                this.setHoveredCard(null);
+                this.lastHoverSyncTs = 0;
+                if (!this.isDragging) {
+                    this.scheduleAutoStep();
+                }
+            });
+        }
 
         window.addEventListener('resize', () => {
             this.measure();
@@ -1347,6 +1562,7 @@ class BambooScroll {
             return;
         }
 
+        this.cancelPointerMoveFrame();
         this.cancelAutoStep();
         this.inertia.active = false;
         this.trackVelocity = 0;
@@ -1375,6 +1591,62 @@ class BambooScroll {
     }
 
     /**
+     * cancelPointerMoveFrame() - 取消尚未刷新的拖拽位移合并帧
+     * @returns {void}
+     */
+    cancelPointerMoveFrame() {
+        if (this.pointerMoveRafId) {
+            cancelAnimationFrame(this.pointerMoveRafId);
+            this.pointerMoveRafId = 0;
+        }
+
+        this.pendingPointerMove = null;
+    }
+
+    /**
+     * flushPointerMoveFrame(timestamp) - 在动画帧里合并最近一次拖拽移动
+     * @param {number} timestamp - 当前帧时间戳
+     * @returns {void}
+     */
+    flushPointerMoveFrame(timestamp) {
+        this.pointerMoveRafId = 0;
+
+        const pending = this.pendingPointerMove;
+        if (!pending || !this.isDragging || pending.pointerId !== this.pointerId) {
+            return;
+        }
+
+        this.pendingPointerMove = null;
+
+        const now = pending.now || performance.now();
+        const dragDeltaX = pending.clientX - this.startPointerX;
+
+        this.trackPosition = this.startTrackPosition - dragDeltaX;
+        this.recenterTrack();
+        this.trackPositionDirty = true;
+
+        const dt = Math.max((now - this.lastPointerTime) / 1000, 0.001);
+        const deltaX = pending.clientX - this.lastPointerX;
+        const nextVelocity = -(deltaX / dt);
+        const accel = (nextVelocity - this.lastTrackVelocity) / dt;
+        this.lastTrackVelocity = nextVelocity;
+        this.trackVelocity = this.lastTrackVelocity;
+
+        if (Math.abs(dragDeltaX) > this.dragThreshold) {
+            this.dragMoved = true;
+        }
+
+        this.pointerClientX = pending.clientX;
+        this.pointerClientY = pending.clientY;
+        this.lastPointerX = pending.clientX;
+        this.lastPointerTime = now;
+
+        this.injectShake(Math.abs(this.lastTrackVelocity));
+        this.applyDragRecoil(this.lastTrackVelocity, accel);
+        this.ensureFrameLoop();
+    }
+
+    /**
      * handlePointerMove(event) - 处理拖拽过程中的位置更新和速度记录
      * @param {PointerEvent} event - 指针移动事件对象
      * @returns {void} - 无返回值，直接更新轨道位置
@@ -1391,33 +1663,20 @@ class BambooScroll {
             return;
         }
 
-        const now = performance.now();
-        const dragDeltaX = event.clientX - this.startPointerX;
-
-        this.trackPosition = this.startTrackPosition - dragDeltaX;
-        this.recenterTrack();
-        this.trackPositionDirty = true;
-
-        const dt = Math.max((now - this.lastPointerTime) / 1000, 0.001);
-        const deltaX = event.clientX - this.lastPointerX;
-        const nextVelocity = -(deltaX / dt);
-        const accel = (nextVelocity - this.lastTrackVelocity) / dt;
-        this.lastTrackVelocity = nextVelocity;
-        this.trackVelocity = this.lastTrackVelocity;
-
-        if (Math.abs(dragDeltaX) > this.dragThreshold) {
-            this.dragMoved = true;
-        }
-
         this.pointerClientX = event.clientX;
         this.pointerClientY = event.clientY;
+        this.pendingPointerMove = {
+            pointerId: event.pointerId,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            now: performance.now()
+        };
 
-        this.injectShake(Math.abs(this.lastTrackVelocity));
-        this.applyDragRecoil(this.lastTrackVelocity, accel);
+        if (!this.pointerMoveRafId) {
+            this.pointerMoveRafId = requestAnimationFrame((timestamp) => this.flushPointerMoveFrame(timestamp));
+        }
+
         this.ensureFrameLoop();
-
-        this.lastPointerX = event.clientX;
-        this.lastPointerTime = now;
     }
 
     /**
@@ -1429,6 +1688,9 @@ class BambooScroll {
         if (!this.isDragging || event.pointerId !== this.pointerId) {
             return;
         }
+
+        this.flushPointerMoveFrame(performance.now());
+        this.cancelPointerMoveFrame();
 
         this.isDragging = false;
         this.pointerId = null;
@@ -1546,6 +1808,10 @@ class BambooScroll {
      */
     startStepScroll(direction, isAutoStep) {
         if (this.isDragging) {
+            return false;
+        }
+
+        if (isHomeInteractionLocked()) {
             return false;
         }
 
@@ -1692,7 +1958,7 @@ class BambooScroll {
      * @returns {boolean}
      */
     canAnimateFrame() {
-        return this.isPageVisible && this.isWrapperVisible;
+        return this.isPageVisible && this.isWrapperVisible && (!isHomeInteractionLocked() || this.isDragging);
     }
 
     /**
@@ -1704,11 +1970,17 @@ class BambooScroll {
             return false;
         }
 
-        return this.isDragging
+        if (isHomeInteractionLocked() && !this.isDragging && !this.pendingPointerMove) {
+            return false;
+        }
+
+        return Boolean(this.pendingPointerMove)
+            || this.isDragging
             || Boolean(this.autoStep)
             || this.inertia.active
             || Math.abs(this.trackVelocity) > 0.1
-            || this.shakeEnergy > 0.01;
+            || this.shakeEnergy > 0.01
+            || this.trackPositionDirty;
     }
 
     /**
@@ -1938,6 +2210,10 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接同步 hover 状态
      */
     updateHoverFromPointer() {
+        if (!this.enableHoverTracking || isHomeInteractionLocked()) {
+            return;
+        }
+
         const element = document.elementFromPoint(this.pointerClientX, this.pointerClientY);
         const card = element ? element.closest('.bamboo-card') : null;
 
@@ -1955,7 +2231,13 @@ class BambooScroll {
      * @returns {void}
      */
     syncHoverWhileTrackMoves(timestamp) {
-        if (!this.pointerInsideWrapper || this.isDragging || (!this.autoStep && !this.inertia.active)) {
+        if (
+            !this.enableHoverTracking ||
+            !this.pointerInsideWrapper ||
+            this.isDragging ||
+            isHomeInteractionLocked() ||
+            (!this.autoStep && !this.inertia.active)
+        ) {
             return;
         }
 
@@ -2017,8 +2299,8 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接调整轨道位置
      */
     recenterTrack() {
-        const min = this.setWidth * 0.5;
-        const max = this.setWidth * 2.5;
+        const min = this.setWidth * this.trackLoopMinFactor;
+        const max = this.setWidth * this.trackLoopMaxFactor;
 
         if (this.trackPosition < min) {
             this.trackPosition += this.setWidth;
@@ -3093,6 +3375,8 @@ function scrollToSection(targetSelector) {
         return;
     }
 
+    primeHomeScrollTarget(targetSelector);
+
     const target = document.querySelector(targetSelector);
     if (!target) {
         return;
@@ -3137,42 +3421,89 @@ function scrollToSection(targetSelector) {
         }
     }
 
-    const anchorTop = anchor.getBoundingClientRect().top + window.scrollY;
-    const top = topOverride !== null
-        ? Math.max(0, topOverride)
-        : Math.max(0, anchorTop - navOffset - extraOffset);
+    const startScroll = () => {
+        const anchorTop = anchor.getBoundingClientRect().top + window.scrollY;
+        const top = topOverride !== null
+            ? Math.max(0, topOverride)
+            : Math.max(0, anchorTop - navOffset - extraOffset);
+        const currentScrollY = window.scrollY || window.pageYOffset || 0;
+        const travelDistance = Math.abs(top - currentScrollY);
+        const adaptiveDuration = clamp(
+            680 + travelDistance * 0.12,
+            820,
+            1320
+        );
 
-    if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
-        window.OceanScroll.animateTo(top, { duration: 1520 }).then(() => {
+        const finishScroll = () => {
             if (
-                targetSelector !== '#featured-destinations' ||
-                !window.DepthManager ||
-                typeof window.DepthManager.finishDepth !== 'function'
+                targetSelector === '#featured-destinations' &&
+                window.DepthManager &&
+                typeof window.DepthManager.finishDepth === 'function'
             ) {
-                return;
+                const currentScrollY = window.scrollY || window.pageYOffset || 0;
+                if (Math.abs(currentScrollY - top) <= 12) {
+                    // “目的地”这一条链路需要稳定停在 12m。
+                    // 这里在滚动完成后再做一次轻量兜底，避免由于首页滚动阻尼或取整显示，
+                    // 最终肉眼看到的仍然偏在 11m。
+                    window.DepthManager.finishDepth(featuredDestinationsTargetDepth);
+                }
             }
 
-            const currentScrollY = window.scrollY || window.pageYOffset || 0;
-            if (Math.abs(currentScrollY - top) > 12) {
-                return;
-            }
+            scheduleHomeInteractionRefresh(24);
+        };
 
-            // “目的地”这一条链路需要稳定停在 12m。
-            // 这里在滚动完成后再做一次轻量兜底，避免由于首页滚动阻尼或取整显示，
-            // 最终肉眼看到的仍然偏在 11m。
-            window.DepthManager.finishDepth(featuredDestinationsTargetDepth);
-        });
-        return;
+        if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
+            beginHomeInteractionLock(adaptiveDuration + 180);
+            const animateResult = window.OceanScroll.animateTo(top, {
+                duration: adaptiveDuration,
+                mood: travelDistance > window.innerHeight * 2.2 ? 'midwater' : 'buoyant'
+            });
+            if (animateResult && typeof animateResult.then === 'function') {
+                animateResult.then(finishScroll, finishScroll);
+            } else {
+                finishScroll();
+            }
+            return;
+        }
+
+        beginHomeInteractionLock(160);
+        window.scrollTo(0, top);
+        finishScroll();
+    };
+
+    window.requestAnimationFrame(() => {
+        if (typeof homeViewportCoordinator !== 'undefined') {
+            homeViewportCoordinator.requestMeasure();
+        }
+        window.requestAnimationFrame(startScroll);
+    });
+}
+
+/**
+ * primeHomeScrollTarget(targetSelector) - 在长距离滚动前预热目标路径上的延迟模块，避免滚动途中初始化造成掉帧
+ * @param {string} targetSelector - 目标区块选择器
+ * @returns {void}
+ */
+function primeHomeScrollTarget(targetSelector) {
+    const shouldPrimeCurated = [
+        '#featured-destinations',
+        '#dive-match',
+        '#why-yanqi',
+        '#homeFooter'
+    ].includes(targetSelector);
+    const shouldPrimeDiveMatch = ['#dive-match', '#why-yanqi', '#homeFooter'].includes(targetSelector);
+    const shouldPrimeStory = ['#why-yanqi', '#homeFooter'].includes(targetSelector);
+
+    if (shouldPrimeCurated) {
+        ensureCuratedWatersStage();
     }
 
-    window.scrollTo(0, top);
+    if (shouldPrimeDiveMatch) {
+        ensureDiveMatchStage();
+    }
 
-    if (
-        targetSelector === '#featured-destinations' &&
-        window.DepthManager &&
-        typeof window.DepthManager.finishDepth === 'function'
-    ) {
-        window.DepthManager.finishDepth(featuredDestinationsTargetDepth);
+    if (shouldPrimeStory) {
+        ensureStoryReveal();
     }
 }
 
@@ -3210,59 +3541,51 @@ function setupHomeNavState() {
         return;
     }
 
-    let rafId = 0;
-    let measureRaf = 0;
     let navOffset = (navbar ? navbar.offsetHeight : 70) + 18;
     let featuredTop = 0;
     let storyTop = 0;
+    let activeLink = null;
     const featuredAnchor = featuredSection.querySelector('#curatedWatersStage') || featuredSection;
 
     const measureAnchors = () => {
-        measureRaf = 0;
         navOffset = (navbar ? navbar.offsetHeight : 70) + 18;
         featuredTop = featuredAnchor.getBoundingClientRect().top + window.scrollY - navOffset;
         storyTop = storySection.getBoundingClientRect().top + window.scrollY - navOffset;
     };
 
     const scheduleMeasure = () => {
-        if (measureRaf) {
-            return;
-        }
-
-        measureRaf = window.requestAnimationFrame(() => {
-            measureAnchors();
-            updateNavState();
-        });
+        homeViewportCoordinator.requestMeasure();
     };
 
     const updateNavState = () => {
-        rafId = 0;
-
         const probeY = (window.scrollY || window.pageYOffset || 0) + navOffset + Math.min(window.innerHeight * 0.24, 220);
 
         if (probeY >= storyTop - 24) {
-            setHomeActiveNavLink(storyLink);
+            if (activeLink !== storyLink) {
+                activeLink = storyLink;
+                setHomeActiveNavLink(storyLink);
+            }
             return;
         }
 
         if (probeY >= featuredTop - 24) {
-            setHomeActiveNavLink(destinationsLink);
+            if (activeLink !== destinationsLink) {
+                activeLink = destinationsLink;
+                setHomeActiveNavLink(destinationsLink);
+            }
             return;
         }
 
-        setHomeActiveNavLink(homeLink);
-    };
-
-    const queueUpdate = () => {
-        if (rafId) {
-            return;
+        if (activeLink !== homeLink) {
+            activeLink = homeLink;
+            setHomeActiveNavLink(homeLink);
         }
-
-        rafId = window.requestAnimationFrame(updateNavState);
     };
 
-    window.addEventListener('scroll', queueUpdate, { passive: true });
-    window.addEventListener('resize', scheduleMeasure);
+    homeViewportCoordinator.register({
+        measure: measureAnchors,
+        update: updateNavState
+    });
 
     if ('ResizeObserver' in window) {
         const observer = new ResizeObserver(scheduleMeasure);
@@ -3274,10 +3597,8 @@ function setupHomeNavState() {
     }
 
     measureAnchors();
-    window.setTimeout(() => {
-        measureAnchors();
-        updateNavState();
-    }, 60);
+    updateNavState();
+    window.setTimeout(() => homeViewportCoordinator.requestMeasure(), 60);
 }
 
 // 英雄区入场：控制首页首屏的渐进式开场状态。
@@ -3401,10 +3722,12 @@ function setupHomeScrollLinks() {
             }
 
             if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
+                beginHomeInteractionLock(1980);
                 window.OceanScroll.animateTo(0, { duration: 1900 });
                 return;
             }
 
+            beginHomeInteractionLock(160);
             window.scrollTo(0, 0);
         });
     }
@@ -3690,14 +4013,49 @@ function setupStoryReveal() {
         return;
     }
 
-    observeOnceInViewport(section, () => {
-        revealItems.forEach((item) => {
-            item.classList.add('is-visible');
+    if (!('IntersectionObserver' in window)) {
+        revealItems.forEach((item) => item.classList.add('is-visible'));
+        return;
+    }
+
+    let itemObserver = null;
+    const startItemObserver = () => {
+        if (itemObserver) {
+            return;
+        }
+
+        itemObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                entry.target.classList.add('is-visible');
+                itemObserver.unobserve(entry.target);
+            });
+        }, {
+            threshold: 0.18,
+            rootMargin: '0px 0px -20% 0px'
+        });
+
+        revealItems.forEach((item) => itemObserver.observe(item));
+    };
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            startItemObserver();
+            sectionObserver.unobserve(entry.target);
         });
     }, {
-        threshold: 0.12,
-        rootMargin: '0px 0px -14% 0px'
+        threshold: 0.01,
+        rootMargin: '0px 0px -42% 0px'
     });
+
+    sectionObserver.observe(section);
 }
 
 // 首页海图导览：用浮层式海图导航替代普通回顶按钮，负责快速跳转和当前位置反馈。
@@ -3711,10 +4069,12 @@ class HomeSeaGuide {
         this.panel = document.getElementById('homeSeaGuidePanel');
         this.entries = Array.from(document.querySelectorAll('#homeSeaGuide .sea-guide-entry'));
         this.isOpen = false;
-        this.updateRaf = 0;
-        this.measureRaf = 0;
+        this.currentKey = '';
+        this.lastVisible = false;
+        this.lastDeep = false;
         this.targetTops = new Map();
         this.resizeObserver = null;
+        this.viewportSyncDisposer = null;
 
         if (this.guide && this.trigger && this.panel && this.entries.length) {
             this.init();
@@ -3783,14 +4143,7 @@ class HomeSeaGuide {
      * @returns {void}
      */
     scheduleMeasureTargets() {
-        if (this.measureRaf) {
-            return;
-        }
-
-        this.measureRaf = window.requestAnimationFrame(() => {
-            this.measureRaf = 0;
-            this.measureTargets();
-        });
+        homeViewportCoordinator.requestMeasure();
     }
 
     /**
@@ -3803,6 +4156,7 @@ class HomeSeaGuide {
         this.guide.classList.toggle('is-open', this.isOpen);
         this.trigger.setAttribute('aria-expanded', String(this.isOpen));
         this.panel.setAttribute('aria-hidden', String(!this.isOpen));
+        setHomeGuideOpenState(this.isOpen);
     }
 
     /**
@@ -3856,9 +4210,22 @@ class HomeSeaGuide {
         const isDeep = scrollTop > Math.max(window.innerHeight * 0.9, 860);
         const currentKey = this.getCurrentKey();
 
-        this.guide.classList.toggle('is-visible', isVisible);
-        this.guide.classList.toggle('is-deep', isDeep);
-        this.guide.setAttribute('aria-hidden', String(!isVisible));
+        if (this.lastVisible !== isVisible) {
+            this.lastVisible = isVisible;
+            this.guide.classList.toggle('is-visible', isVisible);
+            this.guide.setAttribute('aria-hidden', String(!isVisible));
+        }
+
+        if (this.lastDeep !== isDeep) {
+            this.lastDeep = isDeep;
+            this.guide.classList.toggle('is-deep', isDeep);
+        }
+
+        if (this.currentKey === currentKey) {
+            return;
+        }
+
+        this.currentKey = currentKey;
 
         this.entries.forEach((entry) => {
             const isCurrent = entry.dataset.key === currentKey;
@@ -3872,20 +4239,11 @@ class HomeSeaGuide {
      * @returns {void} - 无返回值，直接注册首页海图导览事件
      */
     init() {
-        const requestStateUpdate = () => {
-            if (this.updateRaf) {
-                return;
-            }
-
-            this.updateRaf = window.requestAnimationFrame(() => {
-                this.updateRaf = 0;
-                this.updateState();
-            });
-        };
-        const handleLayoutChange = () => {
-            this.scheduleMeasureTargets();
-            requestStateUpdate();
-        };
+        this.viewportSyncDisposer = homeViewportCoordinator.register({
+            measure: () => this.measureTargets(),
+            update: () => this.updateState()
+        });
+        const handleLayoutChange = () => homeViewportCoordinator.requestMeasure();
         // 滚动时不直接频繁计算当前 section，而是压到 requestAnimationFrame 里统一做。
         // 这样能减少抖动，也更符合“海图导览跟着页面呼吸”这种缓和节奏。
 
@@ -3916,9 +4274,6 @@ class HomeSeaGuide {
             }
         });
 
-        window.addEventListener('scroll', requestStateUpdate, { passive: true });
-        window.addEventListener('resize', handleLayoutChange);
-
         if ('ResizeObserver' in window) {
             this.resizeObserver = new ResizeObserver(handleLayoutChange);
             this.entries.forEach((entry) => {
@@ -3930,10 +4285,8 @@ class HomeSeaGuide {
         }
 
         this.measureTargets();
-        window.setTimeout(() => {
-            this.measureTargets();
-            this.updateState();
-        }, 80);
+        this.updateState();
+        window.setTimeout(() => homeViewportCoordinator.requestMeasure(), 80);
     }
 }
 
@@ -3997,12 +4350,11 @@ function setupHomeLayerFlow() {
         body.dataset.currentHomeLayer = layerKey || '';
     };
 
-    let rafId = 0;
-    let measureRaf = 0;
     let sectionMetrics = [];
+    let currentLayerIndex = -1;
+    let currentLayerKey = '';
 
     const measureSections = () => {
-        measureRaf = 0;
         sectionMetrics = layerSections.map((section) => ({
             section,
             top: section.getBoundingClientRect().top + window.scrollY
@@ -4010,19 +4362,10 @@ function setupHomeLayerFlow() {
     };
 
     const scheduleMeasure = () => {
-        if (measureRaf) {
-            return;
-        }
-
-        measureRaf = window.requestAnimationFrame(() => {
-            measureSections();
-            updateLayerState();
-        });
+        homeViewportCoordinator.requestMeasure();
     };
 
     const updateLayerState = () => {
-        rafId = 0;
-
         const scrollY = window.scrollY || window.pageYOffset || 0;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
         const probeY = scrollY + Math.min(viewportHeight * 0.42, 320);
@@ -4041,32 +4384,35 @@ function setupHomeLayerFlow() {
             || (nextSection.getBoundingClientRect().top + scrollY);
         const layerDistance = Math.max(1, nextTop - currentTop);
         const layerProgress = clamp((probeY - currentTop) / layerDistance, 0, 1);
+        const nextLayerKey = currentSection?.dataset.homeLayer || '';
 
-        layerSections.forEach((section, index) => {
-            const distance = index - currentIndex;
-            section.classList.toggle('is-home-current', index === currentIndex);
-            section.classList.toggle('is-home-passed', index < currentIndex);
-            section.classList.toggle('is-home-upcoming', index > currentIndex);
-            section.style.setProperty('--home-layer-distance', String(distance));
-        });
-
-        setCurrentLayer(currentSection?.dataset.homeLayer || '');
-        body?.style.setProperty('--home-layer-progress', layerProgress.toFixed(3));
-        body?.style.setProperty('--home-layer-index', String(currentIndex));
-    };
-
-    const queueLayerState = () => {
-        if (rafId) {
-            return;
+        if (currentLayerIndex !== currentIndex) {
+            currentLayerIndex = currentIndex;
+            layerSections.forEach((section, index) => {
+                const distance = index - currentIndex;
+                section.classList.toggle('is-home-current', index === currentIndex);
+                section.classList.toggle('is-home-passed', index < currentIndex);
+                section.classList.toggle('is-home-upcoming', index > currentIndex);
+                section.style.setProperty('--home-layer-distance', String(distance));
+            });
+            body?.style.setProperty('--home-layer-index', String(currentIndex));
         }
 
-        rafId = window.requestAnimationFrame(updateLayerState);
+        if (currentLayerKey !== nextLayerKey) {
+            currentLayerKey = nextLayerKey;
+            setCurrentLayer(nextLayerKey);
+        }
+
+        body?.style.setProperty('--home-layer-progress', layerProgress.toFixed(3));
     };
 
+    homeViewportCoordinator.register({
+        measure: measureSections,
+        update: updateLayerState
+    });
     measureSections();
-    queueLayerState();
-    window.addEventListener('scroll', queueLayerState, { passive: true });
-    window.addEventListener('resize', scheduleMeasure);
+    updateLayerState();
+    window.setTimeout(() => homeViewportCoordinator.requestMeasure(), 80);
 
     if ('ResizeObserver' in window) {
         const observer = new ResizeObserver(scheduleMeasure);
@@ -4090,11 +4436,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const shouldBootstrapDiveMatchImmediately =
         pendingHomeScrollTarget === '#dive-match' ||
         hasDiveMatchDeepLink;
-    const shouldBootstrapStoryImmediately =
-        pendingHomeScrollTarget === '#why-yanqi' ||
-        window.location.hash === '#why-yanqi';
+    const homePerformanceProfile = resolveHomePerformanceProfile();
 
     setupStageDebugToggle();
+    applyHomePerformanceProfile(homePerformanceProfile);
     new BambooScroll();
     setupHeroImmersion();
     setupHeroHotspotsStageResize();
@@ -4103,6 +4448,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupHomeScrollLinks();
     new HomeSeaGuide();
     setupHomeLayerFlow();
+    homeViewportCoordinator.requestMeasure();
+    ensureStoryReveal();
 
     createDeferredSectionBootstrap('#featured-destinations', ensureCuratedWatersStage, {
         immediate: shouldBootstrapCuratedImmediately,
@@ -4114,12 +4461,6 @@ document.addEventListener('DOMContentLoaded', function () {
         idleTimeoutMs: 1200,
         rootMargin: '180% 0px 140% 0px'
     });
-    createDeferredSectionBootstrap('#why-yanqi', ensureStoryReveal, {
-        immediate: shouldBootstrapStoryImmediately,
-        idleTimeoutMs: 1500,
-        rootMargin: '160% 0px 120% 0px'
-    });
-
     consumePendingHomeScrollTarget();
     setupHeroAnimationPause();
 

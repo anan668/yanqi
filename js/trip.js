@@ -159,6 +159,25 @@ function applyTripRevealPreset(elements, className) {
         .forEach((element) => element.classList.add(className));
 }
 
+/**
+ * restartTransientClassAnimation(element, className) - 用下一帧重新挂载状态类，避免为了重启动画强制回流。
+ * @param {HTMLElement|null} element - 目标节点
+ * @param {string} className - 需要重启的状态类
+ * @returns {void}
+ */
+function restartTransientClassAnimation(element, className) {
+    if (!element || !className) {
+        return;
+    }
+
+    element.classList.remove(className);
+    window.requestAnimationFrame(() => {
+        if (element.isConnected) {
+            element.classList.add(className);
+        }
+    });
+}
+
 // 绑定行程页顶部导航和带 data-scroll-target 的内部跳转链接。
 /**
  * setupTripScrollLinks() - 绑定行程页顶部导航和内部滚动链接
@@ -264,7 +283,9 @@ class TripSeaGuide {
         this.isOpen = false;
         this.updateRaf = 0;
         this.measureRaf = 0;
+        this.navOffset = Number.NaN;
         this.targetTops = new Map();
+        this.targetMetrics = [];
         this.resizeObserver = null;
 
         if (this.guide && this.trigger && this.panel && this.entries.length) {
@@ -276,9 +297,14 @@ class TripSeaGuide {
      * getOffset() - 计算海图导览滚动时需要避开的固定导航高度
      * @returns {number} - 顶部偏移量
      */
-    getOffset() {
+    getOffset(forceMeasure = false) {
+        if (!forceMeasure && Number.isFinite(this.navOffset)) {
+            return this.navOffset;
+        }
+
         const navbar = document.querySelector('.navbar');
-        return (navbar ? navbar.offsetHeight : 72) + 18;
+        this.navOffset = (navbar ? navbar.offsetHeight : 72) + 18;
+        return this.navOffset;
     }
 
     /**
@@ -295,8 +321,9 @@ class TripSeaGuide {
      * @returns {void}
      */
     measureTargets() {
-        const offset = this.getOffset();
+        const offset = this.getOffset(true);
         this.targetTops.clear();
+        this.targetMetrics = [];
 
         this.entries.forEach((entry) => {
             const selector = entry.dataset.target;
@@ -305,10 +332,16 @@ class TripSeaGuide {
                 return;
             }
 
+            const top = target.getBoundingClientRect().top + window.scrollY - offset;
             this.targetTops.set(
                 selector,
-                target.getBoundingClientRect().top + window.scrollY - offset
+                top
             );
+            this.targetMetrics.push({
+                key: entry.dataset.key || '',
+                selector,
+                top
+            });
         });
     }
 
@@ -357,23 +390,16 @@ class TripSeaGuide {
      * @returns {string} - 当前 section 对应的海图 key
      */
     getCurrentKey() {
-        if (!this.entries.length) {
+        if (!this.targetMetrics.length) {
             return '';
         }
 
         const probeY = window.scrollY + this.getOffset() + Math.min(window.innerHeight * 0.24, 220);
-        let currentKey = this.entries[0].dataset.key || '';
+        let currentKey = this.targetMetrics[0].key || '';
 
-        this.entries.forEach((entry) => {
-            const target = this.getProbeTarget(entry.dataset.target);
-            if (!target) {
-                return;
-            }
-
-            const sectionTop = this.targetTops.get(entry.dataset.target)
-                ?? (target.getBoundingClientRect().top + window.scrollY - this.getOffset());
-            if (probeY >= sectionTop - 24) {
-                currentKey = entry.dataset.key || currentKey;
+        this.targetMetrics.forEach((metric) => {
+            if (probeY >= metric.top - 24) {
+                currentKey = metric.key || currentKey;
             }
         });
 
@@ -796,6 +822,7 @@ function setupPlannerSummary() {
     let activePanelKey = null;
     let panelPositionFrame = 0;
     let panelPositionListenersAttached = false;
+    let panelLayoutMetrics = new Map();
     let calendarViewDate = null;
     let autoAdvanceTimer = 0;
     let submitContinueTimer = 0;
@@ -884,9 +911,7 @@ function setupPlannerSummary() {
         itemNode.classList.toggle('is-empty', !isFilled);
 
         if (shouldPulse) {
-            itemNode.classList.remove('is-updated');
-            void itemNode.offsetWidth;
-            itemNode.classList.add('is-updated');
+            restartTransientClassAnimation(itemNode, 'is-updated');
         } else {
             itemNode.classList.remove('is-updated');
         }
@@ -896,9 +921,7 @@ function setupPlannerSummary() {
     }
 
     function pulsePlannerSummaryProgress() {
-        summaryRoot.classList.remove('is-progress-shifting');
-        void summaryRoot.offsetWidth;
-        summaryRoot.classList.add('is-progress-shifting');
+        restartTransientClassAnimation(summaryRoot, 'is-progress-shifting');
     }
 
     function syncPlannerSummaryMeter(filledCount, isConfirmed, state = {}) {
@@ -950,9 +973,7 @@ function setupPlannerSummary() {
         }
 
         clearPlannerFieldUnlockReveal(fieldNode);
-        fieldNode.classList.remove('is-unlocking');
-        void fieldNode.offsetWidth;
-        fieldNode.classList.add('is-unlocking');
+        restartTransientClassAnimation(fieldNode, 'is-unlocking');
 
         const timer = window.setTimeout(() => {
             fieldNode.classList.remove('is-unlocking');
@@ -1137,9 +1158,7 @@ function setupPlannerSummary() {
         startPlannerSubmitFeedbackCountdown(feedbackCopy.button, feedbackDelay);
         attachPlannerSubmitFeedbackInterruption();
 
-        summaryRoot.classList.remove('is-submit-feedback');
-        void summaryRoot.offsetWidth;
-        summaryRoot.classList.add('is-submit-feedback');
+        restartTransientClassAnimation(summaryRoot, 'is-submit-feedback');
         summaryStatusNote.textContent = feedbackCopy.status;
 
         submitContinueTimer = window.setTimeout(() => {
@@ -1523,41 +1542,41 @@ function setupPlannerSummary() {
      * @param {string} fieldKey - 字段键名
      * @returns {number} - 面板宽度
      */
-    function getPanelWidth(fieldKey) {
+    function getPanelWidth(fieldKey, triggerRect = null) {
         const config = fieldMap[fieldKey];
         if (!config) {
             return 360;
         }
 
-        const triggerRect = config.trigger.getBoundingClientRect();
+        const rect = triggerRect || config.trigger.getBoundingClientRect();
         const maxWidth = window.innerWidth - PANEL_MARGIN * 2;
         // 先从触发按钮自身宽度推导“理想面板宽度”，
         // 再用视口宽度减安全边距兜底，避免在窄屏上横向溢出。
 
         if (fieldKey === 'spot') {
-            return Math.min(Math.max(triggerRect.width + 48, 480), 620, maxWidth);
+            return Math.min(Math.max(rect.width + 48, 480), 620, maxWidth);
         }
 
         if (fieldKey === 'date') {
-            return Math.min(Math.max(triggerRect.width + 32, 360), 392, maxWidth);
+            return Math.min(Math.max(rect.width + 32, 360), 392, maxWidth);
         }
 
-        return Math.min(Math.max(triggerRect.width + 12, 360), 420, maxWidth);
+        return Math.min(Math.max(rect.width + 12, 360), 420, maxWidth);
     }
 
     /**
-     * positionPanel(fieldKey) - 根据字段位置将浮层稳定定位到视口。
+     * measurePanelPosition(fieldKey) - 先读取一次字段和面板布局，并缓存当前打开浮层的位置依据。
      * @param {string} fieldKey - 字段键名
-     * @returns {void} - 无返回值，直接写入面板位置
+     * @returns {Object|null} - 当前面板的布局快照
      */
-    function positionPanel(fieldKey) {
+    function measurePanelPosition(fieldKey) {
         const config = fieldMap[fieldKey];
         if (!config || config.panel.hidden) {
-            return;
+            return null;
         }
 
         const triggerRect = config.trigger.getBoundingClientRect();
-        const panelWidth = getPanelWidth(fieldKey);
+        const panelWidth = getPanelWidth(fieldKey, triggerRect);
 
         config.panel.style.width = `${panelWidth}px`;
         config.panel.style.maxWidth = `${window.innerWidth - PANEL_MARGIN * 2}px`;
@@ -1582,15 +1601,49 @@ function setupPlannerSummary() {
         }
 
         const finalHeight = config.panel.offsetHeight || Math.min(measuredHeight, availableHeight);
-        let left = fieldKey === 'people'
-            ? triggerRect.right - panelWidth
-            : triggerRect.left;
-        left = Math.max(PANEL_MARGIN, Math.min(left, window.innerWidth - panelWidth - PANEL_MARGIN));
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const metrics = {
+            triggerTop: triggerRect.top + scrollY,
+            triggerBottom: triggerRect.bottom + scrollY,
+            triggerLeft: triggerRect.left,
+            triggerRight: triggerRect.right,
+            panelWidth,
+            finalHeight,
+            shouldOpenUpward
+        };
 
-        let top = shouldOpenUpward
-            ? triggerRect.top - finalHeight - PANEL_GAP
-            : triggerRect.bottom + PANEL_GAP;
-        top = Math.max(PANEL_MARGIN, Math.min(top, window.innerHeight - finalHeight - PANEL_MARGIN));
+        panelLayoutMetrics.set(fieldKey, metrics);
+        return metrics;
+    }
+
+    /**
+     * positionPanel(fieldKey) - 根据字段位置将浮层稳定定位到视口。
+     * @param {string} fieldKey - 字段键名
+     * @returns {void} - 无返回值，直接写入面板位置
+     */
+    function positionPanel(fieldKey, metrics = panelLayoutMetrics.get(fieldKey)) {
+        const config = fieldMap[fieldKey];
+        if (!config || config.panel.hidden) {
+            return;
+        }
+
+        if (!metrics) {
+            metrics = measurePanelPosition(fieldKey);
+            if (!metrics) {
+                return;
+            }
+        }
+
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        let left = fieldKey === 'people'
+            ? metrics.triggerRight - metrics.panelWidth
+            : metrics.triggerLeft;
+        left = Math.max(PANEL_MARGIN, Math.min(left, window.innerWidth - metrics.panelWidth - PANEL_MARGIN));
+
+        let top = metrics.shouldOpenUpward
+            ? metrics.triggerTop - scrollY - metrics.finalHeight - PANEL_GAP
+            : metrics.triggerBottom - scrollY + PANEL_GAP;
+        top = Math.max(PANEL_MARGIN, Math.min(top, window.innerHeight - metrics.finalHeight - PANEL_MARGIN));
 
         config.panel.style.left = `${left}px`;
         config.panel.style.top = `${top}px`;
@@ -1600,17 +1653,37 @@ function setupPlannerSummary() {
      * schedulePanelPosition() - 在下一帧重新计算当前打开浮层的位。
      * @returns {void} - 无返回值，直接安排定位刷新
      */
-    function schedulePanelPosition() {
+    function schedulePanelPosition(options = {}) {
+        const { measure = false } = options;
         if (!activePanelKey || panelPositionFrame) {
             return;
         }
 
         panelPositionFrame = window.requestAnimationFrame(() => {
             panelPositionFrame = 0;
+            if (measure || !panelLayoutMetrics.has(activePanelKey)) {
+                measurePanelPosition(activePanelKey);
+            }
             positionPanel(activePanelKey);
         });
         // 定位放到下一帧做，是为了等浏览器先把本轮 class、尺寸和布局变化算完。
         // 避免读取到旧尺寸，导致浮层“先跳一下再归位”。
+    }
+
+    /**
+     * requestPanelPositionMeasure() - 需要重测尺寸时使用的刷新入口。
+     * @returns {void}
+     */
+    function requestPanelPositionMeasure() {
+        schedulePanelPosition({ measure: true });
+    }
+
+    /**
+     * requestPanelPositionFollow() - 仅根据滚动位置追随时使用的刷新入口。
+     * @returns {void}
+     */
+    function requestPanelPositionFollow() {
+        schedulePanelPosition({ measure: false });
     }
 
     /**
@@ -1622,8 +1695,8 @@ function setupPlannerSummary() {
             return;
         }
 
-        window.addEventListener('resize', schedulePanelPosition);
-        window.addEventListener('scroll', schedulePanelPosition, { passive: true });
+        window.addEventListener('resize', requestPanelPositionMeasure);
+        window.addEventListener('scroll', requestPanelPositionFollow, { passive: true });
         panelPositionListenersAttached = true;
     }
 
@@ -1636,8 +1709,8 @@ function setupPlannerSummary() {
             return;
         }
 
-        window.removeEventListener('resize', schedulePanelPosition);
-        window.removeEventListener('scroll', schedulePanelPosition);
+        window.removeEventListener('resize', requestPanelPositionMeasure);
+        window.removeEventListener('scroll', requestPanelPositionFollow);
         panelPositionListenersAttached = false;
 
         if (panelPositionFrame) {
@@ -1704,7 +1777,7 @@ function setupPlannerSummary() {
             }
 
             calendarGrid.classList.remove('is-transitioning');
-            schedulePanelPosition();
+            requestPanelPositionMeasure();
         };
 
         if (!direction) {
@@ -1741,6 +1814,7 @@ function setupPlannerSummary() {
         config.panel.classList.remove('is-open');
         config.panel.classList.remove('opens-upward');
         config.panel.classList.remove('is-submerged-panel');
+        panelLayoutMetrics.delete(fieldKey);
         if (fieldKey === 'people') {
             hideCustomPeopleEditor();
         }
@@ -1841,10 +1915,11 @@ function setupPlannerSummary() {
         }
 
         window.requestAnimationFrame(() => {
+            measurePanelPosition(targetFieldKey);
             positionPanel(targetFieldKey);
             config.panel.classList.add('is-open');
             floatingLayer.classList.remove('is-opening');
-            schedulePanelPosition();
+            requestPanelPositionFollow();
         });
         // 先让浏览器知道“它已经显示了”，下一帧再计算位置和加打开态，
         // 才能拿到真实尺寸并让透明。位移动画顺畅发生。
@@ -1932,7 +2007,7 @@ function setupPlannerSummary() {
         customPeopleBox.hidden = false;
         customPeopleInput.value = prefillValue || '';
         window.requestAnimationFrame(() => {
-            schedulePanelPosition();
+            requestPanelPositionMeasure();
             customPeopleInput.focus();
             customPeopleInput.select();
         });
@@ -2069,9 +2144,7 @@ function setupPlannerSummary() {
         syncSummaryItemState('people', hasPeople, nextValues.people);
 
         if (hasRenderedSummaryOnce && isConfirmed && !wasConfirmed) {
-            summaryRoot.classList.remove('is-updated-confirmed');
-            void summaryRoot.offsetWidth;
-            summaryRoot.classList.add('is-updated-confirmed');
+            restartTransientClassAnimation(summaryRoot, 'is-updated-confirmed');
         } else if (!isConfirmed) {
             summaryRoot.classList.remove('is-updated-confirmed');
         }
@@ -2756,16 +2829,7 @@ function runConfirmedBookingsEntrance(list) {
         // 用 setTimeout 把每张卡片错开，是为了做出更轻的成组推进感，
         // 同时把加类动作推迟到当前渲染提交之后，让 CSS 动画从稳定的初始态开始。
         const timerId = window.setTimeout(() => {
-            card.classList.remove('is-entering');
-
-            // 强制浏览器先结算一次布局。
-            // 这样下面再加回 `is-entering` 时，会被视为一次新的动画起点，
-            // 而不是被同一帧里的“移除又添加”直接合并掉。
-            void card.offsetWidth;
-
-            // `is-entering` 只表示“这张卡此刻正在执行入场动画”。
-            // 动画跑完后会由下面的 cleanupTimer 统一移除，避免状态残留。
-            card.classList.add('is-entering');
+            restartTransientClassAnimation(card, 'is-entering');
         }, INITIAL_ENTRANCE_DELAY + (index * CARD_STAGGER_DELAY));
         timerIds.push(timerId);
     });
