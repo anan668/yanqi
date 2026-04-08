@@ -685,6 +685,8 @@ function createHomeViewportCoordinator() {
 }
 
 const homeViewportCoordinator = createHomeViewportCoordinator();
+const HOME_HERO_DEFAULT_SPOT_ID = 13;
+const HOME_CURATED_DEFAULT_DESTINATION_ID = 13;
 
 // 热门潜点数据：用于竹签滚动推荐区的卡片渲染、价格展示和详情页跳转。
 const divingSpotsData = convertSpotCardPrices([
@@ -994,8 +996,8 @@ const DIVE_MATCH_DATA = Object.freeze([
         note: '更温和的窗口、更轻的流速和更容易安顿下来的节奏，会让第一次靠近海自然很多。',
         cards: [
             { id: 9, reason: '码头、浅礁和岛上慢生活放得很近，第一次下潜也不会太紧张。', tags: ['入门友好', '浅礁', '慢节奏'] },
-            { id: 12, reason: '白沙岸线、短船程和更轻的出海节奏，会让第一次船潜更容易放松。', tags: ['入门 / OW', '轻船潜', '岸线'] },
-            { id: 6, reason: '海墙和海龟都很明亮，但整体节奏不会逼得太快。', tags: ['OW / AOW', '海龟', '清澈'] }
+            { id: 13, reason: '皇帝岛会先用白沙海湾、玻璃蓝和更轻一点的泰国船潜节奏，把第一次靠近安排得更从容。', tags: ['入门 / OW', '玻璃蓝', '轻船潜'] },
+            { id: 12, reason: '白沙岸线、短船程和更轻的出海节奏，会让第一次船潜更容易放松。', tags: ['入门 / OW', '轻船潜', '岸线'] }
         ]
     },
     {
@@ -1430,9 +1432,33 @@ class BambooScroll {
     init() {
         this.render();
         this.measure();
+        this.centerOnSpotId(HOME_HERO_DEFAULT_SPOT_ID);
         this.attachEvents();
         this.updateTrackPosition(true);
         this.scheduleAutoStep();
+    }
+
+    /**
+     * centerOnSpotId(spotId) - 让首页“今日海域”初始停在指定海域卡片
+     * @param {number} spotId - 需要优先展示的海域 id
+     * @returns {void} - 无返回值，直接把轨道移到目标卡片
+     */
+    centerOnSpotId(spotId) {
+        const targetDataIndex = divingSpotsData.findIndex((spot) => spot.id === spotId);
+        if (targetDataIndex < 0 || this.cards.length === 0 || this.cardCenterOffsets.length === 0) {
+            return;
+        }
+
+        const preferredSetIndex = Math.max(0, Math.floor(this.cloneSets / 2));
+        const targetCardIndex = this.clamp((preferredSetIndex * this.totalCards) + targetDataIndex, 0, this.cards.length - 1);
+        const targetCenter = this.cardCenterOffsets[targetCardIndex];
+        if (!Number.isFinite(targetCenter)) {
+            return;
+        }
+
+        this.trackPosition = targetCenter - this.wrapperCenter;
+        this.recenterTrack();
+        this.lastAppliedTrackPosition = Number.NaN;
     }
 
     /**
@@ -2647,7 +2673,7 @@ class CuratedWatersStage {
         this.mainCard = document.getElementById('curatedMainCard');
         this.liveSummary = document.getElementById('curatedLiveSummary');
         this.navRail = document.getElementById('destinationsGrid');
-        this.currentIndex = 0;
+        this.currentIndex = Math.max(0, destinationsData.findIndex((item) => item.id === HOME_CURATED_DEFAULT_DESTINATION_ID));
         this.sampleBatchSize = 3;
         this.sampleBatchCursor = 0;
         this.activeSampleSlot = 0;
