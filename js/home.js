@@ -397,7 +397,7 @@ function scheduleIdleTask(callback, timeout = 1200) {
  * createDeferredSectionBootstrap(selector, bootstrap, options) - 让下方区块在空闲或接近视口时再初始化
  * @param {string} selector - 目标区块选择器
  * @param {Function} bootstrap - 真正的初始化函数
- * @param {{ immediate?: boolean, idleTimeoutMs?: number, rootMargin?: string, threshold?: number }} options - 启动配置
+ * @param {{ immediate?: boolean, idleTimeoutMs?: number|null, enableIdleBootstrap?: boolean, rootMargin?: string, threshold?: number, viewportLeadRatio?: number, viewportBottomRatio?: number }} options - 启动配置
  * @returns {Function} - 可重复调用的“确保已启动”函数
  */
 function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
@@ -405,8 +405,11 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
     const {
         immediate = false,
         idleTimeoutMs = 1200,
+        enableIdleBootstrap = true,
         rootMargin = '180% 0px 140% 0px',
-        threshold = 0.01
+        threshold = 0.01,
+        viewportLeadRatio = 1.4,
+        viewportBottomRatio = -0.35
     } = options;
     let hasBootstrapped = false;
     let cancelIdleTask = () => {};
@@ -425,7 +428,7 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
 
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
         const rect = target.getBoundingClientRect();
-        return rect.top <= viewportHeight * 1.4 && rect.bottom >= -viewportHeight * 0.35;
+        return rect.top <= viewportHeight * viewportLeadRatio && rect.bottom >= viewportHeight * viewportBottomRatio;
     };
 
     function requestViewportBootstrapCheck() {
@@ -461,7 +464,9 @@ function createDeferredSectionBootstrap(selector, bootstrap, options = {}) {
         return runBootstrap;
     }
 
-    cancelIdleTask = scheduleIdleTask(runBootstrap, idleTimeoutMs);
+    if (enableIdleBootstrap && Number.isFinite(idleTimeoutMs) && idleTimeoutMs > 0) {
+        cancelIdleTask = scheduleIdleTask(runBootstrap, idleTimeoutMs);
+    }
 
     if (typeof homeViewportCoordinator !== 'undefined') {
         detachViewportBootstrap = homeViewportCoordinator.register({
@@ -687,9 +692,224 @@ function createHomeViewportCoordinator() {
 const homeViewportCoordinator = createHomeViewportCoordinator();
 const HOME_HERO_DEFAULT_SPOT_ID = 13;
 const HOME_CURATED_DEFAULT_DESTINATION_ID = 13;
+const HOME_IMAGE_MANIFEST_PATH = 'assets/images/home/home-image-manifest.json';
+const HOME_IMAGE_MANIFEST_GLOBAL_KEYS = Object.freeze([
+    'YANQI_HOME_IMAGE_MANIFEST',
+    'YanqiHomeImageManifest',
+    '__YANQI_HOME_IMAGE_MANIFEST__'
+]);
+const HOME_IMAGE_RENDER_SLOTS = Object.freeze({
+    heroCard: Object.freeze({ width: 280, height: 180 }),
+    curatedNavThumb: Object.freeze({ width: 56, height: 56 }),
+    curatedDisplay: Object.freeze({ width: 760, height: 720 }),
+    diveMatchCard: Object.freeze({ width: 520, height: 360 })
+});
+const HOME_IMAGE_FALLBACK_MANIFEST = Object.freeze([
+    { original: 'assets/images/sipadan.jpg', compressed: 'assets/images/home/sipadan.webp', width: 1440, height: 1080 },
+    { original: 'assets/images/palau.jpg', compressed: 'assets/images/home/palau.webp', width: 2400, height: 1600 },
+    { original: 'assets/images/blue-hole.jpg', compressed: 'assets/images/home/blue-hole.webp', width: 1711, height: 2248 },
+    { original: 'assets/images/timor.jpg', compressed: 'assets/images/home/timor.webp', width: 1080, height: 1903 },
+    { original: 'assets/images/pohnpei.jpg', compressed: 'assets/images/home/pohnpei.webp', width: 1079, height: 1417 },
+    { original: 'assets/images/komodo.jpg', compressed: 'assets/images/home/komodo.webp', width: 1426, height: 2564 },
+    { original: 'assets/images/tuamotu.jpg', compressed: 'assets/images/home/tuamotu.webp', width: 1920, height: 1280 },
+    { original: 'assets/images/mabul.jpg', compressed: 'assets/images/home/mabul.webp', width: 1080, height: 1606 },
+    { original: 'assets/images/maldives-liveaboard.jpg', compressed: 'assets/images/home/maldives-liveaboard.webp', width: 1991, height: 1080 },
+    { original: 'assets/images/coron-review-1-island-chain.jpg', compressed: 'assets/images/home/coron-review-1-island-chain.webp', width: 1280, height: 720 },
+    { original: 'assets/images/bohol.jpg', compressed: 'assets/images/home/bohol.webp', width: 1280, height: 960 },
+    { original: 'assets/images/racha.jpg', compressed: 'assets/images/home/racha.webp', width: 1439, height: 842 },
+    { original: 'assets/images/redang.jpg', compressed: 'assets/images/home/redang.webp', width: 2200, height: 1117 }
+]);
+const HOME_IMAGE_ASSET_MAP = new Map();
+let homeImageManifestPromise = null;
+
+function normalizeHomeImagePath(path) {
+    return String(path || '').trim().replace(/\\/g, '/');
+}
+
+function normalizeHomeImageManifestEntries(manifest) {
+    if (!manifest) {
+        return [];
+    }
+
+    if (Array.isArray(manifest)) {
+        return manifest;
+    }
+
+    if (typeof manifest === 'object') {
+        return Object.entries(manifest).map(([original, value]) => {
+            if (typeof value === 'string') {
+                return { original, compressed: value };
+            }
+
+            if (value && typeof value === 'object') {
+                return {
+                    original,
+                    compressed: value.compressed || value.src || value.image || '',
+                    width: value.width,
+                    height: value.height
+                };
+            }
+
+            return null;
+        }).filter(Boolean);
+    }
+
+    return [];
+}
+
+function registerHomeImageManifestEntries(manifest) {
+    const entries = normalizeHomeImageManifestEntries(manifest);
+    entries.forEach((entry) => {
+        const original = normalizeHomeImagePath(entry?.original);
+        const compressed = normalizeHomeImagePath(entry?.compressed);
+        if (!original || !compressed) {
+            return;
+        }
+
+        HOME_IMAGE_ASSET_MAP.set(original, {
+            compressed,
+            width: Number.isFinite(entry?.width) && entry.width > 0 ? Math.round(entry.width) : null,
+            height: Number.isFinite(entry?.height) && entry.height > 0 ? Math.round(entry.height) : null
+        });
+    });
+}
+
+function readHomeImageManifestFromWindow() {
+    for (const key of HOME_IMAGE_MANIFEST_GLOBAL_KEYS) {
+        const manifest = window[key];
+        if (manifest) {
+            return manifest;
+        }
+    }
+
+    return null;
+}
+
+function ensureHomeImageManifestReady() {
+    if (homeImageManifestPromise) {
+        return homeImageManifestPromise;
+    }
+
+    registerHomeImageManifestEntries(HOME_IMAGE_FALLBACK_MANIFEST);
+    const windowManifest = readHomeImageManifestFromWindow();
+    if (windowManifest) {
+        registerHomeImageManifestEntries(windowManifest);
+    }
+
+    if (typeof fetch !== 'function') {
+        homeImageManifestPromise = Promise.resolve();
+        return homeImageManifestPromise;
+    }
+
+    homeImageManifestPromise = fetch(HOME_IMAGE_MANIFEST_PATH, { cache: 'force-cache' })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((manifest) => {
+            if (manifest) {
+                registerHomeImageManifestEntries(manifest);
+            }
+        })
+        .catch(() => {
+            // Manifest 拉取失败时保持静默，继续使用内置映射和原图回退。
+        });
+
+    return homeImageManifestPromise;
+}
+
+async function settleHomeImageManifest(maxWaitMs = 220) {
+    const waitMs = Number.isFinite(maxWaitMs) && maxWaitMs > 0
+        ? Math.round(maxWaitMs)
+        : 0;
+    const manifestReady = ensureHomeImageManifestReady();
+
+    if (!waitMs) {
+        await manifestReady;
+        return;
+    }
+
+    await Promise.race([
+        manifestReady,
+        new Promise((resolve) => {
+            window.setTimeout(resolve, waitMs);
+        })
+    ]);
+}
+
+function resolveHomeImageAsset(imagePath) {
+    const originalSrc = normalizeHomeImagePath(imagePath);
+    if (!originalSrc) {
+        return {
+            src: '',
+            fallbackSrc: '',
+            originalSrc: ''
+        };
+    }
+
+    if (originalSrc.includes('/home/')) {
+        return {
+            src: originalSrc,
+            fallbackSrc: originalSrc,
+            originalSrc
+        };
+    }
+
+    const mapped = HOME_IMAGE_ASSET_MAP.get(originalSrc);
+    if (!mapped?.compressed) {
+        return {
+            src: originalSrc,
+            fallbackSrc: originalSrc,
+            originalSrc
+        };
+    }
+
+    return {
+        src: mapped.compressed,
+        fallbackSrc: originalSrc,
+        originalSrc
+    };
+}
+
+function withHomeImageDescriptor(record) {
+    const imageAsset = resolveHomeImageAsset(record.image);
+    return {
+        ...record,
+        imageOriginal: imageAsset.originalSrc,
+        image: imageAsset.src,
+        imageFallback: imageAsset.fallbackSrc
+    };
+}
+
+function withHomeImageDescriptors(records) {
+    return records.map((record) => withHomeImageDescriptor(record));
+}
+
+function refreshHomeImageDescriptors(records) {
+    records.forEach((record) => {
+        if (!record || typeof record !== 'object') {
+            return;
+        }
+
+        const imageAsset = resolveHomeImageAsset(record.imageOriginal || record.image);
+        record.imageOriginal = imageAsset.originalSrc;
+        record.image = imageAsset.src;
+        record.imageFallback = imageAsset.fallbackSrc;
+    });
+}
+
+function buildImageErrorHandler(imageLabel, slot) {
+    const width = slot?.width || 400;
+    const height = slot?.height || 300;
+    const safeLabel = encodeURIComponent(String(imageLabel || 'image'));
+    return `const fallback=this.dataset.fallbackSrc;const activeSrc=this.currentSrc||this.src||'';if(fallback&&activeSrc.indexOf(fallback)===-1){this.src=fallback;return;}this.onerror=null;this.src='https://via.placeholder.com/${width}x${height}?text=${safeLabel}'`;
+}
+
+function buildThumbImageErrorHandler() {
+    return "const fallback=this.dataset.fallbackSrc;const activeSrc=this.currentSrc||this.src||'';if(fallback&&activeSrc.indexOf(fallback)===-1){this.src=fallback;return;}this.style.display='none'";
+}
+
+ensureHomeImageManifestReady();
 
 // 热门潜点数据：用于竹签滚动推荐区的卡片渲染、价格展示和详情页跳转。
-const divingSpotsData = convertSpotCardPrices([
+const divingSpotsData = withHomeImageDescriptors(convertSpotCardPrices([
     {
         id: 1,
         name: '诗巴丹',
@@ -802,15 +1022,24 @@ const divingSpotsData = convertSpotCardPrices([
         id: 13,
         name: '皇帝岛',
         tagline: '让玻璃蓝和缓坡珊瑚把呼吸慢慢放平',
-        image: 'assets/images/diving-spot.jpg',
+        image: 'assets/images/racha.jpg',
         price: getSpotBasePriceText(13, '¥3,680'),
         rating: '4.7',
         difficulty: '★'
+    },
+    {
+        id: 14,
+        name: '热浪岛',
+        tagline: '在清透礁坡与海岛风里把节奏慢慢放轻',
+        image: 'assets/images/redang.jpg',
+        price: getSpotBasePriceText(14, '¥3,680'),
+        rating: '4.7',
+        difficulty: '★'
     }
-]);
+]));
 
 // 精选目的地数据：用于海域档案陈列廊的主舞台卡和右侧样本卡切换。
-const destinationsData = [
+const destinationsData = withHomeImageDescriptors([
     {
         id: 1,
         name: '诗巴丹',
@@ -964,7 +1193,7 @@ const destinationsData = [
     {
         id: 13,
         name: '皇帝岛',
-        image: 'assets/images/diving-spot.jpg',
+        image: 'assets/images/racha.jpg',
         englishName: 'Racha Island',
         atmosphere: '泰国南部这片海会先用清透浅蓝和更柔和的下潜节奏，把身体慢慢带进状态。',
         level: '入门 / OW',
@@ -975,8 +1204,28 @@ const destinationsData = [
         sampleKeyword: '玻璃蓝缓坡',
         sampleMeta: '泰国 / 缓流 / 入门友好',
         archiveLabel: 'Current Water 11'
+    },
+    {
+        id: 14,
+        name: '热浪岛',
+        image: 'assets/images/redang.jpg',
+        englishName: 'Redang Island',
+        atmosphere: '马来西亚东海岸这片海用透亮浅蓝、礁坡层次和更轻的船潜节奏，把人慢慢带进更放松的状态。',
+        level: '入门 / OW',
+        season: '3月–10月',
+        audience: '海岛入门潜旅 / 轻海况偏好',
+        conditions: ['清透浅蓝', '礁坡地形', '轻船潜'],
+        worthIt: '适合把第一次马来西亚海岛潜旅，留给更明亮也更好靠近的一层蓝。',
+        sampleKeyword: '清透礁坡线',
+        sampleMeta: '马来西亚 / 入门友好 / 轻船潜',
+        archiveLabel: 'Current Water 12'
     }
-];
+]);
+
+function refreshHomeDataImageSources() {
+    refreshHomeImageDescriptors(divingSpotsData);
+    refreshHomeImageDescriptors(destinationsData);
+}
 
 // 潜水匹配推荐数据：按能力、节奏和海况偏好组织首页新增的潜水匹配模块。
 const destinationById = new Map(destinationsData.map((item) => [item.id, item]));
@@ -997,7 +1246,7 @@ const DIVE_MATCH_DATA = Object.freeze([
         cards: [
             { id: 9, reason: '码头、浅礁和岛上慢生活放得很近，第一次下潜也不会太紧张。', tags: ['入门友好', '浅礁', '慢节奏'] },
             { id: 13, reason: '皇帝岛会先用白沙海湾、玻璃蓝和更轻一点的泰国船潜节奏，把第一次靠近安排得更从容。', tags: ['入门 / OW', '玻璃蓝', '轻船潜'] },
-            { id: 12, reason: '白沙岸线、短船程和更轻的出海节奏，会让第一次船潜更容易放松。', tags: ['入门 / OW', '轻船潜', '岸线'] }
+            { id: 14, reason: '热浪岛的清透浅蓝、礁坡和轻船潜窗口，会让第一次安排更容易进入状态。', tags: ['入门 / OW', '清透浅蓝', '礁坡'] }
         ]
     },
     {
@@ -1468,10 +1717,20 @@ class BambooScroll {
     render() {
         const fragment = document.createDocumentFragment();
         const visibleSetIndex = Math.floor(this.cloneSets / 2);
+        const preferredDataIndex = Math.max(0, divingSpotsData.findIndex((spot) => spot.id === HOME_HERO_DEFAULT_SPOT_ID));
+        const eagerRange = this.performanceProfile.lite ? 0 : 1;
+        const heroImageSlot = HOME_IMAGE_RENDER_SLOTS.heroCard;
 
         for (let set = 0; set < this.cloneSets; set += 1) {
-            divingSpotsData.forEach((spot) => {
-                const shouldDeferImage = set !== visibleSetIndex;
+            divingSpotsData.forEach((spot, dataIndex) => {
+                const imageAsset = resolveHomeImageAsset(spot.imageOriginal || spot.image);
+                const circularDistance = Math.min(
+                    Math.abs(dataIndex - preferredDataIndex),
+                    Math.abs(dataIndex - preferredDataIndex + this.totalCards),
+                    Math.abs(dataIndex - preferredDataIndex - this.totalCards)
+                );
+                const shouldPrioritizeImage = set === visibleSetIndex && circularDistance <= eagerRange;
+                const isPrimaryFocusImage = set === visibleSetIndex && circularDistance === 0;
                 const card = document.createElement('div');
                 card.className = 'bamboo-card';
                 card.dataset.spotId = String(spot.id);
@@ -1480,13 +1739,18 @@ class BambooScroll {
                 card.innerHTML = `
                     <div class="bamboo-card-image-wrapper">
                         <img
-                            src="${spot.image}"
+                            src="${imageAsset.src}"
+                            data-fallback-src="${imageAsset.fallbackSrc}"
                             alt="${spot.name}"
                             class="bamboo-card-image"
                             draggable="false"
                             decoding="async"
-                            ${shouldDeferImage ? 'loading="lazy" fetchpriority="low"' : 'loading="eager"'}
-                            onerror="this.src='https://via.placeholder.com/280x180?text=${encodeURIComponent(spot.name)}'"
+                            width="${heroImageSlot.width}"
+                            height="${heroImageSlot.height}"
+                            ${shouldPrioritizeImage
+                                ? (isPrimaryFocusImage ? 'loading="eager" fetchpriority="high"' : 'loading="eager" fetchpriority="auto"')
+                                : 'loading="lazy" fetchpriority="low"'}
+                            onerror="${buildImageErrorHandler(spot.name, heroImageSlot)}"
                         >
                     </div>
                     <div class="bamboo-card-content">
@@ -2684,6 +2948,7 @@ class CuratedWatersStage {
         this.revealIntroRafId = 0;
         this.revealStageRafId = 0;
         this.stageSettleTimer = 0;
+        this.preloadedImageSources = new Set();
         this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
 
         if (!this.section || !this.shell || !this.mainCard || !this.navRail) {
@@ -2713,6 +2978,8 @@ class CuratedWatersStage {
 
         const sampleMarkup = sampleIndices.map((index, railIndex) => {
             const dest = destinationsData[index];
+            const imageAsset = resolveHomeImageAsset(dest.imageOriginal || dest.image);
+            const thumbSlot = HOME_IMAGE_RENDER_SLOTS.curatedNavThumb;
             const isActive = index === this.currentIndex;
             const revealDelay = 120 + railIndex * 56;
             const cycleDelay = 32 + railIndex * 42;
@@ -2729,7 +2996,18 @@ class CuratedWatersStage {
                     style="--sample-reveal-delay: ${revealDelay}ms; --sample-cycle-delay: ${cycleDelay}ms; --sample-cycle-shift: ${cycleShift}px;"
                 >
                     <span class="curated-nav-thumb">
-                        <img src="${dest.image}" alt="" class="curated-nav-thumb-img" loading="lazy" decoding="async" fetchpriority="low" onerror="this.style.display='none'">
+                        <img
+                            src="${imageAsset.src}"
+                            data-fallback-src="${imageAsset.fallbackSrc}"
+                            alt=""
+                            class="curated-nav-thumb-img"
+                            loading="lazy"
+                            decoding="async"
+                            fetchpriority="low"
+                            width="${thumbSlot.width}"
+                            height="${thumbSlot.height}"
+                            onerror="${buildThumbImageErrorHandler()}"
+                        >
                     </span>
                     <span class="curated-nav-label">
                         <span class="curated-nav-index">${String(index + 1).padStart(2, '0')}</span>
@@ -2856,11 +3134,24 @@ class CuratedWatersStage {
      * @returns {HTMLDivElement}
      */
     createDisplaySurface(dest, index, directionClass) {
+        const imageAsset = resolveHomeImageAsset(dest.imageOriginal || dest.image);
+        const displaySlot = HOME_IMAGE_RENDER_SLOTS.curatedDisplay;
         const surface = document.createElement('div');
         surface.className = `curated-display-surface${directionClass ? ` ${directionClass}` : ''}`;
         surface.innerHTML = `
             <div class="curated-display-media">
-                <img src="${dest.image}" alt="${dest.name}" class="curated-display-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/760x720?text=${encodeURIComponent(dest.name)}'">
+                <img
+                    src="${imageAsset.src}"
+                    data-fallback-src="${imageAsset.fallbackSrc}"
+                    alt="${dest.name}"
+                    class="curated-display-image"
+                    loading="lazy"
+                    decoding="async"
+                    fetchpriority="low"
+                    width="${displaySlot.width}"
+                    height="${displaySlot.height}"
+                    onerror="${buildImageErrorHandler(dest.name, displaySlot)}"
+                >
                 <div class="curated-display-sea-note" aria-hidden="true">
                     <span class="curated-display-sea-note-label">Sea Signal</span>
                     <span class="curated-display-sea-note-value">${dest.sampleKeyword}</span>
@@ -3024,10 +3315,35 @@ class CuratedWatersStage {
         ].filter(Boolean);
 
         targets.forEach((dest) => {
-            const img = new Image();
-            img.decoding = 'async';
-            img.src = dest.image;
+            const imageAsset = resolveHomeImageAsset(dest.imageOriginal || dest.image);
+            this.preloadImageOnce(imageAsset.src, imageAsset.fallbackSrc);
         });
+    }
+
+    preloadImageOnce(src, fallbackSrc = '') {
+        const normalizedSrc = normalizeHomeImagePath(src);
+        if (!normalizedSrc || this.preloadedImageSources.has(normalizedSrc)) {
+            return;
+        }
+
+        this.preloadedImageSources.add(normalizedSrc);
+        const image = new Image();
+        image.decoding = 'async';
+        image.src = normalizedSrc;
+
+        const normalizedFallback = normalizeHomeImagePath(fallbackSrc);
+        if (normalizedFallback && normalizedFallback !== normalizedSrc) {
+            image.onerror = () => {
+                if (this.preloadedImageSources.has(normalizedFallback)) {
+                    return;
+                }
+
+                this.preloadedImageSources.add(normalizedFallback);
+                const fallbackImage = new Image();
+                fallbackImage.decoding = 'async';
+                fallbackImage.src = normalizedFallback;
+            };
+        }
     }
 
     /**
@@ -3214,6 +3530,8 @@ class DiveMatchStage {
             if (!destination) {
                 return '';
             }
+            const imageAsset = resolveHomeImageAsset(destination.imageOriginal || destination.image);
+            const cardImageSlot = HOME_IMAGE_RENDER_SLOTS.diveMatchCard;
 
             return `
                 <article
@@ -3225,7 +3543,18 @@ class DiveMatchStage {
                     style="--card-delay: ${index * 90}ms;"
                 >
                     <div class="dive-match-card-media">
-                        <img src="${destination.image}" alt="${destination.name}" class="dive-match-card-image" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='https://via.placeholder.com/520x360?text=${encodeURIComponent(destination.name)}'">
+                        <img
+                            src="${imageAsset.src}"
+                            data-fallback-src="${imageAsset.fallbackSrc}"
+                            alt="${destination.name}"
+                            class="dive-match-card-image"
+                            loading="lazy"
+                            decoding="async"
+                            fetchpriority="low"
+                            width="${cardImageSlot.width}"
+                            height="${cardImageSlot.height}"
+                            onerror="${buildImageErrorHandler(destination.name, cardImageSlot)}"
+                        >
                     </div>
                     <div class="dive-match-card-copy">
                         <p class="dive-match-card-kicker">${destination.englishName}</p>
@@ -4688,7 +5017,10 @@ function setupHomeLayerFlow() {
  * document DOMContentLoaded 回调 - 初始化首页的主要组件和页面级交互
  * @returns {void} - 无返回值，直接启动首页逻辑
  */
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    await settleHomeImageManifest(220);
+    refreshHomeDataImageSources();
+
     const pendingHomeScrollTarget = readStoredHomeScrollTarget();
     const hasDiveMatchDeepLink = window.location.hash === '#dive-match' || Boolean(getDiveMatchKeyFromLocation());
     const shouldBootstrapCuratedImmediately =
@@ -4716,13 +5048,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     createDeferredSectionBootstrap('#featured-destinations', ensureCuratedWatersStage, {
         immediate: shouldBootstrapCuratedImmediately,
-        idleTimeoutMs: 900,
-        rootMargin: '190% 0px 150% 0px'
+        enableIdleBootstrap: shouldBootstrapCuratedImmediately,
+        idleTimeoutMs: shouldBootstrapCuratedImmediately ? 900 : null,
+        rootMargin: '0px 0px 10% 0px',
+        viewportLeadRatio: shouldBootstrapCuratedImmediately ? 1.4 : 0.78,
+        viewportBottomRatio: -0.16
     });
     createDeferredSectionBootstrap('#dive-match', ensureDiveMatchStage, {
         immediate: shouldBootstrapDiveMatchImmediately,
-        idleTimeoutMs: 1200,
-        rootMargin: '180% 0px 140% 0px'
+        enableIdleBootstrap: shouldBootstrapDiveMatchImmediately,
+        idleTimeoutMs: shouldBootstrapDiveMatchImmediately ? 1200 : null,
+        rootMargin: '0px 0px 12% 0px',
+        viewportLeadRatio: shouldBootstrapDiveMatchImmediately ? 1.4 : 0.56,
+        viewportBottomRatio: -0.12
     });
     consumePendingHomeScrollTarget();
     setupHeroAnimationPause();

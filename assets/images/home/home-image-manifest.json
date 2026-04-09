@@ -1,0 +1,80 @@
+[
+  {
+    "original": "assets/images/sipadan.jpg",
+    "compressed": "assets/images/home/sipadan.webp",
+    "width": 1440,
+    "height": 1080
+  },
+  {
+    "original": "assets/images/palau.jpg",
+    "compressed": "assets/images/home/palau.webp",
+    "width": 2400,
+    "height": 1600
+  },
+  {
+    "original": "assets/images/blue-hole.jpg",
+    "compressed": "assets/images/home/blue-hole.webp",
+    "width": 1711,
+    "height": 2248
+  },
+  {
+    "original": "assets/images/timor.jpg",
+    "compressed": "assets/images/home/timor.webp",
+    "width": 1080,
+    "height": 1903
+  },
+  {
+    "original": "assets/images/pohnpei.jpg",
+    "compressed": "assets/images/home/pohnpei.webp",
+    "width": 1079,
+    "height": 1417
+  },
+  {
+    "original": "assets/images/komodo.jpg",
+    "compressed": "assets/images/home/komodo.webp",
+    "width": 1426,
+    "height": 2564
+  },
+  {
+    "original": "assets/images/tuamotu.jpg",
+    "compressed": "assets/images/home/tuamotu.webp",
+    "width": 1920,
+    "height": 1280
+  },
+  {
+    "original": "assets/images/mabul.jpg",
+    "compressed": "assets/images/home/mabul.webp",
+    "width": 1080,
+    "height": 1606
+  },
+  {
+    "original": "assets/images/maldives-liveaboard.jpg",
+    "compressed": "assets/images/home/maldives-liveaboard.webp",
+    "width": 1991,
+    "height": 1080
+  },
+  {
+    "original": "assets/images/coron-review-1-island-chain.jpg",
+    "compressed": "assets/images/home/coron-review-1-island-chain.webp",
+    "width": 1280,
+    "height": 720
+  },
+  {
+    "original": "assets/images/bohol.jpg",
+    "compressed": "assets/images/home/bohol.webp",
+    "width": 1280,
+    "height": 960
+  },
+  {
+    "original": "assets/images/racha.jpg",
+    "compressed": "assets/images/home/racha.webp",
+    "width": 1439,
+    "height": 842
+  },
+  {
+    "original": "assets/images/redang.jpg",
+    "compressed": "assets/images/home/redang.webp",
+    "width": 2200,
+    "height": 1117
+  }
+]

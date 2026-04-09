@@ -18,7 +18,8 @@
     const EXTRA_DESTINATION_BASE_PRICES = Object.freeze({
         11: 4980,
         12: 3980,
-        13: 3680
+        13: 3680,
+        14: 3680
     });
 
     // 这里保存的是“盐憩内部统一使用的参考起价”，不是实时价格。

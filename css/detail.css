@@ -2486,12 +2486,23 @@ body.has-overlay-lock {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+    align-content: start;
 }
 
 /* 控制 .review-gallery.has-featured-photo 的布局、视觉和状态表现 */
 .review-gallery.has-featured-photo {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
+}
+
+.review-gallery.review-gallery-solo,
+.review-gallery.review-gallery-pair {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.review-gallery.review-gallery-trio .review-photo-button:first-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 1 / 0.66;
 }
 
 /* 控制 .review-photo-button 的布局、视觉和状态表现 */
@@ -7809,7 +7820,11 @@ body.has-overlay-lock {
     .package-card-signal,
     .package-modal-signal,
     .review-dimensions,
-    .review-gallery {
+    .review-gallery,
+    .review-gallery.has-featured-photo,
+    .review-gallery.review-gallery-solo,
+    .review-gallery.review-gallery-pair,
+    .review-gallery.review-gallery-trio {
         grid-template-columns: 1fr;
     }
 
@@ -7826,6 +7841,10 @@ body.has-overlay-lock {
 
 /* 控制 .review-featured-photo-button 的布局、视觉和状态表现 */
     .review-featured-photo-button {
+        aspect-ratio: 1 / 0.78;
+    }
+
+    .review-gallery.review-gallery-trio .review-photo-button:first-child {
         aspect-ratio: 1 / 0.78;
     }
 

@@ -681,22 +681,22 @@ const divingSpotDetails = convertSpotPriceDisplay({
         ],
         reviews: [
             {
-                user: '微距慢门',
+                user: '云层下面',
                 rating: '★★★★★',
                 date: '2026-02-11',
-                text: '这里不是那种一下水就被大鱼包围的地方，但每一趟都能找到新小东西，非常适合认真观察。'
+                text: '飞进波纳佩时先看见的是泻湖、礁线和低云，整座岛像被几层海色慢慢托住。'
             },
             {
-                user: '海蛞蝓采样员',
+                user: '岸上还有水声',
                 rating: '★★★★☆',
                 date: '2025-12-27',
-                text: '向导找生物的能力很强，很多平时根本不会注意到的小型生物都能被指出来。'
+                text: '喜欢它不只是一片潜点，红树林、雨林和南马都把整趟行程继续往更深的地方带。'
             },
             {
                 user: '静水记录本',
                 rating: '★★★★★',
                 date: '2025-10-08',
-                text: '如果你想把潜水节奏放慢，真正看清一块珊瑚上的生态关系，波纳佩岛很适合。'
+                text: '这里不是靠刺激取胜的海，而是会让呼吸、低云和慢潜节奏一起慢下来的地方。'
             }
         ],
         related: [
@@ -1370,7 +1370,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
     13: {
         name: '皇帝岛',
         tagline: '把白沙海湾、清水坡地与更轻一点的泰国船潜，安静排进同一次靠近。',
-        image: 'assets/images/diving-spot.jpg',
+        image: 'assets/images/racha.jpg',
         difficulty: '适合 OW / AOW 轻船潜',
         depth: '5-28m',
         season: '11月-次年4月',
@@ -1417,22 +1417,22 @@ const divingSpotDetails = convertSpotPriceDisplay({
         ],
         reviews: [
             {
-                user: '先在浅湾里放松',
+                user: '住处先把节奏放轻',
                 rating: '★★★★★',
                 date: '2026-03-12',
-                text: '皇帝岛最先让人记住的，不是某个大场面，而是白沙、浅蓝和外侧更深一点的海排得很清楚。'
+                text: '大厅、花园步道和潜前那顿安静早餐，会先把皇帝岛这一程收进更从容的节奏里。'
             },
             {
-                user: '船还没开太远',
+                user: '甲板先读云线',
                 rating: '★★★★★',
                 date: '2025-12-11',
-                text: '从普吉出来不久，海就慢慢亮起来了。它不会一下把人扔进很重的海况里，这点特别舒服。'
+                text: '从甲板到外海，云墙、海面和船行方向都很清楚，皇帝岛会先让人读懂今天的海。'
             },
             {
-                user: '回程也很轻',
+                user: '水下再把蓝慢慢放深',
                 rating: '★★★★☆',
                 date: '2025-10-04',
-                text: '潜完回到船上再看一眼白沙和岸线，会觉得这片海适合被放进一次更轻、更从容的假期里。'
+                text: '珊瑚、鱼群和沉船舱里的蓝会把这片海真正收深，但回忆留下来的仍然是层次清楚。'
             }
         ],
         related: [
@@ -1458,6 +1458,98 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 price: '¥3,580'
             }
         ]
+    },
+    14: {
+        name: '热浪岛',
+        tagline: '把清透蓝水、白沙海湾和更安静的岸线呼吸，慢慢排进同一次马来西亚停驻。',
+        image: 'assets/images/redang.jpg',
+        difficulty: 'OW / AOW 友好',
+        depth: '6-30m',
+        season: '3月-9月',
+        priceFrom: '¥3,680',
+        mapLocation: '马来西亚登嘉楼州 · 热浪岛 Redang Island',
+        coordinates: '北纬 5.78°, 东经 103.03°',
+        features: {
+            location: '热浪岛位于马来西亚半岛东岸外海，属于登嘉楼外侧群岛。这里的海不会用强张力先把人推深，而是先用通透浅蓝、白沙湾和外侧礁坡把节奏放稳，再慢慢打开更完整的海底层次。',
+            wildlife: [
+                '热带礁鱼群、蝶鱼和笛鲷在浅礁光带里更容易被看清',
+                '海龟与蓝点魟常在礁坡和沙地过渡区慢慢巡游',
+                '晴天时外侧蓝水与近岸浅礁对比会非常清楚',
+                '浅坡和珊瑚块地形友好，适合把潜旅节奏收得更稳',
+                '海面以上的白沙岸线与船停点本身就很有停驻感'
+            ],
+            warnings: [
+                '旺季船次密集，热门点位建议提前排好出海窗口',
+                '中午日晒和连续潜水叠加后，补水与防晒都要跟上',
+                '浅礁区拍摄时要特别留意中性浮力，避免触碰珊瑚',
+                '风向变化时外侧点位和回船顺序可能临时调整'
+            ],
+            weather: {
+                season: '3月-9月',
+                temperature: '27-30°C',
+                visibility: '12-25米'
+            }
+        },
+        itineraries: [
+            {
+                name: '4天3晚热浪岛轻船潜线',
+                includes: '2次船潜 + 白沙海湾线 + 岛上接送 + 中文协助',
+                price: '¥3,680'
+            },
+            {
+                name: '5天4晚热浪岛礁坡停驻线',
+                includes: '4次潜水 + 潜前 briefing + 酒店早餐 + 码头往返',
+                price: '¥3,680'
+            },
+            {
+                name: '6天5晚热浪岛外侧蓝水线',
+                includes: '6次潜水 + 点位安排优化 + 每日接送 + 中文向导',
+                price: '¥3,680'
+            }
+        ],
+        reviews: [
+            {
+                user: '先在飞机和补给之间靠近',
+                rating: '★★★★★',
+                date: '2026-03-16',
+                text: '热浪岛这趟路不是一落地就急着入海，便利店、转机和第一顿热食会先把身体慢慢接住。'
+            },
+            {
+                user: '白沙先把一天点亮',
+                rating: '★★★★★',
+                date: '2025-12-02',
+                text: '真正把热浪岛留下来的，是沙滩椅、餐桌边的海风和那片一眼就看懂的浅蓝。'
+            },
+            {
+                user: '回岸以后还会继续停一会儿',
+                rating: '★★★★☆',
+                date: '2025-09-28',
+                text: '潜具上船、栏杆外的深蓝、夜里海边餐桌和最后一段岛上路，会把热浪岛这程收得很慢。'
+            }
+        ],
+        related: [
+            {
+                id: 13,
+                name: '皇帝岛',
+                description: '如果你喜欢白沙湾和轻船潜节奏，皇帝岛会是很顺的安达曼延伸。',
+                image: 'assets/images/racha.jpg',
+                price: '¥3,680'
+            },
+            {
+                id: 12,
+                name: '薄荷岛',
+                description: '如果想把浅礁色带和明亮岸线继续留在假期里，薄荷岛会更轻一些。',
+                image: 'assets/images/bohol.jpg',
+                price: '¥3,680'
+            },
+            {
+                id: 9,
+                name: '马布岛',
+                description: '如果想把潜前潜后的海岛停驻感继续放慢，马布岛会更柔和。',
+                image: 'assets/images/mabul.jpg',
+                price: '¥3,680'
+            }
+        ]
     }
 });
 
@@ -1475,7 +1567,8 @@ const REVIEW_IMAGE_PREFIX = Object.freeze({
     10: 'maldives-liveaboard',
     11: 'coron',
     12: 'bohol',
-    13: 'racha'
+    13: 'racha',
+    14: 'redang'
 });
 
 // 相关推荐切换配置：控制详情页之间的卡片式切页时长、状态存储和方向 class。
@@ -1572,6 +1665,12 @@ const RELATED_SPOT_PROFILES = Object.freeze({
         mood: '白沙海湾、清水坡地和更轻一点的船潜节奏，会把进入海的方式放得更从容。',
         fitTags: ['OW / AOW', '轻船潜', '白沙海湾'],
         why: '如果你希望一片海既明亮、好靠近，又保留一点外侧蓝水层次，它会是很顺的一种泰国靠近方式。'
+    },
+    14: {
+        englishName: 'Redang Island',
+        mood: '清透蓝水、白沙岸线和更安静的礁坡过渡，会把整趟潜旅的呼吸轻轻放慢。',
+        fitTags: ['OW / AOW', '轻船潜', '白沙岸线'],
+        why: '如果你想把潜水和停驻感放进同一种舒缓节奏，热浪岛会是一片很顺的马来西亚蓝。'
     }
 });
 
@@ -2588,37 +2687,34 @@ class DetailPage {
     }
 
     /**
-     * getReviewPackageIntent() - 把评论里的经验等级整理成更适合侧栏联动的意图类型。
-     * 纯 AOW / 进阶评论才强制拉向进阶套餐；像 “OW / AOW” 这种过渡型表达，
-     * 会被视作中性层，避免一开始就把侧栏直接拽进更深套餐，后面又折返。
-     * @param {string} levelText - 评论上的经验等级文案
-     * @returns {'leisure'|'advanced'|'neutral'} - 当前评论更适合靠近的套餐意图
+     * getReviewPackageFlowIndex() - 根据评论总数与套餐总数，把评论均匀切分到右侧套餐流中。
+     * 这样当评论数量多于套餐数量时，不会前三条就把套餐切完，后面一直停在最后一套；
+     * 例如 8 条评论对应 4 套套餐时，会自然形成“2 条评论切一次套餐”的节奏。
+     * @param {number} reviewIndex - 当前评论索引
+     * @param {number} reviewCount - 当前参与映射的评论总数
+     * @param {number} packageCount - 当前套餐总数
+     * @returns {number} - 当前评论应落到的套餐流索引
      */
-    getReviewPackageIntent(levelText) {
-        const normalizedLevel = String(levelText || '').trim().toLowerCase();
-        if (!normalizedLevel) {
-            return 'neutral';
+    getReviewPackageFlowIndex(reviewIndex, reviewCount, packageCount) {
+        const safeReviewIndex = Math.max(0, Number(reviewIndex) || 0);
+        const safeReviewCount = Math.max(1, Number(reviewCount) || 0);
+        const safePackageCount = Math.max(1, Number(packageCount) || 0);
+
+        if (safeReviewCount <= safePackageCount) {
+            return Math.min(safeReviewIndex, safePackageCount - 1);
         }
 
-        const hasOwSignal = /\bow\b|入门|新手/.test(normalizedLevel);
-        const hasAdvancedSignal = /\baow\b|进阶/.test(normalizedLevel);
-
-        if (hasAdvancedSignal && !hasOwSignal) {
-            return 'advanced';
-        }
-
-        if (hasOwSignal && !hasAdvancedSignal) {
-            return 'leisure';
-        }
-
-        return 'neutral';
+        return Math.min(
+            Math.floor((safeReviewIndex * safePackageCount) / safeReviewCount),
+            safePackageCount - 1
+        );
     }
 
     // 评论数据构建：为当前潜点生成评论卡、详情弹层和图片查看所需的完整数据。
     /**
-     * attachReviewPackageLinks() - 按评论的潜水等级把评论映射到当前详情页的对应套餐。
-     * OW / 入门评论优先对齐休闲套餐，AOW / 进阶评论优先对齐进阶套餐；
-     * 这样左侧读到某一段体验时，右侧能顺着同一条节奏滑到更接近的套餐卡。
+     * attachReviewPackageLinks() - 按评论数量和套餐数量，把评论映射到当前详情页的对应套餐。
+     * 评论少时保持“一条评论对应一套套餐”的顺序；评论变多时自动按区间均分，
+     * 让右侧焦点舱在长评论流里仍然会持续换挡，而不是过早停在最后一套。
      * @param {Array<Object>} reviews - 原始评论数组
      * @returns {Array<Object>} - 补齐 linkedPackageId 等字段后的评论数组
      */
@@ -2630,28 +2726,13 @@ class DetailPage {
             return safeReviews;
         }
 
-        let flowCursor = 0;
-
-        return safeReviews.map((review) => {
-            const intent = this.getReviewPackageIntent(review?.level);
-            const remainingPackages = flowPackages.slice(Math.min(flowCursor, flowPackages.length - 1));
-
-            let matchedOffset = 0;
-            if (intent === 'advanced') {
-                matchedOffset = remainingPackages.findIndex((pkg) => pkg.group === '进阶套餐');
-            } else if (intent === 'leisure') {
-                matchedOffset = remainingPackages.findIndex((pkg) => pkg.group === '休闲套餐');
-            }
-
-            const safeOffset = matchedOffset >= 0 ? matchedOffset : 0;
-            const linkedPackage = remainingPackages[safeOffset] || flowPackages[flowPackages.length - 1] || null;
-
-            if (linkedPackage) {
-                const linkedIndex = flowPackages.findIndex((pkg) => pkg.id === linkedPackage.id);
-                flowCursor = linkedIndex >= 0
-                    ? Math.min(linkedIndex + 1, flowPackages.length - 1)
-                    : flowCursor;
-            }
+        return safeReviews.map((review, reviewIndex) => {
+            const flowIndex = this.getReviewPackageFlowIndex(
+                reviewIndex,
+                safeReviews.length,
+                flowPackages.length
+            );
+            const linkedPackage = flowPackages[flowIndex] || flowPackages[flowPackages.length - 1] || null;
 
             return {
                 ...review,
@@ -2840,6 +2921,267 @@ class DetailPage {
                     photos: makeReviewPhotos(4, [
                         { key: 'after-dive-pier', caption: '帕劳 · 靠岸前的白船和山体', position: '50% 56%' },
                         { key: 'bow-blue', caption: '帕劳 · 椰影下突然打开的蓝', position: '50% 52%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 3) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '先去那圈深蓝',
+                    date: '2026年2月',
+                    level: 'AOW / 进阶',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['diving', 'scenery'],
+                    title: '大蓝洞 · 先从长航程出海开始',
+                    subtitle: '真正把人带进这条伯利兹航线的，不是入水那一下，而是天还没全亮时，木栈桥、平水面和那段慢慢离岸的时间。',
+                    summary: '这组图最像去大蓝洞那天的完整开场。海面还很平，栈桥和天光都压得很低；等真正到外海，看见那一圈深蓝终于被浅礁衬出来，整趟出海才会忽然有了中心。回程不是立刻结束，而是又经过椰影、浅水和傍晚码头，把这段很长的海路慢慢收住。',
+                    diving: '大蓝洞当然是为了那一下垂直深蓝去的，但真正舒服的节奏，反而靠岸上的前后段把它托住。先在安静的海面里把状态调稳，再去面对深井结构，整个人会更从容。',
+                    stay: '如果前一晚就住在离出海口很近的地方，这条线会轻很多。清晨不用被交通和换点打断，回来以后也能把那片深蓝顺顺地带回岸上。',
+                    food: '这种长航程日子，早餐和回程后的热食都比平时重要。它们不是行程装饰，而是把身体从早起、日晒和深潜里重新接回来的那一段。',
+                    scenery: '最动人的其实是两层蓝的关系：一层是蓝洞那种近乎纯色的深蓝，一层是码头、浅滩和傍晚海面的低饱和亮蓝。它们放在一起，大蓝洞才不只是一个点，而是一整条慢慢潜进去又慢慢浮回来的海线。',
+                    featurePhoto: {
+                        src: 'assets/images/blue-hole.jpg',
+                        caption: '大蓝洞 · 外海那一圈深蓝终于显出来',
+                        position: '50% 68%'
+                    },
+                    photos: makeReviewPhotos(1, [
+                        { key: 'departure', caption: '伯利兹 · 出海前的平静栈桥', position: '50% 58%' },
+                        { key: 'return', caption: '伯利兹 · 回到浅水和椰影边', position: '50% 54%' },
+                        { key: 'sea-at-dusk', caption: '伯利兹 · 傍晚把长航程慢慢收住', position: '50% 56%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '浅水先把人接住',
+                    date: '2025年12月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['stay', 'diving', 'scenery'],
+                    title: '大蓝洞 · 靠岸前后的浅水',
+                    subtitle: '真正让这条深潜线不显得过于绷紧的，是返程时那些奶蓝色浅水、短栈桥和停得很近的小船。',
+                    summary: '第二组图没有去强调蓝洞主体，而是在讲它回来以后为什么还会让人记很久。船停在很浅的水边，码头不大，风也不急，身体会在这种近岸层次里慢慢把刚才那段更深的压力卸掉。它会提醒你，大蓝洞不是只在外海突然发生的一下，返程这段浅水也属于这次体验。',
+                    diving: '对大蓝洞来说，这种近岸段很重要。因为主潜点本身偏深、偏克制，回到浅水时你会更清楚地感觉自己刚刚经历的是另一种完全不同的蓝。',
+                    stay: '住处如果就在这种码头和小船旁边，整趟行程会有一种被轻轻接住的感觉，不会只剩下“今天完成了一个著名潜点”的用力感。',
+                    food: '这种画面很适合接一顿不着急的午后餐或回程简餐。海风不大，光线又亮，整个人会愿意把节奏放下来，而不是急着进入下一个安排。',
+                    scenery: '我喜欢的是小船、短栈桥和浅水之间没有被拉得很远。它让大蓝洞这条线不只是外海地标，也有伯利兹近岸那种很轻、很通透的余白。',
+                    featurePhoto: createReviewPhoto(2, 'boat-return', '伯利兹 · 小船停在浅水回程边', '50% 54%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'pier-morning', caption: '伯利兹 · 码头晨光还没完全亮起来', position: '50% 58%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '岸上那段风',
+                    date: '2025年10月',
+                    level: 'OW / 同行不潜',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '大蓝洞 · 回来以后住在海边',
+                    subtitle: '这条线如果只记蓝洞本身，会少掉一半。排椅、木桥和房间外那层风，才是把深蓝慢慢收回日常里的地方。',
+                    summary: '第三组图更像回到伯利兹岸上之后的后半天。白色排椅和棕榈把午后的光放得很亮，另一张木栈桥又把风和水面拉得很直，最后连房间外的小路都直接通向海边。大蓝洞这类长航程深潜，真正珍贵的不是一直保持兴奋，而是回来以后还有地方可以慢慢坐下。',
+                    diving: '潜水本身当然有强烈的地貌记忆，但如果岸上没有这样一段缓冲，整趟体验会显得过于陡。蓝洞舒服的地方，是它允许人从深蓝再慢慢回到更松的海边生活。',
+                    stay: '这组图把住处的重要性拍得很准。不是豪华感，而是潜后真的能走回一个有树影、步道和海风的位置，让身体慢慢回稳。',
+                    food: '潜后那顿饭往往就发生在这样的光线里。不是热闹庆祝，而是海风从排椅和木桥边穿过去，你吃得慢一点，整天的记忆才会真正沉下来。',
+                    scenery: '如果蓝洞本身像一个突然向下打开的句号，那岸上这几张图就是它后面的留白。它们不抢戏，却会把这片海留得更久。',
+                    featurePhoto: createReviewPhoto(3, 'room-view', '伯利兹 · 房间外直接通向海边', '50% 50%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'before-dinner', caption: '伯利兹 · 午后排椅和海风', position: '50% 56%' },
+                        { key: 'pier-breeze', caption: '伯利兹 · 木桥把晚风慢慢拉长', position: '50% 58%' }
+                    ])
+                },
+                {
+                    id: 'review-4',
+                    user: '回程里的蓝',
+                    date: '2025年8月',
+                    level: 'AOW / 摄影',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '大蓝洞 · 蓝不会只停在井口',
+                    subtitle: '真正留下来的，常常不是那一个圆，而是回程途中那些被船尾、水纹和近岸小船继续拆开的蓝。',
+                    summary: '最后这组图很适合做大蓝洞的收尾：一张从高处看，小船像被放进一整片通透浅蓝里；一张是红色小船靠在岸边，海和沙都静下来；最后只剩水纹本身，把颜色推到很近。看完这组会更明白，大蓝洞的记忆不会只停在“那个圆”，它会继续留在整片伯利兹海面的纹理里。',
+                    diving: '真正好的蓝洞行程，不会让深潜体验在出水后立刻断掉。回程看见这种浅蓝和水纹时，你会觉得自己还没有完全离开那片海，只是从更深的一层慢慢浮回来。',
+                    stay: '这种回到岸边的小船和空水面，会让人很想在潜后把时间再留一点给自己。哪怕只是回酒店冲洗完、重新走到海边看一会儿，也会比匆忙结束更像这条线真正的收尾。',
+                    food: '这组更适合放在潜后傍晚或第二天清晨的节奏里。吃不需要很重，重要的是让海的颜色继续停一会儿，不要太快把自己从这趟出海里抽离。',
+                    scenery: '最喜欢的是颜色被拆成了三种方式：俯拍时像一整片玻璃蓝，岸边时又变成更轻的灰蓝，最后只剩水纹本身在发亮。它们比“著名景点”更安静，却更像真正会留在身体里的海。',
+                    featurePhoto: createReviewPhoto(4, 'bow-blue', '伯利兹 · 回程里的整片玻璃蓝', '50% 50%'),
+                    photos: makeReviewPhotos(4, [
+                        { key: 'after-dive-pier', caption: '伯利兹 · 小船把潜后时间停在岸边', position: '50% 54%' },
+                        { key: 'morning-sea', caption: '伯利兹 · 水纹把蓝继续轻轻推开', position: '50% 54%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 5) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '云层下面',
+                    date: '2026年3月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '波纳佩岛 · 从机窗开始下潜',
+                    subtitle: '先看见泻湖、礁线和低云，身体才会慢慢跟上这片海的节奏。',
+                    summary: `这组三张图把 ${name} 的开场讲得很准: 先从机窗看见泻湖把岛体轻轻托住，再看到礁线把深浅蓝慢慢分开，最后连低云和雨都压到海面上。它不会一上来就用最热闹的潜点抓人，而是先让你知道，这是一座海、岛和天气一直缠在一起的地方。`,
+                    diving: `${name} 不太像那种一入水就要立刻追着大场面跑的海。先在这种泻湖和礁线关系里把呼吸放稳，再去看静水、微距和浅礁细节，整个人会更容易对上它的节奏。`,
+                    stay: '如果抵达后的住处离海湾不远，第一天会很舒服。看完这种低云压海的画面，再慢慢去休息、整理装备、等身体跟上岛上的湿热，旅程会显得特别顺。',
+                    food: '这组最适合接一顿热的简餐。不是为了丰盛，而是让人从航程、潮湿空气和海色里慢慢落下来，不要太快把自己从刚进入这片海的感觉里抽离。',
+                    scenery: `最喜欢的是三张图把 ${name} 的海拆成了三种方式: 泻湖像一整片亮开的留白，礁线把深浅蓝轻轻推开，雨云又把海面压回更安静的一层。`,
+                    photos: makeReviewPhotos(1, [
+                        { key: 'lagoon-arrival', caption: `${name} · 从机窗看见第一层泻湖`, position: '50% 52%' },
+                        { key: 'reef-band', caption: `${name} · 礁线把深浅蓝慢慢推开`, position: '50% 50%' },
+                        { key: 'rainy-sea', caption: `${name} · 低云把海面压得更安静`, position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '岛体慢慢靠近',
+                    date: '2025年12月',
+                    level: 'OW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['stay', 'scenery', 'diving'],
+                    title: '波纳佩岛 · 靠近岛体的时候',
+                    subtitle: '从外海回望和真正靠岸，是两种不同的安静。',
+                    summary: `第二组图更像 ${name} 真正把人留住的方式: 一张是在外海远远看见岛体自己浮出来，另一张则已经靠到岸线边，山、树和海水都贴得很近。你会发现这里最动人的不是某一个潜点名字，而是岛一直带着很厚的陆地感和潮湿感。`,
+                    diving: `${name} 的潜水不会把人一下扔进最深的节奏里。很多时候，先看到岛影从远处慢慢靠近，反而更容易理解这里为什么适合慢潜和静水观察，因为整片海本来就不是急着往外推的类型。`,
+                    stay: '如果住处离这种岸线和海湾很近，潜前潜后都会轻很多。你不会觉得自己只是去一个码头上下船，而是真的住在一座被海和雨林包围的岛上。',
+                    food: '这种靠岸感很适合接早餐或者潜后热汤。坐下来时，山体和海面还留在眼前，吃什么会变得次要，真正留下来的是整个人被轻轻接住的感觉。',
+                    scenery: `我最喜欢的是这组把“远”和“近”放在了一起: 远处看岛像一整块安静的深色轮廓，靠岸以后又变成树影、岸线和低饱和海水慢慢贴近身体。`,
+                    photos: makeReviewPhotos(2, [
+                        { key: 'island-outline', caption: `${name} · 从外海回望整座岛体`, position: '50% 54%' },
+                        { key: 'shoreline-rest', caption: `${name} · 靠岸以后海和树都压得很近`, position: '50% 48%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '岸上还有水声',
+                    date: '2025年10月',
+                    level: '同行不潜',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '波纳佩岛 · 红树林与雨林的后半天',
+                    subtitle: '这座岛不会把海停在海边，红树林、水道和瀑布会把潮湿感继续往里带。',
+                    summary: `第三组图把 ${name} 和普通海岛潜旅区分开了: 先是红树林边的静水通道，再是雨林里的瀑布，最后石墙和水道把时间压得更慢。你会发现这趟行程并不只有下潜，岸上的潮湿空气、淡水和石头也一直在参与。`,
+                    diving: `如果白天做的是慢潜、微距或比较轻的静水观察，岸上这层安静会把节奏托得更稳。不是每一刻都要往海里更深处去，${name} 很特别的一点，就是你回到陆地以后，旅程也没有立刻断掉。`,
+                    stay: '住处最好离海湾和绿意近一点。潜后回来，哪怕只是沿着红树林边走一段，或者在雨林气味还很重的傍晚坐一会儿，身体都会比匆忙回房更容易松下来。',
+                    food: '这种气候特别适合把潜后热汤、热茶和简单晚餐吃得慢一点。外面有水声，空气里又带着雨林湿气，整个人会自然愿意把当天的节奏收长一点。',
+                    scenery: `红树林的静水、瀑布边的白水和石墙间的水道，把 ${name} 从一片海扩成了一整座岛。它不只是蓝，也有绿色、灰黑石头和一直没停过的潮湿空气。`,
+                    photos: makeReviewPhotos(3, [
+                        { key: 'mangrove-channel', caption: `${name} · 红树林边的静水通道`, position: '50% 52%' },
+                        { key: 'forest-fall', caption: `${name} · 雨林把淡水慢慢送下来`, position: '50% 50%' },
+                        { key: 'stone-water', caption: `${name} · 石墙和水道把时间压低`, position: '50% 48%' }
+                    ])
+                },
+                {
+                    id: 'review-4',
+                    user: '石墙之间的潮水',
+                    date: '2025年8月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving', 'stay'],
+                    title: '波纳佩岛 · 南马都把海留得更深',
+                    subtitle: '真正让波纳佩在记忆里沉下去的，往往不是一潜，而是石墙和潮水之间那种更古老的安静。',
+                    summary: `最后这组图把 ${name} 最深的一层留给了南马都: 一张是低而静的水道，一张是树影压在石墙上的遗址内部，最后一张把巨石结构本身慢慢展开。看到这里会明白，波纳佩真正留下来的，不只是海水颜色，而是海和时间一起沉下去的感觉。`,
+                    diving: `${name} 的潜水本来就更适合放慢呼吸，所以回到这种石墙与潮水之间的空间时，会特别容易把水下那种安静继续带上来。它不靠强刺激收尾，而是让整趟旅程往更深的停驻里落。`,
+                    stay: '如果把南马都排进休息日或潜后较轻的时段，整趟体验会更完整。你不会觉得自己在补一个景点，而是像从海的表层继续往下潜到另一种更古老的水域里。',
+                    food: '这组最适合接潜后傍晚或休息日的热食。不是要热闹庆祝，而是让石头、水道和树影留下来的那种安静，继续陪你把一天慢慢收住。',
+                    scenery: `我最喜欢的是这三张图几乎都没有在用力展示什么: 水很浅，石头很重，树影也不喧哗，但它们会把 ${name} 变成一片真的有余韵的海，而不只是一个潜水目的地。`,
+                    photos: makeReviewPhotos(4, [
+                        { key: 'quiet-canal', caption: `${name} · 南马都的低水道先把声音放轻`, position: '50% 52%' },
+                        { key: 'ruins-shadow', caption: `${name} · 树影压在石墙上的那一层静`, position: '50% 46%' },
+                        { key: 'basalt-echo', caption: `${name} · 巨石结构把海留得更深`, position: '50% 50%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 8) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '海面以下',
+                    date: '2026年2月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving'],
+                    summary: `这组三张图更像 ${name} 真正的开场：先从贴着蓝水的船头离岸，回程再落回白沙和浅滩边，最后傍晚海面把整天慢慢收平。它不是一上来就用最热闹的场面抓人，而是先让你知道，这片海连出发和回来的空档都很有层次。`,
+                    diving: `${name} 真正迷人的地方，不只是某一潜看见了什么，而是你会先被这种出海尺度带进去。船先往通道外的蓝里走，再从近岸浅水慢慢回来，水下那种等流、等光、等鱼群靠近的心态，也会自然很多。`,
+                    stay: '如果住处离这种近岸浅水和回船点不远，整趟体验会轻很多。潜完回来不用再赶，冲洗、休息、坐一会儿看海，都像是同一段节奏里的延续。',
+                    food: '最适合接这组图的，反而是一顿安静的潜后晚餐。不是为了隆重，而是让热食和海风一起把白天那层亮蓝慢慢收住。',
+                    scenery: `最动人的是三张图之间的关系：船头先把人推向外海，白沙和低水位又把视线收回近岸，最后只剩日落压在平静海面上。${name} 的美不是喧哗型的，它总是慢慢排开，再慢慢收住。`,
+                    photos: makeReviewPhotos(1, [
+                        { key: 'departure', caption: `${name} · 船头先往亮蓝里去`, position: '50% 40%' },
+                        { key: 'return', caption: `${name} · 回到白沙和浅滩边`, position: '50% 58%' },
+                        { key: 'sea-at-dusk', caption: `${name} · 日落把海面慢慢收平`, position: '50% 32%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '礁线记录员',
+                    date: '2025年12月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['stay', 'scenery', 'diving'],
+                    summary: `第二组图把 ${name} 更私人的一面拍出来了：住处和泻湖离得很近，水面一直很平，另一张小船就停在一层通透的浅蓝里。整趟体验不像只是在赶去潜点，更像先住进海边，再从这里慢慢出发。`,
+                    diving: `通道和海流当然是这片海的重点，但每天真正让人状态对上的，反而是这种从住处前的静水到出海小船之间的过渡。不是一上来就紧，而是先被干净的浅蓝轻轻接住。`,
+                    stay: '这组最能说明住处的重要性。屋檐、棕榈和水边靠得很近，不像为了展示而摆出来的度假村，更像潜水员真会在这里慢慢住上几晚。',
+                    food: '早餐或潜后简单吃点热的，如果就在这种贴着水边的位置，会比餐食本身更容易留下来。因为光线和海面一直在眼前，人不需要从海里抽离得太快。',
+                    scenery: `一张是屋檐贴着泻湖展开，一张是小船停在玻璃蓝里。它们一起把 ${name} 从“远一点的海域”拉回成可以真正住进去的海边日常。`,
+                    photos: makeReviewPhotos(2, [
+                        { key: 'pier-morning', caption: `${name} · 住处前的静水`, position: '50% 40%' },
+                        { key: 'boat-return', caption: `${name} · 小船停在浅蓝里`, position: '50% 58%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '晚风里的海',
+                    date: '2025年10月',
+                    level: '同行不潜',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['stay', 'scenery', 'food'],
+                    summary: `第三组没有去强调出海动作，而是在讲 ${name} 怎么把人慢慢留在岸上：浅滩边的鸟、靠着防波堤停住的小船、还有从房间里直接看见的海。这种安静比很多“著名场面”更像真正住在这里的记忆。`,
+                    diving: `如果同行的人安排去通道潜，这种岸上的安静反而会把整趟节奏托得更稳。不是每一刻都要在海里往前冲，${name} 难得的地方，是有人在外海下潜，也有人能在岸上慢慢等那阵风和光回来。`,
+                    stay: '房间最好的地方，是海一直没有被关在外面。窗帘一拉开就是水面，潜后回来坐一会儿，不需要额外安排，整个人就会慢慢松下来。',
+                    food: '晚餐前先去浅滩边走一会儿，再回到房间附近吃一顿热的，这种节奏会比菜单本身更让人记得住。因为这片海不是催着你前进，而是一直让你慢下来。',
+                    scenery: `我最喜欢的是这组三张图都不喧哗：岸边的鸟、小船停住的防波堤、窗帘拉开后那一整片浅蓝。它们不像景点打卡，更像真正住在 ${name} 的后半天。`,
+                    photos: makeReviewPhotos(3, [
+                        { key: 'before-dinner', caption: `${name} · 浅滩边的晚光`, position: '50% 40%' },
+                        { key: 'pier-breeze', caption: `${name} · 防波堤外停着的小船`, position: '50% 58%' },
+                        { key: 'room-view', caption: `${name} · 拉开窗帘就是海`, position: '50% 32%' }
+                    ])
+                },
+                {
+                    id: 'review-4',
+                    user: '深蓝留白',
+                    date: '2025年8月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving', 'stay'],
+                    summary: `最后这组更像把 ${name} 的蓝拆开来看：一张是在船头贴着外海走，一张是回到树影和浅水边，另一张从高处把整片泻湖的亮蓝摊开。它会让人明白，这里真正留下来的不只是某一潜，而是你一整天都在不同深浅之间来回移动。`,
+                    diving: `${name} 的潜水确实有通道和流，但真正舒服的方式不是一直绷着，而是让自己跟着船和水色慢慢进入状态。看见这种外海蓝、近岸浅蓝和高处的环礁层次时，会更明白为什么这片海需要耐心。`,
+                    stay: '如果住处能让你在回程后很快重新走到水边，这种蓝就不会在出水那一刻断掉。树影、浅滩和很短的回岸路，会让整趟体验显得特别完整。',
+                    food: '这种海很适合把早餐和潜后简餐都吃得慢一点。不是为了丰盛，而是因为每次抬头都还能看见不同层次的蓝，节奏自然就会放下来。',
+                    scenery: `我最喜欢的是这组三张图把 ${name} 的空间关系讲清楚了：船头在深蓝边推进，岸边把人接回树影和浅水里，高处又把整片环礁重新展开。它不是单点风景，而是一整片海的呼吸。`,
+                    photos: makeReviewPhotos(4, [
+                        { key: 'bow-blue', caption: `${name} · 船头先往亮蓝里去`, position: '50% 40%' },
+                        { key: 'after-dive-pier', caption: `${name} · 回到树影和浅水边`, position: '50% 58%' },
+                        { key: 'morning-sea', caption: `${name} · 高处看见一整片浅蓝`, position: '50% 32%' }
                     ])
                 }
             ]);
@@ -3197,73 +3539,72 @@ class DetailPage {
             ]);
         }
 
+
         if (this.spotId === 13) {
             return finalizeReviews([
                 {
                     id: 'review-1',
-                    user: '先在浅湾里放松',
+                    user: '先在花园里慢下来',
                     date: '2026年3月',
                     level: 'OW / AOW',
                     ratingStars: '★★★★★',
                     ratingScore: '4.8 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '皇帝岛 · 白沙外侧的第一层蓝',
-                    subtitle: '皇帝岛最先让人记住的，常常不是某一潜，而是海先用一层很轻的白沙浅湾把呼吸放松下来。',
-                    summary: '这片海很适合当作一次更轻一点的进入。你不会一上来就被很重的流或很深的蓝压住，而是先看见白沙、浅蓝和慢慢往外过渡的清水层次。等身体先安稳下来，再去读礁坡和外侧蓝水，整趟潜旅会显得特别顺。',
-                    diving: '皇帝岛最舒服的地方，是它会先让你把当天节奏找回来。下去之前心里已经知道今天这片海大概会怎样展开，所以水下体验会更完整，而不是只剩紧张。',
-                    stay: '从普吉出发来这种海域的好处，是岸上节奏不会太重。潜完回去以后还能把日光、盐分和疲惫慢慢放掉，不需要一直处在很高张力里。',
-                    food: '这种轻船潜日最适合把早餐和潜后热食安排得简单但稳。它不需要抢戏，只要能把身体接住，皇帝岛的节奏就会很顺地继续往下走。',
-                    scenery: '真正动人的不是单一一个点，而是白沙海湾先把海面点亮，外侧蓝再慢慢加深。它会让人记住，皇帝岛的好看来自层次清楚，而不是猛烈。',
-                    featurePhoto: {
-                        src: 'assets/images/diving-spot.jpg',
-                        caption: '皇帝岛 · 白沙外侧的第一层蓝',
-                        position: '50% 50%'
-                    },
-                    photos: []
+                    focus: ['stay', 'scenery'],
+                    title: '皇帝岛 · 住处先把节奏放轻',
+                    subtitle: '大厅、花园步道和夜里安静的回程，会先把这片海的进入方式说清楚。',
+                    summary: '皇帝岛很舒服的一点，是你还没真正出海，身体就已经慢慢放松下来。大厅干净、步道安静、树影把风压得很低，整段靠近不是突然切换，而是轻轻下潜。',
+                    diving: '这种岸上节奏会让第二天的船潜更顺。你不是仓促下水，而是先把呼吸和注意力都整理好。',
+                    stay: '住处本身就像这片海的浅层入口：白色大厅、花园步道和低饱和的绿，会把整趟假期先收成一种更从容的状态。',
+                    food: '这类海域适合把早餐和潜前补给做得清楚一点，不需要复杂，但要稳稳接住身体。',
+                    scenery: '真正打动人的不是大场面，而是大厅的白、步道的绿和还没完全亮开的海一起出现。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '皇帝岛 · 花园步道把心跳慢慢放轻', '50% 54%'),
+                    photos: makeReviewPhotos(1, [
+                        { key: 'lobby-night', caption: '皇帝岛 · 夜里回到大厅也还是很安静', position: '50% 48%' },
+                        { key: 'garden-path', caption: '皇帝岛 · 另一条步道把海风留在树影里', position: '50% 54%' }
+                    ])
                 },
                 {
                     id: 'review-2',
-                    user: '船还没开太远',
+                    user: '早餐之后再去码头',
                     date: '2025年12月',
                     level: 'OW',
                     ratingStars: '★★★★★',
                     ratingScore: '4.7 / 5',
-                    focus: ['diving', 'stay'],
-                    title: '皇帝岛 · 轻船潜的节奏',
-                    subtitle: '从普吉出来以后，海不会突然换成很难懂的样子，而是慢慢把水色和坡地结构摆在眼前。',
-                    summary: '皇帝岛很适合那些想把船潜做得更从容的人。你知道今天是往白沙湾里靠近，还是往外侧更清一点的坡地去，整段移动都不太会慌。它不是“什么都最强”的海，但它会让人愿意把第二潜、第三潜也放心地排进去。',
-                    diving: '真正舒服的地方在于，海况和点位安排会被拆成更好理解的几步。先看清水色和坡地，再决定今天往哪一层去，体验会稳很多。',
-                    stay: '这种海域和普吉住宿组合在一起时，最大的优点就是好收尾。你潜完回来不会觉得自己被一整天完全掏空，还有力气慢慢把假期接下去。',
-                    food: '潜后如果能在码头回来以后慢慢吃一顿热的，再喝点水把盐分接回来，皇帝岛这种海会让人恢复得特别快。',
-                    scenery: '我喜欢它不靠戏剧化取胜。岸线、停船点和海面颜色都很清楚，所以就算只是船刚停下来的那一刻，也已经足够有画面。',
-                    featurePhoto: {
-                        src: 'assets/images/diving-spot.jpg',
-                        caption: '皇帝岛 · 轻船潜的节奏',
-                        position: '50% 50%'
-                    },
-                    photos: []
+                    focus: ['food', 'stay'],
+                    title: '皇帝岛 · 餐桌会把潜前节奏接住',
+                    subtitle: '先吃水果、热食，再在木椅和餐桌之间慢慢醒过来，皇帝岛很适合这样的开场。',
+                    summary: '皇帝岛这一程不会急着把你推到最重的海况里。早餐盘、热菜和餐厅里那种不需要大声说话的气氛，会让人觉得今天的潜水已经被妥帖安放。',
+                    diving: '潜前节奏被照顾好以后，下水会轻很多，判断压力也会小很多。',
+                    stay: '餐厅和住处的距离不远，回到岸上以后也能自然续上，不会一直被切换感打断。',
+                    food: '水果、热饮和一顿像样的餐桌，是皇帝岛轻船潜体验的重要一部分。',
+                    scenery: '连餐桌上的光都像海的前奏：不夸张，却把之后那层更亮的蓝提前说给你听。',
+                    featurePhoto: createReviewPhoto(2, 'feature', '皇帝岛 · 潜前的餐厅会先把身体接住', '50% 50%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'breakfast-fruit', caption: '皇帝岛 · 水果和热饮把清晨慢慢拉开', position: '50% 56%' },
+                        { key: 'dinner-table', caption: '皇帝岛 · 潜后那顿饭也不需要很赶', position: '50% 56%' }
+                    ])
                 },
                 {
                     id: 'review-3',
-                    user: '先把这一潜读懂',
+                    user: '甲板先读今天的云',
                     date: '2025年10月',
                     level: 'OW / AOW',
                     ratingStars: '★★★★★',
                     ratingScore: '4.8 / 5',
-                    focus: ['diving', 'food', 'scenery'],
-                    title: '皇帝岛 · 礁坡和外侧蓝水之间',
-                    subtitle: '这片海不会急着把最深的部分推过来，它更像先把层次摆清楚，再让你决定今天要停在哪一层。',
-                    summary: '对很多人来说，皇帝岛的价值恰好就在这里。你能很快读懂白沙湾、礁坡和外侧蓝水之间的关系，不需要一边适应海况、一边还在猜今天这片海会怎么展开。它更容易让人真正享受潜水本身，而不是一直追着安排跑。',
-                    diving: '礁坡和外侧过渡很清楚，会让人对当天下潜更有把握。尤其是想恢复状态或者想把节奏找回来的时候，这种“先读懂再继续”的海很难得。',
-                    stay: '这类海域适合安排成不太赶的假期。住处、码头和出海线连起来以后，整个人会更容易把注意力留在海上，而不是耗在折返和等待里。',
-                    food: '如果把午餐和潜后补给安排在刚好能把体力接住的节点，皇帝岛这种节奏会非常舒服。它不会让你一天下来只记得累。',
-                    scenery: '皇帝岛的画面感常常来自边界很清楚这件事。白沙、浅蓝、礁坡和外侧更深的海层层递进去，整片海显得既亮，又很安静。',
-                    featurePhoto: {
-                        src: 'assets/images/diving-spot.jpg',
-                        caption: '皇帝岛 · 礁坡和外侧蓝水之间',
-                        position: '50% 50%'
-                    },
-                    photos: []
+                    focus: ['diving', 'scenery'],
+                    title: '皇帝岛 · 出海前先把风向看清楚',
+                    subtitle: '豆袋甲板、上层甲板和远处的云线排在一起，会让人知道今天的海会怎样展开。',
+                    summary: '从船面到外海，皇帝岛很少一下子把张力拉满。你会先在甲板上看见今天的风、云和海面怎么连起来，再慢慢驶进真正该下水的那片蓝里。',
+                    diving: '这种“先读懂再下去”的海很适合恢复状态，也适合 OW / AOW 把连续几潜排得更安心。',
+                    stay: '哪怕只是坐在甲板上等 briefing，那种不慌的感觉都很重要，出海本身也成了旅程的一部分。',
+                    food: '这种海最适合把餐食和补水节点排得清楚：出海前轻一点，回船以后热一点。',
+                    scenery: '皇帝岛的画面感常常来自明暗边界：甲板黑得克制，外海蓝得很开，云墙又把层次一下拉出来。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '皇帝岛 · 上层甲板先把云和海摆出来', '50% 50%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'open-deck', caption: '皇帝岛 · 豆袋甲板上的第一层海风', position: '50% 48%' },
+                        { key: 'storm-wall', caption: '皇帝岛 · 远处云墙会把今天的海说得更清楚', position: '50% 54%' },
+                        { key: 'sea-window', caption: '皇帝岛 · 离岸以后海会一点点安静下来', position: '50% 48%' }
+                    ])
                 },
                 {
                     id: 'review-4',
@@ -3272,20 +3613,247 @@ class DetailPage {
                     level: 'OW',
                     ratingStars: '★★★★☆',
                     ratingScore: '4.6 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '皇帝岛 · 回到陆地也还是慢慢上浮',
+                    subtitle: '夜里的小猫、车窗外的街道和坡路，会把皇帝岛这程从海上轻轻接回日常。',
+                    summary: '很多人只记得皇帝岛的海，但真正让人想再来一次的，常常是岸上收得也很舒服。你会在回程路上看见街道、坡路和晚一点才出现的小猫，整趟旅程像缓慢上浮，而不是突然结束。',
+                    diving: '有了这样的回岸段，前面的潜水会留得更久，因为你不是一下从海里跳回现实。',
+                    stay: '普吉一带的住处和岸上动线，让皇帝岛很适合排成轻一点的假期：潜水之后，生活感仍然能继续。',
+                    food: '回到岸上再找一顿热的，或者在车上慢慢喝掉一瓶水，都比急着赶路更像皇帝岛的收尾。',
+                    scenery: '街道、坡路和夜里的小动物，让这片海的回忆不只停在蓝水，也停在一整段温柔的陆地时间里。',
+                    featurePhoto: createReviewPhoto(4, 'feature', '皇帝岛 · 岸上的慢路会把这程轻轻接住', '50% 54%'),
+                    photos: makeReviewPhotos(4, [
+                        { key: 'night-cat', caption: '皇帝岛 · 夜里还有一只猫把路口守得很安静', position: '50% 46%' },
+                        { key: 'road-window', caption: '皇帝岛 · 车窗外的街道把这程慢慢收住', position: '50% 48%' },
+                        { key: 'town-slope', caption: '皇帝岛 · 坡路和树影会把海边时间继续拉长', position: '50% 50%' }
+                    ])
+                },
+                {
+                    id: 'review-5',
+                    user: '第一眼先给珊瑚',
+                    date: '2025年7月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'scenery'],
+                    title: '皇帝岛 · 水下先是珊瑚和明亮蓝',
+                    subtitle: '它不会先拿压迫感说话，而是先给你珊瑚、礁块和一层很清楚的亮蓝。',
+                    summary: '皇帝岛最舒服的地方，是它把水下层次摆得很开。你先看见软珊瑚、礁块和明亮的蓝，再看见潜水员慢慢进入这层海里，整片水下结构既轻，又很完整。',
+                    diving: '对想恢复状态、或想把一天里的几潜都做得更从容的人来说，这种亮、清楚、边界分明的结构非常友好。',
+                    stay: '因为海不会一上来就过度消耗人，所以潜后回到岸上时还能保留不少余地。',
+                    food: '潜后只需要一顿热的和一点盐分，身体就能慢慢接回来，它不会让你只剩疲惫。',
+                    scenery: '真正动人的是蓝不是整片砸过来，而是被珊瑚和礁块拆成很多层，每一层都很清楚。',
+                    featurePhoto: createReviewPhoto(5, 'feature', '皇帝岛 · 先看见一层很亮的珊瑚蓝', '50% 50%'),
+                    photos: makeReviewPhotos(5, [
+                        { key: 'reef-fan', caption: '皇帝岛 · 软珊瑚会先把视线留下来', position: '50% 50%' },
+                        { key: 'blue-reef', caption: '皇帝岛 · 明亮蓝水把礁坡慢慢推开', position: '50% 50%' },
+                        { key: 'coral-diver', caption: '皇帝岛 · 人一进去，海的层次就更清楚了', position: '50% 54%' }
+                    ])
+                },
+                {
+                    id: 'review-6',
+                    user: '再往里一点是更深的蓝',
+                    date: '2025年7月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['diving', 'scenery'],
+                    title: '皇帝岛 · 礁坡往后，还有鱼群和船舱的蓝',
+                    subtitle: '当珊瑚和亮蓝都已经读懂，再往里一点，鱼群和船舱会把这片海真正收深。',
+                    summary: '皇帝岛不是只有白沙和缓坡。等你把外层亮蓝读熟以后，鱼群会先把坡面铺开，再由船舱里的冷蓝把这片海真正收深。它不会突然变得粗暴，却会让人觉得这片海比想象里更完整。',
+                    diving: '这就是皇帝岛适合 OW / AOW 逐步往前走的原因：你先在轻一点的层里找到节奏，再往更有结构的地方延展。',
+                    stay: '因为前面的铺垫够温和，走到这一层时不会只剩紧张，回到岸上以后也更容易慢慢回味。',
+                    food: '这种潜点最适合在潜后把餐食安排得简单但稳，让身体从更深一点的蓝里慢慢浮回来。',
+                    scenery: '最好的地方在于明暗衔接：鱼群的蓝、礁坡的蓝、再到船舱窗边那层更深的蓝，是一层层递进去的。',
+                    featurePhoto: createReviewPhoto(6, 'feature', '皇帝岛 · 外层亮蓝往后，还有一层更深的礁坡蓝', '50% 50%'),
+                    photos: makeReviewPhotos(6, [
+                        { key: 'reef-fish', caption: '皇帝岛 · 礁石和鱼会把这一潜继续往前推', position: '50% 48%' },
+                        { key: 'reef-slope', caption: '皇帝岛 · 礁坡会先把鱼和蓝一起摆出来', position: '50% 50%' },
+                        { key: 'schooling-fish', caption: '皇帝岛 · 再往前一点，鱼群开始把空间填满', position: '50% 52%' },
+                        { key: 'wreck-window', caption: '皇帝岛 · 船舱窗边那一格光会把人留下来', position: '50% 50%' },
+                        { key: 'wreck-inside', caption: '皇帝岛 · 里面的蓝很安静，也很完整', position: '50% 54%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 14) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '先经过转机和热食',
+                    date: '2026年3月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '热浪岛 · 先把路上的盐分收好',
+                    subtitle: '热浪岛这一程不是一落地就急着入海，小飞机、夜里的住处和第一顿热食，会先把身体接住。',
+                    summary: '真正的旅程不是从到达潜点的那一刻开始的，而是从你开始离开日常、进入假期的那一刻开始的。酒店的入住，路上的转机，都会让你感受到不一样的体验。在市中心的繁忙中体验喧闹，在热浪岛的夜晚体验安静，体验各种不同的节奏，都是这趟旅程的一部分。它不会让你一下子就被丢进很重的海里，而是先把路上的盐分和疲惫慢慢收好。',
+                    diving: '这种进入方式会让后面的船潜轻很多，因为你不是带着一路的疲惫直接下水。',
+                    stay: '夜里抵达也不会显得慌。只要住处和动线够稳，热浪岛就会从第一晚开始变得柔和。',
+                    food: '第一顿热食特别重要。它不抢戏，却决定你接下来几天是不是能舒服地跟上海。',
+                    scenery: '连路上的画面都很有热浪岛气质：灯光不大声，夜色很松，假期已经慢慢开始。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '热浪岛 · 小飞机落下来以后，这程才真正开始', '50% 58%'),
+                    photos: makeReviewPhotos(1, [
+                        { key: 'arrival-night', caption: '热浪岛 · 夜里到住处，灯光也还是轻的', position: '50% 52%' },
+                        { key: 'plane-window', caption: '热浪岛 · 转机时先在城里停一会儿', position: '50% 42%' },
+                        { key: 'first-meal', caption: '热浪岛 · 第一顿热食把人稳稳接住', position: '50% 56%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '白沙先把一天点亮',
+                    date: '2025年12月',
+                    level: 'OW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.7 / 5',
+                    focus: ['scenery', 'stay'],
+                    title: '热浪岛 · 沙滩椅和餐桌边的第一层海',
+                    subtitle: '白沙、椅子、餐桌和一眼就能看懂的浅蓝，会先把整天点亮。',
+                    summary: '经过旅途的奔波后，站在柔软洁净的白沙上，迎面吹来的海风，远处的海浪，让我在忙碌的生活中脱离出来，丢下一切包袱，真正的享受到了热浪岛的美好。它不会一下子把你丢进很重的海里，而是先把这片海的亮度和层次说得很清楚，整个人就已经先放松了。',
+                    diving: '这种岸边层次会让后面的船潜更顺，因为在下水之前，你已经先把这片海的亮度和方向读懂了。',
+                    stay: '如果住处和海边真的离得很近，热浪岛会特别完整，靠近沙滩的过程本身就是旅程的一部分。',
+                    food: '面海的餐桌很适合潜前早餐和潜后补水，它们会把海风稳稳接进身体里。',
+                    scenery: '最喜欢的是白沙和桌椅没有被做得很热闹，反而把整片海留得更安静。',
+                    featurePhoto: createReviewPhoto(2, 'feature', '热浪岛 · 面海的餐桌会先把这一天点亮', '50% 52%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'deck-chairs', caption: '热浪岛 · 沙滩椅还空着，海已经亮起来了', position: '50% 50%' },
+                        { key: 'white-sand', caption: '热浪岛 · 白沙会先把呼吸放轻', position: '50% 52%' },
+                        { key: 'beachline', caption: '热浪岛 · 靠近岸线时海是很好读的', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '住处外面就是海风',
+                    date: '2025年10月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
                     focus: ['stay', 'scenery'],
-                    title: '皇帝岛 · 适合排进轻一点的假期',
-                    subtitle: '不是每一片海都要靠强张力留下来，皇帝岛更像让你把潜水安放进一段明亮、从容的泰国海边时间里。',
-                    summary: '真正让人想再来的，往往是这种潜后还能慢慢收住的海。你从船上下来，不会只剩“终于结束”的疲惫，而是还记得水色、岸线和今天每一潜之间那种很顺的连接。它会让人觉得，潜水和度假本来就应该被放在同一种呼吸里。',
-                    diving: '如果你不想这次潜旅被过于复杂的海况占满，皇帝岛会是很顺的一站。它保留了层次，又不会把判断压力拉得太高。',
-                    stay: '皇帝岛和普吉一带的组合适合把节奏放轻。潜前潜后都还留有余地，这种空间感本身就会让整趟旅程更舒服。',
-                    food: '潜后再去吃一顿不太赶的热菜，会比很多更强张力的海域显得更从容。因为你还有心情慢慢回味今天这片海，而不只是补体力。',
-                    scenery: '它的好看不在某一秒，而在一整天都没有被打断。海先亮起来，潜水慢慢展开，回到岸上以后画面也不会立刻消失。',
-                    featurePhoto: {
-                        src: 'assets/images/diving-spot.jpg',
-                        caption: '皇帝岛 · 适合排进轻一点的假期',
-                        position: '50% 50%'
-                    },
-                    photos: []
+                    title: '热浪岛 · 阳台、棕榈和停在海上的船',
+                    subtitle: '房间外、阳台边和树影底下，都还能继续看见海没有结束。',
+                    summary: '如果说白沙把热浪岛先点亮，那么住处会把这种亮慢慢留下来。阳台边有木纹和风，棕榈把海面分成几层，船停在湾里不急着动，整段停驻感会比“只去一个潜点”完整得多。',
+                    diving: '住得离海近，会让出海变成一种自然延伸，而不是每天重新启动一次。',
+                    stay: '这组图几乎把热浪岛为什么适合轻假期说清楚了：房间外就有海，走到阳台边就知道今天不需要太赶。',
+                    food: '这种住处最适合把潜后的水果和热饮留在房间外慢慢喝掉，让海风把一整天再往后放一会儿。',
+                    scenery: '真正好看的不是某一个打卡角度，而是棕榈、屋顶和海上的船一起把空间轻轻排开。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '热浪岛 · 从住处望出去，整片湾还在呼吸', '50% 54%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'balcony', caption: '热浪岛 · 阳台边的木纹和风都很轻', position: '50% 50%' },
+                        { key: 'palm-bay', caption: '热浪岛 · 棕榈会把海湾切成很多层浅蓝', position: '50% 50%' },
+                        { key: 'boat-between-palms', caption: '热浪岛 · 船停在树影之间，整片海显得更安静', position: '50% 50%' }
+                    ])
+                },
+                {
+                    id: 'review-4',
+                    user: '天气会把海再改一遍',
+                    date: '2025年9月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.7 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '热浪岛 · 云一压下来，海还是清楚的',
+                    subtitle: '就算云层压低、浪线起一点，这片海的层次仍然很好读。',
+                    summary: '同一片岸线，在天气换了一层之后会显出另一种安静。云墙压过来时，海边的人变得很小，浪线更明显，高一点的位置又能看见白沙仍然把蓝水稳稳托住。',
+                    diving: '这种天气变化会提醒人把节奏放稳：先读浪线，再决定今天往哪一层去。',
+                    stay: '当住处、岸线和海之间足够近时，天气变化本身也会变成旅程的一部分，而不是计划被打断。',
+                    food: '风大一点的时候，潜后回去喝热的、吃热的会更舒服，也更像热浪岛这种慢慢收住的节奏。',
+                    scenery: '我很喜欢这组里那种灰下来以后仍然很透的蓝，它让白沙和浪线都变得更清楚。',
+                    featurePhoto: createReviewPhoto(4, 'feature', '热浪岛 · 岸线和礁石会先把今天的海说清楚', '50% 52%'),
+                    photos: makeReviewPhotos(4, [
+                        { key: 'storm-front', caption: '热浪岛 · 云压下来的时候，海还是有层次的', position: '50% 54%' },
+                        { key: 'shore-swell', caption: '热浪岛 · 浪线把近岸的呼吸再说一遍', position: '50% 52%' },
+                        { key: 'high-view', caption: '热浪岛 · 从高一点看，白沙会把蓝稳稳托住', position: '50% 50%' }
+                    ])
+                },
+                {
+                    id: 'review-5',
+                    user: '岛上的慢路也很重要',
+                    date: '2025年9月',
+                    level: 'OW',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.6 / 5',
+                    focus: ['stay', 'scenery'],
+                    title: '热浪岛 · 路边的猴子会让人再慢一点',
+                    subtitle: '本来没把告示牌当回事，结果猴子真的突然跳上来，把衣服也弄脏了。',
+                    summary: '这是我在酒店附近遇到的一段小插曲。先碰到一只小松鼠，我还分了一点面包给它；看到旁边提醒有猴子的告示时，我并没有太在意，结果没过多久，真的有一只猴子突然跳到我衣服上，把衣服弄脏了。回头再想，这种带点狼狈的意外，反而让热浪岛更容易被记住。',
+                    diving: '热浪岛不只是下水时才有记忆点，连潜前潜后在住处附近遇到的小意外，都会把整段行程留得更深。',
+                    stay: '住在岛上的感觉，就是你不会只记住房间和海，还会记住酒店门口的小路、告示牌，还有那些突然闯进生活里的小动物。',
+                    food: '岛上连拿着面包停一下都会变成故事，所以节奏真的不用赶，慢一点，很多细节自己就会出现。',
+                    scenery: '这片海最特别的地方，是海景之外还带着一点野性，树影、告示和突然出现的猴子，都会把风景变得更真。',
+                    featurePhoto: createReviewPhoto(5, 'feature', '热浪岛 · 那张猴子警告牌，后来想起来很准', '50% 48%'),
+                    photos: makeReviewPhotos(5, [
+                        { key: 'island-path', caption: '热浪岛 · 酒店外面这段小路，后来也成了记忆的一部分', position: '50% 54%' },
+                        { key: 'monkey-warning', caption: '热浪岛 · 当时没太在意的提醒，后来全都应验了', position: '50% 48%' },
+                        { key: 'balcony-late', caption: '热浪岛 · 被猴子踩脏的衣服，也把这一天留得更牢', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-6',
+                    user: '潜前 briefing 到蓝水栏杆',
+                    date: '2025年8月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'stay'],
+                    title: '热浪岛 · 出海这件事本身也很顺',
+                    subtitle: 'briefing、船尾白浪、潜具和栏杆外的深蓝，会把热浪岛的轻船潜节奏解释得很清楚。',
+                    summary: '热浪岛让人愿意把连续几潜排进去，是因为出海本身就不太消耗人。你会先在 briefing 里把今天读清楚，再看见船尾把白浪拉开，潜具安静地靠在船边，最后栏杆外只剩一整片深一点的蓝。',
+                    diving: '对 OW / AOW 来说，这种有秩序、好理解的出海方式非常重要，注意力可以更多留给海。',
+                    stay: '当船潜日被安排得清楚，回到岸上也不会有那种被彻底掏空的感觉，假期节奏能继续保持轻。',
+                    food: '这类轻船潜很适合把补水和热食排在节点上，不需要大张旗鼓，却能让身体一直在舒服区间里。',
+                    scenery: '我很喜欢这组图里蓝是怎么慢慢加深的：先是人、再是船、再是栏杆外整片安静下来的海。',
+                    featurePhoto: createReviewPhoto(6, 'feature', '热浪岛 · briefing 结束以后，今天这片海就很清楚了', '50% 48%'),
+                    photos: makeReviewPhotos(6, [
+                        { key: 'boat-wake', caption: '热浪岛 · 船尾白浪会先把节奏拉开', position: '50% 52%' },
+                        { key: 'dive-gears', caption: '热浪岛 · 潜具靠在船边，整天都显得很稳', position: '50% 48%' },
+                        { key: 'blue-rail', caption: '热浪岛 · 栏杆外那层深蓝会把人继续往前带', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-7',
+                    user: '夜里回到海边还不想散',
+                    date: '2025年8月',
+                    level: 'OW',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.6 / 5',
+                    focus: ['food', 'stay', 'scenery'],
+                    title: '热浪岛 · 潜后还有一段夜色在等你',
+                    subtitle: '夜里的餐桌、靠海的小屋和很浅的一层水光，会把这一天再轻轻往后延一点。',
+                    summary: '热浪岛很适合把潜后时间留给海边。你会在夜色里看见桌椅和灯光，也会在更安静的位置再看见一点点仍然发亮的浅水，它不会用很强烈的夜生活把人拽走。',
+                    diving: '因为白天的船潜已经足够顺，晚上反而更愿意把潜水留在身体里，而不是马上切走。',
+                    stay: '热浪岛的晚上不是过度热闹的那种，它更像让你在饭后和海边之间再轻轻走一会儿。',
+                    food: '夜里的餐桌是这组图最重要的部分，它把潜后盐分、海风和一天的疲惫一起接回来。',
+                    scenery: '最动人的是夜色并没有把海吞掉，水边那层浅光还在，让人知道这片海并没有真正结束。',
+                    featurePhoto: createReviewPhoto(7, 'feature', '热浪岛 · 夜里的餐桌会把潜后余韵留住', '50% 52%'),
+                    photos: makeReviewPhotos(7, [
+                        { key: 'sunset-corner', caption: '热浪岛 · 夜色刚压下来时，角落里的海还是蓝的', position: '50% 52%' },
+                        { key: 'night-beach', caption: '热浪岛 · 小屋和沙地会把晚上留得很轻', position: '50% 52%' },
+                        { key: 'shallow-light', caption: '热浪岛 · 清澈见底的海水', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-8',
+                    user: '最后一晚也不急着告别',
+                    date: '2025年8月',
+                    level: 'OW',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.6 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '热浪岛 · 最后留下来的反而是这些普通时刻',
+                    subtitle: '夜里的小路、便利店货架和岸边那间安静的小屋，会让人明白热浪岛真正留下来的不是单点刺激。',
+                    summary: '离开热浪岛之前，最容易反复想起的，往往不是某一次下水，而是这些再普通不过的画面：夜里拐过弯的小路、便利店里临时买的零食、海边那间小屋和到达时那种并不喧闹的夜色。',
+                    diving: '正因为海不需要一直靠高张力维持存在感，离开时你才会发现，真正留下来的其实是整段潜前潜后的呼吸。',
+                    stay: '最后一晚还愿意在岛上再走一段路，本身就说明热浪岛适合停下来住，而不只是匆匆来回。',
+                    food: '便利店和零食这种很小的节点，反而会让人记住旅途是怎么被一口一口接住的。',
+                    scenery: '我喜欢这组图里那种不刻意的安静：不是大场面，却很像真正会留在记忆里的海岛。',
+                    featurePhoto: createReviewPhoto(8, 'feature', '热浪岛 · 最后一晚的小路把这程慢慢收住', '50% 52%'),
+                    photos: makeReviewPhotos(8, [
+                        { key: 'night-arrival', caption: '热浪岛 · 初到时那层夜色其实很轻', position: '50% 52%' },
+                        { key: 'resort-path', caption: '热浪岛 · 靠海的小屋会把最后的画面留住', position: '50% 52%' },
+                        { key: 'convenience-stop', caption: '热浪岛 · 离开前买的零食也会变成回忆的一部分', position: '50% 50%' }
+                    ])
                 }
             ]);
         }
@@ -5358,6 +5926,42 @@ class DetailPage {
                         { title: 'AOW 建议区', text: '可根据当天窗口延展到更外侧一点的蓝水过渡层。' }
                     ]
                 }
+            },
+            14: {
+                country: '马来西亚',
+                region: '登嘉楼州 · 热浪岛',
+                sea: '南中国海',
+                positionNote: '热浪岛更像一片先把身体安放好的海。白沙、清透浅蓝和外侧礁坡会先把节奏放轻，再让你慢慢进入更完整的海底层次。',
+                current: '中弱流，午后窗口更敏感',
+                levelSummary: 'OW / AOW 友好',
+                route: {
+                    hotel: '热浪岛海边度假酒店',
+                    harbor: '墨浪码头 / 岛上接驳点',
+                    boatTime: '30–55 分钟',
+                    routeCopy: '从码头离岸后不久，海色会先从浅蓝慢慢加深。真正的重点不是“最快到点”，而是让人先把海况读懂，再往外侧推进。',
+                    journey: [
+                        '酒店集合后确认装备、防晒补水和当天风浪窗口。',
+                        '登船离岸后先观察浅礁与外侧水色变化，确认当日主潜线。',
+                        '到点前进行 briefing，统一集合深度、回船方式和安全停留节奏。'
+                    ]
+                },
+                underwater: {
+                    title: '白沙浅礁、坡地过渡与外侧蓝水',
+                    copy: '热浪岛的层次是从轻到深展开的。它先让人把呼吸放慢，再把海底结构一点点交给你。',
+                    layers: [
+                        { depth: '0–6m', title: '白沙浅蓝光带', note: '适合集合、适应和把节奏先稳住。' },
+                        { depth: '6–18m', title: '礁坡主体验层', note: '大多数热带生态和通透蓝感会在这里出现。' },
+                        { depth: '18–30m', title: '外侧蓝水延展层', note: 'AOW 更能在这一层理解热浪岛的结构过渡。' }
+                    ],
+                    hotspots: [
+                        { title: '白沙湾外侧线', text: '适合先读懂浅礁和外侧蓝水边界的入口区域。' },
+                        { title: '礁坡转折位', text: '最容易看见这片海从轻到深的层次变化。' }
+                    ],
+                    levels: [
+                        { title: 'OW 建议区', text: '优先停在浅礁和主体验层，先让身体与节奏对齐。' },
+                        { title: 'AOW 建议区', text: '可在稳定窗口延展到外侧蓝水层，保持安全停留余量。' }
+                    ]
+                }
             }
         };
 
@@ -6695,11 +7299,27 @@ class DetailPage {
         }
 
         const avatarSrc = 'assets/images/avatar.png';
-        const visibleReviews = this.reviewData.filter((review) => (
+        const filteredReviews = this.reviewData.filter((review) => (
             this.activeReviewFilter === 'all' || review.focus.includes(this.activeReviewFilter)
         ));
+        const visibleReviews = this.attachReviewPackageLinks(filteredReviews);
 
-        this.reviewsSection.innerHTML = visibleReviews.map((review, index) => `
+        this.reviewsSection.innerHTML = visibleReviews.map((review) => {
+            const reviewPhotos = review.photos || [];
+            const galleryPhotoCount = reviewPhotos.length + (review.featurePhoto ? 1 : 0);
+            const galleryClasses = ['review-gallery'];
+
+            if (review.featurePhoto) {
+                galleryClasses.push('has-featured-photo');
+            } else if (galleryPhotoCount === 1) {
+                galleryClasses.push('review-gallery-solo');
+            } else if (galleryPhotoCount === 2) {
+                galleryClasses.push('review-gallery-pair');
+            } else if (galleryPhotoCount === 3) {
+                galleryClasses.push('review-gallery-trio');
+            }
+
+            return `
             <article
                 class="review-card${review.featurePhoto ? ' has-feature-photo' : ''}"
                 data-review-id="${review.id}"
@@ -6766,7 +7386,7 @@ class DetailPage {
                     </div>
                 </div>
 
-                <div class="review-gallery${review.featurePhoto ? ' has-featured-photo' : ''}">
+                <div class="${galleryClasses.join(' ')}">
                     ${review.featurePhoto ? `
                         <button
                             type="button"
@@ -6788,7 +7408,7 @@ class DetailPage {
                             <span class="review-photo-caption review-photo-caption-featured">${review.featurePhoto.caption}</span>
                         </button>
                     ` : ''}
-                    ${review.photos.map((photo) => `
+                    ${reviewPhotos.map((photo) => `
                         <button
                             type="button"
                             class="review-photo-button"
@@ -6811,7 +7431,8 @@ class DetailPage {
                     `).join('')}
                 </div>
             </article>
-        `).join('');
+        `;
+        }).join('');
 
         this.activeReviewLinkedPackageId = null;
         this.syncReviewExpandButtons();
@@ -8393,6 +9014,7 @@ class DetailPage {
 
         const activeSpot = relatedSpots.find((spot) => spot.id === this.activeRelatedSpotId) || relatedSpots[0];
         const activeProfile = getRelatedSpotProfile(activeSpot);
+        const activeImage = divingSpotDetails[activeSpot.id]?.image || activeSpot.image;
         const sideSpots = relatedSpots.filter((spot) => spot.id !== activeSpot.id).slice(0, 2);
         const directionClass = direction ? ` ${direction}` : '';
         // 只把一张作为主卡，其余两张做邻近海域。
@@ -8403,7 +9025,7 @@ class DetailPage {
                 <article class="related-feature-card" data-id="${activeSpot.id}" tabindex="0" aria-label="继续查看 ${activeSpot.name} 的详情">
                     <div class="related-feature-media">
                         <img
-                            src="${activeSpot.image}"
+                            src="${activeImage}"
                             alt="${activeSpot.name}"
                             class="related-feature-image"
                             onerror="this.src='https://via.placeholder.com/960x620?text=${encodeURIComponent(activeSpot.name)}'"
@@ -8441,6 +9063,7 @@ class DetailPage {
                 <div class="related-neighbor-stack">
                     ${sideSpots.map((spot, index) => {
                         const profile = getRelatedSpotProfile(spot);
+                        const spotImage = divingSpotDetails[spot.id]?.image || spot.image;
                         return `
                             <button
                                 type="button"
@@ -8452,7 +9075,7 @@ class DetailPage {
                             >
                                 <div class="related-neighbor-media">
                                     <img
-                                        src="${spot.image}"
+                                        src="${spotImage}"
                                         alt="${spot.name}"
                                         class="related-neighbor-image"
                                         onerror="this.src='https://via.placeholder.com/420x320?text=${encodeURIComponent(spot.name)}'"
@@ -8795,7 +9418,8 @@ class DetailPage {
             7: `${name} 留下来的，不只是大景与洋流，而是整片海在更强的张力里依然保持完整的秩序感。`,
             8: `${name} 更像一片有余韵的蓝，真正留在记忆里的，是那种通道被海流轻轻推开的感觉。`,
             9: `${name} 不会在离开页面时结束。真正留下来的，往往是海风、木栈道和潜后慢下来的那段岛上时光。`,
-            13: `${name} 留下来的，往往不是某一个最强的瞬间，而是白沙、清水和呼吸终于一起慢下来的那一刻。`
+            13: `${name} 留下来的，往往不是某一个最强的瞬间，而是白沙、清水和呼吸终于一起慢下来的那一刻。`,
+            14: `${name} 留下来的，常常是海先把你安放好，再把那层更深一点的蓝慢慢交到眼前的过程。`
         };
         const murmurMap = {
             1: '你可以继续把它排进行程，或再看看另一片与你此刻节奏更接近的蓝。',
@@ -8807,7 +9431,8 @@ class DetailPage {
             7: '看完这片更有张力的海以后，也可以回到一处更适合此刻呼吸节奏的蓝。',
             8: '把这片海留在呼吸里以后，或许还能去看另一处同样值得慢慢下潜的环礁通道。',
             9: '你可以继续把它排进行程，或再看看另一片更适合此刻停驻节奏的海。',
-            13: '如果你想继续把潜旅排进更明亮、更轻一点的海，也许下一片相邻水域已经在前面等你。'
+            13: '如果你想继续把潜旅排进更明亮、更轻一点的海，也许下一片相邻水域已经在前面等你。',
+            14: '如果你愿意继续沿着这段舒缓节奏往前，也许下一片海会在更深一点的蓝里等你。'
         };
 
         return {
@@ -9824,7 +10449,7 @@ class DetailPage {
         relatedSpots.forEach((spot) => {
             const preloadImage = new Image();
             preloadImage.decoding = 'async';
-            preloadImage.src = spot.image;
+            preloadImage.src = divingSpotDetails[spot.id]?.image || spot.image;
 
             const href = new URL(`detail.html?id=${spot.id}`, window.location.href).href;
             if (document.head.querySelector(`link[data-detail-prefetch="${spot.id}"]`)) {
