@@ -1125,6 +1125,8 @@
             this.pageStateDepthObserver = null;
             this.pageStateDepthRules = [];
             this.homeDiveMatchDepth = null;
+            this.homeSectionMetrics = null;
+            this.homeDiveMatchStopIndex = -1;
             this.detailGaugeProfile = this.pageId === 'detail'
                 ? { ...DETAIL_GAUGE_DEFAULT_PROFILE }
                 : null;
@@ -2115,6 +2117,248 @@
         }
 
         /**
+         * resolveHomeStopDepth(selector) - 根据 selector 读取首页停靠点深度，优先复用已解析停靠点
+         * @param {string} selector - 首页区块 selector
+         * @returns {number|null} - 对应的深度值
+         */
+        resolveHomeStopDepth(selector) {
+            const normalizedSelector = this.normalizeHomeMetricSelector(selector);
+            if (!normalizedSelector) {
+                return null;
+            }
+
+            const runtimeStop = this.pageScrollDepthStops.find((stop) => (
+                stop.selector === normalizedSelector
+                || stop.selector === selector
+            ));
+            if (runtimeStop && Number.isFinite(runtimeStop.depth)) {
+                return runtimeStop.depth;
+            }
+
+            const configStop = HOME_SECTION_DEPTH_STOPS.find((stop) => (
+                stop.selector === normalizedSelector
+                || stop.selector === selector
+            ));
+            return Number.isFinite(configStop?.depth) ? configStop.depth : null;
+        }
+
+        /**
+         * normalizeHomeMetricSelector(selector) - 统一首页 metrics selector，避免不同模块使用别名导致缓存错位
+         * @param {string} selector - 原始 selector
+         * @returns {string} - 规范化后的 selector
+         */
+        normalizeHomeMetricSelector(selector) {
+            const safeSelector = typeof selector === 'string' ? selector.trim() : '';
+            if (!safeSelector) {
+                return '';
+            }
+
+            if (safeSelector === '#homeFooter') {
+                return '.footer';
+            }
+
+            return safeSelector;
+        }
+
+        /**
+         * normalizeHomeSectionMetrics(source) - 规范化首页 section metrics 结构，供滚动深度逻辑复用
+         * @param {Object} source - 外部注入的首页 metrics
+         * @returns {Object|null} - 规范化后的 metrics
+         */
+        normalizeHomeSectionMetrics(source) {
+            if (!source || typeof source !== 'object') {
+                return null;
+            }
+
+            let sourcePoints = [];
+            if (Array.isArray(source.points)) {
+                sourcePoints = source.points;
+            } else if (Array.isArray(source.sections)) {
+                sourcePoints = source.sections;
+            } else if (Array.isArray(source.sectionMetrics)) {
+                sourcePoints = source.sectionMetrics;
+            } else if (source.sections && typeof source.sections === 'object') {
+                sourcePoints = Object.keys(source.sections).map((selector) => ({
+                    ...source.sections[selector],
+                    selector: source.sections[selector]?.selector || selector
+                }));
+            }
+
+            if (sourcePoints.length === 0) {
+                return null;
+            }
+
+            const parsedPoints = sourcePoints
+                .map((entry, index) => {
+                    if (!entry || typeof entry !== 'object') {
+                        return null;
+                    }
+
+                    const selector = typeof entry.selector === 'string'
+                        ? this.normalizeHomeMetricSelector(entry.selector)
+                        : '';
+                    const depth = readNumber(entry.depth) ?? this.resolveHomeStopDepth(selector);
+                    if (!Number.isFinite(depth)) {
+                        return null;
+                    }
+
+                    const top = readNumber(entry.top)
+                        ?? readNumber(entry.sectionTop)
+                        ?? readNumber(entry.offsetTop);
+                    const height = readNumber(entry.height)
+                        ?? readNumber(entry.sectionHeight)
+                        ?? readNumber(entry.offsetHeight);
+                    const threshold = readNumber(entry.threshold)
+                        ?? readNumber(entry.sectionThreshold);
+
+                    return {
+                        selector: selector || `#home-metric-${index}`,
+                        depth: clamp(depth, MIN_DEPTH, MAX_DEPTH),
+                        top: Number.isFinite(top) ? top : null,
+                        height: Number.isFinite(height) ? Math.max(height, 0) : null,
+                        threshold: Number.isFinite(threshold) ? threshold : null
+                    };
+                })
+                .filter(Boolean);
+
+            if (parsedPoints.length === 0) {
+                return null;
+            }
+
+            const viewportHeight = readNumber(source.viewportHeight);
+            const documentHeight = readNumber(source.documentHeight);
+            const scrollLimit = readNumber(source.scrollLimit);
+            const normalizedInput = parsedPoints.map((point, index) => ({
+                ...point,
+                top: Number.isFinite(point.top) ? point.top : index * 1000,
+                threshold: Number.isFinite(point.threshold) ? point.threshold : 0
+            }));
+            const points = this.normalizeHomeThresholdPoints(normalizedInput, {
+                viewportHeight: viewportHeight,
+                documentHeight: documentHeight,
+                scrollLimit: scrollLimit
+            }).map((point, index) => ({
+                selector: parsedPoints[index]?.selector || point.selector,
+                depth: parsedPoints[index]?.depth ?? point.depth,
+                top: parsedPoints[index]?.top ?? point.top,
+                height: parsedPoints[index]?.height ?? null,
+                threshold: point.threshold
+            }));
+            const pointBySelector = new Map(points.map((point) => [point.selector, point]));
+
+            return {
+                viewportHeight: Number.isFinite(viewportHeight) ? Math.max(viewportHeight, 1) : null,
+                documentHeight: Number.isFinite(documentHeight) ? Math.max(documentHeight, 0) : null,
+                scrollLimit: Number.isFinite(scrollLimit) ? Math.max(scrollLimit, 1) : null,
+                points: points,
+                pointBySelector: pointBySelector
+            };
+        }
+
+        /**
+         * applyHomeSectionMetricsToStops() - 把首页外部 metrics 回填到停靠点缓存，减少后续布局读取
+         * @returns {void}
+         */
+        applyHomeSectionMetricsToStops() {
+            if (this.pageScrollDepthStops.length === 0 || !this.homeSectionMetrics?.pointBySelector) {
+                return;
+            }
+
+            this.pageScrollDepthStops.forEach((stop) => {
+                const metricPoint = this.homeSectionMetrics.pointBySelector.get(stop.selector);
+                if (!metricPoint) {
+                    return;
+                }
+
+                if (Number.isFinite(metricPoint.top)) {
+                    stop.cachedTop = metricPoint.top;
+                }
+
+                if (Number.isFinite(metricPoint.height)) {
+                    stop.cachedHeight = metricPoint.height;
+                }
+            });
+        }
+
+        /**
+         * setHomeSectionMetrics(metrics) - 允许首页注入 section metrics 缓存，优先复用避免重复 layout read
+         * @param {Object|null} metrics - 首页 section metrics
+         * @returns {boolean} - 是否成功接收并启用缓存
+         */
+        setHomeSectionMetrics(metrics) {
+            const normalizedMetrics = this.normalizeHomeSectionMetrics(metrics);
+            if (!normalizedMetrics) {
+                this.clearHomeSectionMetrics();
+                return false;
+            }
+
+            this.homeSectionMetrics = normalizedMetrics;
+            this.pageScrollThresholdPoints = normalizedMetrics.points;
+            this.pageScrollMetricsDirty = false;
+            this.applyHomeSectionMetricsToStops();
+
+            if (this.pageId === 'home' && this.pageScrollDepthEnabled) {
+                this.queuePageScrollDepthUpdate(true);
+            }
+
+            return true;
+        }
+
+        /**
+         * clearHomeSectionMetrics() - 清除首页外部 metrics，回退到内部测量逻辑
+         * @returns {void}
+         */
+        clearHomeSectionMetrics() {
+            this.homeSectionMetrics = null;
+            this.markPageScrollMetricsDirty();
+        }
+
+        /**
+         * getHomeScrollRuntimeMetrics() - 读取首页滚动计算需要的页面尺寸信息，优先使用注入缓存
+         * @returns {{viewportHeight:number,documentHeight:number,scrollLimit:number}} - 首页滚动尺寸参数
+         */
+        getHomeScrollRuntimeMetrics() {
+            const cachedMetrics = this.homeSectionMetrics;
+            const viewportHeight = Number.isFinite(cachedMetrics?.viewportHeight)
+                ? Math.max(cachedMetrics.viewportHeight, 1)
+                : Math.max(window.innerHeight || document.documentElement.clientHeight || 0, 1);
+            const documentHeight = Number.isFinite(cachedMetrics?.documentHeight)
+                ? Math.max(cachedMetrics.documentHeight, viewportHeight)
+                : Math.max(
+                    document.documentElement?.scrollHeight || 0,
+                    document.body?.scrollHeight || 0,
+                    viewportHeight
+                );
+            const scrollLimit = Number.isFinite(cachedMetrics?.scrollLimit)
+                ? Math.max(cachedMetrics.scrollLimit, 1)
+                : Math.max(documentHeight - viewportHeight, 1);
+
+            return {
+                viewportHeight: viewportHeight,
+                documentHeight: documentHeight,
+                scrollLimit: scrollLimit
+            };
+        }
+
+        /**
+         * getHomeDiveMatchStop() - 读取首页潜水匹配停靠点并缓存索引，避免每帧 find
+         * @returns {Object|null} - 潜水匹配停靠点
+         */
+        getHomeDiveMatchStop() {
+            const cachedIndex = this.homeDiveMatchStopIndex;
+            if (Number.isInteger(cachedIndex) && cachedIndex >= 0) {
+                const cachedStop = this.pageScrollDepthStops[cachedIndex];
+                if (cachedStop && cachedStop.selector === '#dive-match') {
+                    return cachedStop;
+                }
+            }
+
+            const nextIndex = this.pageScrollDepthStops.findIndex((stop) => stop.selector === '#dive-match');
+            this.homeDiveMatchStopIndex = nextIndex;
+            return nextIndex >= 0 ? this.pageScrollDepthStops[nextIndex] : null;
+        }
+
+        /**
          * setDetailGaugeProfile(source) - 根据当前潜点的真实深度范围重设详情页深度计显示档位
          * @param {string|Object|null} source - 潜点深度文本或显式配置对象
          * @returns {void} - 无返回值，直接刷新详情页滚动刻度带
@@ -2195,20 +2439,28 @@
          * @param {Array<Object>} rawPoints - 首页 section 对应的原始位置点
          * @returns {Array<Object>} - 归一化后的首页阈值点
          */
-        normalizeHomeThresholdPoints(rawPoints) {
+        normalizeHomeThresholdPoints(rawPoints, options = null) {
+            const fallbackViewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const viewportHeight = Math.max(readNumber(options?.viewportHeight) ?? fallbackViewportHeight, 1);
+            const explicitScrollLimit = readNumber(options?.scrollLimit);
             if (rawPoints.length <= 1) {
                 return rawPoints.map((point, index) => ({
                     ...point,
-                    threshold: index === 0 ? 0 : Math.max(window.innerHeight || document.documentElement.clientHeight || 0, 1)
+                    threshold: index === 0 ? 0 : viewportHeight
                 }));
             }
 
-            const documentHeight = Math.max(
-                document.documentElement?.scrollHeight || 0,
-                document.body?.scrollHeight || 0
-            );
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-            const scrollLimit = Math.max(documentHeight - viewportHeight, 1);
+            const scrollLimit = Number.isFinite(explicitScrollLimit)
+                ? Math.max(explicitScrollLimit, 1)
+                : Math.max(
+                    Math.max(
+                        readNumber(options?.documentHeight) ?? 0,
+                        document.documentElement?.scrollHeight || 0,
+                        document.body?.scrollHeight || 0,
+                        viewportHeight
+                    ) - viewportHeight,
+                    1
+                );
             const firstTop = rawPoints[0]?.top ?? 0;
             const lastTop = rawPoints[rawPoints.length - 1]?.top ?? firstTop;
             const topRange = Math.max(lastTop - firstTop, 1);
@@ -2246,6 +2498,13 @@
             }
 
             if (!this.pageScrollMetricsDirty && this.pageScrollThresholdPoints.length) {
+                return this.pageScrollThresholdPoints;
+            }
+
+            if (this.pageId === 'home' && this.homeSectionMetrics?.points?.length) {
+                this.applyHomeSectionMetricsToStops();
+                this.pageScrollThresholdPoints = this.homeSectionMetrics.points;
+                this.pageScrollMetricsDirty = false;
                 return this.pageScrollThresholdPoints;
             }
 
@@ -2453,6 +2712,8 @@
                 return;
             }
 
+            this.homeDiveMatchStopIndex = -1;
+            this.applyHomeSectionMetricsToStops();
             this.markPageScrollMetricsDirty();
             this.setupPageScrollMetricsObserver();
 
@@ -2563,12 +2824,7 @@
                 return this.targetDepth;
             }
 
-            const documentHeight = Math.max(
-                document.documentElement?.scrollHeight || 0,
-                document.body?.scrollHeight || 0
-            );
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-            const scrollLimit = Math.max(documentHeight - viewportHeight, 1);
+            const { scrollLimit } = this.getHomeScrollRuntimeMetrics();
             const scrollY = clamp(window.scrollY || window.pageYOffset || 0, 0, scrollLimit);
             const progress = clamp(scrollY / scrollLimit, 0, 1);
             const startDepth = points[0].depth;
@@ -2591,22 +2847,36 @@
                 return baseDepth;
             }
 
-            const diveMatchStop = this.pageScrollDepthStops.find((stop) => stop.selector === '#dive-match');
+            const diveMatchStop = this.getHomeDiveMatchStop();
             if (!diveMatchStop || !diveMatchStop.element) {
                 return baseDepth;
             }
 
             const scrollY = window.scrollY || window.pageYOffset || 0;
-            const sectionTop = Number.isFinite(diveMatchStop.cachedTop)
-                ? diveMatchStop.cachedTop
-                : diveMatchStop.element.getBoundingClientRect().top + scrollY;
-            const sectionHeight = Number.isFinite(diveMatchStop.cachedHeight)
-                ? diveMatchStop.cachedHeight
-                : (diveMatchStop.element.offsetHeight || diveMatchStop.element.getBoundingClientRect().height || 0);
-            const focusY = window.innerHeight * 0.48;
+            const cachedMetricPoint = this.homeSectionMetrics?.pointBySelector?.get('#dive-match') || null;
+            const sectionTop = Number.isFinite(cachedMetricPoint?.top)
+                ? cachedMetricPoint.top
+                : (Number.isFinite(diveMatchStop.cachedTop)
+                    ? diveMatchStop.cachedTop
+                    : diveMatchStop.element.getBoundingClientRect().top + scrollY);
+            const sectionHeight = Number.isFinite(cachedMetricPoint?.height)
+                ? Math.max(cachedMetricPoint.height, 0)
+                : (Number.isFinite(diveMatchStop.cachedHeight)
+                    ? diveMatchStop.cachedHeight
+                    : (diveMatchStop.element.offsetHeight || diveMatchStop.element.getBoundingClientRect().height || 0));
+            const { viewportHeight } = this.getHomeScrollRuntimeMetrics();
+            const focusY = viewportHeight * 0.48;
             const sectionMid = sectionTop - scrollY + Math.max(sectionHeight * 0.42, 120);
-            const fadeDistance = Math.max(window.innerHeight * 0.54, sectionHeight * 0.65, 240);
+            const fadeDistance = Math.max(viewportHeight * 0.54, sectionHeight * 0.65, 240);
             const influence = clamp(1 - (Math.abs(sectionMid - focusY) / fadeDistance), 0, 1);
+
+            if (Number.isFinite(cachedMetricPoint?.top)) {
+                diveMatchStop.cachedTop = cachedMetricPoint.top;
+            }
+
+            if (Number.isFinite(cachedMetricPoint?.height)) {
+                diveMatchStop.cachedHeight = Math.max(cachedMetricPoint.height, 0);
+            }
 
             if (influence <= 0.001) {
                 return baseDepth;

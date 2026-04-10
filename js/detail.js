@@ -243,6 +243,124 @@ function createBufferedLiveAnnouncer(target, delay = 320) {
 }
 
 /**
+ * scheduleIdleTask(callback, timeout) - 在空闲时机安排轻量后置任务，并提供取消句柄
+ * @param {Function} callback - 需要执行的回调
+ * @param {number} timeout - 最长等待时长
+ * @returns {() => void} - 取消当前空闲任务的函数
+ */
+function scheduleIdleTask(callback, timeout = 1200) {
+    if (typeof callback !== 'function') {
+        return () => {};
+    }
+
+    let settled = false;
+    let idleId = 0;
+    let timerId = 0;
+
+    const finish = () => {
+        if (settled) {
+            return;
+        }
+
+        settled = true;
+        callback();
+    };
+
+    if ('requestIdleCallback' in window) {
+        idleId = window.requestIdleCallback(finish, {
+            timeout: Math.max(0, Math.round(timeout) || 0)
+        });
+    } else {
+        timerId = window.setTimeout(finish, Math.min(Math.max(0, Math.round(timeout) || 0), 640));
+    }
+
+    return () => {
+        settled = true;
+        if (idleId && 'cancelIdleCallback' in window) {
+            window.cancelIdleCallback(idleId);
+        }
+        if (timerId) {
+            window.clearTimeout(timerId);
+        }
+    };
+}
+
+/**
+ * createDeferredSectionBootstrap(target, bootstrap, options) - 把详情页非首屏区块延后到接近视口时再真正渲染
+ * @param {Element|null} target - 需要监听的区块锚点
+ * @param {Function} bootstrap - 真正执行渲染的函数
+ * @param {{ immediate?: boolean, rootMargin?: string, threshold?: number|number[], enableIdleBootstrap?: boolean, idleTimeoutMs?: number|null }} options - 触发配置
+ * @returns {{ run: Function, destroy: Function }} - 手动触发和销毁句柄
+ */
+function createDeferredSectionBootstrap(target, bootstrap, options = {}) {
+    const {
+        immediate = false,
+        rootMargin = '0px 0px 24% 0px',
+        threshold = 0.01,
+        enableIdleBootstrap = false,
+        idleTimeoutMs = 0
+    } = options;
+
+    let settled = false;
+    let observer = null;
+    let cancelIdle = () => {};
+
+    const cleanup = () => {
+        observer?.disconnect();
+        observer = null;
+        cancelIdle();
+        cancelIdle = () => {};
+    };
+
+    const run = () => {
+        if (settled) {
+            return false;
+        }
+
+        settled = true;
+        cleanup();
+        bootstrap();
+        return true;
+    };
+
+    const destroy = () => {
+        settled = true;
+        cleanup();
+    };
+
+    if (!target) {
+        run();
+        return { run, destroy };
+    }
+
+    if (immediate) {
+        run();
+        return { run, destroy };
+    }
+
+    if (enableIdleBootstrap && idleTimeoutMs !== null) {
+        cancelIdle = scheduleIdleTask(run, idleTimeoutMs);
+    }
+
+    if (!('IntersectionObserver' in window)) {
+        run();
+        return { run, destroy };
+    }
+
+    observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting || entry.intersectionRatio > 0)) {
+            run();
+        }
+    }, {
+        rootMargin,
+        threshold
+    });
+    observer.observe(target);
+
+    return { run, destroy };
+}
+
+/**
  * restartTransientClassAnimation(element, className) - 用下一帧重新挂载状态类，避免为了重启动画强制回流。
  * @param {HTMLElement|null} element - 目标节点
  * @param {string} className - 需要重启的状态类
@@ -350,7 +468,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 4,
                 name: '帝汶岛',
                 description: '珊瑚花园和大坡度海底地形并存，层次丰富。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/timor-hero.jpg',
                 price: '¥3,480'
             }
         ]
@@ -442,7 +560,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 7,
                 name: '科莫多',
                 description: '同样是流潜胜地，但地形和鱼群风格完全不同。',
-                image: 'assets/images/komodo.jpg',
+                image: 'assets/images/komodo-hero.jpg',
                 price: '¥3,880'
             }
         ]
@@ -527,7 +645,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 6,
                 name: '布纳肯',
                 description: '如果想从地貌压迫感切回墙潜、海龟和更明亮的蓝水，布纳肯会更舒展。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/bunaken.jpg',
                 price: '¥3,680'
             },
             {
@@ -542,7 +660,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
     4: {
         name: '帝汶岛',
         tagline: '光线落在珊瑚坡地上，整片海会显得更舒展一些。',
-        image: 'assets/images/timor.jpg',
+        image: 'assets/images/timor-hero.jpg',
         difficulty: '适合慢慢进入',
         depth: '6-32m',
         season: '4月-11月',
@@ -592,19 +710,19 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 user: '珊瑚花园巡航员',
                 rating: '★★★★★',
                 date: '2026-01-27',
-                text: '帝汶岛的舒服，在于你可以一直潜、一直看，不会被过度紧张的节奏打断。色彩层次很适合拍照。'
+                text: '先看见阿陶罗的岛影，再慢慢下到珊瑚坡地里，帝汶的节奏会比很多地方更从容，也更适合把时间放长。'
             },
             {
                 user: '夜潜观察笔记',
                 rating: '★★★★☆',
                 date: '2025-11-19',
-                text: '夜潜内容非常丰富，章鱼和小型甲壳类特别多，微距潜水员会很开心。'
+                text: '白天看坡地和珊瑚，傍晚回到帝力海边再看一会儿风和水色，整趟行程会有一种慢慢收住的完整感。'
             },
             {
                 user: '浅坡漫游者',
                 rating: '★★★★★',
                 date: '2025-09-02',
-                text: '如果想找一个适合休息和认真看珊瑚生态的地方，帝汶岛的节奏非常对味。'
+                text: 'One Dollar Beach 一带的海岸线和清亮浅水很适合留白，不会一直催着你赶潜点，这点特别难得。'
             }
         ],
         related: [
@@ -619,7 +737,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 7,
                 name: '科莫多',
                 description: '如果想从珊瑚花园切换到高能流潜，可以接科莫多。',
-                image: 'assets/images/komodo.jpg',
+                image: 'assets/images/komodo-hero.jpg',
                 price: '¥3,880'
             },
             {
@@ -704,14 +822,14 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 4,
                 name: '帝汶岛',
                 description: '同样适合慢潜，但帝汶的坡地和珊瑚覆盖更宏观。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/timor-hero.jpg',
                 price: '¥3,480'
             },
             {
                 id: 6,
                 name: '布纳肯',
                 description: '从微距和慢潜切到海墙、海龟和更开阔的蓝水，是很自然的下一站。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/bunaken.jpg',
                 price: '¥3,680'
             },
             {
@@ -726,7 +844,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
     6: {
         name: '布纳肯',
         tagline: '海墙、海龟与清澈蓝水之间，保持刚好的安静',
-        image: 'assets/images/timor.jpg',
+        image: 'assets/images/bunaken.jpg',
         difficulty: '适合长线观察',
         depth: '6-30m',
         season: '3月-11月',
@@ -776,19 +894,19 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 user: '海墙停留者',
                 rating: '★★★★★',
                 date: '2026-01-12',
-                text: '布纳肯最舒服的是那种通透感，海墙很开阔，海龟又一直在身边，整趟潜水像被安静地托住。'
+                text: '布纳肯很容易让人先记住岸边的小船和很静的清水，真正下到海墙外侧以后，那种通透的蓝才慢慢完全展开。'
             },
             {
                 user: '海龟观察席',
                 rating: '★★★★★',
                 date: '2025-11-30',
-                text: '这里不是那种节奏很猛的海，但海墙、光线和海龟之间的平衡特别好，很适合慢慢拍、慢慢看。'
+                text: '海墙外侧的珊瑚层次很完整，不是一直在追刺激，而是会让你把呼吸、光线和鱼都慢慢看清楚。'
             },
             {
                 user: '蓝水边界线',
                 rating: '★★★★☆',
                 date: '2025-10-21',
-                text: '如果你想找一片不那么紧张、但依旧足够漂亮和完整的热带海，布纳肯会是很稳妥的选择。'
+                text: '潜后回到岛上，沙滩、山体和海风会把整天重新接住。布纳肯最难得的，其实就是这种水下和岸上都很顺的平衡。'
             }
         ],
         related: [
@@ -810,7 +928,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 7,
                 name: '科莫多',
                 description: '如果想从布纳肯继续转向更强洋流和大景流潜，科莫多是自然延伸。',
-                image: 'assets/images/komodo.jpg',
+                image: 'assets/images/komodo-hero.jpg',
                 price: '¥3,880'
             }
         ]
@@ -818,7 +936,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
     7: {
         name: '科莫多',
         tagline: '流会更明显一些，大景与停顿也因此更有层次。',
-        image: 'assets/images/komodo.jpg',
+        image: 'assets/images/komodo-hero.jpg',
         difficulty: '需要洋流适应',
         depth: '8-34m',
         season: '4月-11月',
@@ -868,19 +986,19 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 user: '流线捕捉者',
                 rating: '★★★★★',
                 date: '2026-02-07',
-                text: '科莫多的魅力在于能量感，海水一直在动，鱼群也一直在动，整趟潜水像被海流推进剧情。'
+                text: '粉沙岸和亮蓝海水会先把科莫多点亮，真正进入流区以后，那种张力才会慢慢从海面以下推上来。'
             },
             {
                 user: '蝠鲼旁观席',
                 rating: '★★★★★',
                 date: '2025-12-14',
-                text: '蝠鲼从头顶掠过去的时候非常近，但又不需要追它，只要守好位置，它自然会来。'
+                text: '船在干燥山体和开阔水道之间穿过去时，就已经能感到这片海的力量感。它不是急，而是一直在流动。'
             },
             {
                 user: '热流边界线',
                 rating: '★★★★☆',
                 date: '2025-09-26',
-                text: '水温层变化确实明显，不过地形和鱼群都很值回票价，是非常典型的印尼风格潜点。'
+                text: '回到拉布安巴霍的傍晚也很难忘，港湾、屋顶和停船的光一起把这片海收住，让科莫多不只剩下“强流”两个字。'
             }
         ],
         related: [
@@ -895,7 +1013,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 4,
                 name: '帝汶岛',
                 description: '想把节奏放慢时，帝汶岛会更舒服。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/timor-hero.jpg',
                 price: '¥3,480'
             },
             {
@@ -987,14 +1105,14 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 4,
                 name: '帝汶岛',
                 description: '想从大开大合切换到珊瑚慢潜，可以去帝汶岛。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/timor-hero.jpg',
                 price: '¥3,480'
             },
             {
                 id: 7,
                 name: '科莫多',
                 description: '如果想要更强的流潜和蝠鲼机会，科莫多是自然延伸。',
-                image: 'assets/images/komodo.jpg',
+                image: 'assets/images/komodo-hero.jpg',
                 price: '¥3,880'
             }
         ]
@@ -1079,7 +1197,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 4,
                 name: '帝汶岛',
                 description: '同样适合慢节奏停驻，但帝汶会更偏向珊瑚坡地和更舒展的岸线。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/timor-hero.jpg',
                 price: '¥3,480'
             },
             {
@@ -1263,7 +1381,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 7,
                 name: '科莫多',
                 description: '如果想把地形张力继续往更完整的海况里推深，科莫多会更强一些。',
-                image: 'assets/images/komodo.jpg',
+                image: 'assets/images/komodo-hero.jpg',
                 price: '¥3,880'
             },
             {
@@ -1355,7 +1473,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 6,
                 name: '布纳肯',
                 description: '如果想把薄荷岛的轻船潜再往更清澈的海墙层次里延伸，布纳肯会更开阔。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/bunaken.jpg',
                 price: '¥3,680'
             },
             {
@@ -1447,7 +1565,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
                 id: 6,
                 name: '布纳肯',
                 description: '如果想把明亮蓝水和墙潜层次再往外推一点，布纳肯会更开阔。',
-                image: 'assets/images/timor.jpg',
+                image: 'assets/images/bunaken.jpg',
                 price: '¥3,680'
             },
             {
@@ -2115,6 +2233,7 @@ class DetailPage {
         this.spotData = divingSpotDetails[this.spotId] || divingSpotDetails[1];
         this.packageData = [];
         this.reviewData = [];
+        this.reviewDataCache = new Map();
         this.activeReviewFilter = 'all';
         this.selectedPackageId = null;
         this.tripStore = window.YanqiTripStore || null;
@@ -2211,6 +2330,8 @@ class DetailPage {
         this.relatedRevealObserver = null;
         this.introRevealObserver = null;
         this.reviewsRevealObserver = null;
+        this.reviewGalleryPhotoObserver = null;
+        this.reviewGalleryPhotoRevealRafId = 0;
         this.bookingCopyObserver = null;
         this.packageTitleObserver = null;
         this.bookingCopyTypeTimers = [];
@@ -2224,10 +2345,20 @@ class DetailPage {
         this.bookingFocusSwapTimers = [];
         this.bookingFocusSwapVersion = 0;
         this.bookingFocusPulseTimer = 0;
+        this.bookingFocusContextPhaseTimer = 0;
         this.activeReviewLinkedPackageId = null;
         this.bookingStickyScrollTargetTop = 0;
         this.bookingStickyScrollRaf = 0;
         this.hasRenderedReviews = false;
+        this.seaGuideInitialized = false;
+        this.deferredReviewsHydration = null;
+        this.deferredRelatedHydration = null;
+        this.deferredFooterHydration = null;
+        this.reviewsHydrated = false;
+        this.relatedHydrated = false;
+        this.footerHydrated = false;
+        this.postRenderSyncRaf = 0;
+        this.cancelPostRenderIdleSync = () => {};
         this.announceReviewsSummary = createBufferedLiveAnnouncer(this.reviewsLiveSummary);
         this.announceRelatedSummary = createBufferedLiveAnnouncer(this.relatedLiveSummary);
         this.init();
@@ -2260,6 +2391,216 @@ class DetailPage {
         this.setupNavigation();
         this.setupRelatedTransitionLifecycle();
         this.setupRelatedReveal();
+    }
+
+    /**
+     * destroyDeferredSecondaryHydration() - 清理详情页下半段延迟渲染观察器和空闲任务
+     * @returns {void}
+     */
+    destroyDeferredSecondaryHydration() {
+        this.deferredReviewsHydration?.destroy?.();
+        this.deferredRelatedHydration?.destroy?.();
+        this.deferredFooterHydration?.destroy?.();
+        this.deferredReviewsHydration = null;
+        this.deferredRelatedHydration = null;
+        this.deferredFooterHydration = null;
+
+        if (this.postRenderSyncRaf) {
+            window.cancelAnimationFrame(this.postRenderSyncRaf);
+            this.postRenderSyncRaf = 0;
+        }
+        this.cancelPostRenderIdleSync();
+        this.cancelPostRenderIdleSync = () => {};
+    }
+
+    /**
+     * shouldHydrateDeferredSectionImmediately(target, leadRatio) - 判断某个详情页区块是否应立刻完成渲染
+     * @param {Element|null} target - 目标区块锚点
+     * @param {number} leadRatio - 视口前置比例
+     * @returns {boolean}
+     */
+    shouldHydrateDeferredSectionImmediately(target, leadRatio = 1.2) {
+        if (!target) {
+            return true;
+        }
+
+        const currentHash = window.location.hash || '';
+        if (currentHash) {
+            try {
+                if (target.matches(currentHash) || target.querySelector(currentHash)) {
+                    return true;
+                }
+            } catch (error) {
+                // hash 非法时静默降级，继续按视口位置判断。
+            }
+        }
+
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top <= viewportHeight * leadRatio && rect.bottom >= -viewportHeight * 0.18;
+    }
+
+    /**
+     * schedulePostRenderSync() - 把详情页首轮测量和阅读联动放到首屏绘制之后
+     * @param {{ immediate?: boolean }} options - 是否立即执行
+     * @returns {void}
+     */
+    schedulePostRenderSync(options = {}) {
+        const { immediate = false } = options;
+        const runSync = () => {
+            this.measureDetailScrollMetrics();
+
+            if (this.seaGuideInitialized) {
+                this.updateSeaGuideState();
+                return;
+            }
+
+            this.syncBookingReadingGuide({ force: true, immediate: true });
+            this.syncBookingCopyDepthState();
+        };
+
+        if (immediate) {
+            runSync();
+            return;
+        }
+
+        if (this.postRenderSyncRaf) {
+            window.cancelAnimationFrame(this.postRenderSyncRaf);
+        }
+        this.cancelPostRenderIdleSync();
+
+        this.postRenderSyncRaf = window.requestAnimationFrame(() => {
+            this.postRenderSyncRaf = 0;
+            runSync();
+        });
+        this.cancelPostRenderIdleSync = scheduleIdleTask(() => {
+            if (this.postRenderSyncRaf) {
+                return;
+            }
+            runSync();
+        }, 1100);
+    }
+
+    /**
+     * ensureReviewDataReady() - 在真正进入评论区前再构建评论数据，并按潜点做实例内缓存
+     * @returns {Array<Object>}
+     */
+    ensureReviewDataReady() {
+        if (this.reviewDataCache.has(this.spotId)) {
+            const cachedReviewData = this.reviewDataCache.get(this.spotId);
+            this.reviewData = Array.isArray(cachedReviewData) ? cachedReviewData : [];
+            return this.reviewData;
+        }
+
+        const nextReviewData = this.buildReviewData();
+        this.reviewData = Array.isArray(nextReviewData) ? nextReviewData : [];
+        this.reviewDataCache.set(this.spotId, this.reviewData);
+        return this.reviewData;
+    }
+
+    /**
+     * ensureReviewsHydrated() - 真正渲染评论区，并在渲染后刷新阅读与导览度量
+     * @returns {void}
+     */
+    ensureReviewsHydrated() {
+        if (this.reviewsHydrated) {
+            return;
+        }
+
+        this.ensureReviewDataReady();
+        this.reviewsHydrated = true;
+        this.renderReviews();
+        this.scheduleDetailScrollMetricsMeasure();
+        window.requestAnimationFrame(() => {
+            if (this.seaGuideInitialized) {
+                this.updateSeaGuideState();
+            }
+        });
+    }
+
+    /**
+     * ensureRelatedHydrated() - 真正渲染相关推荐舞台
+     * @returns {void}
+     */
+    ensureRelatedHydrated() {
+        if (this.relatedHydrated) {
+            return;
+        }
+
+        this.relatedHydrated = true;
+        this.renderRelatedSpots();
+    }
+
+    /**
+     * ensureFooterHydrated() - 更新详情页 footer 文案与下一片海入口
+     * @returns {void}
+     */
+    ensureFooterHydrated() {
+        if (this.footerHydrated) {
+            return;
+        }
+
+        this.footerHydrated = true;
+        this.renderFooter();
+    }
+
+    /**
+     * primeDeferredSection(selector) - 在程序化滚动前预热对应的延迟区块
+     * @param {string} selector - 目标区块选择器
+     * @returns {void}
+     */
+    primeDeferredSection(selector) {
+        if (selector === '#spotReviews' || selector === '#reviewsSection') {
+            this.deferredReviewsHydration?.run?.();
+            return;
+        }
+
+        if (selector === '#relatedSpots') {
+            this.deferredRelatedHydration?.run?.();
+            return;
+        }
+
+        if (selector === '#detailFooter') {
+            this.deferredFooterHydration?.run?.();
+        }
+    }
+
+    /**
+     * setupDeferredSecondaryHydration() - 为评论、相关推荐和 footer 建立延迟渲染入口
+     * @returns {void}
+     */
+    setupDeferredSecondaryHydration() {
+        const reviewsTarget = this.spotReviewsHeading || this.reviewsStage || this.reviewsSection;
+        const relatedTarget = this.relatedSection;
+        const footerTarget = this.detailFooter;
+
+        this.deferredReviewsHydration = createDeferredSectionBootstrap(reviewsTarget, () => {
+            this.ensureReviewsHydrated();
+        }, {
+            immediate: this.shouldHydrateDeferredSectionImmediately(reviewsTarget, 1.08),
+            rootMargin: '0px 0px 28% 0px',
+            threshold: 0.01
+        });
+
+        this.deferredRelatedHydration = createDeferredSectionBootstrap(relatedTarget, () => {
+            this.ensureRelatedHydrated();
+        }, {
+            immediate: this.shouldHydrateDeferredSectionImmediately(relatedTarget, 1.14),
+            rootMargin: '0px 0px 30% 0px',
+            threshold: 0.01
+        });
+
+        if (!this.footerHydrated) {
+            this.deferredFooterHydration = createDeferredSectionBootstrap(footerTarget, () => {
+                this.ensureFooterHydrated();
+            }, {
+                immediate: this.shouldHydrateDeferredSectionImmediately(footerTarget, 1.08),
+                rootMargin: '0px 0px 18% 0px',
+                threshold: 0.01,
+                enableIdleBootstrap: true,
+                idleTimeoutMs: 1800
+            });
+        }
     }
 
     /**
@@ -3858,6 +4199,209 @@ class DetailPage {
             ]);
         }
 
+        if (this.spotId === 4) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '阿陶罗在远处',
+                    date: '2026年3月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '帝汶岛 · 先看见远处那层岛影',
+                    subtitle: '帝汶不会急着把人推进海里，它往往先用阿陶罗的轮廓和海平线，把呼吸放慢一点。',
+                    summary: '这组图很像帝汶真正的开场。风向袋旁边那片深一点的海，远处隐着阿陶罗的山体；另一张里岛影更低、更安静，岸边的线条也被拉得很长。还没下水，帝汶就先把“慢慢进入”这件事说清楚了。',
+                    diving: '这种靠近方式很适合帝汶。你会先看见海面怎么展开，再慢慢下到珊瑚坡地里，整个人比较不容易被节奏打断。',
+                    stay: '如果住处离岸边不远，第一天哪怕只是站着看一会儿远处岛影，也会很快进入这片海的状态。',
+                    food: '这类海最适合接一顿简单、热的潜前早餐。身体被接稳以后，后面的慢潜节奏才会更舒服。',
+                    scenery: '最动人的是帝汶的远近关系。远处是低低的岛体，近处是被风和光线压得很轻的岸线，它们把这片海留得很舒展。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '帝汶岛 · 阿陶罗会先在海平线后面出现', '50% 48%'),
+                    photos: makeReviewPhotos(1, [
+                        { key: 'atauro-line', caption: '帝汶岛 · 更安静的一层阿陶罗轮廓', position: '50% 52%' },
+                        { key: 'cristo-rei', caption: '帝汶岛 · 岸线回头看时，岛影还留在后面', position: '50% 54%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '珊瑚坡地记录本',
+                    date: '2025年12月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'scenery'],
+                    title: '帝汶岛 · 珊瑚坡地会把颜色慢慢铺开',
+                    subtitle: '真正让帝汶留下来的，不只是“适合慢潜”，而是珊瑚、浅水和干燥岸线会一起把层次排得很清楚。',
+                    summary: '第二组图把帝汶的水下和岸上接在了一起。一张是珊瑚坡地本身，颜色不是炸开的那种，而是很完整地一层层摊开；另外两张里的 One Dollar Beach 让浅水、白沙和更干一点的岸线靠得很近，节奏一下就出来了。',
+                    diving: '帝汶的舒服，在于你不会一直被强流或过度密集的点位拉着走。珊瑚坡地很好读，适合把时间真的花在观察里。',
+                    stay: '住在这种浅水和岸线关系很近的位置，潜前潜后都不会显得仓促，体感会比只盯着潜点完整很多。',
+                    food: '这种行程很适合把午后补给和晚一点的热食吃得慢一点，因为岸上的风景本身就会把节奏再放长。',
+                    scenery: '最喜欢的是颜色被拆成了两层: 一层在水下，是珊瑚坡地的细节；一层在岸上，是白沙和低饱和海水把岛体轻轻托住。',
+                    featurePhoto: createReviewPhoto(2, 'feature', '帝汶岛 · 珊瑚坡地会先把海的颜色说明白', '50% 42%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'dollar-road', caption: '帝汶岛 · One Dollar Beach 的岸线很长', position: '52% 52%' },
+                        { key: 'dollar-bay', caption: '帝汶岛 · 浅水会把白沙慢慢推开', position: '50% 56%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '傍晚回到帝力',
+                    date: '2025年10月',
+                    level: '同行不潜',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '帝汶岛 · 傍晚会把这程轻轻收住',
+                    subtitle: '帝汶不只适合白天下潜，回到帝力海边以后，那层傍晚的风和水色也会把整趟旅程留得更久。',
+                    summary: '最后这组图更像帝汶的收尾。傍晚海边的光线不急，水面和天色都压得很平；另一张里 Mota Bidau 一带把岸线和城市边缘轻轻接起来。看完会更明白，帝汶之所以适合停留，是因为回岸以后也不会突然断掉。',
+                    diving: '对白天下过几潜的人来说，这样的傍晚很重要。它会把水下那种缓慢、完整的节奏继续保留下来。',
+                    stay: '帝汶的住处不需要夸张，只要离海近、能让人潜后走回这层晚光里，整趟体感就会很稳。',
+                    food: '热食和海风会在这个时段一起发挥作用。不是热闹型的晚餐，而是让人把盐分和疲惫慢慢放回岸上的那种收尾。',
+                    scenery: '我最喜欢帝汶这种不吵的傍晚。海边、城市边缘和一层很轻的晚光靠在一起，会让人想把时间再留一点。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '帝汶岛 · 帝力海边会把傍晚慢慢压平', '50% 54%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'mota-bidau', caption: '帝汶岛 · 回岸以后，岸线和城市会慢慢连起来', position: '50% 52%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 6) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '先停在清水边',
+                    date: '2026年3月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['stay', 'scenery', 'diving'],
+                    title: '布纳肯 · 岸边的小船会先把人接住',
+                    subtitle: '布纳肯不是一开始就把海墙的张力推到眼前，它会先用很静的清水、岸边小船和群岛轮廓让人慢下来。',
+                    summary: '这组图很像刚到布纳肯那天的状态。黄色小船停在很静的浅水边，回头又能看见马纳多湾和远处岛体慢慢展开。它让人先理解这片海为什么会显得通透，而不是一上来就去强调强度。',
+                    diving: '这样的开场很适合布纳肯。海墙当然重要，但真正舒服的是先把呼吸放稳，再慢慢下到蓝水和礁坡交界处去。',
+                    stay: '如果住处就在这种海湾和岸边附近，潜前潜后都会被轻轻接住，不会只有“上下船”的工具感。',
+                    food: '这类海域最适合把早餐和潜后热汤都做得清楚一点，让身体和节奏一起慢下来。',
+                    scenery: '最好的地方在于近和远都不喧哗。近处是几乎不动的浅水，远处是低低的岛影和山线，整片海显得特别松。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '布纳肯 · 小船停在很静的清水边', '50% 56%'),
+                    photos: makeReviewPhotos(1, [
+                        { key: 'ridge-view', caption: '布纳肯 · 回头看马纳多湾时，层次会慢慢排开', position: '50% 52%' },
+                        { key: 'island-outline', caption: '布纳肯 · 离岸以后，岛的轮廓还留在海面上', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '海墙外侧的光',
+                    date: '2025年12月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'scenery'],
+                    title: '布纳肯 · 真正难忘的是海墙外侧那层蓝',
+                    subtitle: '等身体已经被岸上的安静接住，再下到海墙边时，布纳肯那种通透感才会真正完整。',
+                    summary: '第二组图把布纳肯的核心说明白了。海墙边的珊瑚没有被拍得很躁，而是和深一点的蓝一起慢慢推开；另一张里的珊瑚花园更像把颜色稳稳铺在坡地上。你会发现布纳肯的好看，是完整，而不是用力。',
+                    diving: '对喜欢墙潜和长线观察的人来说，这里很友好。你能清楚地读到坡地、蓝水和珊瑚层次，不会总被节奏催着往前冲。',
+                    stay: '因为水下不会把人一下掏空，回到岸上以后还会留有很多余裕，这也是布纳肯适合住几晚的原因。',
+                    food: '潜后吃点热的、补够水，再去回想水下那片蓝，会比匆匆赶下一站更像布纳肯的方式。',
+                    scenery: '最喜欢的是这里的蓝不会直接压下来，而是被珊瑚、坡地和光一点点拆开，所以看得越久越舒服。',
+                    featurePhoto: createReviewPhoto(2, 'feature', '布纳肯 · 海墙外侧的蓝会慢慢完全展开', '50% 46%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'coral-garden', caption: '布纳肯 · 珊瑚会把坡地安静地铺满', position: '50% 50%' },
+                        { key: 'wall-light', caption: '布纳肯 · 光线落到海墙边时，层次会更清楚', position: '50% 50%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '回到岛上的风',
+                    date: '2025年10月',
+                    level: '同行不潜',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '布纳肯 · 岛上的风会把这程再放轻一点',
+                    subtitle: '潜后回到梁海滩和山体之间，才会发现布纳肯真正好的地方，是水下和岸上的节奏都很顺。',
+                    summary: '最后这组更像布纳肯的后半天。梁海滩把岸线拉得很长，云和山体又把海面轻轻收住；另一张里两座岛彼此相望，像把这片海的呼吸拉得更开。它让布纳肯不只是一个潜点，而是一整段可以停住的海边时间。',
+                    diving: '这种回岸段会把白天的墙潜重新接起来，让布纳肯的记忆不只停在水下那一下。',
+                    stay: '住在岛上最大的好处，就是潜完以后真的还能回到风、树影和沙滩之间，而不是直接被行程切断。',
+                    food: '这组图最适合接一顿潜后晚餐。不是为了庆祝，而是让海风和岸上的安静把整天慢慢收平。',
+                    scenery: '我很喜欢布纳肯这种克制的热带感。海滩、山线和云都不喧哗，但会让人愿意在这里多留一会儿。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '布纳肯 · 梁海滩会把潜后的时间轻轻接住', '50% 56%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'cloud-bay', caption: '布纳肯 · 云和山体会把海面慢慢收低', position: '50% 50%' },
+                        { key: 'island-pair', caption: '布纳肯 · 两座岛把海的呼吸继续拉开', position: '50% 52%' }
+                    ])
+                }
+            ]);
+        }
+
+        if (this.spotId === 7) {
+            return finalizeReviews([
+                {
+                    id: 'review-1',
+                    user: '粉沙岸边',
+                    date: '2026年3月',
+                    level: 'OW / AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.9 / 5',
+                    focus: ['scenery', 'diving'],
+                    title: '科莫多 · 粉沙岸会先把这片海点亮',
+                    subtitle: '很多人先记住的是强流和蝠鲼，但科莫多真正的开场，常常是从粉沙岸和亮蓝海水开始的。',
+                    summary: '这组图把科莫多的第一层气质拍得很准。粉沙岸边的海亮得很直接，可山体还是干燥、克制的；另一张近岸水色更通透，像在提醒你这里的张力从来都来自“轻”和“重”同时出现。',
+                    diving: '先看见这样明亮的一层海，再去理解科莫多的流区和大景，会更容易对上它的节奏。',
+                    stay: '科莫多舒服的地方，不是把人一直推在船和潜点之间，而是允许你在这种浅水边先把状态放稳。',
+                    food: '这类海很适合把潜前简餐和午后补给做得清楚，让人有力气继续往更深的窗口走。',
+                    scenery: '最迷人的就是对比。粉色岸线、绿山和亮蓝水面都很轻，但放在一起以后，科莫多的张力已经出来了。',
+                    featurePhoto: createReviewPhoto(1, 'feature', '科莫多 · 粉沙岸会先把海点亮', '50% 52%'),
+                    photos: makeReviewPhotos(1, [
+                        { key: 'pink-beach-wide', caption: '科莫多 · 离岸一点看，粉沙和海会更开阔', position: '50% 54%' },
+                        { key: 'pink-beach-shore', caption: '科莫多 · 靠近岸边以后，水色会变得更轻', position: '50% 54%' }
+                    ])
+                },
+                {
+                    id: 'review-2',
+                    user: '海流之间',
+                    date: '2025年12月',
+                    level: 'AOW',
+                    ratingStars: '★★★★★',
+                    ratingScore: '4.8 / 5',
+                    focus: ['diving', 'scenery', 'stay'],
+                    title: '科莫多 · 船在干燥山体和水道之间穿过去',
+                    subtitle: '真正让科莫多变得有力量感的，不只是水下那一下，而是船在岛屿、水道和风之间移动时，整片海就已经开始发力了。',
+                    summary: '第二组图更像科莫多最典型的白天。船贴着海走，左右是干燥山体和开阔水道；另一张里海面更深，陆地也更硬朗。你会发现这里的“动感”不是热闹，而是水和地形一直在推着剧情往前。',
+                    diving: '这就是科莫多和很多慢海不同的地方。哪怕还没下去，你已经能感到窗口、流向和地形在同时工作。',
+                    stay: '如果把住处、船程和潜点安排顺，科莫多会很完整，因为它的移动过程本身就值得被留进记忆。',
+                    food: '这种海况会消耗人，所以补水和潜后热食都特别重要。身体被接稳，才有力气继续读这片海。',
+                    scenery: '我最喜欢的是海和陆地都带着硬朗边界。不是柔软地铺开，而是一层层切出来，这很科莫多。',
+                    featurePhoto: createReviewPhoto(2, 'feature', '科莫多 · 开阔水道会先把力量感摆出来', '50% 52%'),
+                    photos: makeReviewPhotos(2, [
+                        { key: 'boat-channel', caption: '科莫多 · 船在水道里推进时，节奏会一下变明显', position: '50% 54%' },
+                        { key: 'dry-coast', caption: '科莫多 · 海和干燥山体之间有很强的边界感', position: '50% 52%' }
+                    ])
+                },
+                {
+                    id: 'review-3',
+                    user: '傍晚靠回港里',
+                    date: '2025年10月',
+                    level: '同行不潜',
+                    ratingStars: '★★★★☆',
+                    ratingScore: '4.7 / 5',
+                    focus: ['stay', 'food', 'scenery'],
+                    title: '科莫多 · 回到拉布安巴霍以后，海还没有结束',
+                    subtitle: '傍晚的港湾、停船和屋顶，会把科莫多从大景流潜慢慢收回到一个更能停留的地方。',
+                    summary: '最后这组是科莫多最容易被忽略的一层。回到拉布安巴霍以后，天空变粉，船停在港里，屋顶和海面一起安静下来；另一张岸线又把白天的亮蓝重新接回来。看完会觉得，科莫多不只是一整天被海流推进去，也有很好看的回岸时刻。',
+                    diving: '对潜水员来说，这样的回港很重要。它会把白天那些强张力的片段重新收顺，让记忆不只剩下刺激。',
+                    stay: '住在港湾附近会特别容易理解科莫多的完整性。白天出海，傍晚回来，海并没有真的被关在外面。',
+                    food: '潜后最适合接一顿热的、安静的晚餐。看着港湾里的船灯一点点亮起来，整天才算真正收住。',
+                    scenery: '我很喜欢这片海在傍晚的样子。白天它很有推力，到了港里又忽然放轻，这种反差会让人记很久。',
+                    featurePhoto: createReviewPhoto(3, 'feature', '科莫多 · 傍晚回到拉布安巴霍，海还会继续发亮', '50% 50%'),
+                    photos: makeReviewPhotos(3, [
+                        { key: 'harbor-view', caption: '科莫多 · 港湾和群岛会把傍晚慢慢收平', position: '50% 50%' },
+                        { key: 'shoreline', caption: '科莫多 · 回到更轻的岸线时，这片海还留在身边', position: '50% 54%' }
+                    ])
+                }
+            ]);
+        }
+
         return finalizeReviews([
             {
                 id: 'review-1',
@@ -4013,7 +4557,18 @@ class DetailPage {
      * renderSpotData() - 将当前潜点的核心内容整体渲染到页面
      * @returns {void} - 无返回值，直接更新页面 DOM
      */
-    renderSpotData() {
+    renderSpotData(options = {}) {
+        const {
+            measureImmediately = false
+        } = options;
+
+        this.destroyDeferredSecondaryHydration();
+        this.reviewData = [];
+        this.activeReviewLinkedPackageId = null;
+        this.hasRenderedReviews = false;
+        this.reviewsHydrated = false;
+        this.relatedHydrated = false;
+        this.footerHydrated = false;
         document.title = `盐憩 - ${this.spotData.name}`;
 
         document.getElementById('spotName').textContent = this.spotData.name;
@@ -4037,7 +4592,6 @@ class DetailPage {
         this.applyHeroEnvironmentProfile();
 
         this.packageData = this.buildPackageData();
-        this.reviewData = this.buildReviewData();
         this.bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
         this.selectedPackageId = this.selectedPackageId
             || this.getLatestBookedPackageIdForCurrentSpot()
@@ -4068,12 +4622,26 @@ class DetailPage {
         this.renderIntroText();
         this.renderMapInfo();
         this.renderItineraries();
-        this.renderReviews();
-        this.renderRelatedSpots();
+        if (this.reviewsFilters) {
+            this.reviewsFilters.innerHTML = '';
+        }
+        if (this.reviewsSection) {
+            this.reviewsSection.innerHTML = '';
+        }
+        if (this.relatedGrid) {
+            this.relatedGrid.innerHTML = '';
+            this.relatedGrid.style.removeProperty('--related-stage-height');
+            this.relatedGrid.style.removeProperty('min-height');
+        }
+        this.relatedStageStableHeight = 0;
+        this.relatedTextLayoutController?.disconnect?.();
+        this.relatedTextLayoutController = null;
         this.renderFooter();
-        this.measureDetailScrollMetrics();
-        this.syncBookingReadingGuide({ force: true, immediate: true });
-        this.syncBookingCopyDepthState();
+        this.footerHydrated = true;
+        this.setupDeferredSecondaryHydration();
+        this.schedulePostRenderSync({
+            immediate: measureImmediately
+        });
         this.setupHeroCopyReveal();
         this.resetBookingCopyReveal();
         this.resetIntroReveal();
@@ -4577,6 +5145,40 @@ class DetailPage {
 
         this.bookingFocusPanel.classList.remove('is-swapping-out', 'is-swapping-in');
         this.bookingFocusPanel.style.removeProperty('will-change');
+    }
+
+    /**
+     * setBookingStickyFocusContextPhase() - 设置 booking-sticky 的聚焦阶段标识，帮助 CSS 过渡。
+     * @param {string} phase - 取值 "entering" / "leaving" / "" 。
+     * @returns {void}
+     */
+    setBookingStickyFocusContextPhase(phase) {
+        if (!this.bookingSticky) {
+            return;
+        }
+
+        const normalizedPhase = phase === 'entering' || phase === 'leaving' ? phase : '';
+        if (normalizedPhase) {
+            this.bookingSticky.dataset.focusContextPhase = normalizedPhase;
+        } else {
+            delete this.bookingSticky.dataset.focusContextPhase;
+        }
+
+        if (this.bookingFocusContextPhaseTimer) {
+            window.clearTimeout(this.bookingFocusContextPhaseTimer);
+            this.bookingFocusContextPhaseTimer = 0;
+        }
+
+        if (!normalizedPhase) {
+            return;
+        }
+
+        this.bookingFocusContextPhaseTimer = window.setTimeout(() => {
+            if (this.bookingSticky) {
+                delete this.bookingSticky.dataset.focusContextPhase;
+            }
+            this.bookingFocusContextPhaseTimer = 0;
+        }, 380);
     }
 
     /**
@@ -5104,6 +5706,10 @@ class DetailPage {
         this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg, { isBooked });
         this.updateBookingFocusPrice(pkg.price, { animate: animatePrice });
         this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey, { isBooked });
+        const hadFocusOnlyContext = this.bookingSticky?.classList.contains('is-focus-only-context') || false;
+        if (hadFocusOnlyContext !== isFocusOnlyContext) {
+            this.setBookingStickyFocusContextPhase(isFocusOnlyContext ? 'entering' : 'leaving');
+        }
         this.bookingSticky?.classList.toggle('is-focus-only-context', isFocusOnlyContext);
         this.bookingSticky?.classList.toggle('has-booked-focus-package', isBooked);
         this.bookingFocusPanel.classList.toggle('is-booked', isBooked);
@@ -6720,6 +7326,7 @@ class DetailPage {
      * @returns {Object|null} - 对应评论对象或空值
      */
     getReviewById(reviewId) {
+        this.ensureReviewDataReady();
         return this.reviewData.find((review) => review.id === reviewId) || null;
     }
 
@@ -7436,6 +8043,8 @@ class DetailPage {
 
         this.activeReviewLinkedPackageId = null;
         this.syncReviewExpandButtons();
+        this.resetReviewGalleryPhotoReveal();
+        this.setupReviewGalleryPhotoReveal();
         this.measureDetailScrollMetrics();
         window.requestAnimationFrame(() => {
             this.syncBookingReadingGuide({ force: true, immediate: true });
@@ -7553,6 +8162,157 @@ class DetailPage {
     }
 
     /**
+     * getFeaturedReviewPhotoButtons() - 收集评论卡里需要跟随显现节奏的特色照片按钮
+     * @returns {HTMLElement[]} - 带 featured photo 的评论图库按钮列表
+     */
+    getFeaturedReviewPhotoButtons() {
+        if (!this.reviewsSection) {
+            return [];
+        }
+
+        return Array.from(
+            this.reviewsSection.querySelectorAll('.review-gallery.has-featured-photo .review-photo-button')
+        );
+    }
+
+    /**
+     * getFeaturedReviewPhotoGalleries() - 收集评论区里带 featured photo 的图库容器
+     * @returns {HTMLElement[]} - 特色评论图库节点列表
+     */
+    getFeaturedReviewPhotoGalleries() {
+        if (!this.reviewsSection) {
+            return [];
+        }
+
+        return Array.from(
+            this.reviewsSection.querySelectorAll('.review-gallery.has-featured-photo')
+        );
+    }
+
+    /**
+     * resetReviewGalleryPhotoReveal() - 重置评论图片区照片的显现状态，确保后续能重新触发动画
+     * @returns {void}
+     */
+    resetReviewGalleryPhotoReveal() {
+        this.reviewGalleryPhotoObserver?.disconnect();
+
+        if (this.reviewGalleryPhotoRevealRafId) {
+            window.cancelAnimationFrame(this.reviewGalleryPhotoRevealRafId);
+            this.reviewGalleryPhotoRevealRafId = 0;
+        }
+
+        this.getFeaturedReviewPhotoButtons().forEach((button) => {
+            button.classList.remove('is-photo-visible');
+        });
+    }
+
+    /**
+     * markReviewGalleryPhotosVisible(gallery) - 将指定评论图库中的照片切换到已显现状态
+     * @param {HTMLElement|null} gallery - 目标图库节点
+     * @returns {void}
+     */
+    markReviewGalleryPhotosVisible(gallery) {
+        if (!gallery) {
+            return;
+        }
+
+        gallery.querySelectorAll('.review-photo-button').forEach((button) => {
+            if (button.isConnected) {
+                button.classList.add('is-photo-visible');
+            }
+        });
+    }
+
+    /**
+     * isReviewGalleryInView(gallery) - 判断评论图库是否已经进入当前视口带
+     * @param {HTMLElement|null} gallery - 待检查的评论图库
+     * @returns {boolean} - 当前图库是否已进入用户可见区域
+     */
+    isReviewGalleryInView(gallery) {
+        if (!gallery) {
+            return false;
+        }
+
+        const rect = gallery.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top < viewportHeight * 0.9 && rect.bottom > viewportHeight * 0.14;
+    }
+
+    /**
+     * revealReviewGalleryPhotos() - 仅唤醒当前已进入视口的评论图库照片，避免离屏时提前播完
+     * @returns {void}
+     */
+    revealReviewGalleryPhotos() {
+        const galleries = this.getFeaturedReviewPhotoGalleries();
+        if (
+            galleries.length === 0 ||
+            !this.reviewsSection?.classList.contains('is-visible')
+        ) {
+            return;
+        }
+
+        if (this.reviewGalleryPhotoRevealRafId) {
+            window.cancelAnimationFrame(this.reviewGalleryPhotoRevealRafId);
+            this.reviewGalleryPhotoRevealRafId = 0;
+        }
+
+        this.reviewGalleryPhotoRevealRafId = window.requestAnimationFrame(() => {
+            this.reviewGalleryPhotoRevealRafId = window.requestAnimationFrame(() => {
+                galleries.forEach((gallery) => {
+                    if (gallery.isConnected && this.isReviewGalleryInView(gallery)) {
+                        this.markReviewGalleryPhotosVisible(gallery);
+                        this.reviewGalleryPhotoObserver?.unobserve(gallery);
+                    }
+                });
+                this.reviewGalleryPhotoRevealRafId = 0;
+            });
+        });
+    }
+
+    /**
+     * setupReviewGalleryPhotoReveal() - 为带 featured photo 的评论图库建立逐个进入视口的照片显现逻辑
+     * @returns {void}
+     */
+    setupReviewGalleryPhotoReveal() {
+        const galleries = this.getFeaturedReviewPhotoGalleries();
+        if (galleries.length === 0) {
+            return;
+        }
+
+        this.reviewGalleryPhotoObserver?.disconnect();
+
+        if (!('IntersectionObserver' in window)) {
+            if (this.reviewsSection?.classList.contains('is-visible')) {
+                galleries.forEach((gallery) => this.markReviewGalleryPhotosVisible(gallery));
+            }
+            return;
+        }
+
+        this.reviewGalleryPhotoObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (
+                    (!entry.isIntersecting && entry.intersectionRatio <= 0)
+                    || !this.reviewsSection?.classList.contains('is-visible')
+                ) {
+                    return;
+                }
+
+                this.markReviewGalleryPhotosVisible(entry.target);
+                this.reviewGalleryPhotoObserver?.unobserve(entry.target);
+            });
+        }, {
+            threshold: 0.22,
+            rootMargin: '0px 0px -8% 0px'
+        });
+
+        galleries.forEach((gallery) => {
+            this.reviewGalleryPhotoObserver?.observe(gallery);
+        });
+
+        this.revealReviewGalleryPhotos();
+    }
+
+    /**
      * markReviewsVisible() - 把评论标题、引导区和评论列表统一切到已显现状态
      * @returns {void} - 无返回值，直接更新评论区 class
      */
@@ -7560,6 +8320,7 @@ class DetailPage {
         this.spotReviewsHeading?.classList.add('is-visible');
         this.reviewsStage?.classList.add('is-visible');
         this.reviewsSection?.classList.add('is-visible');
+        this.revealReviewGalleryPhotos();
     }
 
     /**
@@ -7623,6 +8384,7 @@ class DetailPage {
         this.spotReviewsHeading?.classList.remove('is-visible');
         this.reviewsStage?.classList.remove('is-visible');
         this.reviewsSection?.classList.remove('is-visible');
+        this.resetReviewGalleryPhotoReveal();
 
         this.setupReviewsReveal();
 
@@ -10007,6 +10769,7 @@ class DetailPage {
      * @returns {Promise<void>} - 滚动完成时返回的 Promise
      */
     scrollToSeaGuideTarget(selector) {
+        this.primeDeferredSection(selector);
         const target = document.querySelector(selector);
         if (!target) {
             return Promise.resolve();
@@ -10088,6 +10851,8 @@ class DetailPage {
             return;
         }
 
+        this.seaGuideInitialized = true;
+
         const requestStateUpdate = () => {
             if (this.seaGuideUpdateRaf) {
                 return;
@@ -10118,6 +10883,7 @@ class DetailPage {
                     return;
                 }
 
+                this.primeDeferredSection(selector);
                 this.scrollToSeaGuideTarget(selector);
             });
         });
@@ -10193,6 +10959,8 @@ class DetailPage {
         });
 
         window.addEventListener('pagehide', () => {
+            this.setBookingStickyFocusContextPhase('');
+
             if (this.inDocumentDetailSwapTimer) {
                 window.clearTimeout(this.inDocumentDetailSwapTimer);
                 this.inDocumentDetailSwapTimer = 0;
