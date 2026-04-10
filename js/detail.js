@@ -8043,8 +8043,30 @@ class DetailPage {
 
         this.activeReviewLinkedPackageId = null;
         this.syncReviewExpandButtons();
+        const shouldReplayReviewsSectionReveal = (
+            !this.hasRenderedReviews
+            && this.reviewsSection.classList.contains('is-visible')
+        );
+
         this.resetReviewGalleryPhotoReveal();
+
+        if (shouldReplayReviewsSectionReveal) {
+            this.reviewsSection.classList.remove('is-visible');
+        }
+
         this.setupReviewGalleryPhotoReveal();
+
+        if (shouldReplayReviewsSectionReveal) {
+            window.requestAnimationFrame(() => {
+                if (!this.reviewsSection?.isConnected) {
+                    return;
+                }
+
+                this.reviewsSection.classList.add('is-visible');
+                this.revealReviewGalleryPhotos();
+            });
+        }
+
         this.measureDetailScrollMetrics();
         window.requestAnimationFrame(() => {
             this.syncBookingReadingGuide({ force: true, immediate: true });
@@ -8162,30 +8184,30 @@ class DetailPage {
     }
 
     /**
-     * getFeaturedReviewPhotoButtons() - 收集评论卡里需要跟随显现节奏的特色照片按钮
-     * @returns {HTMLElement[]} - 带 featured photo 的评论图库按钮列表
+     * getReviewPhotoButtons() - 收集评论卡里需要跟随显现节奏的照片按钮
+     * @returns {HTMLElement[]} - 评论图库按钮列表
      */
-    getFeaturedReviewPhotoButtons() {
+    getReviewPhotoButtons() {
         if (!this.reviewsSection) {
             return [];
         }
 
         return Array.from(
-            this.reviewsSection.querySelectorAll('.review-gallery.has-featured-photo .review-photo-button')
+            this.reviewsSection.querySelectorAll('.review-gallery .review-photo-button')
         );
     }
 
     /**
-     * getFeaturedReviewPhotoGalleries() - 收集评论区里带 featured photo 的图库容器
-     * @returns {HTMLElement[]} - 特色评论图库节点列表
+     * getReviewPhotoGalleries() - 收集评论区里的图库容器
+     * @returns {HTMLElement[]} - 评论图库节点列表
      */
-    getFeaturedReviewPhotoGalleries() {
+    getReviewPhotoGalleries() {
         if (!this.reviewsSection) {
             return [];
         }
 
         return Array.from(
-            this.reviewsSection.querySelectorAll('.review-gallery.has-featured-photo')
+            this.reviewsSection.querySelectorAll('.review-gallery')
         );
     }
 
@@ -8201,7 +8223,7 @@ class DetailPage {
             this.reviewGalleryPhotoRevealRafId = 0;
         }
 
-        this.getFeaturedReviewPhotoButtons().forEach((button) => {
+        this.getReviewPhotoButtons().forEach((button) => {
             button.classList.remove('is-photo-visible');
         });
     }
@@ -8243,11 +8265,15 @@ class DetailPage {
      * @returns {void}
      */
     revealReviewGalleryPhotos() {
-        const galleries = this.getFeaturedReviewPhotoGalleries();
+        const galleries = this.getReviewPhotoGalleries();
         if (
             galleries.length === 0 ||
             !this.reviewsSection?.classList.contains('is-visible')
         ) {
+            return;
+        }
+
+        if (!this.reviewsSection.querySelector('.review-photo-button:not(.is-photo-visible)')) {
             return;
         }
 
@@ -8270,11 +8296,11 @@ class DetailPage {
     }
 
     /**
-     * setupReviewGalleryPhotoReveal() - 为带 featured photo 的评论图库建立逐个进入视口的照片显现逻辑
+     * setupReviewGalleryPhotoReveal() - 为评论图库建立逐个进入视口的照片显现逻辑
      * @returns {void}
      */
     setupReviewGalleryPhotoReveal() {
-        const galleries = this.getFeaturedReviewPhotoGalleries();
+        const galleries = this.getReviewPhotoGalleries();
         if (galleries.length === 0) {
             return;
         }
@@ -10821,6 +10847,7 @@ class DetailPage {
         this.syncBookingCopyDepthState();
         this.syncBookingStickyScrollWithReading();
         this.syncPackageSelectionFromCurrentReview();
+        this.revealReviewGalleryPhotos();
 
         if (!this.seaGuide || !this.seaGuideEntries.length) {
             return;
