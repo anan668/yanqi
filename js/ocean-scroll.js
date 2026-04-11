@@ -19,19 +19,19 @@
             easing: easeBuoyant
         }),
         surface: Object.freeze({
-            durationScale: 0.9,
+            durationScale: 0.86,
             easing: easeSurface
         }),
         midwater: Object.freeze({
-            durationScale: 1.08,
+            durationScale: 1.02,
             easing: easeBuoyant
         }),
         deep: Object.freeze({
-            durationScale: 1.2,
+            durationScale: 1.1,
             easing: easePressure
         }),
         trench: Object.freeze({
-            durationScale: 1.34,
+            durationScale: 1.18,
             easing: easePressure
         })
     });
@@ -259,7 +259,7 @@
         const mood = resolveScrollMood(settings);
         const durationScale = clamp(Number(settings.durationScale) || 1, 0.72, 1.6);
         const easing = typeof settings.easing === 'function' ? settings.easing : mood.easing;
-        const duration = clamp((Number(settings.duration) || 1600) * mood.durationScale * durationScale, 420, 3600);
+        const duration = clamp((Number(settings.duration) || 1320) * mood.durationScale * durationScale, 420, 3200);
 
         // 同一时间只允许一个平滑滚动动画存在；新的动画开始时，旧动画立即让位。
         cancelActiveAnimation();

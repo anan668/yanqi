@@ -28,7 +28,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     background: #0d2b44;
     color: #f5f5f5;
     font-family: "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -1284,8 +1285,32 @@ body.page-transition-active .login-stage-hud {
         );
     }
 
+    .login-page .page-stage {
+        min-height: auto;
+        align-items: flex-start;
+        padding-top: max(clamp(18px, 2.4vh, 24px), var(--login-stage-safe-gap-y));
+        padding-bottom: max(clamp(18px, 2.4vh, 24px), var(--login-stage-safe-gap-y));
+    }
+
     .login-container {
+        width: min(980px, calc(100vw - clamp(32px, 6vw, 104px)));
+        max-width: none;
         padding: clamp(12px, 1.6vw, 22px);
+    }
+
+    .login-stage-shell {
+        width: 100%;
+        min-height: auto;
+    }
+
+    .glass-card {
+        height: auto;
+        min-height: 0;
+    }
+
+    .card-layout {
+        min-height: auto;
+        height: auto;
     }
 
     .login-side {
@@ -1293,7 +1318,7 @@ body.page-transition-active .login-stage-hud {
     }
 
     .form-side {
-        padding: clamp(18px, 2.4vw, 30px) clamp(18px, 2.6vw, 30px) 4px;
+        padding: clamp(18px, 2.4vw, 30px) clamp(18px, 2.6vw, 30px) clamp(18px, 2.8vw, 28px);
     }
 
     .login-page[data-auth-mode="login"] .form-side {
@@ -1304,13 +1329,96 @@ body.page-transition-active .login-stage-hud {
         margin-bottom: 14px;
     }
 
+    .form-kicker {
+        margin-bottom: 8px;
+        font-size: 0.68rem;
+    }
+
+    .form-title {
+        font-size: clamp(1.5rem, 2.2vw, 1.96rem);
+    }
+
+    .form-subtitle {
+        margin-top: 8px;
+        font-size: 0.88rem;
+        line-height: 1.55;
+    }
+
+    .tab-section {
+        margin-bottom: 10px;
+    }
+
+    .tabs {
+        gap: 6px;
+        padding: 6px;
+    }
+
+    .tab-btn {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+
+    .auth-form {
+        margin-bottom: 10px;
+    }
+
+    .input-group {
+        margin-bottom: 10px;
+    }
+
+    .input-group label {
+        margin-bottom: 6px;
+        font-size: 0.86rem;
+    }
+
+    .input-group input {
+        padding: 10px 12px;
+        font-size: 0.92rem;
+    }
+
+    .checkbox-group {
+        gap: 8px;
+        margin: 4px 0 12px;
+    }
+
+    .checkbox-label {
+        font-size: 0.84rem;
+        line-height: 1.45;
+    }
+
+    .button,
+    .submit-btn {
+        min-height: 44px;
+        padding-block: 0.4rem;
+    }
+
     .login-page[data-auth-mode="login"] .footer-links {
-        padding: 16px 0 8px;
-        margin-bottom: 12px;
+        padding: 14px 0 6px;
+        margin-bottom: 10px;
+    }
+
+    .footer-links {
+        gap: 8px;
+        padding: 4px 0 0;
+        margin-bottom: 0;
+    }
+
+    .social-text {
+        font-size: 0.84rem;
+        margin-bottom: 8px;
     }
 
     .login-page[data-auth-mode="login"] .social-text {
         margin-bottom: 10px;
+    }
+
+    .social-buttons {
+        gap: 10px;
+    }
+
+    .social-btn {
+        min-width: 54px;
+        height: 40px;
     }
 }
 

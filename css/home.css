@@ -835,12 +835,12 @@ body[data-home-performance='lite'] .hero-section::after {
     margin-bottom: 32px;
     text-align: center;
     opacity: 0;
-    filter: blur(8px);
-    transform: translate3d(0, 10px, 0);
+    filter: blur(14px);
+    transform: translate3d(0, 18px, 0);
     transition:
-        opacity 0.56s ease,
-        transform 0.68s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.68s ease;
+        opacity 0.72s ease,
+        transform 0.84s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.84s ease;
 }
 
 /* 首屏 唤醒后，让标题区恢复清晰和稳定位置。 */
@@ -848,7 +848,7 @@ body[data-home-performance='lite'] .hero-section::after {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
-    transition-delay: 300ms;
+    transition-delay: 980ms;
 }
 
 /* 首屏 热门潜点英文小标：维持轻量的日志感。 */
@@ -897,12 +897,12 @@ body[data-home-performance='lite'] .hero-section::after {
     gap: 18px;
     padding: 8px 6px 12px;
     opacity: 0;
-    filter: blur(10px);
-    transform: translate3d(0, 14px, 0);
+    filter: blur(16px);
+    transform: translate3d(0, 24px, 0);
     transition:
-        opacity 0.62s ease,
-        transform 0.76s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.76s ease;
+        opacity 0.82s ease,
+        transform 0.96s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.96s ease;
 }
 
 .hero-bamboo-scroll-container::before {
@@ -925,7 +925,7 @@ body[data-home-performance='lite'] .hero-section::after {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
-    transition-delay: 360ms;
+    transition-delay: 1120ms;
 }
 /* 首屏 内的卡片轨道留更舒服的呼吸空间。 */
 .hero-bamboo-cards-wrapper {
@@ -2635,12 +2635,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 /* 进场动画：从模糊上浮到清晰 */
 .curated-reveal {
     opacity: 0;
-    transform: translate3d(0, 26px, 0);
-    filter: blur(18px);
+    transform: translate3d(0, 18px, 0);
+    filter: blur(14px);
     transition:
-        opacity 1.18s ease,
-        transform 1.18s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 1.18s ease;
+        opacity 0.96s ease,
+        transform 0.96s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.96s ease;
 }
 
 /* 区块进入视口后恢复清晰 */
@@ -3016,12 +3016,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
         inset 0 1px 0 rgba(255, 255, 255, 0.14),
         inset 0 -1px 0 rgba(255, 255, 255, 0.03);
     opacity: 0;
-    filter: blur(24px);
-    transform: translate3d(0, 24px, 0) scale(0.956);
+    filter: blur(14px);
+    transform: translate3d(0, 16px, 0) scale(0.972);
     transition:
-        opacity 0.88s ease,
-        transform 1.02s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 1.02s ease;
+        opacity 0.72s ease,
+        transform 0.86s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.86s ease;
 }
 
 .curated-display-surface::before {
@@ -3039,7 +3039,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .curated-display-surface.from-left,
 .curated-display-surface.from-depth,
 .curated-display-surface.is-entering {
-    transform: translate3d(0, 28px, 0) scale(0.952);
+    transform: translate3d(0, 18px, 0) scale(0.976);
 }
 
 .curated-display-surface.is-active {
@@ -3052,8 +3052,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .curated-display-surface.is-leaving.to-left,
 .curated-display-surface.is-leaving.to-right {
     opacity: 0;
-    filter: blur(24px);
-    transform: translate3d(0, -10px, 0) scale(0.984);
+    filter: blur(14px);
+    transform: translate3d(0, -6px, 0) scale(0.99);
     pointer-events: none;
 }
 
@@ -3105,8 +3105,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.04);
-    transition: transform 1.2s ease, filter 1.2s ease;
+    transform: scale(1.08);
+    transition: transform 1s ease, filter 1s ease;
     filter: saturate(0.88) contrast(1.02) brightness(0.84);
 }
 
@@ -3127,12 +3127,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 .curated-display-copy > * {
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 14px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 10px, 0);
     transition:
-        opacity 0.56s ease,
-        filter 0.72s ease,
-        transform 0.72s cubic-bezier(0.2, 0.84, 0.24, 1);
+        opacity 0.5s ease,
+        filter 0.62s ease,
+        transform 0.62s cubic-bezier(0.2, 0.84, 0.24, 1);
 }
 
 .curated-display-surface.is-active .curated-display-copy > * {
@@ -3142,31 +3142,35 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .curated-display-surface.is-active .curated-display-kicker {
-    transition-delay: 120ms;
+    transition-delay: 90ms;
 }
 
 .curated-display-surface.is-active .curated-display-heading {
-    transition-delay: 200ms;
+    transition-delay: 150ms;
 }
 
 .curated-display-surface.is-active .curated-display-atmosphere {
-    transition-delay: 280ms;
+    transition-delay: 210ms;
 }
 
 .curated-display-surface.is-active .curated-display-facts {
-    transition-delay: 360ms;
+    transition-delay: 270ms;
 }
 
 .curated-display-surface.is-active .curated-display-conditions {
-    transition-delay: 430ms;
+    transition-delay: 330ms;
 }
 
 .curated-display-surface.is-active .curated-display-worth {
-    transition-delay: 500ms;
+    transition-delay: 390ms;
+}
+
+.curated-display-surface.is-active .curated-display-footnote {
+    transition-delay: 450ms;
 }
 
 .curated-display-surface.is-active .curated-detail-button {
-    transition-delay: 570ms;
+    transition-delay: 510ms;
 }
 
 /* 档案小标 */
@@ -4062,31 +4066,31 @@ body[data-home-performance='lite'] .bamboo-card-content {
         0 30px 56px rgba(4, 16, 26, 0.22),
         inset 0 1px 0 rgba(255, 255, 255, 0.12),
         inset 0 -1px 0 rgba(255, 255, 255, 0.04);
-    filter: blur(18px);
-    transform: translate3d(0, 22px, 0) scale(0.97);
+    filter: blur(14px);
+    transform: translate3d(0, 16px, 0) scale(0.972);
     transition:
-        opacity 0.88s ease,
-        transform 1.06s var(--home-reveal-ease),
-        filter 1.06s ease;
+        opacity 0.72s ease,
+        transform 0.86s var(--home-reveal-ease),
+        filter 0.86s ease;
 }
 
 .curated-display-surface.from-depth,
 .curated-display-surface.from-right,
 .curated-display-surface.from-left {
-    transform: translate3d(0, 24px, 0) scale(0.956);
+    transform: translate3d(0, 18px, 0) scale(0.976);
 }
 
 .featured-destinations.is-stage-visible .curated-display-surface.is-active {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
-    transition-delay: 120ms;
+    transition-delay: 90ms;
 }
 
 .curated-display-surface.is-leaving.to-depth,
 .curated-display-surface.is-leaving.to-left,
 .curated-display-surface.is-leaving.to-right {
-    transform: translate3d(0, -10px, 0) scale(0.962);
+    transform: translate3d(0, -6px, 0) scale(0.988);
 }
 
 .curated-display-surface.is-resting {
@@ -4111,18 +4115,18 @@ body[data-home-performance='lite'] .bamboo-card-content {
     height: 100%;
     object-fit: cover;
     opacity: 0.7;
-    transform: scale(1.12) translate3d(0, 1.8%, 0);
+    transform: scale(1.08) translate3d(0, 1.2%, 0);
     filter: saturate(0.84) contrast(1.02) brightness(0.76);
     transition:
-        transform 1.28s var(--home-reveal-ease),
-        filter 1.18s ease,
-        opacity 0.96s ease;
+        transform 1s var(--home-reveal-ease),
+        filter 1s ease,
+        opacity 0.82s ease;
 }
 
 .curated-display-surface.from-depth .curated-display-image,
 .curated-display-surface.is-entering .curated-display-image {
-    opacity: 0.58;
-    transform: scale(1.16) translate3d(0, 2.6%, 0);
+    opacity: 0.62;
+    transform: scale(1.1) translate3d(0, 1.6%, 0);
     filter: saturate(0.8) contrast(1.01) brightness(0.7);
 }
 
@@ -4136,8 +4140,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .curated-display-surface.is-leaving.to-depth .curated-display-image,
 .curated-display-surface.is-leaving.to-left .curated-display-image,
 .curated-display-surface.is-leaving.to-right .curated-display-image {
-    opacity: 0.46;
-    transform: scale(1.04) translate3d(0, -1.8%, 0);
+    opacity: 0.5;
+    transform: scale(1.02) translate3d(0, -1%, 0);
     filter: saturate(0.8) contrast(1.01) brightness(0.72);
 }
 
@@ -4161,12 +4165,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 18px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 12px, 0);
     transition:
-        opacity 0.72s ease,
-        transform 0.92s var(--home-reveal-ease),
-        filter 0.92s ease;
+        opacity 0.62s ease,
+        transform 0.76s var(--home-reveal-ease),
+        filter 0.76s ease;
 }
 
 .featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-sea-note {
@@ -4213,12 +4217,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 .curated-display-copy > * {
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 16px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 10px, 0);
     transition:
-        opacity 0.62s ease,
-        transform 0.82s var(--home-reveal-ease),
-        filter 0.82s ease;
+        opacity 0.5s ease,
+        transform 0.62s var(--home-reveal-ease),
+        filter 0.62s ease;
 }
 
 .featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-copy > * {
@@ -4227,14 +4231,14 @@ body[data-home-performance='lite'] .bamboo-card-content {
     transform: translate3d(0, 0, 0);
 }
 
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-kicker { transition-delay: 180ms; }
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-heading { transition-delay: 260ms; }
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-atmosphere { transition-delay: 340ms; }
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-facts { transition-delay: 420ms; }
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-conditions { transition-delay: 500ms; }
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-worth { transition-delay: 580ms; }
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-footnote { transition-delay: 660ms; }
-.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-detail-button { transition-delay: 720ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-kicker { transition-delay: 90ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-heading { transition-delay: 150ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-atmosphere { transition-delay: 210ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-facts { transition-delay: 270ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-conditions { transition-delay: 330ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-worth { transition-delay: 390ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-display-footnote { transition-delay: 450ms; }
+.featured-destinations.is-stage-visible .curated-display-surface.is-active .curated-detail-button { transition-delay: 510ms; }
 
 .curated-display-name {
     font-size: clamp(2rem, 2.8vw, 2.9rem);
@@ -4337,12 +4341,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 /* 统一潜水匹配标题区的显现前状态。 */
 .dive-match-reveal {
     opacity: 0;
-    transform: translate3d(0, 24px, 0);
-    filter: blur(16px);
+    transform: translate3d(0, 16px, 0);
+    filter: blur(10px);
     transition:
-        opacity 1.06s ease,
-        transform 1.06s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 1.06s ease;
+        opacity 0.84s ease,
+        transform 0.84s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.84s ease;
 }
 
 /* 标题区先进入，像先看见一层海的说明。 */
@@ -4353,7 +4357,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match.is-visible .dive-match-stage.dive-match-reveal {
-    transition-delay: 160ms;
+    transition-delay: 100ms;
 }
 
 /* 制制模块标题区的最大宽度和叙事节奏 */
@@ -4363,12 +4367,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 .dive-match-intro > * {
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 14px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 8px, 0);
     transition:
-        opacity 0.76s ease,
-        filter 0.9s ease,
-        transform 0.9s cubic-bezier(0.18, 0.84, 0.22, 1);
+        opacity 0.58s ease,
+        filter 0.7s ease,
+        transform 0.7s cubic-bezier(0.18, 0.84, 0.22, 1);
 }
 
 .dive-match.is-visible .dive-match-intro > * {
@@ -4378,15 +4382,15 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match.is-visible .dive-match-intro > .dive-match-kicker {
-    transition-delay: 60ms;
+    transition-delay: 40ms;
 }
 
 .dive-match.is-visible .dive-match-intro > .dive-match-title {
-    transition-delay: 160ms;
+    transition-delay: 110ms;
 }
 
 .dive-match.is-visible .dive-match-intro > .dive-match-subtitle {
-    transition-delay: 260ms;
+    transition-delay: 180ms;
 }
 
 /* 设置潜水匹配英文 kicker 的轻量品牌感 */
@@ -4432,8 +4436,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
         0 34px 74px rgba(4, 16, 26, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.12),
         inset 0 -1px 0 rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(24px) saturate(126%);
-    -webkit-backdrop-filter: blur(24px) saturate(126%);
+    backdrop-filter: blur(18px) saturate(124%);
+    -webkit-backdrop-filter: blur(18px) saturate(124%);
     isolation: isolate;
 }
 
@@ -4453,26 +4457,26 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .dive-match-stage > .dive-match-rail,
 .dive-match-stage > .dive-match-display {
     opacity: 0;
-    filter: blur(10px);
-    transform: translate3d(0, 12px, 0);
+    filter: blur(6px);
+    transform: translate3d(0, 8px, 0);
     transition:
-        opacity 0.82s ease,
-        filter 0.9s ease,
-        transform 0.9s cubic-bezier(0.18, 0.84, 0.22, 1);
+        opacity 0.64s ease,
+        filter 0.74s ease,
+        transform 0.74s cubic-bezier(0.18, 0.84, 0.22, 1);
 }
 
 .dive-match.is-stage-visible .dive-match-stage > .dive-match-rail {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
-    transition-delay: 120ms;
+    transition-delay: 80ms;
 }
 
 .dive-match.is-stage-visible .dive-match-stage > .dive-match-display {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
-    transition-delay: 200ms;
+    transition-delay: 140ms;
 }
 
 /* 上方分类入口做成漂浮玻璃铭牌带，而不是普通 pills。 */
@@ -4622,22 +4626,22 @@ body[data-home-performance='lite'] .bamboo-card-content {
     grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.18fr);
     gap: clamp(18px, 2vw, 26px);
     opacity: 0;
-    filter: blur(16px);
-    transform: translate3d(0, 0, 0) scale(0.985);
+    filter: blur(10px);
+    transform: translate3d(0, 0, 0) scale(0.992);
     transition:
-        opacity 0.72s ease,
-        transform 0.72s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.72s ease;
+        opacity 0.6s ease,
+        transform 0.6s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.6s ease;
 }
 
 /* 更深层分类从更靠下的位置进入，模拟继续下潜。 */
 .dive-match-surface.from-deeper {
-    transform: translate3d(0, 34px, 0) scale(0.988);
+    transform: translate3d(0, 22px, 0) scale(0.994);
 }
 
 /* 更浅层分类从更高一点的位置漂入，模拟向上回一层。 */
 .dive-match-surface.from-shallower {
-    transform: translate3d(0, -28px, 0) scale(0.988);
+    transform: translate3d(0, -18px, 0) scale(0.994);
 }
 
 /* 当前激活内容层进入稳定状态，但要等舞台真正进入视口后再开始。 */
@@ -4650,20 +4654,20 @@ body[data-home-performance='lite'] .bamboo-card-content {
 /* 旧内容切向更深层时，稍微失焦下沉离场 */
 .dive-match-surface.is-leaving.to-deeper {
     opacity: 0;
-    filter: blur(16px);
-    transform: translate3d(0, -20px, 0) scale(0.982);
+    filter: blur(10px);
+    transform: translate3d(0, -12px, 0) scale(0.992);
 }
 
 /* 旧内容切向更浅层时，稍微失焦下沉离场 */
 .dive-match-surface.is-leaving.to-shallower {
     opacity: 0;
-    filter: blur(16px);
-    transform: translate3d(0, 20px, 0) scale(0.982);
+    filter: blur(10px);
+    transform: translate3d(0, 12px, 0) scale(0.992);
 }
 
 /* 内容稳定后做极轻的呼吸浮动，也延后到用户真正看到这层海时。 */
 .dive-match.is-stage-visible .dive-match-surface.is-resting {
-    animation: dive-match-surface-breathe 7.4s ease-in-out infinite;
+    animation: dive-match-surface-breathe 10s ease-in-out infinite;
 }
 
 /* 当前分类大卡像一页更深层的海域档案。 */
@@ -4685,12 +4689,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     opacity: 0;
-    filter: blur(14px);
-    transform: translate3d(-18px, 26px, 0) scale(0.982);
+    filter: blur(8px);
+    transform: translate3d(-12px, 16px, 0) scale(0.992);
     transition:
-        opacity 0.64s ease,
-        transform 0.78s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.78s ease;
+        opacity 0.56s ease,
+        transform 0.68s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.68s ease;
 }
 
 /* 焦点卡补一层慢慢扫过的浅海微光，让切换更像海压变化而不是普通换卡。 */
@@ -4708,11 +4712,11 @@ body[data-home-performance='lite'] .bamboo-card-content {
     height: 54%;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(168, 214, 236, 0.22) 0%, rgba(168, 214, 236, 0) 72%);
-    filter: blur(30px);
-    transform: translate3d(22px, 18px, 0) scale(0.88);
+    filter: blur(20px);
+    transform: translate3d(12px, 10px, 0) scale(0.94);
     transition:
-        opacity 0.82s ease,
-        transform 1.22s cubic-bezier(0.16, 0.82, 0.2, 1);
+        opacity 0.72s ease,
+        transform 0.96s cubic-bezier(0.16, 0.82, 0.2, 1);
 }
 
 .dive-match-focus-card::after {
@@ -4721,10 +4725,10 @@ body[data-home-performance='lite'] .bamboo-card-content {
     background:
         linear-gradient(128deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 36%),
         linear-gradient(180deg, rgba(152, 205, 230, 0.12), rgba(152, 205, 230, 0) 42%);
-    transform: translate3d(-8%, 0, 0);
+    transform: translate3d(-4%, 0, 0);
     transition:
-        opacity 0.72s ease,
-        transform 1s cubic-bezier(0.16, 0.82, 0.2, 1);
+        opacity 0.64s ease,
+        transform 0.82s cubic-bezier(0.16, 0.82, 0.2, 1);
 }
 
 /* 当前层被激活后，焦点卡先稳住，再把海雾和微光推开。 */
@@ -4732,19 +4736,19 @@ body[data-home-performance='lite'] .bamboo-card-content {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
-    transition-delay: 80ms;
+    transition-delay: 60ms;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card::before {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    transition-delay: 150ms;
+    transition-delay: 110ms;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card::after {
     opacity: 0.78;
     transform: translate3d(0, 0, 0);
-    transition-delay: 210ms;
+    transition-delay: 160ms;
 }
 
 /* 焦点卡里的文案分层显现，像同一页档案被海水慢慢排开。 */
@@ -4756,20 +4760,20 @@ body[data-home-performance='lite'] .bamboo-card-content {
     position: relative;
     z-index: 1;
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 18px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 10px, 0);
     transition:
-        opacity 0.54s ease,
-        transform 0.68s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.68s ease;
+        opacity 0.46s ease,
+        transform 0.56s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.56s ease;
 }
 
 .dive-match-focus-depth {
     opacity: 0;
-    transform: translate3d(14px, -6px, 0) scale(0.94);
+    transform: translate3d(10px, -4px, 0) scale(0.97);
     transition:
-        opacity 0.48s ease,
-        transform 0.62s cubic-bezier(0.18, 0.84, 0.22, 1);
+        opacity 0.42s ease,
+        transform 0.52s cubic-bezier(0.18, 0.84, 0.22, 1);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-group,
@@ -4784,27 +4788,27 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-group {
-    transition-delay: 180ms;
+    transition-delay: 120ms;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-head {
-    transition-delay: 250ms;
+    transition-delay: 180ms;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-depth {
-    transition-delay: 320ms;
+    transition-delay: 230ms;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-audience {
-    transition-delay: 340ms;
+    transition-delay: 260ms;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-guidance {
-    transition-delay: 420ms;
+    transition-delay: 320ms;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-note {
-    transition-delay: 500ms;
+    transition-delay: 380ms;
 }
 
 /* 分类分组名和当前所在层级。 */
@@ -4878,7 +4882,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
     align-content: start;
-    perspective: 1200px;
+    perspective: 1000px;
 }
 
 .dive-match-card:nth-child(1) {
@@ -4908,10 +4912,10 @@ body[data-home-performance='lite'] .bamboo-card-content {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     opacity: 0;
-    transform: translate3d(0, 22px, 0);
+    transform: translate3d(0, 14px, 0);
     transition:
-        transform 0.34s ease,
-        opacity 0.54s ease,
+        transform 0.28s ease,
+        opacity 0.42s ease,
         border-color 0.28s ease,
         box-shadow 0.28s ease;
     transition-delay: var(--card-delay, 0ms);
@@ -4935,7 +4939,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 /* hover 时轻微上浮、图片微放大，保持安静高级。 */
 .dive-match-card:hover {
-    transform: translate3d(0, -6px, 0);
+    transform: translate3d(0, -3px, 0);
     border-color: rgba(240, 248, 253, 0.2);
     box-shadow:
         0 28px 42px rgba(4, 17, 27, 0.2),
@@ -4955,14 +4959,14 @@ body[data-home-performance='lite'] .bamboo-card-content {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.03);
-    transition: transform 0.52s ease;
+    transform: scale(1.02);
+    transition: transform 0.4s ease;
     filter: saturate(0.95) contrast(1.03) brightness(0.9);
 }
 
 /* 悬停时图片轻微靠近，增加被托起的感觉。 */
 .dive-match-card:hover .dive-match-card-image {
-    transform: scale(1.08);
+    transform: scale(1.04);
 }
 
 /* 文案区用玻璃底接住图片，避免上下层断开。 */
@@ -4978,12 +4982,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .dive-match-card-reason,
 .dive-match-card-tags {
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 14px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 8px, 0);
     transition:
-        opacity 0.48s ease,
-        transform 0.62s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.62s ease;
+        opacity 0.38s ease,
+        transform 0.5s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.5s ease;
 }
 
 /* 英文名做轻一点的副标。*/
@@ -5031,10 +5035,10 @@ body[data-home-performance='lite'] .bamboo-card-content {
     font-size: 0.78rem;
     line-height: 1;
     opacity: 0;
-    transform: translate3d(0, 10px, 0) scale(0.96);
+    transform: translate3d(0, 6px, 0) scale(0.98);
     transition:
-        opacity 0.42s ease,
-        transform 0.52s cubic-bezier(0.18, 0.84, 0.22, 1);
+        opacity 0.34s ease,
+        transform 0.44s cubic-bezier(0.18, 0.84, 0.22, 1);
 }
 
 /* 查看详情按钮保持克制发光，不做普通按钮感 */
@@ -5053,13 +5057,13 @@ body[data-home-performance='lite'] .bamboo-card-content {
     font-size: 0.82rem;
     letter-spacing: 0.05em;
     opacity: 0;
-    filter: blur(10px);
+    filter: blur(6px);
     transition:
         transform 0.28s ease,
         box-shadow 0.28s ease,
         border-color 0.28s ease,
-        opacity 0.48s ease,
-        filter 0.48s ease;
+        opacity 0.38s ease,
+        filter 0.38s ease;
 }
 
 /* 每张卡激活后，文案和标签按卡片自己的节奏跟进。 */
@@ -5075,35 +5079,35 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-kicker {
-    transition-delay: calc(var(--card-delay, 0ms) + 80ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 50ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-name {
-    transition-delay: calc(var(--card-delay, 0ms) + 140ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 100ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-reason {
-    transition-delay: calc(var(--card-delay, 0ms) + 210ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 150ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tags {
-    transition-delay: calc(var(--card-delay, 0ms) + 280ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 210ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(1) {
-    transition-delay: calc(var(--card-delay, 0ms) + 320ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 250ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(2) {
-    transition-delay: calc(var(--card-delay, 0ms) + 360ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 290ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(3) {
-    transition-delay: calc(var(--card-delay, 0ms) + 400ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 330ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(4) {
-    transition-delay: calc(var(--card-delay, 0ms) + 440ms);
+    transition-delay: calc(var(--card-delay, 0ms) + 370ms);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-action {
@@ -5111,8 +5115,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
         0ms,
         0ms,
         0ms,
-        calc(var(--card-delay, 0ms) + 430ms),
-        calc(var(--card-delay, 0ms) + 430ms);
+        calc(var(--card-delay, 0ms) + 330ms),
+        calc(var(--card-delay, 0ms) + 330ms);
 }
 
 /* hover 时给按钮一丝向上的海流。 */
@@ -5130,7 +5134,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
     }
 
     50% {
-        transform: translate3d(0, -4px, 0);
+        transform: translate3d(0, -2px, 0);
     }
 }
 
@@ -5198,12 +5202,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 .story-intro > * {
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 12px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 8px, 0);
     transition:
-        opacity 0.74s ease,
-        filter 0.86s ease,
-        transform 0.86s cubic-bezier(0.18, 0.8, 0.2, 1);
+        opacity 0.56s ease,
+        filter 0.66s ease,
+        transform 0.66s cubic-bezier(0.18, 0.8, 0.2, 1);
 }
 
 .story-intro.is-visible > * {
@@ -5213,19 +5217,19 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .story-intro.is-visible > .story-kicker {
-    transition-delay: 50ms;
+    transition-delay: 30ms;
 }
 
 .story-intro.is-visible > .story-title {
-    transition-delay: 140ms;
+    transition-delay: 100ms;
 }
 
 .story-intro.is-visible > .story-lead {
-    transition-delay: 240ms;
+    transition-delay: 170ms;
 }
 
 .story-intro.is-visible > .story-echo {
-    transition-delay: 330ms;
+    transition-delay: 240ms;
 }
 
 .story-intro.story-reveal,
@@ -5388,12 +5392,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
 /* 故事区 reveal：默认先隐藏，等待进入视口后显现。 */
 .story-reveal {
     opacity: 0;
-    transform: translate3d(0, 28px, 0);
-    filter: blur(10px);
+    transform: translate3d(0, 18px, 0);
+    filter: blur(6px);
     transition:
-        opacity 820ms ease,
-        transform 920ms cubic-bezier(0.18, 0.8, 0.2, 1),
-        filter 920ms ease;
+        opacity 620ms ease,
+        transform 720ms cubic-bezier(0.18, 0.8, 0.2, 1),
+        filter 720ms ease;
     transition-delay: var(--story-delay, 0ms);
 }
 
@@ -5447,7 +5451,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 [data-home-layer].is-home-passed:not(.is-home-current) {
     opacity: 0.992;
     filter: saturate(0.94) brightness(0.97);
-    transform: translate3d(0, -6px, 0);
+    transform: translate3d(0, -3px, 0);
 }
 
 [data-home-layer].is-home-upcoming {
@@ -5567,7 +5571,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match-filter.is-active {
-    transform: translate3d(0, -8px, 0);
+    transform: translate3d(0, -5px, 0);
 }
 
 .dive-match-focus-ritual,
@@ -5588,39 +5592,39 @@ body[data-home-performance='lite'] .bamboo-card-content {
     letter-spacing: 0.08em;
     color: rgba(201, 228, 240, 0.62);
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 14px, 0);
+    filter: blur(8px);
+    transform: translate3d(0, 8px, 0);
     transition:
-        opacity 0.5s ease,
-        transform 0.64s cubic-bezier(0.18, 0.84, 0.22, 1),
-        filter 0.64s ease;
+        opacity 0.42s ease,
+        transform 0.54s cubic-bezier(0.18, 0.84, 0.22, 1),
+        filter 0.54s ease;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-ritual {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
-    transition-delay: 140ms;
+    transition-delay: 100ms;
 }
 
 .dive-match-card-grid {
-    transform: translate3d(0, calc(var(--dive-match-depth-ratio, 0) * -8px), 0);
+    transform: translate3d(0, calc(var(--dive-match-depth-ratio, 0) * -5px), 0);
 }
 
 .dive-match-card {
-    transform: translate3d(0, 22px, 0) rotateX(10deg);
+    transform: translate3d(0, 14px, 0) rotateX(7deg);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(1) {
-    transform: translate3d(0, 0, 0) rotateY(-5deg);
+    transform: translate3d(0, 0, 0) rotateY(-3deg);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(2) {
-    transform: translate3d(0, -4px, 0) rotateY(0deg);
+    transform: translate3d(0, -2px, 0) rotateY(0deg);
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(3) {
-    transform: translate3d(0, 2px, 0) rotateY(5deg);
+    transform: translate3d(0, 1px, 0) rotateY(3deg);
 }
 
 .why-yanqi.is-home-current {
@@ -5971,9 +5975,9 @@ body[data-current-home-layer="story"] .story-river-line {
 .sea-guide-home.is-deep .sea-guide-trigger {
     border-color: rgba(185, 227, 241, 0.34);
     box-shadow:
-        0 22px 44px rgba(6, 20, 31, 0.26),
+        0 18px 36px rgba(6, 20, 31, 0.22),
         inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 0 22px rgba(142, 204, 227, 0.12);
+        0 0 18px rgba(142, 204, 227, 0.1);
 }
 
 /* 首页海图导览入口：深海玻璃浮标式胶囊按钮 */
@@ -5995,24 +5999,24 @@ body[data-current-home-layer="story"] .story-river-line {
     box-shadow:
         0 18px 36px rgba(6, 20, 31, 0.22),
         inset 0 1px 0 rgba(255, 255, 255, 0.11);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     transition:
         transform 240ms ease,
         box-shadow 240ms ease,
         border-color 240ms ease,
         background-color 240ms ease;
-    animation: seaGuideDrift 8.6s ease-in-out infinite;
+    animation: seaGuideDrift 10.8s ease-in-out infinite;
     animation-play-state: paused;
 }
 
 body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow:
         0 16px 30px rgba(6, 20, 31, 0.18),
         inset 0 1px 0 rgba(255, 255, 255, 0.09);
-    animation-duration: 10.4s;
+    animation-duration: 12s;
 }
 
 /* 海图导览可见时才播放漂浮动画，节省离屏 GPU 开销 */
@@ -6029,19 +6033,19 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger {
     border-radius: inherit;
     background: linear-gradient(115deg, transparent 10%, rgba(233, 247, 253, 0.12) 48%, transparent 86%);
     opacity: 0.36;
-    transform: translateX(-24%);
-    transition: transform 620ms ease, opacity 260ms ease;
+    transform: translateX(-18%);
+    transition: transform 460ms ease, opacity 220ms ease;
     pointer-events: none;
 }
 
 /* 鼠标移入时，入口轻微上浮并增强玻璃边缘高光*/
 .sea-guide-home .sea-guide-trigger:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     border-color: rgba(200, 235, 245, 0.34);
     box-shadow:
-        0 24px 44px rgba(6, 20, 31, 0.28),
+        0 20px 36px rgba(6, 20, 31, 0.24),
         inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 0 20px rgba(144, 202, 226, 0.12);
+        0 0 16px rgba(144, 202, 226, 0.1);
 }
 
 body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
@@ -6051,8 +6055,8 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
 /* 展开或悬停时，让潮光沿着按钮轻微移动 */
 .sea-guide-home .sea-guide-trigger:hover::after,
 .sea-guide-home.is-open .sea-guide-trigger::after {
-    transform: translateX(22%);
-    opacity: 0.52;
+    transform: translateX(16%);
+    opacity: 0.44;
 }
 
 /* 点击时保留柔和按压，不做机械按钮。*/
@@ -6225,12 +6229,12 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel {
 }
 
 /* 条目逐个加延迟，让海图导览浮层展开时更有层次。 */
-.sea-guide-home.is-open .sea-guide-entry:nth-child(1) { transition-delay: 20ms; }
-.sea-guide-home.is-open .sea-guide-entry:nth-child(2) { transition-delay: 45ms; }
-.sea-guide-home.is-open .sea-guide-entry:nth-child(3) { transition-delay: 70ms; }
-.sea-guide-home.is-open .sea-guide-entry:nth-child(4) { transition-delay: 95ms; }
-.sea-guide-home.is-open .sea-guide-entry:nth-child(5) { transition-delay: 120ms; }
-.sea-guide-home.is-open .sea-guide-entry:nth-child(6) { transition-delay: 145ms; }
+.sea-guide-home.is-open .sea-guide-entry:nth-child(1) { transition-delay: 12ms; }
+.sea-guide-home.is-open .sea-guide-entry:nth-child(2) { transition-delay: 30ms; }
+.sea-guide-home.is-open .sea-guide-entry:nth-child(3) { transition-delay: 48ms; }
+.sea-guide-home.is-open .sea-guide-entry:nth-child(4) { transition-delay: 66ms; }
+.sea-guide-home.is-open .sea-guide-entry:nth-child(5) { transition-delay: 84ms; }
+.sea-guide-home.is-open .sea-guide-entry:nth-child(6) { transition-delay: 102ms; }
 
 /* 当前所在海层对应条目的细潮线提示。 */
 .sea-guide-home .sea-guide-entry::before {
@@ -6308,14 +6312,14 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel {
     0%,
     100% {
         box-shadow:
-            0 18px 36px rgba(6, 20, 31, 0.22),
+            0 16px 30px rgba(6, 20, 31, 0.2),
             inset 0 1px 0 rgba(255, 255, 255, 0.11);
     }
 
     50% {
         box-shadow:
-            0 24px 44px rgba(6, 20, 31, 0.28),
-            inset 0 1px 0 rgba(255, 255, 255, 0.13);
+            0 20px 36px rgba(6, 20, 31, 0.24),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
 }
 

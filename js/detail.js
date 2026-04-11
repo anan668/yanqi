@@ -13,6 +13,7 @@
 */
 // 共享价格配置：详情页与首页共用同一套人民币展示规则。
 const sharedPriceTools = window.YanqiPriceConfig || null;
+const sharedSpotCatalog = window.YanqiSpotCatalog || null;
 const PRICE_DISPLAY_VERSION = sharedPriceTools?.PRICE_DISPLAY_VERSION || '';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
@@ -192,6 +193,53 @@ function convertSpotPriceDisplay(spots) {
                     : []
             }
         ])
+    );
+}
+
+function getCatalogSpotById(spotId) {
+    return sharedSpotCatalog && typeof sharedSpotCatalog.getById === 'function'
+        ? sharedSpotCatalog.getById(spotId)
+        : null;
+}
+
+function injectCatalogIdentityForDetailItem(record, fallbackId) {
+    const normalizedFallbackId = Number(fallbackId);
+    const candidateId = Number(record?.id);
+    const catalogSpot = getCatalogSpotById(Number.isFinite(candidateId) ? candidateId : normalizedFallbackId);
+
+    if (!catalogSpot) {
+        return record;
+    }
+
+    return {
+        ...record,
+        id: Number.isFinite(candidateId) ? candidateId : catalogSpot.id,
+        key: catalogSpot.key,
+        name: catalogSpot.name,
+        englishName: catalogSpot.englishName,
+        tagline: catalogSpot.tagline,
+        image: record?.image || catalogSpot.image,
+        season: catalogSpot.season
+    };
+}
+
+function injectCatalogIdentityForDetailSpots(spots) {
+    return Object.fromEntries(
+        Object.entries(spots).map(([spotId, spot]) => {
+            const normalizedSpotId = Number(spotId);
+            const mergedSpot = injectCatalogIdentityForDetailItem(spot, normalizedSpotId);
+            const relatedList = Array.isArray(mergedSpot.related)
+                ? mergedSpot.related.map((item) => injectCatalogIdentityForDetailItem(item, item?.id))
+                : [];
+
+            return [
+                spotId,
+                {
+                    ...mergedSpot,
+                    related: relatedList
+                }
+            ];
+        })
     );
 }
 
@@ -380,7 +428,7 @@ function restartTransientClassAnimation(element, className) {
 }
 
 // 潜点主数据：这里集中定义每个潜点的文案、图片、套餐、评论与相关推荐信息。
-const divingSpotDetails = convertSpotPriceDisplay({
+const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetailSpots({
     1: {
         name: '诗巴丹',
         tagline: '鱼群会先靠近，海墙随后把整片蓝慢慢放深。',
@@ -1669,7 +1717,7 @@ const divingSpotDetails = convertSpotPriceDisplay({
             }
         ]
     }
-});
+}));
 
 // 评论图片区命名规则：为每个潜点分配固定英文前缀，便于后续补齐独立评论照片文件。
 const REVIEW_IMAGE_PREFIX = Object.freeze({
@@ -8605,6 +8653,86 @@ class DetailPage {
             : null;
     }
 
+    normalizePackageModalPeopleValue(value) {
+        const safeValue = String(value || '').trim();
+        if (!safeValue) {
+            return '';
+        }
+
+        const exactMatch = safeValue.match(/^(\d+)$/);
+        if (exactMatch) {
+            const count = Number.parseInt(exactMatch[1], 10);
+            return Number.isFinite(count) && count > 0 ? String(count) : '';
+        }
+
+        const rangeMatch = safeValue.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+        if (rangeMatch) {
+            const start = Number.parseInt(rangeMatch[1], 10);
+            const end = Number.parseInt(rangeMatch[2], 10);
+            return Number.isFinite(start) && Number.isFinite(end) && start > 0 && end >= start
+                ? `${start}-${end}`
+                : '';
+        }
+
+        const plusMatch = safeValue.match(/^(\d+)\s*\+$/);
+        if (plusMatch) {
+            const count = Number.parseInt(plusMatch[1], 10);
+            return Number.isFinite(count) && count > 0 ? `${count}+` : '';
+        }
+
+        return '';
+    }
+
+    getPackageModalPeopleOptions() {
+        return [
+            {
+                value: '',
+                label: '先不写'
+            },
+            {
+                value: '1',
+                label: '1 人独行'
+            },
+            {
+                value: '2',
+                label: '2 人同行'
+            },
+            {
+                value: '3-5',
+                label: '3-5 人同潜'
+            },
+            {
+                value: '6+',
+                label: '6 人以上'
+            }
+        ];
+    }
+
+    formatPackageModalPeopleLabel(value) {
+        const normalizedValue = this.normalizePackageModalPeopleValue(value);
+        if (!normalizedValue) {
+            return '';
+        }
+
+        const presetOption = this.getPackageModalPeopleOptions()
+            .find((option) => option.value && option.value === normalizedValue);
+        if (presetOption) {
+            return presetOption.label;
+        }
+
+        return `${normalizedValue} 人同行`;
+    }
+
+    isPackageModalCustomPeopleValue(value) {
+        const normalizedValue = this.normalizePackageModalPeopleValue(value);
+        if (!normalizedValue) {
+            return false;
+        }
+
+        return !this.getPackageModalPeopleOptions()
+            .some((option) => option.value && option.value === normalizedValue);
+    }
+
     getPackageModalDurationOptions(pkg) {
         const baseDuration = this.parsePackageDurationLabel(pkg?.duration);
         const presetMaxDays = Math.max(PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS, baseDuration.days);
@@ -8641,8 +8769,10 @@ class DetailPage {
             windowKey: this.getPackageModalWindowOptions(pkg).some((option) => option.key === existingDraft.windowKey)
                 ? existingDraft.windowKey
                 : defaultWindowKey,
+            peopleValue: this.normalizePackageModalPeopleValue(existingDraft.peopleValue),
             isEditorOpen: Boolean(existingDraft.isEditorOpen),
-            isCustomDurationOpen: Boolean(existingDraft.isCustomDurationOpen)
+            isCustomDurationOpen: Boolean(existingDraft.isCustomDurationOpen),
+            isCustomPeopleOpen: Boolean(existingDraft.isCustomPeopleOpen)
         };
 
         this.bookingModalDrafts.set(pkg.id, normalizedDraft);
@@ -8668,8 +8798,10 @@ class DetailPage {
                 ? this.clampPackageModalDurationDays(nextDraft.days, durationClampMaxDays)
                 : currentDraft.days,
             windowKey: allowedWindowKeys.has(nextDraft.windowKey) ? nextDraft.windowKey : currentDraft.windowKey,
+            peopleValue: this.normalizePackageModalPeopleValue(nextDraft.peopleValue) || '',
             isEditorOpen: Boolean(nextDraft.isEditorOpen),
-            isCustomDurationOpen: Boolean(nextDraft.isCustomDurationOpen)
+            isCustomDurationOpen: Boolean(nextDraft.isCustomDurationOpen),
+            isCustomPeopleOpen: Boolean(nextDraft.isCustomPeopleOpen)
         });
 
         return this.bookingModalDrafts.get(pkg.id);
@@ -8686,6 +8818,25 @@ class DetailPage {
 
     focusPackageModalCustomDurationInput(packageId) {
         const input = this.getPackageModalCustomDurationInput(packageId);
+        if (!input) {
+            return;
+        }
+
+        input.focus();
+        input.select();
+    }
+
+    getPackageModalCustomPeopleInput(packageId) {
+        if (!this.bookingModal) {
+            return null;
+        }
+
+        return Array.from(this.bookingModal.querySelectorAll('[data-package-custom-people-input][data-package-id]'))
+            .find((input) => input.dataset.packageId === String(packageId)) || null;
+    }
+
+    focusPackageModalCustomPeopleInput(packageId) {
+        const input = this.getPackageModalCustomPeopleInput(packageId);
         if (!input) {
             return;
         }
@@ -8728,6 +8879,39 @@ class DetailPage {
         }
     }
 
+    applyPackageModalCustomPeople(packageId, rawValue = null) {
+        const pkg = this.getPackageById(packageId);
+        if (!pkg) {
+            return;
+        }
+
+        const input = this.getPackageModalCustomPeopleInput(pkg.id);
+        const nextPeopleValue = this.normalizePackageModalPeopleValue(
+            rawValue == null ? input?.value : rawValue
+        );
+
+        if (!nextPeopleValue) {
+            input?.focus();
+            input?.select();
+            return;
+        }
+
+        const hasPresetMatch = this.getPackageModalPeopleOptions()
+            .some((option) => option.value && option.value === nextPeopleValue);
+        this.updatePackageModalDraft(pkg.id, {
+            peopleValue: nextPeopleValue,
+            isEditorOpen: true,
+            isCustomPeopleOpen: !hasPresetMatch
+        });
+        this.renderBookingModalMarkup(pkg.id, { preserveBodyScroll: true });
+
+        if (!hasPresetMatch) {
+            window.requestAnimationFrame(() => {
+                this.focusPackageModalCustomPeopleInput(pkg.id);
+            });
+        }
+    }
+
     estimatePackageModalPrice(pkg, selectedDays) {
         const basePrice = parsePriceValue(pkg?.price);
         const baseDuration = this.parsePackageDurationLabel(pkg?.duration);
@@ -8764,19 +8948,34 @@ class DetailPage {
         const durationOptions = this.getPackageModalDurationOptions(pkg);
         const customDurationMaxDays = this.getPackageModalDurationClampMaxDays(pkg);
         const windowOptions = this.getPackageModalWindowOptions(pkg);
+        const peopleOptions = this.getPackageModalPeopleOptions();
         const selectedWindow = windowOptions.find((option) => option.key === draft.windowKey) || windowOptions[0];
+        const defaultWindowKey = this.getPackageModalDefaultWindowKey(pkg);
         const selectedDays = draft.days;
         const selectedNights = selectedDays === baseDuration.days
             ? baseDuration.nights
             : Math.max(selectedDays - 1, 1);
+        const selectedPeopleValue = this.normalizePackageModalPeopleValue(draft.peopleValue);
+        const selectedPeopleLabel = this.formatPackageModalPeopleLabel(selectedPeopleValue);
+        const customPeopleInputValue = /^\d+$/.test(selectedPeopleValue) ? selectedPeopleValue : '';
         const durationLabel = `${selectedDays}天${selectedNights}晚`;
         const estimatedPriceValue = this.estimatePackageModalPrice(pkg, selectedDays);
         const priceLabel = Number.isFinite(estimatedPriceValue) ? formatPriceValue(estimatedPriceValue) : pkg.price;
         const isCustomDurationSelected = !durationOptions.some((option) => option.days === selectedDays);
         const isCustomDurationOpen = Boolean(draft.isCustomDurationOpen) || isCustomDurationSelected;
+        const isCustomPeopleSelected = this.isPackageModalCustomPeopleValue(selectedPeopleValue);
+        const isCustomPeopleOpen = Boolean(draft.isCustomPeopleOpen) || isCustomPeopleSelected;
+        const editorState = Boolean(draft.isEditorOpen) ? 'open' : 'closed';
+        const durationTone = selectedDays === baseDuration.days ? 'base' : 'shifted';
+        const windowTone = selectedWindow.key === defaultWindowKey ? 'base' : 'shifted';
+        const peopleTone = selectedPeopleLabel
+            ? (isCustomPeopleSelected ? 'custom' : 'set')
+            : 'empty';
+        const summarySentence = `停留 ${durationLabel} · ${selectedWindow.label} · ${selectedPeopleLabel || '同行待写'}`;
         const isCustomized =
             selectedDays !== baseDuration.days ||
-            selectedWindow.key !== this.getPackageModalDefaultWindowKey(pkg);
+            selectedWindow.key !== defaultWindowKey ||
+            Boolean(selectedPeopleValue);
 
         return {
             ...draft,
@@ -8792,10 +8991,24 @@ class DetailPage {
             windowKey: selectedWindow.key,
             windowLabel: selectedWindow.label,
             windowHint: selectedWindow.hint,
+            peopleOptions,
+            peopleValue: selectedPeopleValue,
+            peopleLabel: selectedPeopleLabel,
+            customPeopleInputValue,
+            peopleHint: selectedPeopleLabel
+                ? `会先按 ${selectedPeopleLabel} 的同行节奏写进这一程，后面还可以继续调整。`
+                : '如果同行节奏已经确定，也可以在这里先写进这一程。',
+            isCustomPeopleSelected,
+            isCustomPeopleOpen,
+            durationTone,
+            windowTone,
+            peopleTone,
+            summarySentence,
+            editorState,
             priceValue: estimatedPriceValue,
             priceLabel,
             priceHint: isCustomized
-                ? `此刻先按 ${durationLabel} · ${selectedWindow.label} 估算`
+                ? `此刻先按 ${durationLabel} · ${selectedWindow.label}${selectedPeopleLabel ? ` · ${selectedPeopleLabel}` : ''} 收住这一程`
                 : '点开，换一换停留天数、入海时段，或写下自己的停留节奏',
             isCustomized
         };
@@ -8806,8 +9019,12 @@ class DetailPage {
         if (!pkg || !this.bookingModalBody) {
             return;
         }
+        const modalState = this.getPackageModalViewState(pkg);
 
-        const { preserveBodyScroll = false } = options;
+        const {
+            preserveBodyScroll = false,
+            animatePriceEditor = ''
+        } = options;
         const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
         const bodyScrollTop = preserveBodyScroll && modalContent
             ? modalContent.scrollTop
@@ -8818,6 +9035,23 @@ class DetailPage {
         const nextModalContent = this.bookingModal?.querySelector('.booking-modal-content');
         if (nextModalContent) {
             nextModalContent.scrollTop = preserveBodyScroll ? bodyScrollTop : 0;
+            nextModalContent.dataset.packagePriceEditorState = modalState?.editorState || 'closed';
+            nextModalContent.dataset.packagePriceCustomState = modalState?.isCustomized ? 'customized' : 'default';
+            nextModalContent.classList.toggle('has-package-price-editor-open', Boolean(modalState?.isEditorOpen));
+            nextModalContent.classList.toggle('has-package-price-customized', Boolean(modalState?.isCustomized));
+        }
+
+        if (animatePriceEditor === 'open') {
+            const pricePanel = this.bookingModalBody.querySelector('.package-modal-price.is-editor-open');
+            if (pricePanel) {
+                window.clearTimeout(this.packageModalPriceOpenTimer);
+                window.requestAnimationFrame(() => {
+                    pricePanel.classList.add('is-opening');
+                });
+                this.packageModalPriceOpenTimer = window.setTimeout(() => {
+                    pricePanel.classList.remove('is-opening');
+                }, 920);
+            }
         }
     }
 
@@ -8837,10 +9071,36 @@ class DetailPage {
         });
         const durationOptions = modalState?.durationOptions || [];
         const windowOptions = modalState?.windowOptions || [];
+        const peopleOptions = modalState?.peopleOptions || [];
         const matchTags = Array.from(new Set([
             ...(Array.isArray(pkg.fitTags) ? pkg.fitTags : []),
             pkg.audience
         ].filter(Boolean)));
+        const priceEditorState = modalState?.editorState || 'closed';
+        const priceCustomState = modalState?.isCustomized ? 'customized' : 'default';
+        const priceLayoutState = modalState?.isEditorOpen ? 'expanded' : 'compact';
+        const sanitizedPackageId = String(pkg.id || 'package').replace(/[^a-zA-Z0-9_-]/g, '');
+        const priceEditorId = `packageModalPriceEditor-${sanitizedPackageId || 'current'}`;
+        const priceSummaryItems = [
+            {
+                key: 'duration',
+                label: '停留',
+                value: modalState?.durationLabel || pkg.duration,
+                tone: modalState?.durationTone || 'base'
+            },
+            {
+                key: 'window',
+                label: '时段',
+                value: modalState?.windowLabel || '时段待定',
+                tone: modalState?.windowTone || 'base'
+            },
+            {
+                key: 'people',
+                label: '同行',
+                value: modalState?.peopleLabel || '先不写',
+                tone: modalState?.peopleTone || 'empty'
+            }
+        ];
 
         let layoutOrder = 0;
         const nextLayoutOrder = () => layoutOrder++;
@@ -8875,26 +9135,42 @@ class DetailPage {
                         </div>
 
                         <div class="package-modal-signal">
-                            <section class="package-modal-price">
-                                <div class="package-modal-price-core">
-                                    <div class="package-modal-price-copy">
-                                        <span class="package-modal-price-label">这一程起于</span>
-                                        <strong class="package-modal-price-amount">${escapeHtml(modalState?.priceLabel || pkg.price)}</strong>
-                                        <p class="package-modal-price-note package-modal-extra-fragment" style="--package-modal-extra-order: 0">${escapeHtml(modalState?.priceHint || '')}</p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        class="package-modal-price-toggle package-modal-extra-fragment"
-                                        style="--package-modal-extra-order: 1"
-                                        data-package-price-editor-toggle="${escapeHtml(pkg.id)}"
-                                        aria-expanded="${String(Boolean(modalState?.isEditorOpen))}"
-                                    >
-                                        ${modalState?.isEditorOpen ? '先收住这一下' : '改一改节奏'}
-                                    </button>
-                                </div>
+                            <section
+                                class="package-modal-price ${modalState?.isEditorOpen ? 'is-editor-open' : 'is-editor-closed'} ${modalState?.isCustomized ? 'is-customized' : 'is-pristine'}"
+                                data-package-price-editor-state="${escapeHtml(priceEditorState)}"
+                                data-package-price-custom-state="${escapeHtml(priceCustomState)}"
+                                data-package-price-layout="${escapeHtml(priceLayoutState)}"
+                            >
+                                <div class="package-modal-price-layout" data-package-price-layout-frame="${escapeHtml(priceLayoutState)}">
+                                    <div class="package-modal-price-main" data-package-price-column="main">
+                                        <div class="package-modal-price-core" data-package-price-fragment="core">
+                                            <div class="package-modal-price-copy">
+                                                <span class="package-modal-price-label">这一程起于</span>
+                                                <strong class="package-modal-price-amount">${escapeHtml(modalState?.priceLabel || pkg.price)}</strong>
+                                                <p class="package-modal-price-note package-modal-extra-fragment" style="--package-modal-extra-order: 0" data-package-price-fragment="note">${escapeHtml(modalState?.priceHint || '')}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                class="package-modal-price-toggle package-modal-extra-fragment"
+                                                style="--package-modal-extra-order: 1"
+                                                data-package-price-editor-toggle="${escapeHtml(pkg.id)}"
+                                                aria-expanded="${String(Boolean(modalState?.isEditorOpen))}"
+                                                aria-controls="${escapeHtml(priceEditorId)}"
+                                            >
+                                                ${modalState?.isEditorOpen ? '先收住这一下' : '改一改节奏'}
+                                            </button>
+                                        </div>
 
-                                <div class="package-modal-price-editor package-modal-extra-fragment ${modalState?.isEditorOpen ? 'is-open' : ''}" style="--package-modal-extra-order: 2" aria-hidden="${String(!modalState?.isEditorOpen)}">
-                                    <div class="package-modal-option-group">
+                                        <div
+                                            id="${escapeHtml(priceEditorId)}"
+                                            class="package-modal-price-editor package-modal-extra-fragment package-modal-editor-layer ${modalState?.isEditorOpen ? 'is-open' : 'is-closed'}"
+                                            style="--package-modal-extra-order: 2"
+                                            aria-hidden="${String(!modalState?.isEditorOpen)}"
+                                            data-package-price-editor-state="${escapeHtml(priceEditorState)}"
+                                            data-package-price-editor="${escapeHtml(pkg.id)}"
+                                        >
+                                            <div class="package-modal-price-editor-track" data-package-price-editor-track>
+                                                <div class="package-modal-option-group package-modal-editor-fragment" style="--package-modal-editor-order: 0" data-package-editor-fragment="duration">
                                         <span class="package-modal-option-label">停留天数</span>
                                         <div class="package-modal-option-list">
                                             ${durationOptions.map((option) => `
@@ -8918,7 +9194,7 @@ class DetailPage {
                                             </button>
                                         </div>
                                         ${modalState?.isCustomDurationOpen ? `
-                                            <div class="package-modal-custom-duration">
+                                            <div class="package-modal-custom-duration package-modal-editor-subfragment" data-package-editor-subfragment="duration-custom">
                                                 <div class="package-modal-custom-duration-copy">
                                                     <span class="package-modal-custom-duration-kicker">把停留写进这一层</span>
                                                     <p class="package-modal-custom-duration-note">天数支持 ${PACKAGE_MODAL_DURATION_MIN_DAYS} 到 ${modalState?.customDurationMaxDays || PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS} 天，价格会先按当前海流轻轻估算。</p>
@@ -8950,7 +9226,7 @@ class DetailPage {
                                         ` : ''}
                                     </div>
 
-                                    <div class="package-modal-option-group">
+                                    <div class="package-modal-option-group package-modal-editor-fragment" style="--package-modal-editor-order: 1" data-package-editor-fragment="window">
                                         <span class="package-modal-option-label">入海时段</span>
                                         <div class="package-modal-option-list">
                                             ${windowOptions.map((option) => `
@@ -8967,9 +9243,96 @@ class DetailPage {
                                         </div>
                                     </div>
 
-                                    <p class="package-modal-price-support">
+                                    <div class="package-modal-option-group package-modal-editor-fragment" style="--package-modal-editor-order: 2" data-package-editor-fragment="people">
+                                        <span class="package-modal-option-label">同行人数</span>
+                                        <div class="package-modal-option-list">
+                                            ${peopleOptions.map((option) => `
+                                                <button
+                                                    type="button"
+                                                    class="package-modal-option ${option.value === modalState?.peopleValue ? 'is-selected' : ''}"
+                                                    data-package-people-value="${escapeHtml(option.value)}"
+                                                    data-package-id="${escapeHtml(pkg.id)}"
+                                                    aria-pressed="${String(option.value === modalState?.peopleValue)}"
+                                                >
+                                                    ${escapeHtml(option.label)}
+                                                </button>
+                                            `).join('')}
+                                            <button
+                                                type="button"
+                                                class="package-modal-option ${(modalState?.isCustomPeopleOpen || modalState?.isCustomPeopleSelected) ? 'is-selected' : ''}"
+                                                data-package-custom-people-toggle="${escapeHtml(pkg.id)}"
+                                                aria-pressed="${String(Boolean(modalState?.isCustomPeopleOpen || modalState?.isCustomPeopleSelected))}"
+                                            >
+                                                自定义
+                                            </button>
+                                        </div>
+                                        ${modalState?.isCustomPeopleOpen ? `
+                                            <div class="package-modal-custom-duration package-modal-custom-people package-modal-editor-subfragment" data-package-editor-subfragment="people-custom">
+                                                <div class="package-modal-custom-duration-copy">
+                                                    <span class="package-modal-custom-duration-kicker">把同行写进这一层</span>
+                                                    <p class="package-modal-custom-duration-note">可以输入精确人数，比如 4、8 或 12。确认后会一起带到“我的行程”。</p>
+                                                </div>
+                                                <div class="package-modal-custom-duration-controls">
+                                                    <label class="package-modal-custom-duration-field">
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            max="99"
+                                                            step="1"
+                                                            value="${escapeHtml(String(modalState?.customPeopleInputValue || ''))}"
+                                                            inputmode="numeric"
+                                                            aria-label="自定义同行人数"
+                                                            data-package-custom-people-input
+                                                            data-package-id="${escapeHtml(pkg.id)}"
+                                                        >
+                                                        <span>人</span>
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        class="package-modal-custom-duration-apply"
+                                                        data-package-custom-people-apply="${escapeHtml(pkg.id)}"
+                                                    >
+                                                        带入同行
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                        <p class="package-modal-price-support package-modal-editor-subfragment" data-package-editor-subfragment="people-hint">
+                                            ${escapeHtml(modalState?.peopleHint || '如果同行节奏已经确定，也可以在这里先写进这一程。')}
+                                        </p>
+                                    </div>
+
+                                    <p class="package-modal-price-support package-modal-editor-fragment" style="--package-modal-editor-order: 3" data-package-editor-fragment="support">
                                         ${escapeHtml(modalState?.windowHint || '确认之后，也还能继续把这片海的节奏慢慢往下调。')}
                                     </p>
+                                </div>
+                                </div>
+                                </div>
+                                    <aside
+                                        class="package-modal-price-summary package-modal-extra-fragment"
+                                        style="--package-modal-extra-order: 3"
+                                        data-package-price-column="summary"
+                                        data-package-price-summary-state="${escapeHtml(priceCustomState)}"
+                                        data-package-price-editor-state="${escapeHtml(priceEditorState)}"
+                                        aria-live="polite"
+                                    >
+                                        <p class="package-modal-price-summary-kicker" data-package-summary-fragment="kicker">当前收束</p>
+                                        <ul class="package-modal-price-summary-list" data-package-summary-fragment="list">
+                                            ${priceSummaryItems.map((item) => `
+                                                <li
+                                                    class="package-modal-price-summary-item is-${escapeHtml(item.tone)}"
+                                                    data-package-summary-item="${escapeHtml(item.key)}"
+                                                    data-summary-tone="${escapeHtml(item.tone)}"
+                                                >
+                                                    <span class="package-modal-price-summary-label">${escapeHtml(item.label)}</span>
+                                                    <strong class="package-modal-price-summary-value">${escapeHtml(item.value)}</strong>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                        <p class="package-modal-price-summary-note" data-package-summary-fragment="note">
+                                            ${escapeHtml(modalState?.summarySentence || '')}
+                                        </p>
+                                    </aside>
                                 </div>
                             </section>
 
@@ -9519,8 +9882,8 @@ class DetailPage {
             packageTags,
             selectedDate: draft.dateValue || '',
             selectedDateLabel: draft.dateLabel || '',
-            selectedPeople: '',
-            selectedPeopleLabel: '',
+            selectedPeople: modalState?.peopleValue || '',
+            selectedPeopleLabel: modalState?.peopleLabel || '',
             priceDisplayVersion: PRICE_DISPLAY_VERSION
         };
     }
@@ -9641,6 +10004,9 @@ class DetailPage {
         }
 
         const booking = this.tripStore.upsertConfirmedBooking(this.buildConfirmedBooking(pkg));
+        if (booking?.entryId && typeof this.tripStore.saveActiveBookingId === 'function') {
+            this.tripStore.saveActiveBookingId(booking.entryId);
+        }
         this.selectedPackageId = pkg.id;
         this.bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
         this.applyPackageCardSelectionState(pkg.id);
@@ -10546,10 +10912,14 @@ class DetailPage {
                     }
 
                     const currentState = this.getPackageModalViewState(packageId);
+                    const nextEditorOpen = !currentState?.isEditorOpen;
                     this.updatePackageModalDraft(packageId, {
-                        isEditorOpen: !currentState?.isEditorOpen
+                        isEditorOpen: nextEditorOpen
                     });
-                    this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    this.renderBookingModalMarkup(packageId, {
+                        preserveBodyScroll: true,
+                        animatePriceEditor: nextEditorOpen ? 'open' : ''
+                    });
                     return;
                 }
 
@@ -10615,6 +10985,52 @@ class DetailPage {
                     return;
                 }
 
+                const peopleOption = event.target.closest('[data-package-people-value][data-package-id]');
+                if (peopleOption) {
+                    const packageId = peopleOption.dataset.packageId;
+                    const peopleValue = this.normalizePackageModalPeopleValue(peopleOption.dataset.packagePeopleValue);
+                    if (!packageId) {
+                        return;
+                    }
+
+                    this.updatePackageModalDraft(packageId, {
+                        peopleValue,
+                        isEditorOpen: true,
+                        isCustomPeopleOpen: false
+                    });
+                    this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    return;
+                }
+
+                const customPeopleToggle = event.target.closest('[data-package-custom-people-toggle]');
+                if (customPeopleToggle) {
+                    const packageId = customPeopleToggle.dataset.packageCustomPeopleToggle || this.selectedPackageId;
+                    if (!packageId) {
+                        return;
+                    }
+
+                    this.updatePackageModalDraft(packageId, {
+                        isEditorOpen: true,
+                        isCustomPeopleOpen: true
+                    });
+                    this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+                    window.requestAnimationFrame(() => {
+                        this.focusPackageModalCustomPeopleInput(packageId);
+                    });
+                    return;
+                }
+
+                const customPeopleApply = event.target.closest('[data-package-custom-people-apply]');
+                if (customPeopleApply) {
+                    const packageId = customPeopleApply.dataset.packageCustomPeopleApply || this.selectedPackageId;
+                    if (!packageId) {
+                        return;
+                    }
+
+                    this.applyPackageModalCustomPeople(packageId);
+                    return;
+                }
+
                 const confirmButton = event.target.closest('.package-modal-primary');
                 if (confirmButton) {
                     this.confirmBooking(confirmButton.dataset.packageId);
@@ -10627,12 +11043,19 @@ class DetailPage {
                 }
 
                 const customDurationInput = event.target.closest('[data-package-custom-duration-input][data-package-id]');
-                if (!customDurationInput) {
+                if (customDurationInput) {
+                    event.preventDefault();
+                    this.applyPackageModalCustomDuration(customDurationInput.dataset.packageId, customDurationInput.value);
+                    return;
+                }
+
+                const customPeopleInput = event.target.closest('[data-package-custom-people-input][data-package-id]');
+                if (!customPeopleInput) {
                     return;
                 }
 
                 event.preventDefault();
-                this.applyPackageModalCustomDuration(customDurationInput.dataset.packageId, customDurationInput.value);
+                this.applyPackageModalCustomPeople(customPeopleInput.dataset.packageId, customPeopleInput.value);
             });
         }
 

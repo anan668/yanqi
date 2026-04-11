@@ -212,6 +212,57 @@ function safeSaveAccounts(accounts) {
 }
 
 /**
+ * normalizeEmail(value) - 统一邮箱比较格式，避免大小写差异导致同一账户匹配失败
+ * @param {string} value - 原始邮箱文本
+ * @returns {string} - 归一化后的邮箱
+ */
+function normalizeEmail(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+/**
+ * normalizePhone(value) - 统一手机号比较格式，忽略空格和短横线
+ * @param {string} value - 原始手机号文本
+ * @returns {string} - 归一化后的手机号
+ */
+function normalizePhone(value) {
+    return String(value || '').trim().replace(/[\s-]+/g, '');
+}
+
+/**
+ * normalizeLoginIdentity(value) - 把登录输入统一成可比较的邮箱或手机号
+ * @param {string} value - 登录输入框里的文本
+ * @returns {string} - 可用于匹配的身份值
+ */
+function normalizeLoginIdentity(value) {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) {
+        return '';
+    }
+
+    return trimmed.includes('@') ? normalizeEmail(trimmed) : normalizePhone(trimmed);
+}
+
+/**
+ * findAccountByLoginIdentity(accounts, identity) - 通过邮箱或手机号查找已注册账户
+ * @param {Array<object>} accounts - 已注册账户列表
+ * @param {string} identity - 登录输入的邮箱或手机号
+ * @returns {object|null} - 命中的账户对象；未找到时返回 null
+ */
+function findAccountByLoginIdentity(accounts, identity) {
+    const normalizedIdentity = normalizeLoginIdentity(identity);
+    if (!normalizedIdentity) {
+        return null;
+    }
+
+    return accounts.find((account) => {
+        const emailMatched = normalizeEmail(account?.email) === normalizedIdentity;
+        const phoneMatched = normalizePhone(account?.phone) === normalizedIdentity;
+        return emailMatched || phoneMatched;
+    }) || null;
+}
+
+/**
  * safeReadLoginStageSize() - 读取登录舞台上次保存的宽高
  * @returns {{width:number,height:number}|null} - 有效尺寸对象；没有或损坏时返回 null
  */
@@ -747,7 +798,14 @@ function buildAccount(nodes) {
  * @returns {boolean} - 已存在相同邮箱或手机号时返回 true
  */
 function isAccountDuplicated(accounts, nextAccount) {
-    return accounts.some((account) => account.email === nextAccount.email || account.phone === nextAccount.phone);
+    const nextEmail = normalizeEmail(nextAccount?.email);
+    const nextPhone = normalizePhone(nextAccount?.phone);
+
+    return accounts.some((account) => {
+        const emailDuplicated = nextEmail && normalizeEmail(account?.email) === nextEmail;
+        const phoneDuplicated = nextPhone && normalizePhone(account?.phone) === nextPhone;
+        return emailDuplicated || phoneDuplicated;
+    });
 }
 
 /**
@@ -840,7 +898,7 @@ function bindInteractiveFeedback(nodes, feedbackNode) {
  * @returns {boolean} - 校验通过时返回 true
  */
 function handleLoginSubmit(nodes, feedbackNode) {
-    const { loginEmailInput, loginPasswordInput, rememberCheckbox } = nodes;
+    const { loginEmailInput, loginPasswordInput } = nodes;
     const requiredInputs = [loginEmailInput, loginPasswordInput];
     const validation = validateRequiredInputs(requiredInputs);
 
@@ -854,10 +912,35 @@ function handleLoginSubmit(nodes, feedbackNode) {
         return false;
     }
 
-    if (rememberCheckbox.checked) {
-        syncRememberMeStorage(nodes);
+    const accounts = safeReadAccounts();
+    if (accounts.length === 0) {
+        updateInvalidState(loginEmailInput, true);
+        updateInvalidState(loginPasswordInput, false);
+        shakeEmptyField(loginEmailInput);
+        showFeedback(feedbackNode, '这层静水里还没有留下账户记录，先注册，再回来登录。', 'error');
+        return false;
     }
 
+    const matchedAccount = findAccountByLoginIdentity(accounts, loginEmailInput.value);
+    if (!matchedAccount) {
+        updateInvalidState(loginEmailInput, true);
+        updateInvalidState(loginPasswordInput, false);
+        shakeEmptyField(loginEmailInput);
+        showFeedback(feedbackNode, '没有找到这处入口对应的账户，检查邮箱或手机号，或者先注册。', 'error');
+        return false;
+    }
+
+    if (matchedAccount.password !== loginPasswordInput.value) {
+        updateInvalidState(loginEmailInput, false);
+        updateInvalidState(loginPasswordInput, true);
+        shakeEmptyField(loginPasswordInput);
+        showFeedback(feedbackNode, '这把密钥和本地记录还没对上，再轻轻确认一次。', 'error');
+        return false;
+    }
+
+    updateInvalidState(loginEmailInput, false);
+    updateInvalidState(loginPasswordInput, false);
+    syncRememberMeStorage(nodes);
     showFeedback(feedbackNode, '入口已经替你打开，接下来会慢慢回到海面那一层。', 'success');
     return true;
 }
@@ -918,7 +1001,11 @@ function handleRegisterSubmit(nodes, feedbackNode) {
     }
 
     accounts.push(nextAccount);
-    safeSaveAccounts(accounts);
+    if (!safeSaveAccounts(accounts)) {
+        showFeedback(feedbackNode, '这次登记还没能留在本地静水里，请稍后再试一次。', 'error');
+        return false;
+    }
+
     showFeedback(feedbackNode, '盐憩已经记住你了，接下来可以慢慢进入第一层海。', 'success');
     return true;
 }

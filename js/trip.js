@@ -18,19 +18,19 @@ const PREP_CONTENT = Object.freeze({
     gear: {
         kicker: 'Equipment & Rhythm',
         title: '\u88c5\u5907\u4e0e\u8282\u594f',
-        summary: '\u628a\u4e0b\u4e00\u6b21\u4e0b\u6f5c\uff0c\u5b89\u9759\u5730\u6392\u8fdb\u65e5\u7a0b\u3002\u9762\u955c\u3001\u811a\u8e7c\u3001\u7535\u8111\u8868\u4e0e\u9632\u5bd2\u8863\u53ef\u4ee5\u81ea\u5e26\uff0c\u4e5f\u53ef\u4ee5\u63d0\u524d\u4ea4\u7531\u884c\u7a0b\u9875\u7edf\u4e00\u5907\u6ce8\u3002',
+        summary: '\u76d0\u61a9\u4f1a\u5148\u5e2e\u4f60\u786e\u8ba4\u88c5\u5907\u8fb9\u754c\u3001\u79df\u501f\u5206\u914d\u4e0e\u4e0a\u8239\u524d\u7684\u6838\u5bf9\u8282\u594f\uff0c\u518d\u628a\u8fd9\u4e9b\u5224\u65ad\u6536\u6210\u4e00\u6761\u53ef\u4ee5\u5b89\u5fc3\u6267\u884c\u7684\u51fa\u53d1\u7ebf\u3002',
         templateId: 'prep-template-gear'
     },
     certification: {
         kicker: 'Certification Path',
         title: '\u8bc1\u4e66\u4e0e\u7b49\u7ea7',
-        summary: '确认发证机构、OW / AOW 等级与近 12 个月潜水记录；如果超过 6 个月没潜，首潜通常要先做一次 check dive。',
+        summary: '\u4e0d\u53ea\u770b\u5361\u9762\u7b80\u79f0\u3002\u76d0\u61a9\u4f1a\u7ed3\u5408\u53d1\u8bc1\u673a\u6784\u3001\u8fd1\u671f\u4e0b\u6f5c\u72b6\u6001\u4e0e\u6d77\u51b5\u5f3a\u5ea6\uff0c\u786e\u8ba4\u4f60\u66f4\u9002\u5408\u600e\u6837\u7684\u4e0b\u6f5c\u5b89\u6392\u3002',
         templateId: 'prep-template-certification'
     },
     weather: {
         kicker: 'Weather Window',
         title: '\u5929\u6c14\u4e0e\u7a97\u53e3',
-        summary: '\u628a\u51fa\u53d1\u65e5\u671f\u653e\u8fdb\u6700\u9002\u5408\u7684\u5b63\u8282\u533a\u95f4\u91cc\uff0c\u8ba9\u80fd\u89c1\u5ea6\u3001\u6d0b\u6d41\u4e0e\u5149\u7ebf\u90fd\u66f4\u7a33\u5b9a\u3002',
+        summary: '\u76d0\u61a9\u4f1a\u6301\u7eed\u770b\u98ce\u6d6a\u3001\u80fd\u89c1\u5ea6\u4e0e\u6d0b\u6d41\u53d8\u5316\uff0c\u5e2e\u4f60\u786e\u8ba4\u662f\u6309\u539f\u8ba1\u5212\u51fa\u53d1\uff0c\u8fd8\u662f\u6362\u5230\u66f4\u7a33\u7684\u4e00\u6bb5\u6f6e\u6c50\u3002',
         templateId: 'prep-template-weather'
     }
 });
@@ -524,6 +524,16 @@ function setupPlannerSummary() {
     const summaryRoot = document.getElementById('plannerSummary');
     const summaryIntro = document.getElementById('plannerSummaryIntro');
     const summaryStatusNote = document.getElementById('plannerSummaryStatusNote');
+    const summaryRhythmSentence = document.getElementById('plannerSummaryRhythmSentence');
+    const summaryActiveIndex = document.getElementById('plannerSummaryActiveIndex');
+    const summaryActiveSpot = document.getElementById('plannerSummaryActiveSpot');
+    const summaryActivePackage = document.getElementById('plannerSummaryActivePackage');
+    const summaryActiveCompanion = document.getElementById('plannerSummaryActiveCompanion');
+    const summaryRouteSpot = document.querySelector('#plannerSummary .planner-summary-ritual-route-spot');
+    const summaryFocusTitle = document.getElementById('plannerSummaryFocusTitle');
+    const summaryFocusCopy = document.getElementById('plannerSummaryFocusCopy');
+    const summaryPrepTitle = document.getElementById('plannerSummaryPrepTitle');
+    const summaryPrepCopy = document.getElementById('plannerSummaryPrepCopy');
     const summaryMeterFill = document.getElementById('plannerSummaryMeterFill');
     const summaryMeterOrbs = Array.from(document.querySelectorAll('#plannerSummary .planner-summary-meter-orb'));
     const summaryItems = Array.from(document.querySelectorAll('#plannerSummary .planner-item'));
@@ -542,6 +552,10 @@ function setupPlannerSummary() {
     const spotTrigger = document.getElementById('plannerSpotTrigger');
     const dateTrigger = document.getElementById('plannerDateTrigger');
     const peopleTrigger = document.getElementById('plannerPeopleTrigger');
+    const plannerDeskControl = document.getElementById('plannerDeskControl');
+    const plannerBookingSwitcher = document.getElementById('plannerBookingSwitcher');
+    const plannerBookingSwitcherTrack = document.getElementById('plannerBookingSwitcherTrack');
+    const plannerBookingSwitcherNote = document.getElementById('plannerBookingSwitcherNote');
     const submitButton = document.querySelector('#plannerDeskControl .planner-submit-btn');
     const submitButtonInner = submitButton?.querySelector('.planner-submit-btn-inner');
     const submitButtonLabel = submitButton?.querySelector('.planner-submit-btn-label');
@@ -565,6 +579,8 @@ function setupPlannerSummary() {
     const calendarGrid = document.getElementById('plannerCalendarGrid');
     const calendarPrev = document.getElementById('plannerCalendarPrev');
     const calendarNext = document.getElementById('plannerCalendarNext');
+    const tripLayerLead = document.getElementById('tripLayerLead');
+    const tripPrepLead = document.getElementById('tripPrepLead');
 
     if (
         !spotInput ||
@@ -582,6 +598,10 @@ function setupPlannerSummary() {
         !summaryRoot ||
         !summaryIntro ||
         !summaryStatusNote ||
+        !summaryActiveIndex ||
+        !summaryActiveSpot ||
+        !summaryActivePackage ||
+        !summaryActiveCompanion ||
         !summaryMeterFill ||
         !spotField ||
         !dateField ||
@@ -589,6 +609,10 @@ function setupPlannerSummary() {
         !spotTrigger ||
         !dateTrigger ||
         !peopleTrigger ||
+        !plannerDeskControl ||
+        !plannerBookingSwitcher ||
+        !plannerBookingSwitcherTrack ||
+        !plannerBookingSwitcherNote ||
         !submitButton ||
         !submitButtonInner ||
         !submitButtonLabel ||
@@ -658,6 +682,22 @@ function setupPlannerSummary() {
         people: '\u6d77\u57df\u548c\u51fa\u53d1\u7a97\u53e3\u90fd\u5df2\u843d\u4f4d\uff0c\u56de\u6267\u5f00\u59cb\u6709\u4e86\u66f4\u6e05\u695a\u7684\u8282\u594f\u3002',
         confirmed: '\u8fd9\u4e00\u6f5c\u7684\u8f6e\u5ed3\u5df2\u7ecf\u88ab\u5b89\u9759\u6536\u4f4f\uff0c\u540e\u9762\u53ea\u9700\u8981\u987a\u7740\u5b83\u7ee7\u7eed\u51c6\u5907\u3002'
     };
+    const DEFAULT_PLANNER_LINKAGE_COPY = {
+        rhythm: summaryRhythmSentence?.textContent?.trim()
+            || '\u8fd9\u4e00\u6f5c\u8fd8\u7559\u5728\u6d77\u9762\u4e0a\uff0c\u5148\u8ba9\u4e00\u7247\u613f\u610f\u4e0b\u53bb\u7684\u84dd\u6162\u6162\u9760\u8fd1\u3002',
+        focusTitle: summaryFocusTitle?.textContent?.trim()
+            || '\u5148\u628a\u60f3\u770b\u89c1\u7684\u90a3\u4e00\u5c42\u6d77\u8bf4\u6e05\u695a',
+        focusCopy: summaryFocusCopy?.textContent?.trim()
+            || '\u4e0b\u4e00\u5c42\u4f1a\u5e2e\u4f60\u628a\u6d77\u57df\u3001\u51fa\u53d1\u8282\u594f\u4e0e\u60f3\u7559\u4e0b\u7684\u90a3\u4e00\u9762\uff0c\u6162\u6162\u6536\u6210\u4e00\u8d9f\u66f4\u6e05\u695a\u7684\u6d77\u6d41\u3002',
+        prepTitle: summaryPrepTitle?.textContent?.trim()
+            || '\u51c6\u5907\u53ef\u4ee5\u5148\u505c\u5728\u5224\u65ad\uff0c\u4e0d\u7528\u6025\u7740\u8865\u6e05\u5355',
+        prepCopy: summaryPrepCopy?.textContent?.trim()
+            || '\u7b49\u6d77\u57df\u548c\u65f6\u95f4\u66f4\u6e05\u695a\u4ee5\u540e\uff0c\u518d\u53bb\u770b\u8bc1\u4e66\u3001\u88c5\u5907\u548c\u5929\u6c14\u7a97\u53e3\uff0c\u4f1a\u66f4\u50cf\u76d0\u61a9\u7684\u51c6\u5907\u65b9\u5f0f\u3002',
+        tripLead: tripLayerLead?.textContent?.trim()
+            || '\u5148\u4ece\u4f60\u771f\u6b63\u60f3\u770b\u89c1\u4ec0\u4e48\u5f00\u59cb\uff0c\u884c\u7a0b\u624d\u4f1a\u6162\u6162\u6709\u65b9\u5411\u3002',
+        prepLead: tripPrepLead?.textContent?.trim()
+            || '\u8fd8\u4e0d\u7528\u6025\u7740\u628a\u6240\u6709\u51c6\u5907\u505a\u5b8c\uff0c\u5148\u8ba9\u5224\u65ad\u548c\u6d77\u57df\u4e00\u8d77\u9760\u8fd1\u3002'
+    };
 
     /**
      * readPlannerOptionData(option) - 把海域选项按钮整理成可复用的数据对象
@@ -703,6 +743,7 @@ function setupPlannerSummary() {
     function buildPlannerDraftPayload() {
         const hasDate = Boolean(dateInput.value);
         const dateLabel = hasDate ? formatPlannerDate(dateInput.value) : '';
+        const activeBooking = getActiveBooking();
 
         return {
             spot: spotInput.value,
@@ -713,7 +754,11 @@ function setupPlannerSummary() {
             dateNote: hasDate ? COPY.date.filledHint : COPY.date.emptyHint,
             people: peopleInput.value,
             peopleLabel: peopleInput.dataset.label || COPY.people.emptyLabel,
-            peopleNote: peopleInput.dataset.note || COPY.people.emptyHint
+            peopleNote: peopleInput.dataset.note || COPY.people.emptyHint,
+            editingMode: activeBooking ? 'confirmed-booking' : 'draft',
+            editingEntryId: activeBooking?.entryId || '',
+            editingSpotKey: activeBooking?.spotKey || spotInput.value || '',
+            editingPackageId: activeBooking?.packageId || ''
         };
     }
 
@@ -832,8 +877,203 @@ function setupPlannerSummary() {
     let hasRenderedSummaryOnce = false;
     let previousSummaryFilledCount = 0;
     let hasInitializedProgressiveState = false;
+    let activeBookingEntryId = '';
     const fieldUnlockTimers = new WeakMap();
     const defaultSubmitButtonLabel = submitButtonLabel.textContent.trim() || '\u786e\u8ba4\u8fd9\u4e00\u5c42\u5b89\u6392';
+    const defaultSummaryActiveIndex = summaryActiveIndex.textContent.trim() || '01 / 01';
+    const defaultSummaryActiveSpot = summaryActiveSpot.textContent.trim() || '\u5f53\u524d\u6d77\u57df\u5f85\u5b9a';
+    const defaultSummaryActivePackage = summaryActivePackage.textContent.trim() || '\u5957\u9910\u5c1a\u672a\u5199\u5165';
+    const defaultSummaryActiveCompanion = summaryActiveCompanion.textContent.trim() || '\u540c\u884c\u8282\u594f\u5f85\u5b9a';
+    const defaultPlannerSwitcherNote = plannerBookingSwitcherNote.textContent.trim() || '\u5f53\u524d\u53ea\u6574\u7406\u4e00\u6761\u4e0b\u6f5c\u8282\u594f';
+
+    function getConfirmedBookings() {
+        return sortConfirmedBookings(
+            store && typeof store.getConfirmedBookings === 'function'
+                ? store.getConfirmedBookings()
+                : []
+        );
+    }
+
+    function getBookingByEntryId(entryId, bookings = getConfirmedBookings()) {
+        const safeEntryId = String(entryId || '').trim();
+        if (!safeEntryId) {
+            return null;
+        }
+
+        return bookings.find((booking) => String(booking?.entryId || '').trim() === safeEntryId) || null;
+    }
+
+    function getMostRecentlyUpdatedBooking(bookings = getConfirmedBookings()) {
+        return getMostRecentlyUpdatedConfirmedBooking(bookings);
+    }
+
+    function getActiveBooking(bookings = getConfirmedBookings()) {
+        return getBookingByEntryId(activeBookingEntryId, bookings);
+    }
+
+    function saveActiveBookingSelection(entryId) {
+        const safeEntryId = String(entryId || '').trim();
+        activeBookingEntryId = safeEntryId;
+
+        if (!store) {
+            return safeEntryId;
+        }
+
+        if (!safeEntryId) {
+            store.clearActiveBookingId?.();
+            return '';
+        }
+
+        return store.saveActiveBookingId?.(safeEntryId) || safeEntryId;
+    }
+
+    function resolveInitialActiveBookingEntryId(bookings = getConfirmedBookings()) {
+        if (!Array.isArray(bookings) || bookings.length === 0) {
+            return '';
+        }
+
+        const storedEntryId = store && typeof store.getActiveBookingId === 'function'
+            ? String(store.getActiveBookingId() || '').trim()
+            : '';
+        if (storedEntryId && getBookingByEntryId(storedEntryId, bookings)) {
+            return storedEntryId;
+        }
+
+        const liveEntryId = String(activeBookingEntryId || '').trim();
+        if (liveEntryId && getBookingByEntryId(liveEntryId, bookings)) {
+            return liveEntryId;
+        }
+
+        return String(getMostRecentlyUpdatedBooking(bookings)?.entryId || '').trim();
+    }
+
+    function isPlannerBoundToConfirmedBooking(bookings = getConfirmedBookings()) {
+        return Boolean(getActiveBooking(bookings));
+    }
+
+    function buildPlannerBookingSpotOption(booking) {
+        const defaultNote = '\u8fd9\u7247\u6d77\u5df2\u7ecf\u6536\u8fdb\u884c\u7a0b\uff0c\u63a5\u4e0b\u6765\u53ef\u4ee5\u7ee7\u7eed\u6574\u7406\u8fd9\u6b21\u4e0b\u6f5c\u7684\u8282\u594f\u3002';
+        return {
+            value: String(booking?.spotKey || '').trim(),
+            label: String(booking?.spotName || COPY.spot.emptyLabel).trim() || COPY.spot.emptyLabel,
+            note: String(booking?.spotTagline || defaultNote).trim(),
+            description: String(booking?.spotTagline || defaultNote).trim()
+        };
+    }
+
+    function buildPlannerBookingPackageLabel(booking) {
+        const packageLabel = String(booking?.packageTier || booking?.packageTitle || '\u5957\u9910\u5f85\u5b9a').trim();
+        const stayLabel = getConfirmedBookingStayLabel(booking);
+        return stayLabel && stayLabel !== '\u505c\u7559\u8282\u594f\u5f85\u5b9a'
+            ? `${packageLabel} · ${stayLabel}`
+            : packageLabel;
+    }
+
+    function buildPlannerCompanionChipLabel(activeBooking, hasDate, hasPeople, dateLabel, peopleLabel) {
+        if (hasPeople) {
+            return peopleLabel;
+        }
+
+        if (hasDate) {
+            return `\u51fa\u53d1 ${dateLabel}`;
+        }
+
+        if (activeBooking) {
+            return '\u540c\u884c\u4e0e\u65f6\u95f4\u5f85\u7ee7\u7eed\u6536\u62e2';
+        }
+
+        return defaultSummaryActiveCompanion;
+    }
+
+    function buildPlannerSwitcherStatusDotsMarkup(booking) {
+        const hasDate = Boolean(String(booking?.selectedDate || '').trim());
+        const hasPeople = Boolean(String(booking?.selectedPeople || '').trim());
+
+        return `
+            <span class="planner-booking-switcher-status-dots" aria-hidden="true">
+                <span class="planner-booking-switcher-status-dot planner-booking-switcher-status-dot-date${hasDate ? ' is-ready' : ''}"></span>
+                <span class="planner-booking-switcher-status-dot planner-booking-switcher-status-dot-people${hasPeople ? ' is-ready' : ''}"></span>
+            </span>
+        `;
+    }
+
+    function buildPlannerBookingSwitcherMarkup(booking, index, total, isActive) {
+        const statusText = [
+            booking?.selectedDateLabel ? '\u65f6\u95f4\u5df2\u843d\u4f4d' : '\u65f6\u95f4\u5f85\u6536\u62e2',
+            booking?.selectedPeopleLabel ? '\u540c\u884c\u5df2\u843d\u4f4d' : '\u540c\u884c\u5f85\u6536\u62e2'
+        ].join(' · ');
+
+        return `
+            <button
+                type="button"
+                class="planner-booking-switcher-chip${isActive ? ' planner-booking-switcher-chip-active is-active' : ''}"
+                data-entry-id="${escapeHtml(booking.entryId)}"
+                data-active-index="${index + 1}"
+                role="tab"
+                aria-selected="${isActive ? 'true' : 'false'}"
+                aria-label="\u5207\u6362\u5230 ${escapeHtml(booking.spotName || '\u672a\u547d\u540d\u6d77\u57df')} ${escapeHtml(String(index + 1).padStart(2, '0'))} / ${escapeHtml(String(total).padStart(2, '0'))}，${escapeHtml(statusText)}"
+            >
+                <span class="planner-booking-switcher-chip-dot" aria-hidden="true"></span>
+                <span class="planner-booking-switcher-chip-title">${escapeHtml(booking.spotName || '\u672a\u547d\u540d\u6d77\u57df')}</span>
+                <span class="planner-booking-switcher-chip-package">${escapeHtml(buildPlannerBookingPackageLabel(booking))}</span>
+                <span class="planner-booking-switcher-chip-status">
+                    ${buildPlannerSwitcherStatusDotsMarkup(booking)}
+                    <span class="planner-booking-switcher-chip-status-text">${escapeHtml(statusText)}</span>
+                </span>
+            </button>
+        `;
+    }
+
+    function renderPlannerBookingSwitcher(bookings = getConfirmedBookings()) {
+        const safeBookings = Array.isArray(bookings) ? bookings : [];
+        const activeBooking = getActiveBooking(safeBookings);
+        const total = safeBookings.length;
+        const activeIndex = Math.max(0, safeBookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId));
+
+        plannerBookingSwitcher.hidden = total === 0;
+        plannerBookingSwitcher.classList.toggle('is-single', total === 1);
+        plannerBookingSwitcherTrack.classList.toggle('is-single', total === 1);
+        plannerBookingSwitcherTrack.innerHTML = '';
+
+        if (!total) {
+            plannerBookingSwitcherNote.textContent = defaultPlannerSwitcherNote;
+            return;
+        }
+
+        plannerBookingSwitcherNote.textContent = total === 1
+            ? '\u8fd9\u4e00\u5c42\u53ea\u5269\u4e0b\u4e00\u6761\u6b63\u5728\u6536\u675f\u7684\u4e0b\u6f5c'
+            : `\u6b63\u5728\u6574\u7406 ${String(activeIndex + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')} \u6761\u5df2\u6536\u8fdb\u884c\u7a0b`;
+        plannerBookingSwitcherTrack.innerHTML = safeBookings
+            .map((booking, index) => buildPlannerBookingSwitcherMarkup(booking, index, total, activeBooking?.entryId === booking.entryId))
+            .join('');
+    }
+
+    function buildPlannerSubmitActionLabel() {
+        const activeBooking = getActiveBooking();
+        const hasDate = Boolean(dateInput.value);
+        const hasPeople = Boolean(peopleInput.value);
+        const spotName = String(activeBooking?.spotName || spotInput.dataset.label || '').trim();
+
+        if (!activeBooking) {
+            return defaultSubmitButtonLabel;
+        }
+
+        if (hasDate && hasPeople && spotName) {
+            return `\u5e26\u7740 ${spotName} \u7ee7\u7eed\u4e0b\u6f5c`;
+        }
+
+        if (spotName) {
+            return `\u7ee7\u7eed\u6574\u7406 ${spotName}`;
+        }
+
+        return defaultSubmitButtonLabel;
+    }
+
+    function syncPlannerSubmitActionLabel() {
+        const nextLabel = buildPlannerSubmitActionLabel();
+        submitButton.dataset.baseLabel = nextLabel;
+        submitButtonLabel.textContent = nextLabel;
+    }
 
     function getPlannerSummaryStage(hasSpot, hasDate, hasPeople) {
         if (hasSpot && hasDate && hasPeople) {
@@ -851,7 +1091,12 @@ function setupPlannerSummary() {
         return 'idle';
     }
 
-    function getPlannerSummaryStayLabel(spotValue) {
+    function getPlannerSummaryStayLabel(activeBooking, spotValue) {
+        if (activeBooking) {
+            const stayLabel = getConfirmedBookingStayLabel(activeBooking);
+            return stayLabel && stayLabel !== '停留节奏待定' ? stayLabel : '';
+        }
+
         const targetSpot = String(spotValue || '').trim();
         if (!targetSpot || !store || typeof store.getConfirmedBookings !== 'function') {
             return '';
@@ -895,6 +1140,112 @@ function setupPlannerSummary() {
         }
 
         return '先让回执停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。';
+    }
+
+    function buildPlannerRhythmSentence({
+        hasSpot,
+        hasDate,
+        hasPeople,
+        spotLabel,
+        dateLabel,
+        peopleLabel,
+        stayLabel
+    }) {
+        const staySegment = stayLabel ? `${stayLabel}的停驻感` : '这片海自己的呼吸';
+
+        if (hasSpot && hasDate && hasPeople) {
+            return `${spotLabel} 会沿着 ${dateLabel} 这一段潮汐慢慢靠近，${peopleLabel} 的同行节奏也已经写进来，接下来只要顺着 ${staySegment} 继续往下收。`;
+        }
+
+        if (hasSpot && hasDate) {
+            return `${spotLabel} 已经先落在 ${dateLabel} 这一段光线里，同行节奏还可以再慢慢写进来，这一潜的方向已经开始清楚了。`;
+        }
+
+        if (hasSpot) {
+            return `${spotLabel} 已经先靠到桌面边，接下来只要等一段更合适的潮汐把出发写下来，这程海就会更像你自己的呼吸。`;
+        }
+
+        return DEFAULT_PLANNER_LINKAGE_COPY.rhythm;
+    }
+
+    function buildPlannerSummaryGuidance({
+        hasSpot,
+        hasDate,
+        hasPeople,
+        spotLabel,
+        dateLabel,
+        peopleLabel,
+        stayLabel
+    }) {
+        if (hasSpot && hasDate && hasPeople) {
+            return {
+                focusTitle: '这一程已经有了自己的海流方向',
+                focusCopy: `去下一层把 ${spotLabel} 里真正想停下来的那一面说清，后面的 notes 会更适合 ${peopleLabel} 在 ${dateLabel} 这一段安排里慢慢展开。`,
+                prepTitle: '潜前准备现在更像一次判断',
+                prepCopy: `从证书、装备到天气窗口，都只需要围着 ${spotLabel} 和 ${dateLabel} 这一段安排慢慢核对，不必再把准备做成赶时间的清单。`,
+                tripLead: `海域、时间和同行已经安静落位，接下来更适合把 ${spotLabel}${stayLabel ? ` 的 ${stayLabel}` : ''} 真正想留下来的画面说清。`,
+                prepLead: `现在去看潜前准备，会更像替 ${spotLabel} 做一次从容判断，而不是临时补作业。`
+            };
+        }
+
+        if (hasSpot && hasDate) {
+            return {
+                focusTitle: `顺着 ${dateLabel} 这一段光线，把 ${spotLabel} 的重点再收拢一点`,
+                focusCopy: `下一层会继续帮你把这片海真正想停下来的那一面说清，也让后面的行程 notes 更贴近这次出发窗口。`,
+                prepTitle: '接下来先确认同行与潜前判断',
+                prepCopy: `先把同行节奏写进来，再去看装备、证书和天气窗口，会比现在立刻补清单更稳，也更像盐憩的步调。`,
+                tripLead: `${spotLabel} 和 ${dateLabel} 已经先靠近了，下面更适合把这一潜真正想看的内容慢慢排开。`,
+                prepLead: '等同行节奏也落位以后，再去看潜前准备，判断会更完整。'
+            };
+        }
+
+        if (hasSpot) {
+            return {
+                focusTitle: `先沿着 ${spotLabel}，把这一潜想看的那一面说清楚`,
+                focusCopy: stayLabel
+                    ? `${spotLabel} 更适合 ${stayLabel} 的停驻，下一层会继续帮你把这片海里最值得停下来的那一面排稳。`
+                    : `下一层会继续帮你把这片海里真正想停下来的那一面说清，让行程不只停在“去哪儿”。`,
+                prepTitle: `先为 ${spotLabel} 留出一段更合适的窗口`,
+                prepCopy: '等出发时间慢慢落下来以后，再去看装备、证书和天气窗口，就不会把准备做成普通搜索栏后面的补充信息。',
+                tripLead: `${spotLabel} 已经先靠过来了，下面更适合把这一潜真正想看的那一面慢慢说清。`,
+                prepLead: '先别急着把所有事项做完，等这片海的时间窗口更清楚，准备才会更稳。'
+            };
+        }
+
+        return {
+            focusTitle: DEFAULT_PLANNER_LINKAGE_COPY.focusTitle,
+            focusCopy: DEFAULT_PLANNER_LINKAGE_COPY.focusCopy,
+            prepTitle: DEFAULT_PLANNER_LINKAGE_COPY.prepTitle,
+            prepCopy: DEFAULT_PLANNER_LINKAGE_COPY.prepCopy,
+            tripLead: DEFAULT_PLANNER_LINKAGE_COPY.tripLead,
+            prepLead: DEFAULT_PLANNER_LINKAGE_COPY.prepLead
+        };
+    }
+
+    function syncPlannerSummaryGuidance(copy) {
+        if (summaryFocusTitle) {
+            summaryFocusTitle.textContent = copy.focusTitle;
+        }
+
+        if (summaryFocusCopy) {
+            summaryFocusCopy.textContent = copy.focusCopy;
+        }
+
+        if (summaryPrepTitle) {
+            summaryPrepTitle.textContent = copy.prepTitle;
+        }
+
+        if (summaryPrepCopy) {
+            summaryPrepCopy.textContent = copy.prepCopy;
+        }
+
+        if (tripLayerLead) {
+            tripLayerLead.textContent = copy.tripLead;
+        }
+
+        if (tripPrepLead) {
+            tripPrepLead.textContent = copy.prepLead;
+        }
     }
 
     function syncSummaryItemState(fieldKey, isFilled, nextValue) {
@@ -1042,6 +1393,25 @@ function setupPlannerSummary() {
         return 'idle';
     }
 
+    function getPlannerSubmitFeedbackCopy() {
+        const activeBooking = getActiveBooking();
+        const spotName = String(activeBooking?.spotName || spotInput.dataset.label || '').trim();
+
+        if (activeBooking && spotName) {
+            return {
+                stage: (dateInput.value && peopleInput.value) ? 'confirmed' : 'progress',
+                button: buildPlannerSubmitActionLabel(),
+                status: `已替 ${spotName} 收住这一层，接下来继续往更深一层看`
+            };
+        }
+
+        const feedbackStage = getPlannerSubmitFeedbackStage();
+        return {
+            stage: feedbackStage,
+            ...(SUBMIT_FEEDBACK_COPY[feedbackStage] || SUBMIT_FEEDBACK_COPY.idle)
+        };
+    }
+
     function getPlannerSubmitFeedbackDelay() {
         return 2000;
     }
@@ -1137,7 +1507,7 @@ function setupPlannerSummary() {
         submitButton.removeAttribute('aria-label');
         submitButton.classList.remove('is-feedback', 'is-feedback-confirmed');
         summaryRoot.classList.remove('is-submit-feedback');
-        submitButtonLabel.textContent = defaultSubmitButtonLabel;
+        syncPlannerSubmitActionLabel();
 
         if (shouldSyncSummary) {
             updatePlannerSummary();
@@ -1145,8 +1515,7 @@ function setupPlannerSummary() {
     }
 
     function triggerPlannerSubmitFeedback() {
-        const feedbackStage = getPlannerSubmitFeedbackStage();
-        const feedbackCopy = SUBMIT_FEEDBACK_COPY[feedbackStage] || SUBMIT_FEEDBACK_COPY.idle;
+        const feedbackCopy = getPlannerSubmitFeedbackCopy();
         const feedbackDelay = getPlannerSubmitFeedbackDelay();
 
         resetPlannerSubmitFeedback({ syncSummary: false });
@@ -1154,7 +1523,7 @@ function setupPlannerSummary() {
         submitButton.disabled = true;
         submitButton.setAttribute('aria-busy', 'true');
         submitButton.classList.add('is-feedback');
-        submitButton.classList.toggle('is-feedback-confirmed', feedbackStage === 'confirmed');
+        submitButton.classList.toggle('is-feedback-confirmed', feedbackCopy.stage === 'confirmed');
         startPlannerSubmitFeedbackCountdown(feedbackCopy.button, feedbackDelay);
         attachPlannerSubmitFeedbackInterruption();
 
@@ -1222,6 +1591,7 @@ function setupPlannerSummary() {
      */
     function syncProgressivePlannerState() {
         let didReset = false;
+        const isBookingBound = isPlannerBoundToConfirmedBooking();
 
         // Planner 的顺序固定为“海域 -> 日期 -> 同行人数”。
         // 只要上游被改空，下游就必须一起回退，避免残留不再成立的组合。
@@ -1240,7 +1610,7 @@ function setupPlannerSummary() {
             // “可用 / 锁定”状态同时驱动视觉态、tab 可达性和解锁显现动画。
             config.field.classList.toggle('is-ready', unlocked);
             config.field.classList.toggle('is-locked', !unlocked);
-            config.trigger.setAttribute('aria-disabled', String(!unlocked));
+            config.trigger.setAttribute('aria-disabled', String(key === 'spot' ? (isBookingBound || !unlocked) : !unlocked));
 
             if (!hasInitializedProgressiveState) {
                 clearPlannerFieldUnlockReveal(config.field);
@@ -1256,6 +1626,13 @@ function setupPlannerSummary() {
                 config.trigger.setAttribute('tabindex', '-1');
             }
         });
+
+        spotField.classList.toggle('is-booking-bound', isBookingBound);
+        plannerDeskControl.dataset.editingMode = isBookingBound ? 'confirmed-booking' : 'draft';
+        summaryRoot.dataset.editingMode = isBookingBound ? 'confirmed-booking' : 'draft';
+        if (isBookingBound) {
+            spotTrigger.setAttribute('tabindex', '-1');
+        }
 
         if (!isFieldUnlocked('date') && !isFieldComplete('date')) {
             dateHint.textContent = LOCKED_HINTS.date;
@@ -1321,9 +1698,8 @@ function setupPlannerSummary() {
      * @returns {{mode: string, options: Array<Object>}} - 选项模式和对应选项列表
      */
     function getConfirmedSpotOptions() {
-        const bookings = store && typeof store.getConfirmedBookings === 'function'
-            ? store.getConfirmedBookings()
-            : [];
+        const bookings = getConfirmedBookings();
+        const activeBooking = getActiveBooking(bookings);
 
         if (!Array.isArray(bookings) || bookings.length === 0) {
             return {
@@ -1332,47 +1708,16 @@ function setupPlannerSummary() {
             };
         }
 
-        const seen = new Set();
-        const bookedSpotOptions = [];
-
-        bookings.forEach((booking) => {
-            const spotKey = String(booking.spotKey || '').trim();
-            if (!spotKey || seen.has(spotKey)) {
-                return;
-            }
-
-            seen.add(spotKey);
-            bookedSpotOptions.push({
-                value: spotKey,
-                label: String(booking.spotName || '未命名海域').trim(),
-                note: String(
-                    booking.spotTagline
-                    || '这片海已经收进行程，接下来可以继续整理这次下潜的节奏。'
-                ).trim(),
-                description: String(
-                    booking.spotTagline
-                    || '这片海已经收进行程，接下来可以继续整理这次下潜的节奏。'
-                ).trim()
-            });
-        });
-
-        if (bookedSpotOptions.length === 0) {
+        if (!activeBooking) {
             return {
                 mode: 'base',
                 options: initialSpotOptionsData.slice()
             };
         }
 
-        if (bookedSpotOptions.length === 1) {
-            return {
-                mode: 'locked-single',
-                options: bookedSpotOptions
-            };
-        }
-
         return {
-            mode: 'booked-only',
-            options: [emptySpotOptionData, ...bookedSpotOptions]
+            mode: 'booking-bound',
+            options: [buildPlannerBookingSpotOption(activeBooking)]
         };
     }
 
@@ -1434,9 +1779,9 @@ function setupPlannerSummary() {
 
         // 当已收进行程收缩了可选海域后，旧草稿里原本的值可能已经不再合法。
         // 这里会先过滤掉失效值，再从“锁定单海域 / 草稿值 / 当前值”里选出一个可继续使用的值。
-        if (mode === 'locked-single') {
+        if (mode === 'booking-bound') {
             nextValue = options[0]?.value || '';
-        } else if (mode === 'booked-only') {
+        } else if (mode !== 'base') {
             nextValue = storedValue || liveValue || '';
         } else {
             nextValue = storedValue || liveValue || '';
@@ -1868,6 +2213,10 @@ function setupPlannerSummary() {
      */
     function openPanel(fieldKey) {
         const targetFieldKey = resolvePlannerFieldKey(fieldKey);
+        if (targetFieldKey === 'spot' && isPlannerBoundToConfirmedBooking()) {
+            return;
+        }
+
         clearPendingAutoAdvance();
         prepareFieldPanel(targetFieldKey);
 
@@ -1930,11 +2279,19 @@ function setupPlannerSummary() {
      * @param {'date'|'people'|'spot'} fieldKey - 需要展开的字段键名
      * @returns {void} - 无返回值，直接滚动并展开对应浮层
      */
-    function jumpToPlannerField(fieldKey) {
+    function jumpToPlannerField(fieldKey, entryId) {
         const targetFieldKey = resolvePlannerFieldKey(fieldKey);
         const config = fieldMap[targetFieldKey];
         if (!config) {
             return;
+        }
+
+        const safeEntryId = String(entryId || '').trim();
+        if (safeEntryId) {
+            setActiveBooking(safeEntryId, {
+                refreshSummary: true,
+                refreshCards: true
+            });
         }
 
         closeActivePanel();
@@ -2069,28 +2426,176 @@ function setupPlannerSummary() {
         }
     }
 
+    function applyPeopleSelectionValue(value, label, note) {
+        const safeValue = String(value || '').trim();
+        const matchedOption = peopleOptions.find((option) => String(option.dataset.value || '').trim() === safeValue);
+        const customOption = peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]');
+        const emptyOption = peopleOptions.find((option) => String(option.dataset.value || '').trim() === '') || peopleOptions[0];
+
+        if (matchedOption) {
+            setOptionState('people', matchedOption);
+            hideCustomPeopleEditor();
+            return;
+        }
+
+        if (safeValue && customOption) {
+            applyCustomPeopleState(
+                safeValue,
+                label || buildCustomPeopleLabel(safeValue),
+                note || `这次下潜按 ${label || buildCustomPeopleLabel(safeValue)} 的同行节奏安排。`
+            );
+            return;
+        }
+
+        if (emptyOption) {
+            setOptionState('people', emptyOption);
+        }
+        hideCustomPeopleEditor();
+    }
+
+    function applyBookingToPlanner(booking) {
+        const safeBooking = booking && typeof booking === 'object' ? booking : null;
+        if (!safeBooking) {
+            return;
+        }
+
+        const spotOption = buildPlannerBookingSpotOption(safeBooking);
+        renderSpotOptions([spotOption], spotOption.value);
+        const selectedSpotOption = getSpotOptions().find((option) => option.dataset.value === spotOption.value) || getSpotOptions()[0];
+        if (selectedSpotOption) {
+            setOptionState('spot', selectedSpotOption);
+        }
+
+        dateInput.value = isValidPlannerDateValue(safeBooking.selectedDate)
+            ? safeBooking.selectedDate
+            : '';
+        applyPeopleSelectionValue(
+            safeBooking.selectedPeople,
+            safeBooking.selectedPeopleLabel,
+            safeBooking.selectedPeopleLabel
+                ? `这次下潜按 ${safeBooking.selectedPeopleLabel} 的同行节奏安排。`
+                : ''
+        );
+        calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
+        syncDateFieldDisplay();
+        syncProgressivePlannerState();
+    }
+
+    function setActiveBooking(entryId, options = {}) {
+        const bookings = Array.isArray(options.bookings) ? options.bookings : getConfirmedBookings();
+        const fallbackEntryId = resolveInitialActiveBookingEntryId(bookings);
+        const nextBooking = getBookingByEntryId(entryId, bookings)
+            || getBookingByEntryId(fallbackEntryId, bookings)
+            || getMostRecentlyUpdatedBooking(bookings);
+
+        if (!nextBooking) {
+            saveActiveBookingSelection('');
+            renderPlannerBookingSwitcher(bookings);
+            if (options.refreshCards !== false) {
+                renderConfirmedBookings();
+            }
+            return null;
+        }
+
+        saveActiveBookingSelection(nextBooking.entryId);
+        applyBookingToPlanner(nextBooking);
+        renderPlannerBookingSwitcher(bookings);
+
+        if (options.refreshSummary !== false) {
+            updatePlannerSummary();
+        }
+
+        if (options.refreshCards !== false) {
+            renderConfirmedBookings();
+        }
+
+        return nextBooking;
+    }
+
+    function restoreDraftSelection(draft) {
+        const safeDraft = draft && typeof draft === 'object' ? draft : null;
+        const storedSpotValue = readPlannerDraftValue(safeDraft, 'spot');
+        const storedPeopleValue = readPlannerDraftValue(safeDraft, 'people');
+        const storedPeople = peopleOptions.find((option) => option.dataset.value === storedPeopleValue)
+            || (storedPeopleValue
+                ? peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]')
+                : null)
+            || peopleOptions.find((option) => option.dataset.value === '')
+            || peopleOptions[0];
+
+        syncSpotOptionsFromBookings({
+            ...safeDraft,
+            spot: storedSpotValue,
+            spotValue: storedSpotValue
+        }, true);
+
+        if (storedPeople && storedPeople.dataset.value === 'custom' && storedPeopleValue) {
+            applyCustomPeopleState(storedPeopleValue, safeDraft?.peopleLabel, safeDraft?.peopleNote);
+        } else if (storedPeople) {
+            setOptionState('people', storedPeople);
+        }
+
+        dateInput.value = isValidPlannerDateValue(safeDraft?.dateValue || safeDraft?.date)
+            ? (safeDraft.dateValue || safeDraft.date)
+            : '';
+
+        calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
+        syncDateFieldDisplay();
+        syncProgressivePlannerState();
+    }
+
     /**
      * updatePlannerSummary() - 根据当前字段值刷新回执层
      * @returns {void} - 无返回值，直接更新回执文案
      */
     function updatePlannerSummary() {
+        const bookings = getConfirmedBookings();
+        const activeBooking = getActiveBooking(bookings);
         const spotLabel = spotInput.dataset.label || summaryMetaMap.spot.emptyValue;
         const peopleLabel = peopleInput.dataset.label || summaryMetaMap.people.emptyValue;
         const hasSpot = Boolean(spotInput.value);
         const hasDate = Boolean(dateInput.value);
         const hasPeople = Boolean(peopleInput.value);
         const dateLabel = hasDate ? formatPlannerDate(dateInput.value) : summaryMetaMap.date.emptyValue;
-        const stayLabel = hasSpot ? getPlannerSummaryStayLabel(spotInput.value) : '';
+        const stayLabel = hasSpot ? getPlannerSummaryStayLabel(activeBooking, spotInput.value) : '';
         const isConfirmed = hasSpot && hasDate && hasPeople;
         const filledCount = [hasSpot, hasDate, hasPeople].filter(Boolean).length;
         const summaryStage = getPlannerSummaryStage(hasSpot, hasDate, hasPeople);
         const wasConfirmed = summaryRoot.classList.contains('is-confirmed');
+        const activeIndex = Math.max(0, bookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId));
+        const activeIndexLabel = activeBooking
+            ? `${String(activeIndex + 1).padStart(2, '0')} / ${String(bookings.length).padStart(2, '0')}`
+            : defaultSummaryActiveIndex;
+        const activeSpotLabel = activeBooking
+            ? String(activeBooking.spotName || spotLabel || defaultSummaryActiveSpot).trim()
+            : (hasSpot ? spotLabel : defaultSummaryActiveSpot);
+        const activePackageLabel = activeBooking
+            ? buildPlannerBookingPackageLabel(activeBooking)
+            : defaultSummaryActivePackage;
+        const activeCompanionLabel = buildPlannerCompanionChipLabel(activeBooking, hasDate, hasPeople, dateLabel, peopleLabel);
+        const summaryGuidance = buildPlannerSummaryGuidance({
+            hasSpot,
+            hasDate,
+            hasPeople,
+            spotLabel,
+            dateLabel,
+            peopleLabel,
+            stayLabel
+        });
 
         const nextValues = {
             spot: spotLabel,
             date: dateLabel,
             people: peopleLabel
         };
+
+        summaryActiveIndex.textContent = activeIndexLabel;
+        summaryActiveSpot.textContent = activeSpotLabel;
+        summaryActivePackage.textContent = activePackageLabel;
+        summaryActiveCompanion.textContent = activeCompanionLabel;
+        if (summaryRouteSpot) {
+            summaryRouteSpot.textContent = activeSpotLabel || '\u6b63\u5728\u6536\u675f\u8fd9\u4e00\u6b21\u4e0b\u6f5c\u8eab\u4efd';
+        }
 
         summaryMetaMap.spot.valueNode.textContent = spotLabel;
         summaryMetaMap.spot.metaNode.textContent = hasSpot
@@ -2126,6 +2631,18 @@ function setupPlannerSummary() {
             peopleLabel,
             stayLabel
         });
+        if (summaryRhythmSentence) {
+            summaryRhythmSentence.textContent = buildPlannerRhythmSentence({
+                hasSpot,
+                hasDate,
+                hasPeople,
+                spotLabel,
+                dateLabel,
+                peopleLabel,
+                stayLabel
+            });
+        }
+        syncPlannerSummaryGuidance(summaryGuidance);
         summaryRoot.dataset.summaryStage = summaryStage;
         summaryRoot.classList.toggle('is-empty', filledCount === 0);
         // 回执只要已经写进任意一项，就持续保留“正在显形”的状态；
@@ -2138,6 +2655,7 @@ function setupPlannerSummary() {
             hasDate,
             hasPeople
         });
+        syncPlannerSubmitActionLabel();
 
         syncSummaryItemState('spot', hasSpot, nextValues.spot);
         syncSummaryItemState('date', hasDate, nextValues.date);
@@ -2154,17 +2672,7 @@ function setupPlannerSummary() {
         if (store && typeof store.savePlannerDraft === 'function') {
             // 这里保存的是 Planner 的“编辑中草稿”；
             // 它和下面 commitPlannerDeskSelection() 写入的已收进行程是两层不同的数据。
-            store.savePlannerDraft({
-                spotValue: spotInput.value,
-                spotLabel: spotInput.dataset.label || COPY.spot.emptyLabel,
-                spotNote: spotInput.dataset.note || COPY.spot.emptyHint,
-                dateValue: dateInput.value,
-                dateLabel: dateInput.value ? dateLabel : '',
-                dateNote: dateInput.value ? COPY.date.filledHint : COPY.date.emptyHint,
-                peopleValue: peopleInput.value,
-                peopleLabel: peopleInput.dataset.label || COPY.people.emptyLabel,
-                peopleNote: peopleInput.dataset.note || COPY.people.emptyHint
-            });
+            store.savePlannerDraft(buildPlannerDraftPayload());
         }
     }
 
@@ -2173,9 +2681,11 @@ function setupPlannerSummary() {
      * @returns {void} - 无返回值，直接更新共享存储并刷新列表
      */
     function commitPlannerDeskSelection() {
+        const activeBooking = getActiveBooking();
         // 草稿负责“页面回来还能继续填”，
         // 这里负责“已收进行程列表立刻看到最新日期和人数”。
         syncPlannerSelectionToConfirmedBookings({
+            entryId: activeBooking?.entryId || '',
             spotValue: spotInput.value,
             dateValue: dateInput.value,
             dateLabel: dateInput.value ? formatPlannerDate(dateInput.value) : '',
@@ -2192,54 +2702,56 @@ function setupPlannerSummary() {
      * @returns {void} - 无返回值，直接同步字段当前状态
      */
     function restorePlannerDraft() {
+        const bookings = getConfirmedBookings();
+        if (Array.isArray(bookings) && bookings.length) {
+            setActiveBooking(resolveInitialActiveBookingEntryId(bookings), {
+                bookings,
+                refreshSummary: false,
+                refreshCards: false
+            });
+            return;
+        }
+
+        saveActiveBookingSelection('');
+        renderPlannerBookingSwitcher([]);
+
         if (!store || typeof store.getPlannerDraft !== 'function') {
             syncSpotOptionsFromBookings(null, true);
+            applyPeopleSelectionValue('', '', '');
             syncDateFieldDisplay();
             return;
         }
 
         const draft = store.getPlannerDraft();
-        if (!draft || typeof draft !== 'object') {
-            syncSpotOptionsFromBookings(null, true);
-            syncDateFieldDisplay();
-            return;
-        }
-        const storedSpotValue = readPlannerDraftValue(draft, 'spot');
-        const storedPeopleValue = readPlannerDraftValue(draft, 'people');
-        // 人数恢复时要兼顾两种情况：
-        // 1. 命中预设人数按钮；
-        // 2. 命中“自定义人数”占位，再把真实数字单独写回字段。
-        const storedPeople = peopleOptions.find((option) => option.dataset.value === storedPeopleValue)
-            || (storedPeopleValue
-                ? peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]')
-                : null)
-            || peopleOptions.find((option) => option.dataset.value === '')
-            || peopleOptions[0];
-
-        syncSpotOptionsFromBookings({
-            ...draft,
-            spot: storedSpotValue,
-            spotValue: storedSpotValue
-        }, true);
-
-        if (storedPeople && storedPeople.dataset.value === 'custom' && storedPeopleValue) {
-            applyCustomPeopleState(storedPeopleValue, draft.peopleLabel, draft.peopleNote);
-        } else if (storedPeople) {
-            setOptionState('people', storedPeople);
-        }
-
-        dateInput.value = isValidPlannerDateValue(draft.dateValue || draft.date)
-            ? (draft.dateValue || draft.date)
-            : '';
-
-        calendarViewDate = new Date(getCalendarDisplayDate().getFullYear(), getCalendarDisplayDate().getMonth(), 1);
-        syncDateFieldDisplay();
-        syncProgressivePlannerState();
+        restoreDraftSelection(draft);
     }
     const peopleOptions = Array.from(peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]'));
 
+    plannerBookingSwitcherTrack.addEventListener('click', (event) => {
+        const chip = event.target.closest('.planner-booking-switcher-chip[data-entry-id]');
+        if (!chip) {
+            return;
+        }
+
+        const entryId = String(chip.dataset.entryId || '').trim();
+        if (!entryId || entryId === activeBookingEntryId) {
+            return;
+        }
+
+        closeActivePanel();
+        setActiveBooking(entryId, {
+            refreshSummary: true,
+            refreshCards: true
+        });
+    });
+
     // 三个字段都采用“再点一次自己就收起”的切换规则，减少手机端多余操作。
     spotTrigger.addEventListener('click', () => {
+        if (isPlannerBoundToConfirmedBooking()) {
+            closeActivePanel();
+            return;
+        }
+
         if (activePanelKey === 'spot') {
             closePanel('spot');
             return;
@@ -2395,13 +2907,22 @@ function setupPlannerSummary() {
     updatePlannerSummary();
 
     window.addEventListener('yanqi:confirmed-bookings-updated', () => {
-        syncSpotOptionsFromBookings(null, false);
-        syncProgressivePlannerState();
+        restorePlannerDraft();
+        renderPlannerCalendar();
         updatePlannerSummary();
     });
 
     window.YanqiTripPlannerActions = {
-        jumpToField: jumpToPlannerField
+        jumpToField: jumpToPlannerField,
+        focusBookingField(entryId, fieldKey) {
+            jumpToPlannerField(fieldKey, entryId);
+        },
+        setActiveBooking: (entryId) => {
+            setActiveBooking(entryId, {
+                refreshSummary: true,
+                refreshCards: true
+            });
+        }
     };
 }
 
@@ -2954,6 +3475,18 @@ function sortConfirmedBookings(bookings) {
     });
 }
 
+function getMostRecentlyUpdatedConfirmedBooking(bookings) {
+    if (!Array.isArray(bookings) || bookings.length === 0) {
+        return null;
+    }
+
+    return [...bookings].sort((left, right) => {
+        const rightUpdatedAt = Date.parse(String(right?.updatedAt || '')) || 0;
+        const leftUpdatedAt = Date.parse(String(left?.updatedAt || '')) || 0;
+        return rightUpdatedAt - leftUpdatedAt;
+    })[0] || null;
+}
+
 /**
  * getPeopleCountFromSelectionValue(value) - 从同行人数字段中提取可用于价格换算的人数
  * @param {string} value - 原始同行人数值，例如 "2"、"3-5"、"6+"
@@ -3138,21 +3671,25 @@ function syncPlannerSelectionToConfirmedBookings(selection) {
         return [];
     }
 
-    const targetSpot = String(selection?.spotValue || '').trim();
+    const targetEntryId = String(selection?.entryId || '').trim();
     const nextDateValue = String(selection?.dateValue || '').trim();
     const nextDateLabel = String(selection?.dateLabel || '').trim();
     const nextPeopleValue = String(selection?.peopleValue || '').trim();
     const nextPeopleLabel = String(selection?.peopleLabel || '').trim();
     const now = new Date().toISOString();
 
-    // 这里只回写与当前 Planner 海域匹配的套餐；
-    // 如果 Planner 还没锁定海域，则把这份日期 / 人数视作当前列表的统一安排。
+    if (!targetEntryId) {
+        return currentBookings;
+    }
+
+    let hasUpdated = false;
     const nextBookings = currentBookings.map((booking) => {
-        const bookingSpotKey = String(booking?.spotKey || '').trim();
-        const shouldSync = targetSpot ? bookingSpotKey === targetSpot : true;
-        if (!shouldSync) {
+        const bookingEntryId = String(booking?.entryId || '').trim();
+        if (bookingEntryId !== targetEntryId) {
             return booking;
         }
+
+        hasUpdated = true;
 
         return {
             ...booking,
@@ -3164,6 +3701,10 @@ function syncPlannerSelectionToConfirmedBookings(selection) {
         };
     });
 
+    if (!hasUpdated) {
+        return currentBookings;
+    }
+
     store.saveConfirmedBookings(nextBookings);
     return nextBookings;
 }
@@ -3174,6 +3715,12 @@ function syncPlannerSelectionToConfirmedBookings(selection) {
  * @returns {string} - 已收进行程卡。HTML
  */
 function buildConfirmedBookingCardMarkup(booking) {
+    const store = getTripStore();
+    const activeBookingId = store && typeof store.getActiveBookingId === 'function'
+        ? String(store.getActiveBookingId() || '').trim()
+        : '';
+    const entryId = String(booking?.entryId || '').trim();
+    const isActive = entryId && activeBookingId === entryId;
     const safeTagline = booking.spotTagline || CONFIRMED_BOOKING_COPY.emptyTagline;
     const safeDate = booking.selectedDateLabel || CONFIRMED_BOOKING_COPY.emptyDate;
     const safePeople = booking.selectedPeopleLabel || CONFIRMED_BOOKING_COPY.emptyPeople;
@@ -3182,7 +3729,7 @@ function buildConfirmedBookingCardMarkup(booking) {
     const priceView = getConfirmedBookingPriceView(booking);
 
     return `
-        <article class="confirmed-booking-card" data-booking-id="${escapeHtml(booking.bookingId)}">
+        <article class="confirmed-booking-card${isActive ? ' is-active' : ''}" data-booking-id="${escapeHtml(booking.bookingId)}" data-booking-entry-id="${escapeHtml(entryId)}">
             <div class="confirmed-booking-top">
                 <div class="confirmed-booking-meta">
                     <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '行程档案')}</p>
@@ -3220,6 +3767,7 @@ function buildConfirmedBookingCardMarkup(booking) {
                     type="button"
                     class="confirmed-booking-detail"
                     data-planner-field-target="date"
+                    data-booking-entry-id="${escapeHtml(entryId)}"
                     aria-label="调整这次下潜的日期"
                 >
                     <span class="confirmed-booking-detail-label">日期</span>
@@ -3229,6 +3777,7 @@ function buildConfirmedBookingCardMarkup(booking) {
                     type="button"
                     class="confirmed-booking-detail"
                     data-planner-field-target="people"
+                    data-booking-entry-id="${escapeHtml(entryId)}"
                     aria-label="调整这次下潜的同行人数"
                 >
                     <span class="confirmed-booking-detail-label">同行</span>
@@ -3240,7 +3789,7 @@ function buildConfirmedBookingCardMarkup(booking) {
                 <button type="button" class="confirmed-booking-link" data-detail-href="${escapeHtml(booking.detailHref || `detail.html?id=${booking.spotKey}`)}">
                     回到这片海
                 </button>
-                <button type="button" class="confirmed-booking-remove" data-booking-id="${escapeHtml(booking.bookingId)}">
+                <button type="button" class="confirmed-booking-remove" data-booking-entry-id="${escapeHtml(entryId)}">
                     从行程里移开
                 </button>
             </div>
@@ -3344,7 +3893,10 @@ function setupConfirmedBookingsStage() {
         const detailField = event.target.closest('.confirmed-booking-detail[data-planner-field-target]');
         if (detailField) {
             event.preventDefault();
-            window.YanqiTripPlannerActions?.jumpToField?.(detailField.dataset.plannerFieldTarget);
+            window.YanqiTripPlannerActions?.focusBookingField?.(
+                detailField.dataset.bookingEntryId,
+                detailField.dataset.plannerFieldTarget
+            );
             return;
         }
 
@@ -3355,7 +3907,7 @@ function setupConfirmedBookingsStage() {
             return;
         }
 
-        const removeButton = event.target.closest('.confirmed-booking-remove[data-booking-id]');
+        const removeButton = event.target.closest('.confirmed-booking-remove[data-booking-entry-id]');
         if (!removeButton) {
             return;
         }
@@ -3366,7 +3918,19 @@ function setupConfirmedBookingsStage() {
             return;
         }
 
-        store.removeConfirmedBooking(removeButton.dataset.bookingId);
+        const removedEntryId = String(removeButton.dataset.bookingEntryId || '').trim();
+        const activeBookingId = store.getActiveBookingId?.() || '';
+        store.removeConfirmedBooking(removedEntryId);
+        const nextBookings = sortConfirmedBookings(store.getConfirmedBookings ? store.getConfirmedBookings() : []);
+        if (!nextBookings.length) {
+            store.clearActiveBookingId?.();
+        } else if (removedEntryId && removedEntryId === activeBookingId) {
+            const fallbackBooking = getMostRecentlyUpdatedConfirmedBooking(nextBookings);
+            if (fallbackBooking?.entryId) {
+                store.saveActiveBookingId?.(fallbackBooking.entryId);
+            }
+        }
+
         renderConfirmedBookings();
         window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated'));
     });

@@ -82,6 +82,21 @@
                                     </p>
                                 </div>
 
+                                <div class="planner-booking-switcher" id="plannerBookingSwitcher" hidden>
+                                    <div class="planner-booking-switcher-head">
+                                        <p class="planner-booking-switcher-kicker">Active Descent</p>
+                                        <p class="planner-booking-switcher-note" id="plannerBookingSwitcherNote">当前只整理一条下潜节奏</p>
+                                    </div>
+                                    <div class="planner-booking-switcher-track" id="plannerBookingSwitcherTrack" role="tablist" aria-label="已收进行程切换"></div>
+                                </div>
+
+                                <div class="planner-desk-tide-flow" aria-hidden="true">
+                                    <span class="planner-desk-tide-line"></span>
+                                    <span class="planner-desk-tide-node planner-desk-tide-node-spot">01</span>
+                                    <span class="planner-desk-tide-node planner-desk-tide-node-date">02</span>
+                                    <span class="planner-desk-tide-node planner-desk-tide-node-people">03</span>
+                                </div>
+
                                 <!-- 海域字段：
                                       视觉上留成较大卡片，因为它承担“先决定去哪片海”的主决策。 -->
                                 <article class="planner-field planner-field-select" data-planner-field="spot" data-planner-step="01">
@@ -255,16 +270,24 @@
                             <!-- 行程回执层：
                                  这里保留 #plannerSummary 作为海图导览锚点，
                                  但视觉上收成附着在控制台下方的一层轻回执，只负责安静回看当前安排。 -->
-                            <div class="planner-summary" id="plannerSummary" data-summary-stage="idle">
+                            <div class="planner-summary planner-summary-ritual-shell" id="plannerSummary" data-summary-stage="idle">
                                 <div class="planner-summary-head">
                                     <div class="planner-summary-heading">
                                         <p class="planner-summary-kicker">Tide Receipt</p>
                                         <h2 class="planner-summary-title">潮汐回执</h2>
                                     </div>
-                                    <p class="planner-summary-intro" id="plannerSummaryIntro">
-                                        先留下一句很轻的回执，等海域、潮汐与同行节奏慢慢收出轮廓。
-                                    </p>
+                                    <div class="planner-summary-active-identity">
+                                        <div class="planner-summary-active-index-wrap">
+                                            <span class="planner-summary-active-index" id="plannerSummaryActiveIndex">01 / 01</span>
+                                            <span class="planner-summary-active-dot" aria-hidden="true"></span>
+                                        </div>
+                                        <p class="planner-summary-active-label">当前正在整理的下潜节奏</p>
+                                    </div>
                                 </div>
+
+                                <p class="planner-summary-intro" id="plannerSummaryIntro">
+                                    先留下一句很轻的回执，等海域、潮汐与同行节奏慢慢收出轮廓。
+                                </p>
 
                                 <div class="planner-summary-meter" aria-hidden="true">
                                     <div class="planner-summary-meter-track">
@@ -280,6 +303,22 @@
                                 <p class="planner-summary-status-note" id="plannerSummaryStatusNote" aria-live="polite">
                                     先让回执停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。
                                 </p>
+
+                                <div class="planner-summary-ritual" id="plannerSummaryRitual">
+                                    <div class="planner-summary-ritual-segment planner-summary-ritual-segment--route">
+                                        <p class="planner-summary-ritual-route-label">Current Route</p>
+                                        <strong class="planner-summary-ritual-route-spot" id="plannerSummaryActiveSpot">当前海域待定</strong>
+                                    </div>
+                                    <div class="planner-summary-ritual-segment planner-summary-ritual-segment--rhythm">
+                                        <p class="planner-summary-ritual-rhythm" id="plannerSummaryRhythmSentence">
+                                            这一潜还在收束。等海域、潮汐与同行节奏写齐，它会变成一句完整的出发节奏。
+                                        </p>
+                                    </div>
+                                    <div class="planner-summary-ritual-segment planner-summary-ritual-segment--chips">
+                                        <span class="planner-summary-ritual-chip planner-summary-ritual-chip-package" id="plannerSummaryActivePackage">套餐尚未写入</span>
+                                        <span class="planner-summary-ritual-chip planner-summary-ritual-chip-companion" id="plannerSummaryActiveCompanion">同行节奏待定</span>
+                                    </div>
+                                </div>
 
                                 <div class="planner-summary-receipt">
                                     <article class="planner-item" data-summary-field="spot">
@@ -310,6 +349,19 @@
                                             <small id="plannerSummaryPeopleMeta">同行节奏还没写进来。</small>
                                         </div>
                                         <span class="planner-item-state" id="plannerSummaryPeopleState">待写入</span>
+                                    </article>
+                                </div>
+
+                                <div class="planner-summary-guidance">
+                                    <article class="planner-summary-guidance-card">
+                                        <p class="planner-summary-guidance-label">海域焦点</p>
+                                        <h3 class="planner-summary-guidance-title" id="plannerSummaryFocusTitle">先决定这一潜最想靠近什么</h3>
+                                        <p class="planner-summary-guidance-copy" id="plannerSummaryFocusCopy">是鱼群风暴、岩壁、沉船，还是更安静的浅蓝。把焦点写清楚，盐憩才好替你筛掉不合适的点位。</p>
+                                    </article>
+                                    <article class="planner-summary-guidance-card">
+                                        <p class="planner-summary-guidance-label">准备提示</p>
+                                        <h3 class="planner-summary-guidance-title" id="plannerSummaryPrepTitle">让准备先于出发发生</h3>
+                                        <p class="planner-summary-guidance-copy" id="plannerSummaryPrepCopy">确认证书状态、最近下潜记录与装备边界，盐憩会据此给出更稳的窗口和上船节奏。</p>
                                     </article>
                                 </div>
                             </div>
@@ -346,6 +398,7 @@
             <div class="trip-section-head">
                 <p class="trip-section-kicker">Planning Notes</p>
                 <h2 class="trip-section-title">让行程像海水一样，有层次地展开。</h2>
+                <p class="trip-section-lead" id="tripLayerLead">这一层不是补资料，而是把想去的海、出发窗口和同行节奏，排成一条能真正下去的潮线。</p>
             </div>
 
             <div class="trip-focus-grid">
@@ -371,6 +424,7 @@
             <div class="trip-section-head">
                 <p class="trip-section-kicker">Before Diving</p>
                 <h2 class="trip-section-title">出发前，把海面以下的准备慢慢收齐。</h2>
+                <p class="trip-section-lead" id="tripPrepLead">盐憩会帮你把关键判断先做在岸上，让真正入水时只需要专注呼吸、节奏和眼前的那片蓝。</p>
             </div>
 
             <!-- 下潜准备系统：左侧卡片负责切换准备主题，右侧详情面板负责展开具体内容。 -->
@@ -383,19 +437,19 @@
                             <span>把下一次下潜，</span>
                             <span>安静地排进日程。</span>
                         </p>
-                        <p class="prep-card-summary">面镜、脚蹼、电脑表与防寒衣可以自带，也可以提前交由行程页统一备注。</p>
+                        <p class="prep-card-summary">盐憩会先判断哪些装备建议自带、哪些可现场租借，再把上船前的核对节奏写成一份简明清单。</p>
                     </button>
 
                     <button type="button" class="prep-card" data-prep-card="certification" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">
                         <p class="prep-card-kicker">Certification Path</p>
                         <h3 class="prep-card-title">证书与等级</h3>
-                        <p class="prep-card-summary">确认发证机构、OW / AOW 等级与近 12 个月潜水记录；如果超过 6 个月没潜，首潜通常要先做一次 check dive。</p>
+                        <p class="prep-card-summary">不只看卡面简称。盐憩会结合发证机构、近期下潜状态和海况强度，确认你更适合怎样的下潜安排。</p>
                     </button>
 
                     <button type="button" class="prep-card" data-prep-card="weather" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">
                         <p class="prep-card-kicker">Weather Window</p>
                         <h3 class="prep-card-title">天气与窗口</h3>
-                        <p class="prep-card-summary">把出发日期放进最适合的季节区间里，让能见度、洋流与光线都更稳定。</p>
+                        <p class="prep-card-summary">盐憩会持续看风浪、能见度与洋流变化，帮你确认是按原计划出发，还是换到更稳的一段潮汐。</p>
                     </button>
                 </div>
 
@@ -403,7 +457,7 @@
                     <div class="prep-detail-head">
                         <p class="prep-detail-kicker" id="prepDetailKicker">Equipment & Rhythm</p>
                         <h3 class="prep-detail-title" id="prepDetailTitle">装备与节奏</h3>
-                        <p class="prep-detail-summary" id="prepDetailSummary">把下一次下潜，安静地排进日程。面镜、脚蹼、电脑表与防寒衣可以自带，也可以提前交由行程页统一备注。</p>
+                        <p class="prep-detail-summary" id="prepDetailSummary">盐憩会先帮你确认装备边界、证书状态与海况窗口，再把这些判断收成一条能安心执行的出发线。</p>
                     </div>
                     <div class="prep-detail-content" id="prepDetailContent"></div>
                 </div>
@@ -414,37 +468,37 @@
                  它们是给 JS 读取和克隆的“内容底稿”，用于切换右侧准备详情面板。 -->
             <template id="prep-template-gear">
                 <div class="prep-detail-block">
-                    <h4>基础装备介绍</h4>
+                    <h4>盐憩先帮你确认的装备边界</h4>
                     <div class="prep-detail-list">
                         <article class="prep-detail-item">
-                            <h5>面镜</h5>
-                            <p>先看贴合度，再看起雾处理与近视镜片方案。真正适合的面镜，会让你在下潜前就安静下来。</p>
+                            <h5>面镜与视野</h5>
+                            <p>先确认贴合度、是否需要近视镜片与防雾习惯。盐憩会优先帮你排除容易进水和影响专注的面镜方案。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>脚蹼</h5>
-                            <p>全脚式更轻便，开放式更适合复杂水域与搭配潜水靴。按海域和踢动习惯选，比盲目追求推进力更重要。</p>
+                            <h5>脚蹼与推进</h5>
+                            <p>不是越硬越好。盐憩会按海域流况、踢动习惯和体力分配，建议更省力也更稳的推进组合。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>电脑表</h5>
-                            <p>记录深度、免减压时间与安全停留，是下潜节奏里最安静但最关键的一块秩序。</p>
+                            <h5>电脑表与节奏</h5>
+                            <p>我们会确认你是否熟悉电脑表界面、报警阈值与安全停留提示，避免入水后才临时找设置。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>防寒衣</h5>
-                            <p>根据水温选择厚度，热带浅海与较深海域的体感差异很大，合适的厚度会直接影响这一次下潜的舒适度。</p>
+                            <h5>防寒衣与体感</h5>
+                            <p>盐憩会根据预估水温、下潜时长和你对寒冷的敏感度，确认更适合的厚度与备用方案。</p>
                         </article>
                     </div>
                 </div>
 
                 <div class="prep-detail-block">
-                    <h4>可自带 / 可租借</h4>
-                    <p>面镜和电脑表更建议自带，贴合度和熟悉感会直接影响水下体验。脚蹼、防寒衣和 BCD 可以现场租借，但若对尺寸或脚感敏感，建议提前备注。相机、灯具与特殊配件则最好在出发前确认库存。</p>
+                    <h4>自带与租借如何分配</h4>
+                    <p>盐憩会把装备拆成三类：建议自带、可租借、需提前锁定库存。你只需要按清单确认，不必在临近出发时反复比对规格。</p>
                 </div>
 
                 <div class="prep-detail-block">
-                    <h4>装备节奏建议</h4>
+                    <h4>上船前的核对节奏</h4>
                     <div class="prep-rhythm-list">
-                        <span>出发前一周，检查装备状态与耗材</span>
-                        <span>出发前一天，确认电池、表带与面镜防雾</span>
+                        <span>出发前，核对清单与可替代装备</span>
+                        <span>前一晚，确认电量、表带与防雾状态</span>
                         <span>上船前，再做一次 buddy check</span>
                     </div>
                 </div>
@@ -452,30 +506,30 @@
                 <div class="prep-detail-block prep-detail-subblock">
                     <button type="button" class="prep-subtoggle" data-subpanel-target="gear-help" aria-expanded="false">查看装备详情</button>
                     <div class="prep-subpanel" data-subpanel="gear-help">
-                        <p>盐憩会在行程确认后，把租借清单、建议自带项和备注项整理成一份装备说明。你可以按海域、水温和拍摄需求逐项核对，而不是在出发前一天临时补齐。</p>
+                        <p>行程确认后，盐憩会给出一份可执行的装备备忘：哪些必须先准备、哪些可以到店调整、哪些建议留作备用。你只要照着这份节奏完成确认。</p>
                     </div>
                 </div>
             </template>
 
             <template id="prep-template-certification">
                 <div class="prep-detail-block">
-                    <h4>常见等级，不只看简称</h4>
+                    <h4>盐憩会先核对的证书信息</h4>
                     <div class="prep-detail-list">
                         <article class="prep-detail-item">
-                            <h5>OW / Open Water</h5>
-                            <p>多数休闲机构的第一张完整入门证书。以 PADI、SSI 为常见参考，成人 OW 常见训练上限在 18 米这一层，但真正是否适合某一潜，仍要连同海况与近期状态一起看。</p>
+                            <h5>发证机构与等级</h5>
+                            <p>先确认机构、等级名称与电子卡信息，避免同名等级在不同体系里对应范围不同，导致安排偏差。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>AOW / 进阶层</h5>
-                            <p>常见进阶训练会把你带到 30 米这一层，并加入深潜、导航等内容。不同机构命名并不完全一样，旧卡片也可能写作 Advanced Adventurer 或 Advanced Adventure。</p>
+                            <h5>近期下潜状态</h5>
+                            <p>盐憩会一起看最近的下潜频率和水域复杂度，判断这次是否适合直接进流区，还是先做一潜回水热身。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>Specialty / 专项课</h5>
-                            <p>Nitrox、Deep、Navigation、Peak Performance Buoyancy、Night 这类专项课，往往比单纯追更高等级更能直接补齐一次行程真正需要的能力。</p>
+                            <h5>专项能力是否匹配</h5>
+                            <p>若行程涉及夜潜、深潜、漂流或高频连续潜，盐憩会确认你是否具备对应专项经验，不让风险落在临场判断上。</p>
                         </article>
                         <article class="prep-detail-item">
-                            <h5>Rescue / Dive Guide / Divemaster</h5>
-                            <p>这一层开始强调自我判断、他人协助与带队责任。它们不是炫耀性的等级，而是进入更复杂海况前，对秩序和责任的进一步承担。</p>
+                            <h5>入水方式与节奏承载</h5>
+                            <p>不同点位的后滚翻、巨人步或岸潜进出，对节奏和体力要求不同。盐憩会提前说明，避免到现场才发现不适配。</p>
                         </article>
                     </div>
                 </div>
@@ -487,35 +541,35 @@
                             <article class="prep-path-step">
                                 <p class="prep-path-step-label">起点</p>
                                 <h5>体验潜 / Basic Diver</h5>
-                                <p>零基础可以先试水，但这不等于完整证书。真正要去更开放的海域，仍建议把 OW 学完整。</p>
+                                <p>适合先感受呼吸和中性浮力。若要进入开放海域，仍建议完成完整入门训练再安排更深层次行程。</p>
                             </article>
                             <article class="prep-path-step">
                                 <p class="prep-path-step-label">第一层</p>
                                 <h5>OW / Open Water</h5>
-                                <p>从理论、平静水域到开放水域训练，是第一次真正把呼吸、耳压和平衡带进海里的起点。</p>
+                                <p>建立基础呼吸、耳压和平衡能力。盐憩会据此判断哪些点位可以稳妥进入，哪些需要先保守一点。</p>
                             </article>
                             <article class="prep-path-step">
                                 <p class="prep-path-step-label">第二层</p>
                                 <h5>Advanced 路径</h5>
-                                <p>PADI AOW、SSI 新版 Advanced Open Water Diver、SDI Advanced Adventure 都属于这一层，通常会加入深潜和导航。</p>
+                                <p>常见会加入深潜与导航能力。是否适合特定海域，仍需结合近期状态和海况窗口一起判断。</p>
                             </article>
                             <article class="prep-path-step">
                                 <p class="prep-path-step-label">延展</p>
                                 <h5>Specialty 专项课</h5>
-                                <p>若行程涉及 Nitrox、洋流、夜潜、深潜或中性浮力要求，专项课往往比笼统说“我有 AOW”更有判断价值。</p>
+                                <p>当行程涉及夜潜、漂流或深潜时，专项经验通常比单一等级更能说明你当下是否适配。</p>
                             </article>
                             <article class="prep-path-step">
                                 <p class="prep-path-step-label">出发前</p>
                                 <h5>Refresh / ReActivate / Skills Update</h5>
-                                <p>如果超过 6 个月没下潜，第一潜先做一次 check dive / 复习回水，会比在流区、深潜或连续多潜里临时找状态更从容。</p>
+                                <p>如果有一段时间没下潜，先安排回水复习通常更稳。先把状态找回来，再进入更复杂水域。</p>
                             </article>
                             <article class="prep-path-step">
                                 <p class="prep-path-step-label">更深一层</p>
                                 <h5>Rescue 到职业线</h5>
-                                <p>Rescue、Dive Guide、Divemaster 往后走的不是“更酷”，而是更高的判断力、照护能力与带队责任。</p>
+                                <p>从这层开始强调判断与照护责任。盐憩会把你的能力边界与当次任务深度一起校准。</p>
                             </article>
                         </div>
-                        <p class="prep-cert-note">不同培训体系的命名会更新。比如 SSI 已在 2026 年 3 月把进阶项目明确为 Advanced Open Water Diver，所以旧卡和新卡可能会出现不同写法。出发前最好连同发证机构、证书编号和电子卡一起备好。</p>
+                        <p class="prep-cert-note">不同培训体系命名可能出现旧卡与新卡并行。出发前准备好机构名称、等级、证书编号和电子卡截图，盐憩会先帮你完成一次匹配核对。</p>
                     </div>
                 </div>
 
@@ -549,51 +603,51 @@
                 </div>
 
                 <div class="prep-detail-block">
-                    <h4>等级与海域匹配</h4>
-                    <p>证书更像进入某一层海的许可，但不会自动覆盖所有海况。除了深度，盐憩也会一起看洋流、能见度、低温、入水方式、夜潜安排与连续多潜节奏。哪怕都是 18 至 30 米，这一潜是否适合，仍要连同近期状态一起判断。</p>
+                    <h4>等级与海况如何一起判断</h4>
+                    <p>证书只是起点，盐憩会把深度、洋流、能见度、水温、入水方式与连续多潜节奏放在同一张判断表里，再决定这次行程该如何安排。</p>
                 </div>
 
                 <div class="prep-detail-block">
-                    <h4>近 12 个月潜水记录</h4>
-                    <p>近 12 个月的下潜频率、最后一次下潜时间，以及是否做过 refresh / ReActivate / Scuba Skills Update，往往比“几年前拿过哪张卡”更能说明你现在的状态。如果距离上一次下潜已经超过 6 个月，第一潜通常会先安排为 check dive / 复习回水，再决定是否进入流区、深潜或更密集的连续多潜。</p>
+                    <h4>近期记录比旧经历更关键</h4>
+                    <p>盐憩会优先确认你最近的下潜频率、最后一次入水状态和复习训练情况，再决定是否需要先安排适应潜，而不是直接进入更强流或更密集的潜次。</p>
                 </div>
             </template>
 
             <template id="prep-template-weather">
                 <div class="prep-detail-block">
-                    <h4>常见天气因素</h4>
+                    <h4>盐憩会持续追踪的海况信号</h4>
                     <div class="prep-detail-list">
                         <article class="prep-detail-item">
                             <h5>风浪与降雨</h5>
-                            <p>决定出海稳定度与水面体验，也会间接影响晕船感和上下船节奏。</p>
+                            <p>影响出海稳定度与上下船体感。盐憩会先判断是否适合原定时段，必要时提前调整船次节奏。</p>
                         </article>
                         <article class="prep-detail-item">
                             <h5>能见度与洋流</h5>
-                            <p>决定这一潜能看到多远，也决定是否适合当前等级进入。</p>
+                            <p>决定可见范围和入水难度。我们会据此判断是否切换点位，或改成更保守的入水方案。</p>
                         </article>
                         <article class="prep-detail-item">
                             <h5>光线与水温</h5>
-                            <p>影响拍摄、体感与整体氛围。不同海域在同一季节里，也会有完全不同的水下情绪。</p>
+                            <p>影响拍摄、体感与停留时长。盐憩会同步给出防寒厚度和时段建议，减少临场波动。</p>
                         </article>
                     </div>
                 </div>
 
                 <div class="prep-detail-block">
-                    <h4>常见情况与应对方式</h4>
-                    <p>风浪较大时，优先调整出海时间或换更稳的点位；持续降雨时，关注能见度变化并保留替代安排；洋流偏强时，根据等级判断是否下潜；光线不足时，则调整下潜时段或改变拍摄预期。</p>
+                    <h4>若窗口变化，盐憩会怎么处理</h4>
+                    <p>窗口变窄时，优先调整出海时段与点位；流况偏强时，先评估等级和体力承载；若能见度下滑，会同步给出替代线路和节奏建议。</p>
                 </div>
 
                 <div class="prep-detail-block">
-                    <h4>最佳季节区间</h4>
-                    <p>不是所有海都适合任何时间去。把目的地放进更合适的季节窗口里，往往比一味追求固定假期更能换来一次真正稳定的下潜。</p>
+                    <h4>不是固定日期，而是合适窗口</h4>
+                    <p>同一片海在不同阶段会呈现不同性格。盐憩会根据你想看的水下画面，给出更适合的入水窗口，而不是只追一个固定日期。</p>
                 </div>
 
                 <div class="prep-detail-block">
-                    <h4>出发前确认建议</h4>
+                    <h4>出发前的三次确认</h4>
                     <div class="prep-rhythm-list">
-                        <span>出发前 7 天，看趋势</span>
-                        <span>出发前 3 天，看窗口</span>
-                        <span>出发前 24 小时，确认最终安排</span>
+                        <span>临近出发，先看趋势是否稳定</span>
+                        <span>上船前，再看窗口是否收紧</span>
+                        <span>最终确认当天安排与替代方案</span>
                     </div>
                 </div>
             </template>

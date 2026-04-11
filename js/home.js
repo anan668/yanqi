@@ -14,6 +14,7 @@
 
 // 文件导读：建议先读数据结构和几个主要类，再回来看 DOMContentLoaded 入口如何把它们串起来。
 const sharedPriceTools = window.YanqiPriceConfig || null;
+const sharedSpotCatalog = window.YanqiSpotCatalog || null;
 const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HERO_HOTSPOTS_STAGE_STORAGE_KEY = 'YANQI_HOME_HOTSPOTS_STAGE_SIZE';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
@@ -1227,10 +1228,37 @@ function buildThumbImageErrorHandler() {
     return "const fallback=this.dataset.fallbackSrc;const activeSrc=this.currentSrc||this.src||'';if(fallback&&activeSrc.indexOf(fallback)===-1){this.src=fallback;return;}this.style.display='none'";
 }
 
+function getCatalogSpotById(spotId) {
+    return sharedSpotCatalog && typeof sharedSpotCatalog.getById === 'function'
+        ? sharedSpotCatalog.getById(spotId)
+        : null;
+}
+
+function injectCatalogIdentityForHome(record) {
+    const catalogSpot = getCatalogSpotById(record?.id);
+    if (!catalogSpot) {
+        return record;
+    }
+
+    return {
+        ...record,
+        key: catalogSpot.key,
+        name: catalogSpot.name,
+        englishName: catalogSpot.englishName,
+        tagline: catalogSpot.tagline,
+        image: catalogSpot.image,
+        season: catalogSpot.season
+    };
+}
+
+function injectCatalogIdentityForHomeList(records) {
+    return records.map((record) => injectCatalogIdentityForHome(record));
+}
+
 ensureHomeImageManifestReady();
 
 // 热门潜点数据：用于竹签滚动推荐区的卡片渲染、价格展示和详情页跳转。
-const divingSpotsData = withHomeImageDescriptors(convertSpotCardPrices([
+const divingSpotsData = withHomeImageDescriptors(convertSpotCardPrices(injectCatalogIdentityForHomeList([
     {
         id: 1,
         name: '诗巴丹',
@@ -1357,10 +1385,10 @@ const divingSpotsData = withHomeImageDescriptors(convertSpotCardPrices([
         rating: '4.7',
         difficulty: '★'
     }
-]));
+])));
 
 // 精选目的地数据：用于海域档案陈列廊的主舞台卡和右侧样本卡切换。
-const destinationsData = withHomeImageDescriptors([
+const destinationsData = withHomeImageDescriptors(injectCatalogIdentityForHomeList([
     {
         id: 1,
         name: '诗巴丹',
@@ -1541,7 +1569,7 @@ const destinationsData = withHomeImageDescriptors([
         sampleMeta: '马来西亚 / 入门友好 / 轻船潜',
         archiveLabel: 'Current Water 12'
     }
-]);
+]));
 
 function refreshHomeDataImageSources() {
     refreshHomeImageDescriptors(divingSpotsData);

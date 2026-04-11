@@ -14,7 +14,8 @@
 (function attachYanqiTripStore(window) {
     const STORAGE_KEYS = Object.freeze({
         plannerDraft: 'YANQI_PLANNER_DRAFT',
-        confirmedBookings: 'YANQI_CONFIRMED_BOOKINGS'
+        confirmedBookings: 'YANQI_CONFIRMED_BOOKINGS',
+        activeBookingId: 'YANQI_ACTIVE_BOOKING_ID'
     });
     const PRICE_DISPLAY_VERSION = '2026-04-03-cny-native-v1';
     const LEGACY_USD_SCALE_RATE1451_V284 = 0.1451 * 2.84;
@@ -212,6 +213,10 @@
         const spot = pickPlannerDraftValue(source, 'spot', 'spotValue', normalizeText);
         const date = pickPlannerDraftValue(source, 'date', 'dateValue', normalizePlannerDateValue);
         const people = pickPlannerDraftValue(source, 'people', 'peopleValue', normalizePlannerPeopleValue);
+        const editingEntryId = normalizeText(source.editingEntryId);
+        const editingMode = normalizeText(source.editingMode) === 'confirmed-booking' && editingEntryId
+            ? 'confirmed-booking'
+            : 'draft';
 
         return {
             spot,
@@ -226,6 +231,10 @@
             peopleValue: people,
             peopleLabel: sanitizeReadableText(source.peopleLabel, ''),
             peopleNote: sanitizeReadableText(source.peopleNote, ''),
+            editingMode,
+            editingEntryId,
+            editingSpotKey: normalizeText(source.editingSpotKey),
+            editingPackageId: normalizeText(source.editingPackageId),
             updatedAt: normalizeText(source.updatedAt)
         };
     }
@@ -260,6 +269,21 @@
         const peoplePart = identity.selectedPeople || 'open-people';
 
         return `yanqi-booking:${identity.spotKey}:${identity.packageId}:${datePart}:${peoplePart}`;
+    }
+
+    /**
+     * createEntryId() - 生成稳定使用的行程条目标识
+     * @returns {string} - 不可变 entryId
+     */
+    function createEntryId() {
+        const globalCrypto = window.crypto;
+        if (globalCrypto && typeof globalCrypto.randomUUID === 'function') {
+            return `yanqi-entry:${globalCrypto.randomUUID()}`;
+        }
+
+        const timestamp = Date.now().toString(36);
+        const randomSeed = Math.random().toString(36).slice(2, 10);
+        return `yanqi-entry:${timestamp}-${randomSeed}`;
     }
 
     /**
@@ -327,9 +351,11 @@
         const source = booking && typeof booking === 'object' ? booking : {};
         const now = new Date().toISOString();
         const bookingId = normalizeText(source.bookingId) || createBookingId(source);
+        const entryId = normalizeText(source.entryId) || createEntryId();
         const priceDisplayVersion = normalizeText(source.priceDisplayVersion);
 
         return {
+            entryId,
             bookingId,
             spotKey: normalizeText(source.spotKey),
             spotName: sanitizeReadableText(source.spotName, ''),
@@ -387,9 +413,16 @@
             return [];
         }
 
-        return rawList
+        const shouldMigrateEntryId = rawList.some((item) => !normalizeText(item?.entryId));
+        const normalizedList = rawList
             .map((item) => normalizeConfirmedBooking(item))
             .sort((left, right) => Date.parse(right.updatedAt || '') - Date.parse(left.updatedAt || ''));
+
+        if (shouldMigrateEntryId) {
+            writeJson(STORAGE_KEYS.confirmedBookings, normalizedList);
+        }
+
+        return normalizedList;
     }
 
     /**
@@ -417,33 +450,92 @@
         });
         const currentList = getConfirmedBookings();
         const existingIndex = currentList.findIndex((item) => item.bookingId === normalized.bookingId);
+        let finalBooking = normalized;
 
         if (existingIndex >= 0) {
             const existing = currentList[existingIndex];
-            currentList[existingIndex] = normalizeConfirmedBooking({
+            finalBooking = normalizeConfirmedBooking({
                 ...existing,
                 ...normalized,
+                entryId: existing.entryId,
                 createdAt: existing.createdAt,
                 updatedAt: normalized.updatedAt
             });
+            currentList[existingIndex] = finalBooking;
         } else {
-            currentList.unshift(normalized);
+            currentList.unshift(finalBooking);
         }
 
         saveConfirmedBookings(currentList);
-        return normalized;
+        return finalBooking;
     }
 
     /**
-     * removeConfirmedBooking(bookingId) - 从已确认套餐列表里移除指定条目
-     * @param {string} bookingId - 需要移除的 bookingId
+     * getActiveBookingId() - 获取当前正在编辑的 booking entryId
+     * @returns {string} - 当前激活 booking 的 entryId
+     */
+    function getActiveBookingId() {
+        return normalizeText(readJson(STORAGE_KEYS.activeBookingId, ''));
+    }
+
+    /**
+     * saveActiveBookingId(entryId) - 保存当前激活 booking 的 entryId
+     * @param {string} entryId - 激活 booking 的 entryId
+     * @returns {string} - 标准化后的 entryId，空值时自动清理
+     */
+    function saveActiveBookingId(entryId) {
+        const safeEntryId = normalizeText(entryId);
+        if (!safeEntryId) {
+            clearActiveBookingId();
+            return '';
+        }
+
+        writeJson(STORAGE_KEYS.activeBookingId, safeEntryId);
+        return safeEntryId;
+    }
+
+    /**
+     * clearActiveBookingId() - 清理当前激活 booking 记录
+     * @returns {boolean} - 是否清理成功
+     */
+    function clearActiveBookingId() {
+        const storage = getSafeStorage();
+        if (!storage) {
+            return false;
+        }
+
+        try {
+            storage.removeItem(STORAGE_KEYS.activeBookingId);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * removeConfirmedBooking(identifier) - 从已确认套餐列表里移除指定条目
+     * @param {string} identifier - 优先按 entryId，兼容 bookingId
      * @returns {Array<Object>} - 删除后的套餐数组
      */
-    function removeConfirmedBooking(bookingId) {
-        const safeBookingId = normalizeText(bookingId);
+    function removeConfirmedBooking(identifier) {
+        const safeIdentifier = normalizeText(identifier);
+        if (!safeIdentifier) {
+            return getConfirmedBookings();
+        }
+
         const currentList = getConfirmedBookings();
-        const nextList = currentList.filter((item) => item.bookingId !== safeBookingId);
+        let nextList = currentList.filter((item) => item.entryId !== safeIdentifier);
+        if (nextList.length === currentList.length) {
+            nextList = currentList.filter((item) => item.bookingId !== safeIdentifier);
+        }
+
         saveConfirmedBookings(nextList);
+
+        const activeBookingId = getActiveBookingId();
+        if (activeBookingId && !nextList.some((item) => item.entryId === activeBookingId)) {
+            clearActiveBookingId();
+        }
+
         return nextList;
     }
 
@@ -454,7 +546,10 @@
         getConfirmedBookings,
         saveConfirmedBookings,
         upsertConfirmedBooking,
-        removeConfirmedBooking
+        removeConfirmedBooking,
+        getActiveBookingId,
+        saveActiveBookingId,
+        clearActiveBookingId
     });
 }(window));
 

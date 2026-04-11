@@ -75,7 +75,7 @@ body {
         rgba(9, 58, 94, 0.08) 68%,
         rgba(183, 227, 255, 0.12) 100%
     );
-    filter: blur(8px);
+    filter: blur(5px);
     opacity: calc(0.18 + var(--ocean-depth-progress) * 0.32);
 }
 
@@ -105,13 +105,13 @@ body {
     text-align: center;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
     box-shadow:
-        0 8px 20px rgba(4, 27, 52, 0.22),
+        0 8px 18px rgba(4, 27, 52, 0.18),
         0 0 0 1px rgba(202, 235, 255, 0.08),
-        0 0 18px rgba(141, 214, 255, calc(0.1 + var(--ocean-depth-progress) * 0.16));
+        0 0 14px rgba(141, 214, 255, calc(0.08 + var(--ocean-depth-progress) * 0.12));
     transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.18), 0) scale(var(--depth-gauge-current-scale));
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(2px);
     /* 当前深度数字始终悬在页面最前层，轻微模糊能让它像仪表窗，而不是普通标签。 */
-    -webkit-backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(2px);
 }
 
 /* .gauge-markers 的主要视觉与布局效果 */
@@ -143,7 +143,7 @@ body {
         rgba(219, 241, 255, 0.04) 56%,
         rgba(219, 241, 255, 0.16) 100%
     );
-    filter: blur(6px);
+    filter: blur(4px);
     opacity: calc(0.2 + var(--ocean-depth-progress) * 0.28);
 }
 
@@ -293,7 +293,7 @@ body {
 
 /* 设置当前深度数字的样式和发光效果 */
 body.depth-gauge-interactive .gauge-current {
-    animation: gauge-current-drift 1.8s ease-in-out infinite;
+    animation: gauge-current-drift 2.8s ease-in-out infinite;
 }
 
 /* 控制深度刻度线、标签和当前刻度的视觉状态 */
@@ -303,11 +303,11 @@ body.depth-gauge-interactive .depth-marker {
 
 /* 控制深度刻度线、标签和当前刻度的视觉状态 */
 body.depth-gauge-interactive .depth-marker.is-current {
-    animation: gauge-marker-current-drift 1.8s ease-in-out infinite;
+    animation: gauge-marker-current-drift 2.8s ease-in-out infinite;
 }
 
 body.depth-gauge-interactive .depth-marker.is-current .depth-marker-line {
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.56);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.42);
 }
 
 /* 定义 gauge-current-drift 动画的关键帧 */
@@ -319,7 +319,7 @@ body.depth-gauge-interactive .depth-marker.is-current .depth-marker-line {
     }
 /* 控制动画在 50% 阶段的状态 */
     50% {
-        transform: translate3d(0, calc((var(--depth-gauge-shift) * -0.18) - 2px), 0) scale(calc(var(--depth-gauge-current-scale) + 0.012));
+        transform: translate3d(0, calc((var(--depth-gauge-shift) * -0.18) - 1px), 0) scale(calc(var(--depth-gauge-current-scale) + 0.006));
     }
 }
 
@@ -328,11 +328,11 @@ body.depth-gauge-interactive .depth-marker.is-current .depth-marker-line {
 /* 控制动画在 0%, 100% 阶段的状态 */
     0%,
     100% {
-        transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.06), 0) scale(calc(1.04 + (var(--depth-gauge-current-scale) - 1) * 0.6));
+        transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.06), 0) scale(calc(1.03 + (var(--depth-gauge-current-scale) - 1) * 0.48));
     }
 /* 控制动画在 50% 阶段的状态 */
     50% {
-        transform: translate3d(0, calc((var(--depth-gauge-shift) * -0.06) - 1px), 0) scale(calc(1.06 + (var(--depth-gauge-current-scale) - 1) * 0.68));
+        transform: translate3d(0, calc((var(--depth-gauge-shift) * -0.06) - 0.5px), 0) scale(calc(1.04 + (var(--depth-gauge-current-scale) - 1) * 0.54));
     }
 }
 
