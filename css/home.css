@@ -6054,8 +6054,8 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
     overflow: auto;
     overscroll-behavior: contain;
     scroll-padding: 18px 0 26px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(168, 218, 234, 0.38) rgba(7, 24, 36, 0.16);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     padding: 18px 18px 26px;
     border-radius: 26px;
     background:
@@ -6096,25 +6096,10 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel {
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* 给导览面板换成细窄的深海滚动条，避免浏览器默认白轨破坏玻璃感。 */
+/* 首页与行程页导览面板保留滚动能力，但把原生滚动条藏起来，避免白轨露出来。 */
 .sea-guide-home .sea-guide-panel::-webkit-scrollbar {
-    width: 10px;
-}
-
-.sea-guide-home .sea-guide-panel::-webkit-scrollbar-track {
-    background: rgba(7, 24, 36, 0.16);
-    border-radius: 999px;
-    margin: 16px 8px 16px 0;
-}
-
-.sea-guide-home .sea-guide-panel::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: linear-gradient(180deg, rgba(198, 236, 246, 0.54), rgba(95, 170, 196, 0.32));
-    border: 2px solid rgba(8, 30, 44, 0.18);
-}
-
-.sea-guide-home .sea-guide-panel::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(214, 243, 250, 0.64), rgba(113, 188, 213, 0.42));
+    width: 0;
+    height: 0;
 }
 
 /* 首页海图导览打开后，让浮层完整显现。 */

@@ -512,38 +512,17 @@ function setupPlannerSummary() {
     const dateInput = document.getElementById('plannerDate');
     const peopleInput = document.getElementById('plannerPeople');
 
-    const summarySpot = document.getElementById('plannerSummarySpot');
-    const summaryDate = document.getElementById('plannerSummaryDate');
-    const summaryPeople = document.getElementById('plannerSummaryPeople');
-    const summarySpotMeta = document.getElementById('plannerSummarySpotMeta');
-    const summaryDateMeta = document.getElementById('plannerSummaryDateMeta');
-    const summaryPeopleMeta = document.getElementById('plannerSummaryPeopleMeta');
-    const summarySpotState = document.getElementById('plannerSummarySpotState');
-    const summaryDateState = document.getElementById('plannerSummaryDateState');
-    const summaryPeopleState = document.getElementById('plannerSummaryPeopleState');
     const summaryRoot = document.getElementById('plannerSummary');
     const summaryIntro = document.getElementById('plannerSummaryIntro');
-    const summaryStatusNote = document.getElementById('plannerSummaryStatusNote');
-    const summaryRhythmSentence = document.getElementById('plannerSummaryRhythmSentence');
     const summaryActiveIndex = document.getElementById('plannerSummaryActiveIndex');
-    const summaryActiveSpot = document.getElementById('plannerSummaryActiveSpot');
-    const summaryActivePackage = document.getElementById('plannerSummaryActivePackage');
-    const summaryActiveCompanion = document.getElementById('plannerSummaryActiveCompanion');
-    const summaryRouteSpot = document.querySelector('#plannerSummary .planner-summary-ritual-route-spot');
-    const summaryFocusTitle = document.getElementById('plannerSummaryFocusTitle');
-    const summaryFocusCopy = document.getElementById('plannerSummaryFocusCopy');
-    const summaryPrepTitle = document.getElementById('plannerSummaryPrepTitle');
-    const summaryPrepCopy = document.getElementById('plannerSummaryPrepCopy');
     const summaryMeterFill = document.getElementById('plannerSummaryMeterFill');
     const summaryMeterOrbs = Array.from(document.querySelectorAll('#plannerSummary .planner-summary-meter-orb'));
-    const summaryItems = Array.from(document.querySelectorAll('#plannerSummary .planner-item'));
-    const summaryItemMap = summaryItems.reduce((map, item) => {
-        const fieldKey = String(item.dataset.summaryField || '').trim();
-        if (fieldKey) {
-            map[fieldKey] = item;
-        }
-        return map;
-    }, {});
+    const summarySwimStage = document.getElementById('plannerSummarySwimStage');
+    const summarySwimViewport = document.getElementById('plannerSummarySwimViewport');
+    const summaryPrevNeighbor = document.getElementById('plannerSummaryPrevNeighbor');
+    const summaryNextNeighbor = document.getElementById('plannerSummaryNextNeighbor');
+    const summarySwitchLive = document.getElementById('plannerSummarySwitchLive');
+    const initialSummaryDeck = summarySwimViewport?.querySelector('.planner-summary-swim-deck') || null;
 
     const spotField = document.querySelector('[data-planner-field="spot"]');
     const dateField = document.querySelector('[data-planner-field="date"]');
@@ -586,23 +565,15 @@ function setupPlannerSummary() {
         !spotInput ||
         !dateInput ||
         !peopleInput ||
-        !summarySpot ||
-        !summaryDate ||
-        !summaryPeople ||
-        !summarySpotMeta ||
-        !summaryDateMeta ||
-        !summaryPeopleMeta ||
-        !summarySpotState ||
-        !summaryDateState ||
-        !summaryPeopleState ||
         !summaryRoot ||
         !summaryIntro ||
-        !summaryStatusNote ||
         !summaryActiveIndex ||
-        !summaryActiveSpot ||
-        !summaryActivePackage ||
-        !summaryActiveCompanion ||
         !summaryMeterFill ||
+        !summarySwimStage ||
+        !summarySwimViewport ||
+        !summaryPrevNeighbor ||
+        !summaryNextNeighbor ||
+        !summarySwitchLive ||
         !spotField ||
         !dateField ||
         !peopleField ||
@@ -682,16 +653,26 @@ function setupPlannerSummary() {
         people: '\u6d77\u57df\u548c\u51fa\u53d1\u7a97\u53e3\u90fd\u5df2\u843d\u4f4d\uff0c\u56de\u6267\u5f00\u59cb\u6709\u4e86\u66f4\u6e05\u695a\u7684\u8282\u594f\u3002',
         confirmed: '\u8fd9\u4e00\u6f5c\u7684\u8f6e\u5ed3\u5df2\u7ecf\u88ab\u5b89\u9759\u6536\u4f4f\uff0c\u540e\u9762\u53ea\u9700\u8981\u987a\u7740\u5b83\u7ee7\u7eed\u51c6\u5907\u3002'
     };
+    function readInitialSummaryDeckText(slotName, fallbackValue = '') {
+        return initialSummaryDeck?.querySelector(`[data-summary-slot="${slotName}"]`)?.textContent?.trim()
+            || fallbackValue;
+    }
+
+    function readInitialSummaryNeighborText(button, slotName, fallbackValue = '') {
+        return button?.querySelector(`[data-summary-neighbor-slot="${slotName}"]`)?.textContent?.trim()
+            || fallbackValue;
+    }
+
     const DEFAULT_PLANNER_LINKAGE_COPY = {
-        rhythm: summaryRhythmSentence?.textContent?.trim()
+        rhythm: readInitialSummaryDeckText('rhythm-sentence')
             || '\u8fd9\u4e00\u6f5c\u8fd8\u7559\u5728\u6d77\u9762\u4e0a\uff0c\u5148\u8ba9\u4e00\u7247\u613f\u610f\u4e0b\u53bb\u7684\u84dd\u6162\u6162\u9760\u8fd1\u3002',
-        focusTitle: summaryFocusTitle?.textContent?.trim()
+        focusTitle: readInitialSummaryDeckText('focus-title')
             || '\u5148\u628a\u60f3\u770b\u89c1\u7684\u90a3\u4e00\u5c42\u6d77\u8bf4\u6e05\u695a',
-        focusCopy: summaryFocusCopy?.textContent?.trim()
+        focusCopy: readInitialSummaryDeckText('focus-copy')
             || '\u4e0b\u4e00\u5c42\u4f1a\u5e2e\u4f60\u628a\u6d77\u57df\u3001\u51fa\u53d1\u8282\u594f\u4e0e\u60f3\u7559\u4e0b\u7684\u90a3\u4e00\u9762\uff0c\u6162\u6162\u6536\u6210\u4e00\u8d9f\u66f4\u6e05\u695a\u7684\u6d77\u6d41\u3002',
-        prepTitle: summaryPrepTitle?.textContent?.trim()
+        prepTitle: readInitialSummaryDeckText('prep-title')
             || '\u51c6\u5907\u53ef\u4ee5\u5148\u505c\u5728\u5224\u65ad\uff0c\u4e0d\u7528\u6025\u7740\u8865\u6e05\u5355',
-        prepCopy: summaryPrepCopy?.textContent?.trim()
+        prepCopy: readInitialSummaryDeckText('prep-copy')
             || '\u7b49\u6d77\u57df\u548c\u65f6\u95f4\u66f4\u6e05\u695a\u4ee5\u540e\uff0c\u518d\u53bb\u770b\u8bc1\u4e66\u3001\u88c5\u5907\u548c\u5929\u6c14\u7a97\u53e3\uff0c\u4f1a\u66f4\u50cf\u76d0\u61a9\u7684\u51c6\u5907\u65b9\u5f0f\u3002',
         tripLead: tripLayerLead?.textContent?.trim()
             || '\u5148\u4ece\u4f60\u771f\u6b63\u60f3\u770b\u89c1\u4ec0\u4e48\u5f00\u59cb\uff0c\u884c\u7a0b\u624d\u4f1a\u6162\u6162\u6709\u65b9\u5411\u3002',
@@ -830,10 +811,9 @@ function setupPlannerSummary() {
 
     const summaryMetaMap = {
         spot: {
-            itemNode: summaryItemMap.spot || null,
-            valueNode: summarySpot,
-            metaNode: summarySpotMeta,
-            stateNode: summarySpotState,
+            valueSlot: 'spot-value',
+            metaSlot: 'spot-meta',
+            stateSlot: 'spot-state',
             emptyValue: '\u6d77\u57df\u5f85\u5b9a',
             emptyMeta: '\u8fd8\u6ca1\u5199\u8fdb\u56de\u6267\u3002',
             emptyState: '\u5f85\u5199\u5165',
@@ -841,10 +821,9 @@ function setupPlannerSummary() {
             filledMeta: '\u8fd9\u4e00\u7247\u84dd\u5df2\u7ecf\u5148\u843d\u4e0b\u3002'
         },
         date: {
-            itemNode: summaryItemMap.date || null,
-            valueNode: summaryDate,
-            metaNode: summaryDateMeta,
-            stateNode: summaryDateState,
+            valueSlot: 'date-value',
+            metaSlot: 'date-meta',
+            stateSlot: 'date-state',
             emptyValue: '\u65e5\u671f\u5f85\u5b9a',
             emptyMeta: '\u8fd8\u5728\u7b49\u4e00\u6bb5\u66f4\u5408\u9002\u7684\u6f6e\u6c50\u7a97\u53e3\u3002',
             emptyState: '\u5f85\u5199\u5165',
@@ -852,10 +831,9 @@ function setupPlannerSummary() {
             filledMeta: '\u51fa\u53d1\u7a97\u53e3\u5df2\u7ecf\u5199\u8fdb\u6765\u4e86\u3002'
         },
         people: {
-            itemNode: summaryItemMap.people || null,
-            valueNode: summaryPeople,
-            metaNode: summaryPeopleMeta,
-            stateNode: summaryPeopleState,
+            valueSlot: 'people-value',
+            metaSlot: 'people-meta',
+            stateSlot: 'people-state',
             emptyValue: '\u4eba\u6570\u5f85\u5b9a',
             emptyMeta: '\u540c\u884c\u8282\u594f\u8fd8\u6ca1\u5199\u8fdb\u6765\u3002',
             emptyState: '\u5f85\u5199\u5165',
@@ -878,13 +856,29 @@ function setupPlannerSummary() {
     let previousSummaryFilledCount = 0;
     let hasInitializedProgressiveState = false;
     let activeBookingEntryId = '';
+    let summaryStageSwitchTimer = 0;
+    let summaryStageCleanupTimer = 0;
+    let summaryStageHeightResetTimer = 0;
+    let summaryIsSwitching = false;
+    const summaryGestureState = {
+        pointerId: null,
+        startX: 0,
+        startY: 0,
+        shiftX: 0,
+        claimed: false
+    };
     const fieldUnlockTimers = new WeakMap();
     const defaultSubmitButtonLabel = submitButtonLabel.textContent.trim() || '\u786e\u8ba4\u8fd9\u4e00\u5c42\u5b89\u6392';
     const defaultSummaryActiveIndex = summaryActiveIndex.textContent.trim() || '01 / 01';
-    const defaultSummaryActiveSpot = summaryActiveSpot.textContent.trim() || '\u5f53\u524d\u6d77\u57df\u5f85\u5b9a';
-    const defaultSummaryActivePackage = summaryActivePackage.textContent.trim() || '\u5957\u9910\u5c1a\u672a\u5199\u5165';
-    const defaultSummaryActiveCompanion = summaryActiveCompanion.textContent.trim() || '\u540c\u884c\u8282\u594f\u5f85\u5b9a';
+    const defaultSummaryActiveSpot = readInitialSummaryDeckText('route-spot', '\u5f53\u524d\u6d77\u57df\u5f85\u5b9a');
+    const defaultSummaryActivePackage = readInitialSummaryDeckText('active-package', '\u5957\u9910\u5c1a\u672a\u5199\u5165');
+    const defaultSummaryActiveCompanion = readInitialSummaryDeckText('active-companion', '\u540c\u884c\u8282\u594f\u5f85\u5b9a');
+    const defaultSummaryNeighborStatus = readInitialSummaryNeighborText(summaryPrevNeighbor, 'status', '\u65f6\u95f4\u4e0e\u540c\u884c\u5f85\u6536\u62e2');
     const defaultPlannerSwitcherNote = plannerBookingSwitcherNote.textContent.trim() || '\u5f53\u524d\u53ea\u6574\u7406\u4e00\u6761\u4e0b\u6f5c\u8282\u594f';
+    const SUMMARY_SWITCH_DURATION_MS = 780;
+    const SUMMARY_SWIPE_TRIGGER_DISTANCE = 58;
+    const SUMMARY_SWIPE_CLAIM_DISTANCE = 18;
+    const SUMMARY_SWIPE_CLAIM_RATIO = 1.2;
 
     function getConfirmedBookings() {
         return sortConfirmedBookings(
@@ -1223,22 +1217,6 @@ function setupPlannerSummary() {
     }
 
     function syncPlannerSummaryGuidance(copy) {
-        if (summaryFocusTitle) {
-            summaryFocusTitle.textContent = copy.focusTitle;
-        }
-
-        if (summaryFocusCopy) {
-            summaryFocusCopy.textContent = copy.focusCopy;
-        }
-
-        if (summaryPrepTitle) {
-            summaryPrepTitle.textContent = copy.prepTitle;
-        }
-
-        if (summaryPrepCopy) {
-            summaryPrepCopy.textContent = copy.prepCopy;
-        }
-
         if (tripLayerLead) {
             tripLayerLead.textContent = copy.tripLead;
         }
@@ -1248,27 +1226,218 @@ function setupPlannerSummary() {
         }
     }
 
-    function syncSummaryItemState(fieldKey, isFilled, nextValue) {
-        const itemNode = summaryMetaMap[fieldKey]?.itemNode;
-        if (!itemNode) {
+    function getActiveSummaryDeck() {
+        return summarySwimViewport.querySelector('.planner-summary-swim-deck.is-deck-active')
+            || summarySwimViewport.querySelector('.planner-summary-swim-deck:not(.is-deck-outgoing)')
+            || summarySwimViewport.querySelector('.planner-summary-swim-deck');
+    }
+
+    function buildPlannerSummaryNeighborStatusLabel(booking) {
+        if (!booking) {
+            return defaultSummaryNeighborStatus;
+        }
+
+        return [
+            booking?.selectedDateLabel ? '时间已落位' : '时间待收拢',
+            booking?.selectedPeopleLabel ? '同行已落位' : '同行待收拢'
+        ].join(' · ');
+    }
+
+    function syncPlannerSummaryNeighbor(button, booking) {
+        if (!button) {
             return;
         }
 
-        const previousValue = String(itemNode.dataset.currentValue || '');
-        const wasFilled = itemNode.dataset.isFilled === 'true';
-        const shouldPulse = hasRenderedSummaryOnce && isFilled && (!wasFilled || previousValue !== nextValue);
+        const nameNode = button.querySelector('[data-summary-neighbor-slot="name"]');
+        const packageNode = button.querySelector('[data-summary-neighbor-slot="package"]');
+        const statusNode = button.querySelector('[data-summary-neighbor-slot="status"]');
+        const dateDot = button.querySelector('[data-summary-neighbor-slot="date-dot"]');
+        const peopleDot = button.querySelector('[data-summary-neighbor-slot="people-dot"]');
 
-        itemNode.classList.toggle('is-confirmed', isFilled);
-        itemNode.classList.toggle('is-empty', !isFilled);
-
-        if (shouldPulse) {
-            restartTransientClassAnimation(itemNode, 'is-updated');
-        } else {
-            itemNode.classList.remove('is-updated');
+        if (!booking) {
+            button.hidden = true;
+            button.disabled = true;
+            button.removeAttribute('data-entry-id');
+            button.setAttribute('aria-label', '暂无相邻海域');
+            nameNode && (nameNode.textContent = '');
+            packageNode && (packageNode.textContent = '');
+            statusNode && (statusNode.textContent = defaultSummaryNeighborStatus);
+            dateDot?.classList.remove('is-ready');
+            peopleDot?.classList.remove('is-ready');
+            return;
         }
 
-        itemNode.dataset.currentValue = isFilled ? nextValue : '';
-        itemNode.dataset.isFilled = String(isFilled);
+        const statusText = buildPlannerSummaryNeighborStatusLabel(booking);
+        button.hidden = false;
+        button.disabled = summaryIsSwitching;
+        button.dataset.entryId = String(booking.entryId || '').trim();
+        button.setAttribute('aria-label', `切换到 ${String(booking.spotName || '未命名海域').trim()}，${statusText}`);
+        nameNode && (nameNode.textContent = String(booking.spotName || '未命名海域').trim());
+        packageNode && (packageNode.textContent = buildPlannerBookingPackageLabel(booking));
+        statusNode && (statusNode.textContent = statusText);
+        dateDot?.classList.toggle('is-ready', Boolean(String(booking?.selectedDate || '').trim()));
+        peopleDot?.classList.toggle('is-ready', Boolean(String(booking?.selectedPeople || '').trim()));
+    }
+
+    function syncPlannerSummaryNeighbors(bookings = getConfirmedBookings(), activeBooking = getActiveBooking(bookings)) {
+        const safeBookings = Array.isArray(bookings) ? bookings : [];
+        const total = safeBookings.length;
+        const activeIndex = Math.max(0, safeBookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId));
+        const hasMultiple = total > 1 && Boolean(activeBooking);
+
+        summarySwimStage.classList.toggle('has-multiple', hasMultiple);
+
+        if (!hasMultiple) {
+            syncPlannerSummaryNeighbor(summaryPrevNeighbor, null);
+            syncPlannerSummaryNeighbor(summaryNextNeighbor, null);
+            return;
+        }
+
+        const prevBooking = safeBookings[(activeIndex - 1 + total) % total];
+        const nextBooking = safeBookings[(activeIndex + 1) % total];
+        syncPlannerSummaryNeighbor(summaryPrevNeighbor, prevBooking);
+        syncPlannerSummaryNeighbor(summaryNextNeighbor, nextBooking);
+    }
+
+    function buildPlannerSummaryDeckMarkup(state) {
+        const spotItem = state.items.spot;
+        const dateItem = state.items.date;
+        const peopleItem = state.items.people;
+
+        return `
+            <p class="planner-summary-status-note" data-summary-slot="status-note">
+                ${escapeHtml(state.statusNote)}
+            </p>
+
+            <div class="planner-summary-ritual">
+                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--route">
+                    <p class="planner-summary-ritual-route-label">Current Route</p>
+                    <strong class="planner-summary-ritual-route-spot" data-summary-slot="route-spot">${escapeHtml(state.activeSpotLabel || '当前海域待定')}</strong>
+                </div>
+                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--rhythm">
+                    <p class="planner-summary-ritual-rhythm" data-summary-slot="rhythm-sentence">
+                        ${escapeHtml(state.rhythmSentence)}
+                    </p>
+                </div>
+                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--chips">
+                    <span class="planner-summary-ritual-chip planner-summary-ritual-chip-package" data-summary-slot="active-package">${escapeHtml(state.activePackageLabel)}</span>
+                    <span class="planner-summary-ritual-chip planner-summary-ritual-chip-companion" data-summary-slot="active-companion">${escapeHtml(state.activeCompanionLabel)}</span>
+                </div>
+            </div>
+
+            <div class="planner-summary-receipt">
+                <article class="planner-item${spotItem.isFilled ? ' is-confirmed' : ' is-empty'}" data-summary-field="spot">
+                    <span class="planner-item-index">01</span>
+                    <div class="planner-item-copy">
+                        <span class="planner-label">海域</span>
+                        <strong data-summary-slot="spot-value">${escapeHtml(spotItem.value)}</strong>
+                        <small data-summary-slot="spot-meta">${escapeHtml(spotItem.meta)}</small>
+                    </div>
+                    <span class="planner-item-state" data-summary-slot="spot-state">${escapeHtml(spotItem.state)}</span>
+                </article>
+
+                <article class="planner-item${dateItem.isFilled ? ' is-confirmed' : ' is-empty'}" data-summary-field="date">
+                    <span class="planner-item-index">02</span>
+                    <div class="planner-item-copy">
+                        <span class="planner-label">出发</span>
+                        <strong data-summary-slot="date-value">${escapeHtml(dateItem.value)}</strong>
+                        <small data-summary-slot="date-meta">${escapeHtml(dateItem.meta)}</small>
+                    </div>
+                    <span class="planner-item-state" data-summary-slot="date-state">${escapeHtml(dateItem.state)}</span>
+                </article>
+
+                <article class="planner-item${peopleItem.isFilled ? ' is-confirmed' : ' is-empty'}" data-summary-field="people">
+                    <span class="planner-item-index">03</span>
+                    <div class="planner-item-copy">
+                        <span class="planner-label">同行</span>
+                        <strong data-summary-slot="people-value">${escapeHtml(peopleItem.value)}</strong>
+                        <small data-summary-slot="people-meta">${escapeHtml(peopleItem.meta)}</small>
+                    </div>
+                    <span class="planner-item-state" data-summary-slot="people-state">${escapeHtml(peopleItem.state)}</span>
+                </article>
+            </div>
+
+            <div class="planner-summary-guidance">
+                <article class="planner-summary-guidance-card">
+                    <p class="planner-summary-guidance-label">海域焦点</p>
+                    <h3 class="planner-summary-guidance-title" data-summary-slot="focus-title">${escapeHtml(state.guidance.focusTitle)}</h3>
+                    <p class="planner-summary-guidance-copy" data-summary-slot="focus-copy">${escapeHtml(state.guidance.focusCopy)}</p>
+                </article>
+                <article class="planner-summary-guidance-card">
+                    <p class="planner-summary-guidance-label">准备提示</p>
+                    <h3 class="planner-summary-guidance-title" data-summary-slot="prep-title">${escapeHtml(state.guidance.prepTitle)}</h3>
+                    <p class="planner-summary-guidance-copy" data-summary-slot="prep-copy">${escapeHtml(state.guidance.prepCopy)}</p>
+                </article>
+            </div>
+        `;
+    }
+
+    function createPlannerSummaryDeckElement(state) {
+        const deck = document.createElement('div');
+        deck.className = 'planner-summary-swim-deck';
+        deck.innerHTML = buildPlannerSummaryDeckMarkup(state);
+        return deck;
+    }
+
+    function renderPlannerSummaryDeckState(state) {
+        const currentDeck = getActiveSummaryDeck();
+        const nextDeck = createPlannerSummaryDeckElement(state);
+        nextDeck.classList.add('is-deck-active');
+
+        if (!currentDeck) {
+            summarySwimViewport.innerHTML = '';
+            summarySwimViewport.appendChild(nextDeck);
+            return nextDeck;
+        }
+
+        currentDeck.replaceWith(nextDeck);
+        return nextDeck;
+    }
+
+    function setPlannerSummaryStatusOverride(statusText) {
+        const statusNode = getActiveSummaryDeck()?.querySelector('[data-summary-slot="status-note"]');
+        if (statusNode) {
+            statusNode.textContent = statusText;
+        }
+    }
+
+    function clearPlannerSummaryHeightResetTimer() {
+        if (!summaryStageHeightResetTimer) {
+            return;
+        }
+
+        window.clearTimeout(summaryStageHeightResetTimer);
+        summaryStageHeightResetTimer = 0;
+    }
+
+    function lockPlannerSummaryViewportHeight(...decks) {
+        clearPlannerSummaryHeightResetTimer();
+
+        const heights = [
+            summarySwimViewport.offsetHeight || 0,
+            ...decks.map((deck) => deck?.offsetHeight || 0)
+        ].filter((value) => value > 0);
+
+        if (!heights.length) {
+            return;
+        }
+
+        summarySwimViewport.style.height = `${Math.max(...heights)}px`;
+    }
+
+    function releasePlannerSummaryViewportHeight(delay = 80) {
+        clearPlannerSummaryHeightResetTimer();
+        summaryStageHeightResetTimer = window.setTimeout(() => {
+            summarySwimViewport.style.height = '';
+            summaryStageHeightResetTimer = 0;
+        }, delay);
+    }
+
+    function resetPlannerSummarySwipeShift() {
+        summaryGestureState.shiftX = 0;
+        summaryGestureState.claimed = false;
+        summarySwimStage.style.setProperty('--planner-summary-swipe-shift', '0px');
+        summarySwimStage.classList.remove('is-dragging');
     }
 
     function pulsePlannerSummaryProgress() {
@@ -1528,7 +1697,7 @@ function setupPlannerSummary() {
         attachPlannerSubmitFeedbackInterruption();
 
         restartTransientClassAnimation(summaryRoot, 'is-submit-feedback');
-        summaryStatusNote.textContent = feedbackCopy.status;
+        setPlannerSummaryStatusOverride(feedbackCopy.status);
 
         submitContinueTimer = window.setTimeout(() => {
             submitContinueTimer = 0;
@@ -2544,11 +2713,7 @@ function setupPlannerSummary() {
         syncProgressivePlannerState();
     }
 
-    /**
-     * updatePlannerSummary() - 根据当前字段值刷新回执层
-     * @returns {void} - 无返回值，直接更新回执文案
-     */
-    function updatePlannerSummary() {
+    function buildPlannerSummaryViewState() {
         const bookings = getConfirmedBookings();
         const activeBooking = getActiveBooking(bookings);
         const spotLabel = spotInput.dataset.label || summaryMetaMap.spot.emptyValue;
@@ -2561,7 +2726,6 @@ function setupPlannerSummary() {
         const isConfirmed = hasSpot && hasDate && hasPeople;
         const filledCount = [hasSpot, hasDate, hasPeople].filter(Boolean).length;
         const summaryStage = getPlannerSummaryStage(hasSpot, hasDate, hasPeople);
-        const wasConfirmed = summaryRoot.classList.contains('is-confirmed');
         const activeIndex = Math.max(0, bookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId));
         const activeIndexLabel = activeBooking
             ? `${String(activeIndex + 1).padStart(2, '0')} / ${String(bookings.length).padStart(2, '0')}`
@@ -2573,7 +2737,7 @@ function setupPlannerSummary() {
             ? buildPlannerBookingPackageLabel(activeBooking)
             : defaultSummaryActivePackage;
         const activeCompanionLabel = buildPlannerCompanionChipLabel(activeBooking, hasDate, hasPeople, dateLabel, peopleLabel);
-        const summaryGuidance = buildPlannerSummaryGuidance({
+        const guidance = buildPlannerSummaryGuidance({
             hasSpot,
             hasDate,
             hasPeople,
@@ -2583,56 +2747,23 @@ function setupPlannerSummary() {
             stayLabel
         });
 
-        const nextValues = {
-            spot: spotLabel,
-            date: dateLabel,
-            people: peopleLabel
-        };
-
-        summaryActiveIndex.textContent = activeIndexLabel;
-        summaryActiveSpot.textContent = activeSpotLabel;
-        summaryActivePackage.textContent = activePackageLabel;
-        summaryActiveCompanion.textContent = activeCompanionLabel;
-        if (summaryRouteSpot) {
-            summaryRouteSpot.textContent = activeSpotLabel || '\u6b63\u5728\u6536\u675f\u8fd9\u4e00\u6b21\u4e0b\u6f5c\u8eab\u4efd';
-        }
-
-        summaryMetaMap.spot.valueNode.textContent = spotLabel;
-        summaryMetaMap.spot.metaNode.textContent = hasSpot
-            ? (stayLabel ? `这片海先收成${stayLabel}的停驻。` : summaryMetaMap.spot.filledMeta)
-            : summaryMetaMap.spot.emptyMeta;
-        summaryMetaMap.spot.stateNode.textContent = hasSpot
-            ? summaryMetaMap.spot.filledState
-            : summaryMetaMap.spot.emptyState;
-
-        summaryMetaMap.date.valueNode.textContent = dateLabel;
-        summaryMetaMap.date.metaNode.textContent = hasDate
-            ? summaryMetaMap.date.filledMeta
-            : summaryMetaMap.date.emptyMeta;
-        summaryMetaMap.date.stateNode.textContent = hasDate
-            ? summaryMetaMap.date.filledState
-            : summaryMetaMap.date.emptyState;
-
-        summaryMetaMap.people.valueNode.textContent = peopleLabel;
-        summaryMetaMap.people.metaNode.textContent = hasPeople
-            ? summaryMetaMap.people.filledMeta
-            : summaryMetaMap.people.emptyMeta;
-        summaryMetaMap.people.stateNode.textContent = hasPeople
-            ? summaryMetaMap.people.filledState
-            : summaryMetaMap.people.emptyState;
-
-        summaryIntro.textContent = SUMMARY_INTRO_COPY[summaryStage] || SUMMARY_INTRO_COPY.idle;
-        summaryStatusNote.textContent = buildPlannerSummaryReceiptCopy({
+        return {
+            bookings,
+            activeBooking,
+            activeIndex,
+            activeIndexLabel,
+            activeSpotLabel,
+            activePackageLabel,
+            activeCompanionLabel,
+            guidance,
             hasSpot,
             hasDate,
             hasPeople,
-            spotLabel,
-            dateLabel,
-            peopleLabel,
-            stayLabel
-        });
-        if (summaryRhythmSentence) {
-            summaryRhythmSentence.textContent = buildPlannerRhythmSentence({
+            isConfirmed,
+            filledCount,
+            summaryStage,
+            intro: SUMMARY_INTRO_COPY[summaryStage] || SUMMARY_INTRO_COPY.idle,
+            statusNote: buildPlannerSummaryReceiptCopy({
                 hasSpot,
                 hasDate,
                 hasPeople,
@@ -2640,40 +2771,206 @@ function setupPlannerSummary() {
                 dateLabel,
                 peopleLabel,
                 stayLabel
-            });
-        }
-        syncPlannerSummaryGuidance(summaryGuidance);
-        summaryRoot.dataset.summaryStage = summaryStage;
-        summaryRoot.classList.toggle('is-empty', filledCount === 0);
-        // 回执只要已经写进任意一项，就持续保留“正在显形”的状态；
-        // 当三项都收齐时，再额外叠加 is-confirmed，避免完成最后一步时把 has-progress 误撤掉。
-        summaryRoot.classList.toggle('has-progress', filledCount > 0);
-        summaryRoot.classList.toggle('is-confirmed', isConfirmed);
-        summaryRoot.classList.toggle('is-breathing', filledCount > 0 && !isConfirmed);
-        syncPlannerSummaryMeter(filledCount, isConfirmed, {
-            hasSpot,
-            hasDate,
-            hasPeople
+            }),
+            rhythmSentence: buildPlannerRhythmSentence({
+                hasSpot,
+                hasDate,
+                hasPeople,
+                spotLabel,
+                dateLabel,
+                peopleLabel,
+                stayLabel
+            }),
+            items: {
+                spot: {
+                    value: spotLabel,
+                    meta: hasSpot
+                        ? (stayLabel ? `这片海先收成${stayLabel}的停驻。` : summaryMetaMap.spot.filledMeta)
+                        : summaryMetaMap.spot.emptyMeta,
+                    state: hasSpot ? summaryMetaMap.spot.filledState : summaryMetaMap.spot.emptyState,
+                    isFilled: hasSpot
+                },
+                date: {
+                    value: dateLabel,
+                    meta: hasDate ? summaryMetaMap.date.filledMeta : summaryMetaMap.date.emptyMeta,
+                    state: hasDate ? summaryMetaMap.date.filledState : summaryMetaMap.date.emptyState,
+                    isFilled: hasDate
+                },
+                people: {
+                    value: peopleLabel,
+                    meta: hasPeople ? summaryMetaMap.people.filledMeta : summaryMetaMap.people.emptyMeta,
+                    state: hasPeople ? summaryMetaMap.people.filledState : summaryMetaMap.people.emptyState,
+                    isFilled: hasPeople
+                }
+            }
+        };
+    }
+
+    function applyPlannerSummaryState(state, options = {}) {
+        const { renderDeck = true } = options;
+        const wasConfirmed = summaryRoot.classList.contains('is-confirmed');
+
+        summaryActiveIndex.textContent = state.activeIndexLabel;
+        summaryIntro.textContent = state.intro;
+        syncPlannerSummaryGuidance(state.guidance);
+        syncPlannerSummaryNeighbors(state.bookings, state.activeBooking);
+        summaryRoot.dataset.summaryStage = state.summaryStage;
+        summaryRoot.classList.toggle('is-empty', state.filledCount === 0);
+        summaryRoot.classList.toggle('has-progress', state.filledCount > 0);
+        summaryRoot.classList.toggle('is-confirmed', state.isConfirmed);
+        summaryRoot.classList.toggle('is-breathing', state.filledCount > 0 && !state.isConfirmed);
+        syncPlannerSummaryMeter(state.filledCount, state.isConfirmed, {
+            hasSpot: state.hasSpot,
+            hasDate: state.hasDate,
+            hasPeople: state.hasPeople
         });
         syncPlannerSubmitActionLabel();
 
-        syncSummaryItemState('spot', hasSpot, nextValues.spot);
-        syncSummaryItemState('date', hasDate, nextValues.date);
-        syncSummaryItemState('people', hasPeople, nextValues.people);
+        if (renderDeck) {
+            renderPlannerSummaryDeckState(state);
+            clearPlannerSummaryHeightResetTimer();
+            if (!summaryIsSwitching) {
+                summarySwimViewport.style.height = '';
+            }
+        }
 
-        if (hasRenderedSummaryOnce && isConfirmed && !wasConfirmed) {
+        if (hasRenderedSummaryOnce && state.isConfirmed && !wasConfirmed) {
             restartTransientClassAnimation(summaryRoot, 'is-updated-confirmed');
-        } else if (!isConfirmed) {
+        } else if (!state.isConfirmed) {
             summaryRoot.classList.remove('is-updated-confirmed');
         }
 
         hasRenderedSummaryOnce = true;
+    }
+
+    /**
+     * updatePlannerSummary() - 根据当前字段值刷新回执层
+     * @returns {Object} - 当前回执状态对象
+     */
+    function updatePlannerSummary() {
+        const state = buildPlannerSummaryViewState();
+        applyPlannerSummaryState(state);
 
         if (store && typeof store.savePlannerDraft === 'function') {
             // 这里保存的是 Planner 的“编辑中草稿”；
             // 它和下面 commitPlannerDeskSelection() 写入的已收进行程是两层不同的数据。
             store.savePlannerDraft(buildPlannerDraftPayload());
         }
+
+        return state;
+    }
+
+    function getPlannerSummarySwitchTarget(direction, bookings = getConfirmedBookings()) {
+        const safeBookings = Array.isArray(bookings) ? bookings : [];
+        const activeBooking = getActiveBooking(safeBookings);
+
+        if (!activeBooking || safeBookings.length < 2) {
+            return null;
+        }
+
+        const activeIndex = safeBookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId);
+        if (activeIndex === -1) {
+            return null;
+        }
+
+        const targetIndex = direction === 'backward'
+            ? (activeIndex - 1 + safeBookings.length) % safeBookings.length
+            : (activeIndex + 1) % safeBookings.length;
+
+        return safeBookings[targetIndex] || null;
+    }
+
+    function switchPlannerSummaryBooking(entryId, direction = 'forward', source = 'preview') {
+        const safeEntryId = String(entryId || '').trim();
+        const flowDirection = direction === 'backward' ? 'backward' : 'forward';
+        const bookings = getConfirmedBookings();
+        const activeBooking = getActiveBooking(bookings);
+        const nextBooking = getBookingByEntryId(safeEntryId, bookings);
+
+        if (
+            !safeEntryId ||
+            summaryIsSwitching ||
+            !activeBooking ||
+            !nextBooking ||
+            safeEntryId === String(activeBooking.entryId || '').trim() ||
+            bookings.length < 2
+        ) {
+            return null;
+        }
+
+        const currentDeck = getActiveSummaryDeck();
+        if (!currentDeck) {
+            const fallbackBooking = setActiveBooking(safeEntryId, {
+                bookings,
+                refreshSummary: true,
+                refreshCards: true
+            });
+            if (summarySwitchLive && fallbackBooking?.spotName) {
+                summarySwitchLive.textContent = `已切到${fallbackBooking.spotName}。`;
+            }
+            return fallbackBooking;
+        }
+
+        clearPlannerSummaryHeightResetTimer();
+        resetPlannerSummarySwipeShift();
+
+        summaryIsSwitching = true;
+        summaryRoot.classList.add('is-swim-switching');
+        summarySwimStage.classList.add('is-stage-switching');
+        summarySwimStage.classList.toggle('is-flow-backward', flowDirection === 'backward');
+        summarySwimStage.classList.toggle('is-flow-forward', flowDirection !== 'backward');
+        summarySwimViewport.classList.add('is-stage-switching');
+        lockPlannerSummaryViewportHeight(currentDeck);
+        currentDeck.classList.remove('is-deck-active');
+        currentDeck.classList.add('is-deck-outgoing');
+
+        setActiveBooking(safeEntryId, {
+            bookings,
+            refreshSummary: false,
+            refreshCards: true
+        });
+
+        const nextState = buildPlannerSummaryViewState();
+        applyPlannerSummaryState(nextState, { renderDeck: false });
+
+        if (store && typeof store.savePlannerDraft === 'function') {
+            store.savePlannerDraft(buildPlannerDraftPayload());
+        }
+
+        const incomingDeck = createPlannerSummaryDeckElement(nextState);
+        incomingDeck.classList.add('is-deck-incoming');
+        summarySwimViewport.appendChild(incomingDeck);
+        lockPlannerSummaryViewportHeight(currentDeck, incomingDeck);
+
+        summaryStageSwitchTimer = window.setTimeout(() => {
+            incomingDeck.classList.add('is-deck-active');
+            summaryStageSwitchTimer = 0;
+        }, 24);
+
+        summaryStageCleanupTimer = window.setTimeout(() => {
+            if (currentDeck.isConnected) {
+                currentDeck.remove();
+            }
+
+            incomingDeck.classList.remove('is-deck-incoming');
+            incomingDeck.classList.add('is-deck-active');
+            summarySwimStage.classList.remove('is-stage-switching', 'is-flow-forward', 'is-flow-backward', 'is-dragging');
+            summarySwimViewport.classList.remove('is-stage-switching');
+            summaryRoot.classList.remove('is-swim-switching');
+            summaryIsSwitching = false;
+            releasePlannerSummaryViewportHeight();
+            syncPlannerSummaryNeighbors(nextState.bookings, nextState.activeBooking);
+
+            if (summarySwitchLive && nextBooking?.spotName) {
+                summarySwitchLive.textContent = source === 'gesture'
+                    ? `已潜游到${nextBooking.spotName}。`
+                    : `已切到${nextBooking.spotName}。`;
+            }
+
+            summaryStageCleanupTimer = 0;
+        }, SUMMARY_SWITCH_DURATION_MS);
+
+        return nextBooking;
     }
 
     /**
@@ -2726,6 +3023,184 @@ function setupPlannerSummary() {
         restoreDraftSelection(draft);
     }
     const peopleOptions = Array.from(peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]'));
+
+    function resetPlannerSummaryGestureTracking() {
+        const pointerId = summaryGestureState.pointerId;
+        if (
+            pointerId !== null &&
+            typeof pointerId === 'number' &&
+            typeof summarySwimStage.releasePointerCapture === 'function' &&
+            summarySwimStage.hasPointerCapture?.(pointerId)
+        ) {
+            try {
+                summarySwimStage.releasePointerCapture(pointerId);
+            } catch (error) {
+                // 某些浏览器在 pointer 已结束后会抛异常，这里静默兜底即可。
+            }
+        }
+
+        summaryGestureState.pointerId = null;
+        summaryGestureState.startX = 0;
+        summaryGestureState.startY = 0;
+        resetPlannerSummarySwipeShift();
+    }
+
+    function beginPlannerSummaryGesture(pointerToken, clientX, clientY) {
+        if (
+            summaryIsSwitching ||
+            getConfirmedBookings().length < 2 ||
+            summaryGestureState.pointerId !== null
+        ) {
+            return false;
+        }
+
+        summaryGestureState.pointerId = pointerToken;
+        summaryGestureState.startX = clientX;
+        summaryGestureState.startY = clientY;
+        summaryGestureState.shiftX = 0;
+        summaryGestureState.claimed = false;
+        return true;
+    }
+
+    function updatePlannerSummaryGesture(pointerToken, clientX, clientY, onClaim = null) {
+        if (summaryGestureState.pointerId !== pointerToken || summaryIsSwitching) {
+            return;
+        }
+
+        const deltaX = clientX - summaryGestureState.startX;
+        const deltaY = clientY - summaryGestureState.startY;
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        if (!summaryGestureState.claimed) {
+            if (absX < SUMMARY_SWIPE_CLAIM_DISTANCE && absY < SUMMARY_SWIPE_CLAIM_DISTANCE) {
+                return;
+            }
+
+            if (absX <= absY * SUMMARY_SWIPE_CLAIM_RATIO) {
+                resetPlannerSummaryGestureTracking();
+                return;
+            }
+
+            summaryGestureState.claimed = true;
+            summarySwimStage.classList.add('is-dragging');
+            if (typeof onClaim === 'function') {
+                onClaim();
+            }
+        }
+
+        summaryGestureState.shiftX = Math.max(-136, Math.min(136, deltaX));
+        summarySwimStage.style.setProperty('--planner-summary-swipe-shift', `${summaryGestureState.shiftX}px`);
+    }
+
+    function finishPlannerSummaryGesture(pointerToken) {
+        if (summaryGestureState.pointerId !== pointerToken) {
+            return;
+        }
+
+        const finalShift = summaryGestureState.shiftX;
+        const direction = finalShift < 0 ? 'forward' : 'backward';
+        const targetBooking = Math.abs(finalShift) >= SUMMARY_SWIPE_TRIGGER_DISTANCE
+            ? getPlannerSummarySwitchTarget(direction)
+            : null;
+
+        resetPlannerSummaryGestureTracking();
+
+        if (!targetBooking) {
+            return;
+        }
+
+        switchPlannerSummaryBooking(targetBooking.entryId, direction, 'gesture');
+    }
+
+    [summaryPrevNeighbor, summaryNextNeighbor].forEach((button, index) => {
+        button.addEventListener('click', () => {
+            const entryId = String(button.dataset.entryId || '').trim();
+            const direction = index === 0 ? 'backward' : 'forward';
+            if (!entryId) {
+                return;
+            }
+
+            switchPlannerSummaryBooking(entryId, direction, 'preview');
+        });
+    });
+
+    summarySwimStage.addEventListener('keydown', (event) => {
+        if (summaryIsSwitching || event.altKey || event.ctrlKey || event.metaKey) {
+            return;
+        }
+
+        const direction = event.key === 'ArrowLeft'
+            ? 'backward'
+            : (event.key === 'ArrowRight' ? 'forward' : '');
+        if (!direction) {
+            return;
+        }
+
+        const targetBooking = getPlannerSummarySwitchTarget(direction);
+        if (!targetBooking) {
+            return;
+        }
+
+        event.preventDefault();
+        switchPlannerSummaryBooking(targetBooking.entryId, direction, 'keyboard');
+    });
+
+    summarySwimStage.addEventListener('pointerdown', (event) => {
+        if (event.pointerType === 'mouse') {
+            return;
+        }
+
+        if (event.button !== 0) {
+            return;
+        }
+
+        beginPlannerSummaryGesture(event.pointerId, event.clientX, event.clientY);
+    });
+
+    summarySwimStage.addEventListener('pointermove', (event) => {
+        if (summaryGestureState.pointerId !== event.pointerId) {
+            return;
+        }
+
+        if (event.cancelable) {
+            event.preventDefault();
+        }
+
+        updatePlannerSummaryGesture(event.pointerId, event.clientX, event.clientY, () => {
+            if (typeof summarySwimStage.setPointerCapture === 'function') {
+                summarySwimStage.setPointerCapture(event.pointerId);
+            }
+        });
+    });
+
+    const handlePlannerSummaryPointerRelease = (event) => {
+        finishPlannerSummaryGesture(event.pointerId);
+    };
+
+    summarySwimStage.addEventListener('pointerup', handlePlannerSummaryPointerRelease);
+    summarySwimStage.addEventListener('pointercancel', handlePlannerSummaryPointerRelease);
+    summarySwimStage.addEventListener('lostpointercapture', handlePlannerSummaryPointerRelease);
+
+    summarySwimStage.addEventListener('mousedown', (event) => {
+        if (event.button !== 0) {
+            return;
+        }
+
+        beginPlannerSummaryGesture('mouse', event.clientX, event.clientY);
+    });
+
+    window.addEventListener('mousemove', (event) => {
+        if (summaryGestureState.pointerId !== 'mouse') {
+            return;
+        }
+
+        updatePlannerSummaryGesture('mouse', event.clientX, event.clientY);
+    });
+
+    window.addEventListener('mouseup', () => {
+        finishPlannerSummaryGesture('mouse');
+    });
 
     plannerBookingSwitcherTrack.addEventListener('click', (event) => {
         const chip = event.target.closest('.planner-booking-switcher-chip[data-entry-id]');

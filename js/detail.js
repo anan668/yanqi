@@ -25,7 +25,6 @@ const BOOKING_MATCH_CONFIRM_CLOSE_DURATION = 380;
 const SEA_ATLAS_EMPTY_TILE_DATA_URI = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 const SEA_ATLAS_FALLBACK_TILE_ERROR_THRESHOLD = 3;
 const SEA_ATLAS_MOBILE_PASSIVE_QUERY = '(max-width: 960px)';
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 const SEA_ATLAS_ROUTE_VIEWBOX_WIDTH = 640;
 const SEA_ATLAS_ROUTE_VIEWBOX_HEIGHT = 360;
 const SEA_ATLAS_TILE_ATTRIBUTION = 'Offline Sea Atlas · Natural Earth land data';
@@ -798,15 +797,6 @@ function restartTransientClassAnimation(element, className) {
             element.classList.add(className);
         }
     });
-}
-
-/**
- * prefersReducedMotion() - 读取系统是否要求弱化复杂动画
- * @returns {boolean} - 当前是否启用 reduced motion
- */
-function prefersReducedMotion() {
-    return typeof window.matchMedia === 'function'
-        && window.matchMedia(REDUCED_MOTION_QUERY).matches;
 }
 
 // 潜点主数据：这里集中定义每个潜点的文案、图片、套餐、评论与相关推荐信息。
@@ -2783,6 +2773,7 @@ class DetailPage {
         this.seaAtlasReplayRouteAfterSync = false;
         this.seaProfileEntranceTimer = 0;
         this.seaProfileEntranceDelayId = 0;
+        this.seaProfileEntranceFrameId = 0;
         this.seaAtlasPortCardVisible = false;
         this.seaAtlasMapInteractionTimer = 0;
         this.seaAtlasInlineInitialView = null;
@@ -7801,10 +7792,6 @@ class DetailPage {
     }
 
     getSeaAtlasViewMotionDelay(shell = null, view = this.activeSeaView) {
-        if (prefersReducedMotion()) {
-            return 0;
-        }
-
         if (!shell) {
             return 0;
         }
@@ -7828,12 +7815,6 @@ class DetailPage {
 
         window.clearTimeout(this.seaAtlasEntranceTimer);
         this.seaAtlasEntranceTimer = 0;
-
-        if (prefersReducedMotion()) {
-            shell.classList.remove('is-atlas-awakening');
-            shell.classList.add('is-atlas-awake');
-            return;
-        }
 
         shell.classList.remove('is-atlas-awake');
         restartTransientClassAnimation(shell, 'is-atlas-awakening');
@@ -7859,6 +7840,11 @@ class DetailPage {
             this.seaProfileEntranceTimer = 0;
         }
 
+        if (this.seaProfileEntranceFrameId) {
+            window.cancelAnimationFrame(this.seaProfileEntranceFrameId);
+            this.seaProfileEntranceFrameId = 0;
+        }
+
         if (!clearState) {
             return;
         }
@@ -7868,7 +7854,7 @@ class DetailPage {
     }
 
     getSeaProfileEntranceDuration(panel = this.mapContainer?.querySelector('[data-sea-panel="underwater"]')) {
-        if (!panel || prefersReducedMotion()) {
+        if (!panel) {
             return 0;
         }
 
@@ -7895,6 +7881,11 @@ class DetailPage {
         ) + 80;
     }
 
+    getSeaProfileRevealDelay() {
+        // 只留出极短显形窗口，确保一切到“水下结构”就能看见它开始醒来。
+        return 40;
+    }
+
     playSeaProfileEntrance(delay = 0) {
         const panel = this.mapContainer?.querySelector('[data-sea-panel="underwater"]');
         if (!panel) {
@@ -7908,22 +7899,27 @@ class DetailPage {
                 return;
             }
 
-            panel.classList.remove('is-profile-settled');
-            if (prefersReducedMotion()) {
-                panel.classList.remove('is-profile-awakening');
-                panel.classList.add('is-profile-settled');
-                return;
-            }
+            panel.classList.remove('is-profile-awakening', 'is-profile-settled');
 
-            restartTransientClassAnimation(panel, 'is-profile-awakening');
-            const entranceDuration = this.getSeaProfileEntranceDuration(panel);
-            this.seaProfileEntranceTimer = window.setTimeout(() => {
-                if (panel.isConnected && this.activeSeaView === 'underwater') {
-                    panel.classList.remove('is-profile-awakening');
-                    panel.classList.add('is-profile-settled');
-                }
-                this.seaProfileEntranceTimer = 0;
-            }, entranceDuration);
+            this.seaProfileEntranceFrameId = window.requestAnimationFrame(() => {
+                this.seaProfileEntranceFrameId = 0;
+                this.seaProfileEntranceDelayId = window.setTimeout(() => {
+                    this.seaProfileEntranceDelayId = 0;
+                    if (!panel.isConnected || this.activeSeaView !== 'underwater') {
+                        return;
+                    }
+
+                    panel.classList.add('is-profile-awakening');
+                    const entranceDuration = this.getSeaProfileEntranceDuration(panel);
+                    this.seaProfileEntranceTimer = window.setTimeout(() => {
+                        if (panel.isConnected && this.activeSeaView === 'underwater') {
+                            panel.classList.remove('is-profile-awakening');
+                            panel.classList.add('is-profile-settled');
+                        }
+                        this.seaProfileEntranceTimer = 0;
+                    }, entranceDuration);
+                }, 34);
+            });
         };
 
         if (delay > 0) {
@@ -7937,10 +7933,16 @@ class DetailPage {
         start();
     }
 
-    awakenSeaAtlasShell(shell = null) {
+    awakenSeaAtlasShell(shell = null, options = {}) {
+        const { triggerUnderwaterEntrance = true } = options;
         const targetShell = shell || this.mapContainer?.querySelector('#seaAtlasShell');
         if (!targetShell) {
             return null;
+        }
+
+        if (this.seaAtlasRevealProbeTimer) {
+            window.clearTimeout(this.seaAtlasRevealProbeTimer);
+            this.seaAtlasRevealProbeTimer = 0;
         }
 
         if (targetShell.classList.contains('is-map-awake')) {
@@ -7964,11 +7966,45 @@ class DetailPage {
         }
 
         this.syncSeaRouteLineState();
-        if (this.activeSeaView === 'underwater') {
+        if (triggerUnderwaterEntrance && this.activeSeaView === 'underwater') {
             this.playSeaProfileEntrance(motionDelay);
         }
 
         return targetShell;
+    }
+
+    /**
+     * isSeaAtlasShellInRevealBand() - 判断海域定位台是否已经进入用户真正会开始阅读的视口带
+     * @param {HTMLElement|null} shell - 海域定位台外壳节点
+     * @returns {boolean} - 当前是否应开始播放海图入场
+     */
+    isSeaAtlasShellInRevealBand(shell = null) {
+        const targetShell = shell || this.mapContainer?.querySelector('#seaAtlasShell');
+        if (!targetShell) {
+            return false;
+        }
+
+        const rect = targetShell.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const visibleTop = Math.max(rect.top, 0);
+        const visibleBottom = Math.min(rect.bottom, viewportHeight);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        const visibleRatio = rect.height > 0 ? visibleHeight / rect.height : 0;
+        const hasEnteredReadingBand = (
+            rect.top < viewportHeight * 0.72
+            && rect.bottom > viewportHeight * 0.18
+            && visibleHeight >= Math.min(
+                Math.max(340, viewportHeight * 0.32),
+                rect.height * 0.36
+            )
+        );
+        const hasLargeViewportImmediateVisibility = (
+            rect.top < viewportHeight * 0.9
+            && rect.bottom > viewportHeight * 0.12
+            && visibleRatio >= 0.3
+        );
+
+        return hasEnteredReadingBand || hasLargeViewportImmediateVisibility;
     }
 
     setupSeaAtlasReveal() {
@@ -7978,22 +8014,66 @@ class DetailPage {
         }
 
         const awaken = () => this.awakenSeaAtlasShell(shell);
+        const queueRevealProbe = (attemptsRemaining = 5, delay = 180) => {
+            if (this.seaAtlasRevealProbeTimer) {
+                window.clearTimeout(this.seaAtlasRevealProbeTimer);
+            }
+
+            this.seaAtlasRevealProbeTimer = window.setTimeout(() => {
+                this.seaAtlasRevealProbeTimer = 0;
+                if (!shell.isConnected || shell.classList.contains('is-map-awake')) {
+                    return;
+                }
+
+                if (!this.isSeaAtlasShellInRevealBand(shell)) {
+                    if (attemptsRemaining > 1) {
+                        queueRevealProbe(
+                            attemptsRemaining - 1,
+                            Math.min(delay + 120, 360)
+                        );
+                    }
+                    return;
+                }
+
+                awaken();
+                this.seaAtlasRevealObserver?.disconnect();
+            }, delay);
+        };
 
         this.seaAtlasRevealObserver?.disconnect();
+        if (this.seaAtlasRevealProbeTimer) {
+            window.clearTimeout(this.seaAtlasRevealProbeTimer);
+            this.seaAtlasRevealProbeTimer = 0;
+        }
         if (!('IntersectionObserver' in window)) {
             awaken();
             return;
         }
 
-        const rect = shell.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.86 && rect.bottom > 0) {
+        if (this.isSeaAtlasShellInRevealBand(shell)) {
             requestAnimationFrame(awaken);
             return;
         }
 
+        queueRevealProbe();
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (!shell.isConnected || shell.classList.contains('is-map-awake')) {
+                    return;
+                }
+
+                if (!this.isSeaAtlasShellInRevealBand(shell)) {
+                    return;
+                }
+
+                awaken();
+                this.seaAtlasRevealObserver?.disconnect();
+            });
+        });
+
         this.seaAtlasRevealObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
+                if (!entry.isIntersecting || !this.isSeaAtlasShellInRevealBand(entry.target)) {
                     return;
                 }
 
@@ -8001,20 +8081,20 @@ class DetailPage {
                 this.seaAtlasRevealObserver?.disconnect();
             });
         }, {
-            threshold: 0.22,
-            rootMargin: '0px 0px -8% 0px'
+            threshold: [0.16, 0.24, 0.32, 0.4, 0.48],
+            rootMargin: '0px 0px -10% 0px'
         });
         this.seaAtlasRevealObserver.observe(shell);
     }
 
-    ensureSeaAtlasAwakeState() {
+    ensureSeaAtlasAwakeState(options = {}) {
         const shell = this.mapContainer?.querySelector('#seaAtlasShell');
         if (!shell) {
             return null;
         }
 
         this.seaAtlasRevealObserver?.disconnect();
-        return this.awakenSeaAtlasShell(shell);
+        return this.awakenSeaAtlasShell(shell, options);
     }
 
     syncSeaAtlasMapViewState() {
@@ -8090,8 +8170,12 @@ class DetailPage {
 
         if (view === 'underwater') {
             this.syncSeaRouteLineState();
-            this.ensureSeaAtlasAwakeState();
-            this.playSeaProfileEntrance(wasAtlasAwake ? 0 : motionDelay);
+            this.ensureSeaAtlasAwakeState({
+                triggerUnderwaterEntrance: false
+            });
+            this.playSeaProfileEntrance(
+                (wasAtlasAwake ? 0 : motionDelay) + this.getSeaProfileRevealDelay()
+            );
             return;
         }
 
@@ -8297,12 +8381,6 @@ class DetailPage {
             return;
         }
 
-        if (prefersReducedMotion()) {
-            this.routeAnimationPlayed = true;
-            this.syncSeaRouteLineState();
-            return;
-        }
-
         const parts = this.getSeaRouteMotionParts();
         if (!parts) {
             return;
@@ -8402,6 +8480,10 @@ class DetailPage {
         this.clearSeaRouteMotion();
         this.clearSeaProfileEntrance();
         this.seaAtlasRevealObserver?.disconnect();
+        if (this.seaAtlasRevealProbeTimer) {
+            window.clearTimeout(this.seaAtlasRevealProbeTimer);
+            this.seaAtlasRevealProbeTimer = 0;
+        }
         window.clearTimeout(this.seaAtlasEntranceTimer);
         this.seaAtlasEntranceTimer = 0;
         this.routeAnimationPlayed = shouldPreserveRouteState;

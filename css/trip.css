@@ -282,7 +282,6 @@
     /* 海域字段信息量最大，所以左列略宽；日期和人数放右列，更像次级决策。 */
     grid-template-areas:
         "head head"
-        "switcher switcher"
         "tide tide"
         "spot date"
         "spot people"
@@ -339,7 +338,7 @@
 
 .planner-booking-switcher {
     grid-area: switcher;
-    display: grid;
+    display: none;
     gap: 6px;
     padding: 0;
 }
@@ -2053,6 +2052,251 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transition: background-color 320ms ease, box-shadow 320ms ease;
 }
 
+.planner-summary-swim-stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 16px;
+    min-width: 0;
+    touch-action: pan-y;
+    --planner-summary-swipe-shift: 0px;
+    --planner-summary-flow-sign: 1;
+    --planner-summary-incoming-x: 74px;
+    --planner-summary-outgoing-x: -74px;
+}
+
+.planner-summary-swim-stage.has-multiple {
+    grid-template-columns: minmax(156px, 0.44fr) minmax(0, 1fr) minmax(156px, 0.44fr);
+    gap: clamp(10px, 1.8vw, 18px);
+}
+
+.planner-summary-swim-stage.is-flow-backward {
+    --planner-summary-flow-sign: -1;
+    --planner-summary-incoming-x: -74px;
+    --planner-summary-outgoing-x: 74px;
+}
+
+.planner-summary-swim-stage.is-dragging {
+    cursor: grabbing;
+}
+
+.planner-summary-swim-stage.has-multiple .planner-summary-swim-viewport {
+    grid-column: 2;
+}
+
+.planner-summary-swim-stage:focus-visible {
+    outline: none;
+}
+
+.planner-summary-swim-stage:focus-visible .planner-summary-swim-viewport {
+    box-shadow:
+        0 0 0 1px rgba(211, 237, 248, 0.26),
+        0 0 0 6px rgba(114, 186, 216, 0.08);
+}
+
+.planner-summary-swim-viewport {
+    position: relative;
+    min-width: 0;
+    border-radius: 30px;
+    transition:
+        height 620ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        transform 320ms ease,
+        box-shadow 320ms ease;
+}
+
+.planner-summary-swim-stage.is-dragging .planner-summary-swim-viewport {
+    transform: translate3d(calc(var(--planner-summary-swipe-shift, 0px) * 0.08), 0, 0);
+}
+
+.planner-summary-swim-viewport.is-stage-switching {
+    overflow: hidden;
+}
+
+.planner-summary-swim-deck {
+    position: relative;
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+    transition:
+        opacity 620ms ease,
+        transform 780ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        filter 620ms ease;
+    will-change: transform, opacity, filter;
+}
+
+.planner-summary-swim-deck.is-deck-outgoing,
+.planner-summary-swim-deck.is-deck-incoming {
+    position: absolute;
+    inset: 0;
+}
+
+.planner-summary-swim-deck.is-deck-outgoing {
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.14;
+    filter: blur(16px) saturate(0.84);
+    transform: translate3d(calc(var(--planner-summary-outgoing-x) * 0.82), 18px, 0) scale(0.986);
+}
+
+.planner-summary-swim-deck.is-deck-incoming {
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.42;
+    filter: blur(16px) saturate(0.94);
+    transform: translate3d(calc(var(--planner-summary-incoming-x) * 0.78), 8px, 0) scale(0.994);
+}
+
+.planner-summary-swim-deck.is-deck-incoming.is-deck-active,
+.planner-summary-swim-deck.is-deck-active {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.planner-summary-neighbor {
+    position: relative;
+    display: none;
+    align-content: end;
+    gap: 8px;
+    min-width: 0;
+    min-height: 100%;
+    padding: 18px 16px;
+    border-radius: 26px;
+    border: 1px solid rgba(200, 226, 239, 0.1);
+    background:
+        radial-gradient(circle at 50% 0%, rgba(201, 233, 246, 0.14), rgba(201, 233, 246, 0)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(8, 24, 37, 0.88)),
+        rgba(7, 21, 34, 0.68);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 16px 28px rgba(2, 10, 18, 0.34);
+    color: rgba(231, 244, 250, 0.86);
+    text-align: left;
+    opacity: 0.72;
+    cursor: pointer;
+    transition:
+        transform 320ms ease,
+        opacity 320ms ease,
+        border-color 320ms ease,
+        box-shadow 320ms ease,
+        filter 320ms ease;
+}
+
+.planner-summary-swim-stage.has-multiple .planner-summary-neighbor {
+    display: grid;
+}
+
+.planner-summary-swim-stage.is-stage-switching .planner-summary-neighbor {
+    pointer-events: none;
+}
+
+.planner-summary-swim-stage.is-dragging .planner-summary-neighbor {
+    transform: translate3d(calc(var(--planner-summary-swipe-shift, 0px) * 0.05), 0, 0);
+}
+
+.planner-summary-neighbor[hidden] {
+    display: none !important;
+}
+
+.planner-summary-neighbor:hover,
+.planner-summary-neighbor:focus-visible {
+    opacity: 0.96;
+    transform: translateY(-3px);
+    border-color: rgba(208, 235, 248, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 20px 34px rgba(2, 10, 18, 0.42),
+        0 0 18px rgba(103, 179, 212, 0.08);
+}
+
+.planner-summary-neighbor:focus-visible {
+    outline: none;
+}
+
+.planner-summary-neighbor:disabled {
+    opacity: 0.48;
+    cursor: default;
+}
+
+.planner-summary-neighbor-prev {
+    grid-column: 1;
+    text-align: right;
+}
+
+.planner-summary-neighbor-next {
+    grid-column: 3;
+}
+
+.planner-summary-neighbor-kicker {
+    margin: 0;
+    font-size: 0.62rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(190, 221, 237, 0.42);
+}
+
+.planner-summary-neighbor-name {
+    display: block;
+    font-size: 1rem;
+    line-height: 1.36;
+    color: rgba(245, 251, 255, 0.94);
+}
+
+.planner-summary-neighbor-package {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(199, 220, 233, 0.64);
+}
+
+.planner-summary-neighbor-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: rgba(193, 216, 228, 0.66);
+    font-size: 0.74rem;
+}
+
+.planner-summary-neighbor-prev .planner-summary-neighbor-status {
+    justify-self: end;
+}
+
+.planner-summary-neighbor-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.planner-summary-neighbor-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(187, 211, 224, 0.28);
+    box-shadow: inset 0 0 0 1px rgba(230, 241, 247, 0.06);
+    transition: background-color 260ms ease, box-shadow 260ms ease;
+}
+
+.planner-summary-neighbor-dot.is-ready {
+    background: radial-gradient(circle, rgba(236, 252, 255, 0.96), rgba(119, 206, 236, 0.9));
+    box-shadow:
+        0 0 10px rgba(126, 205, 233, 0.34),
+        0 0 0 1px rgba(214, 235, 245, 0.1);
+}
+
+.planner-summary-neighbor-status-text {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .planner-summary-receipt {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2148,6 +2392,10 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
 .planner-summary.is-submit-feedback .planner-summary-status-note::before {
     background: rgba(188, 228, 242, 0.8);
     box-shadow: 0 0 22px rgba(152, 214, 236, 0.3);
+}
+
+.planner-summary.is-swim-switching::after {
+    animation: planner-summary-shell-glow 900ms ease;
 }
 
 .planner-summary.is-progress-shifting::after {
@@ -2377,12 +2625,16 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
 
 /* 回执里的三项明细不再做大卡，而是收成轻量条目。 */
 .planner-item {
+    position: relative;
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "index state"
+        "copy copy";
     align-items: start;
-    gap: 12px;
-    min-height: 72px;
-    padding: 12px 14px;
+    gap: 10px 12px;
+    min-height: 84px;
+    padding: 14px 15px 16px;
     border-radius: 18px;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -2397,6 +2649,16 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         border-color 320ms ease,
         background-color 320ms ease;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+}
+
+.planner-item::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(214, 234, 243, 0.16), rgba(214, 234, 243, 0.04), rgba(214, 234, 243, 0));
+    pointer-events: none;
 }
 
 .planner-item.is-confirmed {
@@ -2433,35 +2695,44 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
 }
 
 .planner-item-index {
+    grid-area: index;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 14px;
-    font-size: 0.68rem;
-    letter-spacing: 0.16em;
+    justify-self: start;
+    align-self: start;
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+    font-size: 0.64rem;
+    letter-spacing: 0.18em;
     color: rgba(219, 237, 247, 0.68);
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(209, 231, 243, 0.07);
 }
 
 .planner-item-copy {
+    grid-area: copy;
     display: grid;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
+    padding-top: 2px;
 }
 
 .planner-item-state {
+    grid-area: state;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    justify-self: end;
+    align-self: start;
+    max-width: 100%;
     min-width: auto;
-    margin-top: 2px;
-    padding: 6px 10px;
+    margin-top: 0;
+    padding: 5px 9px;
     border-radius: 999px;
-    font-size: 0.66rem;
-    letter-spacing: 0.14em;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
     white-space: nowrap;
     color: rgba(224, 238, 245, 0.72);
     background: rgba(255, 255, 255, 0.05);
@@ -2479,17 +2750,19 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
 
 .planner-item strong {
     display: block;
-    font-size: 0.95rem;
-    line-height: 1.48;
+    font-size: 1rem;
+    line-height: 1.56;
     color: #eef6ff;
+    text-wrap: pretty;
 }
 
 .planner-item small {
     display: block;
-    max-height: 2.8em;
+    max-width: 28ch;
+    max-height: 3.2em;
     overflow: hidden;
     font-size: 0.74rem;
-    line-height: 1.56;
+    line-height: 1.62;
     color: rgba(198, 217, 229, 0.54);
     opacity: 0.86;
     transition:
@@ -3319,6 +3592,24 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         grid-template-columns: 1fr;
     }
 
+    .planner-summary-swim-stage.has-multiple {
+        grid-template-columns: 104px minmax(0, 1fr) 104px;
+        gap: 12px;
+    }
+
+    .planner-summary-neighbor {
+        padding: 16px 12px;
+        border-radius: 22px;
+    }
+
+    .planner-summary-neighbor-name {
+        font-size: 0.88rem;
+    }
+
+    .planner-summary-neighbor-status-text {
+        display: none;
+    }
+
     /* Planner 控制台在中屏下仍保留两列，但把海域放整行，防止信息太满。 */
     .trip-page-planner .trip-search-bar {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3396,6 +3687,35 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         gap: 0;
     }
 
+    .planner-summary-swim-stage.has-multiple {
+        grid-template-columns: 68px minmax(0, 1fr) 68px;
+        gap: 8px;
+    }
+
+    .planner-summary-neighbor {
+        padding: 14px 8px;
+        align-content: center;
+        justify-items: center;
+        border-radius: 18px;
+        text-align: center;
+    }
+
+    .planner-summary-neighbor-kicker,
+    .planner-summary-neighbor-package,
+    .planner-summary-neighbor-status-text {
+        display: none;
+    }
+
+    .planner-summary-neighbor-name {
+        font-size: 0.72rem;
+        line-height: 1.4;
+        text-wrap: balance;
+    }
+
+    .planner-summary-neighbor-status {
+        justify-content: center;
+    }
+
     /* 手机端适当缩小字段最小高度，保留层级但不让整体过长。 */
     .planner-field,
     .planner-submit-btn {
@@ -3449,7 +3769,11 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     }
 
     .planner-item {
-        grid-template-columns: 36px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "index state"
+            "copy copy";
+        gap: 8px 10px;
         min-height: auto;
         padding: 12px 0;
         border-width: 0 0 1px;
@@ -3458,21 +3782,23 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         box-shadow: none;
     }
 
+    .planner-item::before {
+        content: none;
+    }
+
     .planner-item:last-child {
         padding-bottom: 0;
         border-bottom: 0;
     }
 
     .planner-item-index {
-        width: 36px;
-        height: 36px;
-        border-radius: 12px;
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
     }
 
     .planner-item-state {
-        grid-column: 2;
-        justify-self: start;
-        margin-top: 4px;
+        justify-self: end;
     }
 }
 .planner-option-custom {

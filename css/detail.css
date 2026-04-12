@@ -629,7 +629,6 @@ body.has-overlay-lock {
         box-shadow 720ms cubic-bezier(0.18, 0.78, 0.22, 1);
     box-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
-
 .detail-reading-section > * {
     position: relative;
     z-index: 1;
@@ -1266,59 +1265,6 @@ body.has-overlay-lock {
     filter: blur(0);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .intro-section,
-    .intro-section-head {
-        transition-duration: 260ms;
-    }
-
-    .intro-archive-card {
-        clip-path: inset(0 0 0 0 round var(--intro-card-radius));
-        transform: translate3d(0, 16px, 0);
-        filter: none;
-        transition:
-            opacity 220ms ease,
-            transform 260ms ease,
-            box-shadow 220ms ease;
-    }
-
-    .intro-archive-card::before {
-        transform: none;
-        transition-duration: 220ms;
-    }
-
-    .intro-archive-card::after {
-        content: none;
-    }
-
-    .intro-archive-card.is-shell-visible {
-        transform: translate3d(0, 0, 0);
-    }
-
-    .intro-card-index,
-    .intro-card-title,
-    .intro-card-paragraph,
-    .intro-bullet-item,
-    .intro-weather-card {
-        clip-path: inset(0 0 0 0);
-        transform: translate3d(0, 10px, 0);
-        filter: none;
-        transition:
-            opacity 200ms ease,
-            transform 240ms ease,
-            color 220ms ease,
-            box-shadow 220ms ease;
-    }
-
-    .intro-archive-card.is-content-visible .intro-card-index,
-    .intro-archive-card.is-content-visible .intro-card-title,
-    .intro-archive-card.is-content-visible .intro-card-paragraph,
-    .intro-archive-card.is-content-visible .intro-bullet-item,
-    .intro-archive-card.is-content-visible .intro-weather-card {
-        transform: translate3d(0, 0, 0);
-    }
-}
-
 /* ============================================
    海域定位台
    ============================================ */
@@ -1916,6 +1862,16 @@ body.has-overlay-lock {
     transition-delay: 460ms;
 }
 
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-panel[data-sea-panel="underwater"].is-active .sea-atlas-visual,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-panel[data-sea-panel="underwater"].is-active .sea-atlas-visual {
+    transition-delay: 60ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-panel[data-sea-panel="underwater"].is-active .sea-atlas-dossier,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-panel[data-sea-panel="underwater"].is-active .sea-atlas-dossier {
+    transition-delay: 120ms;
+}
+
 /* 控制 .sea-atlas-visual 的布局、视觉和状态表现 */
 .sea-atlas-visual {
     min-height: 580px;
@@ -2360,6 +2316,7 @@ body.has-overlay-lock {
 }
 
 .sea-atlas-dossier-map {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
@@ -2368,9 +2325,48 @@ body.has-overlay-lock {
     min-height: auto;
     height: auto;
     overflow: hidden;
+    isolation: isolate;
+}
+
+.sea-atlas-dossier-map::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(246, 251, 253, 0.18), rgba(225, 240, 246, 0.08) 46%, rgba(6, 26, 40, 0) 100%),
+        radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.16), transparent 40%);
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scaleY(1.02);
+    transform-origin: center top;
+    filter: blur(0);
+    transition:
+        opacity 520ms ease,
+        transform 820ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 620ms ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-dossier-map::before {
+    opacity: 0.92;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-dossier-map::before {
+    opacity: 0;
+    transform: translate3d(0, -16%, 0) scaleY(0.82);
+    filter: blur(6px);
+    transition-delay: 520ms;
+}
+
+.sea-atlas-shell.is-atlas-awake .sea-atlas-dossier-map::before {
+    opacity: 0;
+    transform: translate3d(0, -16%, 0) scaleY(0.82);
+    filter: blur(6px);
 }
 
 .sea-atlas-dossier-map .sea-atlas-dossier-view {
+    position: relative;
     display: grid;
     grid-area: 1 / 1;
     gap: 20px;
@@ -2386,6 +2382,7 @@ body.has-overlay-lock {
         transform 460ms cubic-bezier(0.18, 0.78, 0.22, 1),
         filter 420ms ease,
         visibility 0s linear 420ms;
+    z-index: 1;
 }
 
 .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active {
@@ -2395,6 +2392,18 @@ body.has-overlay-lock {
     transform: translate3d(0, 0, 0) scale(1);
     filter: blur(0);
     transition-delay: 0s;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, 22px, 0) scale(0.976);
+    filter: blur(12px);
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active {
+    transition-delay: 540ms, 540ms, 540ms, 0s;
 }
 
 .sea-atlas-dossier-map .sea-atlas-card-title,
@@ -2409,6 +2418,16 @@ body.has-overlay-lock {
         opacity 320ms ease,
         transform 420ms cubic-bezier(0.18, 0.78, 0.22, 1),
         filter 360ms ease;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-title,
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-copy,
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-meta-grid,
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-tags,
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-route-journey {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+    filter: blur(10px);
 }
 
 .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-title,
@@ -2436,6 +2455,23 @@ body.has-overlay-lock {
 
 .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-tags {
     transition-delay: 210ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-title {
+    transition-delay: 660ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-copy {
+    transition-delay: 730ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-meta-grid,
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-route-journey {
+    transition-delay: 810ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-tags {
+    transition-delay: 890ms;
 }
 
 .sea-atlas-route-line-glow,
@@ -3257,6 +3293,14 @@ body.has-overlay-lock {
 
 /* 控制 .sea-profile 的布局、视觉和状态表现 */
 .sea-profile {
+    --sea-profile-settle-duration: 8.8s;
+    --sea-profile-surface-drift-duration: 11.6s;
+    --sea-profile-grid-drift-duration: 14.8s;
+    --sea-profile-glow-breath-duration: 7.4s;
+    --sea-profile-layer-drift-distance: 8px;
+    --sea-profile-marker-drift-distance: 9px;
+    --sea-profile-breath-scale: 1.014;
+    --sea-profile-breath-brightness: 1.08;
     position: relative;
     height: 100%;
     min-height: 420px;
@@ -3354,6 +3398,7 @@ body.has-overlay-lock {
         linear-gradient(rgba(197, 231, 240, 0.07) 1px, transparent 1px),
         linear-gradient(90deg, rgba(197, 231, 240, 0.05) 1px, transparent 1px);
     background-size: 100% 74px, 64px 100%;
+    background-position: 0 0, 0 0;
     mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.96), rgba(0, 0, 0, 0.52) 78%, rgba(0, 0, 0, 0));
 }
 
@@ -3380,6 +3425,8 @@ body.has-overlay-lock {
     background:
         linear-gradient(180deg, rgba(243, 251, 254, 0.12), rgba(218, 243, 250, 0.04)),
         rgba(7, 32, 48, 0.34);
+    background-size: 180% 100%, 100% 100%;
+    background-position: 0% 50%, 0 0;
     color: rgba(240, 249, 253, 0.88);
     font-size: 0.78rem;
     letter-spacing: 0.08em;
@@ -3668,68 +3715,68 @@ body.has-overlay-lock {
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile {
-    opacity: 0.82;
-    transform: translate3d(0, 18px, 0) scale(0.985);
-    filter: blur(14px) saturate(0.92);
+    opacity: 0.68;
+    transform: translate3d(0, 30px, 0) scale(0.968);
+    filter: blur(20px) saturate(0.86) brightness(0.82);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile::before {
     opacity: 0;
-    transform: translate3d(0, 16px, 0) scale(0.98);
-    filter: blur(18px);
+    transform: translate3d(0, 28px, 0) scale(0.95);
+    filter: blur(24px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile::after {
     opacity: 0;
-    transform: translate3d(0, 22px, 0) scale(0.9);
-    filter: blur(22px);
+    transform: translate3d(0, 36px, 0) scale(0.84);
+    filter: blur(28px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-surface {
     opacity: 0;
-    transform: translate3d(0, -30px, 0) scaleX(0.9) scaleY(0.84);
-    filter: blur(18px);
+    transform: translate3d(0, -44px, 0) scaleX(0.84) scaleY(0.72);
+    filter: blur(26px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-surface::before {
     opacity: 0;
-    transform: translate3d(-28%, -6px, 0) scaleX(1.12);
-    filter: blur(18px);
+    transform: translate3d(-34%, -12px, 0) scaleX(1.2);
+    filter: blur(24px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-surface::after {
     opacity: 0;
-    transform: translate3d(0, -8px, 0) scaleX(1.08);
-    filter: blur(18px);
+    transform: translate3d(0, -16px, 0) scaleX(1.14);
+    filter: blur(22px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-grid,
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-depth-rail {
     opacity: 0;
-    transform: translate3d(0, 14px, 0) scaleY(0.82);
-    filter: blur(16px);
+    transform: translate3d(0, 26px, 0) scaleY(0.68);
+    filter: blur(20px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-arrow,
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-atlas-card-title,
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-atlas-card-copy {
     opacity: 0;
-    transform: translate3d(0, 20px, 0);
-    filter: blur(12px);
+    transform: translate3d(0, 32px, 0);
+    filter: blur(18px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-layer,
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-hotspot,
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-atlas-level {
     opacity: 0;
-    transform: translate3d(0, 34px, 0) scale(0.972);
-    filter: blur(18px);
+    transform: translate3d(0, 54px, 0) scale(0.936);
+    filter: blur(26px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-marker {
     opacity: 0;
-    transform: translate3d(0, calc(-50% + 28px), 0) scale(0.86);
-    filter: blur(16px);
+    transform: translate3d(0, calc(-50% + 42px), 0) scale(0.72);
+    filter: blur(20px);
 }
 
 .sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile {
@@ -3794,17 +3841,70 @@ body.has-overlay-lock {
     animation-delay: calc(760ms + (var(--sea-profile-copy-index, 0) * 100ms));
 }
 
+/* 入场完成后保留极轻的水流呼吸，让海层继续缓慢活动。 */
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile {
+    animation: seaProfileStageBreath var(--sea-profile-settle-duration) ease-in-out infinite alternate;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile::before {
+    animation: seaProfileVeilDrift calc(var(--sea-profile-settle-duration) * 1.18) ease-in-out infinite alternate;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile::after {
+    animation: seaProfileFloorBreath calc(var(--sea-profile-settle-duration) * 1.06) ease-in-out infinite alternate;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-surface::before {
+    animation: seaProfileSurfaceDrift var(--sea-profile-surface-drift-duration) ease-in-out infinite alternate;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-surface::after {
+    animation: seaProfileSurfaceGlide calc(var(--sea-profile-surface-drift-duration) * 0.9) ease-in-out infinite alternate;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-grid {
+    animation: seaProfileGridDrift var(--sea-profile-grid-drift-duration) linear infinite;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-depth-rail {
+    animation: seaProfileRailGlow var(--sea-profile-glow-breath-duration) ease-in-out infinite alternate;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-arrow {
+    animation: seaProfileArrowDrift calc(var(--sea-profile-settle-duration) * 0.94) ease-in-out infinite;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-layer {
+    animation: seaProfileLayerFloat calc(var(--sea-profile-settle-duration) + 3.8s) ease-in-out infinite alternate;
+    animation-delay: calc(var(--sea-profile-index, 0) * -1.4s);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-band-glow {
+    animation: seaProfileBandBreath calc(var(--sea-profile-glow-breath-duration) + 1.4s) ease-in-out infinite alternate;
+    animation-delay: calc(var(--sea-profile-index, 0) * -0.9s);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-marker.is-left {
+    animation: seaProfileMarkerDriftLeft calc(var(--sea-profile-settle-duration) * 0.86) ease-in-out infinite;
+    animation-delay: calc(var(--sea-profile-index, 0) * -1.1s);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active.is-profile-settled .sea-profile-marker.is-right {
+    animation: seaProfileMarkerDriftRight calc(var(--sea-profile-settle-duration) * 0.86) ease-in-out infinite;
+    animation-delay: calc(var(--sea-profile-index, 0) * -1.1s);
+}
+
 @keyframes seaProfileStageWake {
     0% {
-        opacity: 0.82;
-        transform: translate3d(0, 18px, 0) scale(0.985);
-        filter: blur(14px) saturate(0.92);
+        opacity: 0.68;
+        transform: translate3d(0, 30px, 0) scale(0.968);
+        filter: blur(20px) saturate(0.86) brightness(0.82);
     }
 
     58% {
         opacity: 1;
-        transform: translate3d(0, -2px, 0) scale(1.004);
-        filter: blur(4px) saturate(1.03);
+        transform: translate3d(0, -8px, 0) scale(1.026);
+        filter: blur(6px) saturate(1.08) brightness(1.08);
     }
 
     100% {
@@ -3814,11 +3914,23 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileStageBreath {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0) saturate(1) brightness(1);
+    }
+
+    100% {
+        transform: translate3d(0, -6px, 0) scale(var(--sea-profile-breath-scale));
+        filter: blur(0) saturate(1.04) brightness(var(--sea-profile-breath-brightness));
+    }
+}
+
 @keyframes seaProfileStageVeil {
     0% {
         opacity: 0;
-        transform: translate3d(0, 16px, 0) scale(0.98);
-        filter: blur(18px);
+        transform: translate3d(0, 28px, 0) scale(0.95);
+        filter: blur(24px);
     }
 
     100% {
@@ -3828,11 +3940,25 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileVeilDrift {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 0.88;
+        transform: translate3d(0, -12px, 0) scale(1.018);
+        filter: blur(6px);
+    }
+}
+
 @keyframes seaProfileFloorGather {
     0% {
         opacity: 0;
-        transform: translate3d(0, 22px, 0) scale(0.9);
-        filter: blur(22px);
+        transform: translate3d(0, 36px, 0) scale(0.84);
+        filter: blur(28px);
     }
 
     100% {
@@ -3842,17 +3968,31 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileFloorBreath {
+    0% {
+        opacity: 0.68;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(18px);
+    }
+
+    100% {
+        opacity: 0.84;
+        transform: translate3d(0, -8px, 0) scale(1.08);
+        filter: blur(26px);
+    }
+}
+
 @keyframes seaProfileSurfaceWake {
     0% {
         opacity: 0;
-        transform: translate3d(0, -30px, 0) scaleX(0.9) scaleY(0.84);
-        filter: blur(18px);
+        transform: translate3d(0, -44px, 0) scaleX(0.84) scaleY(0.72);
+        filter: blur(26px);
     }
 
     52% {
         opacity: 1;
-        transform: translate3d(0, 2px, 0) scaleX(1.03) scaleY(1.02);
-        filter: blur(4px);
+        transform: translate3d(0, 6px, 0) scaleX(1.08) scaleY(1.06);
+        filter: blur(8px);
     }
 
     100% {
@@ -3865,14 +4005,14 @@ body.has-overlay-lock {
 @keyframes seaProfileSurfaceShimmer {
     0% {
         opacity: 0;
-        transform: translate3d(-28%, -6px, 0) scaleX(1.12);
-        filter: blur(18px);
+        transform: translate3d(-34%, -12px, 0) scaleX(1.2);
+        filter: blur(24px);
     }
 
     56% {
-        opacity: 0.7;
-        transform: translate3d(4%, 0, 0) scaleX(1.04);
-        filter: blur(10px);
+        opacity: 0.78;
+        transform: translate3d(8%, 2px, 0) scaleX(1.08);
+        filter: blur(12px);
     }
 
     100% {
@@ -3882,17 +4022,31 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileSurfaceDrift {
+    0% {
+        opacity: 0.42;
+        transform: translate3d(6%, 0, 0) scaleX(0.98);
+        filter: blur(14px);
+    }
+
+    100% {
+        opacity: 0.62;
+        transform: translate3d(18%, -4px, 0) scaleX(1.08);
+        filter: blur(18px);
+    }
+}
+
 @keyframes seaProfileSurfaceRipple {
     0% {
         opacity: 0;
-        transform: translate3d(0, -8px, 0) scaleX(1.08);
-        filter: blur(18px);
+        transform: translate3d(0, -16px, 0) scaleX(1.14);
+        filter: blur(22px);
     }
 
     60% {
-        opacity: 0.62;
-        transform: translate3d(0, 1px, 0) scaleX(1.02);
-        filter: blur(10px);
+        opacity: 0.72;
+        transform: translate3d(0, 4px, 0) scaleX(1.06);
+        filter: blur(12px);
     }
 
     100% {
@@ -3902,17 +4056,31 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileSurfaceGlide {
+    0% {
+        opacity: 0.32;
+        transform: translate3d(-1%, 0, 0) scaleX(0.98);
+        filter: blur(12px);
+    }
+
+    100% {
+        opacity: 0.54;
+        transform: translate3d(5%, 4px, 0) scaleX(1.08);
+        filter: blur(17px);
+    }
+}
+
 @keyframes seaProfileVeilLift {
     0% {
         opacity: 0;
-        transform: translate3d(0, 14px, 0) scaleY(0.82);
-        filter: blur(16px);
+        transform: translate3d(0, 26px, 0) scaleY(0.68);
+        filter: blur(20px);
     }
 
     58% {
         opacity: 0.92;
-        transform: translate3d(0, -1px, 0) scaleY(1.02);
-        filter: blur(4px);
+        transform: translate3d(0, -4px, 0) scaleY(1.06);
+        filter: blur(8px);
     }
 
     100% {
@@ -3922,17 +4090,39 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileGridDrift {
+    from {
+        background-position: 0 0, 0 0;
+    }
+
+    to {
+        background-position: 0 34px, 42px 0;
+    }
+}
+
+@keyframes seaProfileRailGlow {
+    0% {
+        opacity: 0.8;
+        box-shadow: 0 0 12px rgba(157, 217, 232, 0.14);
+    }
+
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 28px rgba(157, 217, 232, 0.34);
+    }
+}
+
 @keyframes seaProfileCurrentSweep {
     0% {
         opacity: 0;
-        transform: translate3d(28px, -18px, 0) scale(0.96);
-        filter: blur(14px);
+        transform: translate3d(48px, -22px, 0) scale(0.88);
+        filter: blur(18px);
     }
 
     54% {
         opacity: 1;
-        transform: translate3d(-2px, 1px, 0) scale(1.01);
-        filter: blur(4px);
+        transform: translate3d(-6px, 2px, 0) scale(1.05);
+        filter: blur(6px);
     }
 
     100% {
@@ -3942,22 +4132,49 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileArrowDrift {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+        background-position: 0% 50%, 0 0;
+        box-shadow: 0 10px 22px rgba(3, 16, 27, 0.12);
+    }
+
+    50% {
+        transform: translate3d(8px, -2px, 0);
+        background-position: 100% 50%, 0 0;
+        box-shadow: 0 16px 28px rgba(3, 16, 27, 0.22);
+    }
+}
+
 @keyframes seaProfileLayerRise {
     0% {
         opacity: 0;
-        transform: translate3d(0, 34px, 0) scale(0.972);
-        filter: blur(18px);
+        transform: translate3d(0, 54px, 0) scale(0.936);
+        filter: blur(26px);
     }
 
     60% {
         opacity: 1;
-        transform: translate3d(0, -4px, 0) scale(1.01);
-        filter: blur(4px);
+        transform: translate3d(0, -10px, 0) scale(1.04);
+        filter: blur(8px);
     }
 
     100% {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileLayerFloat {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+
+    100% {
+        transform: translate3d(0, calc(var(--sea-profile-layer-drift-distance) * -1), 0) scale(1.012);
         filter: blur(0);
     }
 }
@@ -3979,23 +4196,57 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes seaProfileBandBreath {
+    0% {
+        opacity: 0.76;
+        transform: scale(0.99);
+    }
+
+    100% {
+        opacity: 0.98;
+        transform: scale(1.05);
+    }
+}
+
 @keyframes seaProfileMarkerSettle {
     0% {
         opacity: 0;
-        transform: translate3d(0, calc(-50% + 28px), 0) scale(0.86);
-        filter: blur(16px);
+        transform: translate3d(0, calc(-50% + 42px), 0) scale(0.72);
+        filter: blur(20px);
     }
 
     60% {
         opacity: 1;
-        transform: translate3d(0, calc(-50% - 4px), 0) scale(1.02);
-        filter: blur(4px);
+        transform: translate3d(0, calc(-50% - 8px), 0) scale(1.08);
+        filter: blur(6px);
     }
 
     100% {
         opacity: 1;
         transform: translate3d(0, -50%, 0) scale(1);
         filter: blur(0);
+    }
+}
+
+@keyframes seaProfileMarkerDriftLeft {
+    0%,
+    100% {
+        transform: translate3d(0, -50%, 0) scale(1);
+    }
+
+    50% {
+        transform: translate3d(var(--sea-profile-marker-drift-distance), calc(-50% - 3px), 0) scale(1.02);
+    }
+}
+
+@keyframes seaProfileMarkerDriftRight {
+    0%,
+    100% {
+        transform: translate3d(0, -50%, 0) scale(1);
+    }
+
+    50% {
+        transform: translate3d(calc(var(--sea-profile-marker-drift-distance) * -1), calc(-50% - 3px), 0) scale(1.02);
     }
 }
 
@@ -4017,8 +4268,8 @@ body.has-overlay-lock {
 @keyframes seaProfileCopyReveal {
     0% {
         opacity: 0;
-        transform: translate3d(0, 14px, 0);
-        filter: blur(10px);
+        transform: translate3d(0, 26px, 0);
+        filter: blur(16px);
     }
 
     100% {
@@ -4031,8 +4282,8 @@ body.has-overlay-lock {
 @keyframes seaProfileCardSettle {
     0% {
         opacity: 0;
-        transform: translate3d(0, 18px, 0) scale(0.986);
-        filter: blur(12px);
+        transform: translate3d(0, 30px, 0) scale(0.958);
+        filter: blur(18px);
     }
 
     100% {
@@ -8212,6 +8463,8 @@ body.has-overlay-lock {
        这样导览面板始终像悬浮海图，而不是整块铺满屏幕。 */
     overflow: auto; /* 条目过多时允许面板自己滚动 */
     overscroll-behavior: contain; /* 滚到边缘时不要继续带动底层页面 */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     padding: 18px;
     border-radius: 26px;
     background:
@@ -8232,6 +8485,11 @@ body.has-overlay-lock {
         opacity 300ms ease,
         transform 360ms cubic-bezier(0.22, 0.72, 0.2, 1),
         filter 320ms ease;
+}
+
+.sea-guide-panel::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 /* .sea-guide.is-open .sea-guide-panel 在对应状态下的样式 */
@@ -12548,44 +12806,3 @@ body.page-transition-active .booking-match-floating-confirm {
         max-width: 160px;
     }
 }
-
-@media (prefers-reduced-motion: reduce) {
-    .sea-atlas,
-    .sea-atlas-head,
-    .sea-atlas-kicker,
-    .sea-atlas-lead,
-    .sea-atlas-controls,
-    .sea-atlas-stage,
-    .sea-atlas-visual,
-    .sea-atlas-dossier,
-    .sea-atlas-panel,
-    .spot-map-head,
-    .map-container {
-        transition-duration: 280ms !important;
-    }
-
-    .sea-profile-marker-dot {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-    }
-
-    .sea-profile,
-    .sea-profile::before,
-    .sea-profile::after,
-    .sea-profile-surface,
-    .sea-profile-surface::before,
-    .sea-profile-surface::after,
-    .sea-profile-grid,
-    .sea-profile-depth-rail,
-    .sea-profile-arrow,
-    .sea-profile-layer,
-    .sea-profile-band-glow,
-    .sea-profile-marker,
-    .sea-profile-hotspot,
-    .sea-atlas-level,
-    .sea-atlas-card-title,
-    .sea-atlas-card-copy {
-        animation: none !important;
-    }
-}
-
