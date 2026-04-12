@@ -616,10 +616,23 @@ body.has-overlay-lock {
 
 .detail-reading-section {
     position: relative;
+    isolation: isolate;
+    --detail-reading-section-lift: 0px;
+    --detail-reading-current-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    --detail-reading-current-glow-opacity: 0.34;
+    --detail-reading-current-glow-inset: -18px -12px -18px -26px;
+    --detail-reading-current-glow-radius: 34px;
     transition:
-        transform 620ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        filter 520ms ease,
-        opacity 420ms ease;
+        transform 720ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 620ms ease,
+        opacity 420ms ease,
+        box-shadow 720ms cubic-bezier(0.18, 0.78, 0.22, 1);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.detail-reading-section > * {
+    position: relative;
+    z-index: 1;
 }
 
 .detail-reading-section::before {
@@ -632,12 +645,131 @@ body.has-overlay-lock {
     opacity: 0;
     transform: scaleY(0.72);
     transform-origin: center;
-    transition: opacity 420ms ease, transform 520ms ease;
+    transition:
+        opacity 420ms ease,
+        transform 560ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        box-shadow 420ms ease;
+}
+
+.detail-reading-section::after {
+    content: "";
+    position: absolute;
+    inset: var(--detail-reading-current-glow-inset);
+    border-radius: var(--detail-reading-current-glow-radius);
+    background:
+        radial-gradient(circle at 12% 18%, rgba(214, 242, 250, 0.24), transparent 34%),
+        linear-gradient(180deg, rgba(205, 236, 246, 0.08), rgba(97, 155, 184, 0.18) 52%, rgba(8, 34, 50, 0.02) 100%);
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.985);
+    filter: blur(22px);
+    transition:
+        opacity 560ms ease,
+        transform 760ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 620ms ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.detail-reading-section.is-reading-current {
+    transform: translate3d(0, calc(var(--detail-reading-section-lift) * -1), 0);
+    filter: saturate(1.03) brightness(1.01);
+    box-shadow: var(--detail-reading-current-shadow);
 }
 
 .detail-reading-section.is-reading-current::before {
     opacity: 1;
     transform: scaleY(1);
+    box-shadow: 0 0 18px rgba(143, 207, 228, 0.24);
+}
+
+.detail-reading-section.is-reading-current::after {
+    opacity: var(--detail-reading-current-glow-opacity);
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+}
+
+.detail-reading-section.is-reading-current.is-reading-awakened::before {
+    animation: detailReadingRailAwaken 860ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+}
+
+.detail-reading-section.is-reading-current.is-reading-awakened::after {
+    animation: detailReadingGlowAwaken 860ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+}
+
+.intro-section.detail-reading-section {
+    --detail-reading-section-lift: 8px;
+    --detail-reading-current-shadow:
+        0 28px 62px rgba(12, 39, 58, 0.14),
+        0 0 0 1px rgba(175, 219, 234, 0.14);
+    --detail-reading-current-glow-opacity: 0.42;
+}
+
+.detail-reading-section-map {
+    --detail-reading-section-lift: 10px;
+    --detail-reading-current-shadow:
+        0 30px 68px rgba(10, 35, 51, 0.16),
+        0 0 0 1px rgba(174, 220, 236, 0.16);
+    --detail-reading-current-glow-opacity: 0.48;
+    --detail-reading-current-glow-inset: -24px -18px -30px -30px;
+    --detail-reading-current-glow-radius: 42px;
+}
+
+.detail-reading-section-reviews {
+    --detail-reading-section-lift: 12px;
+    --detail-reading-current-shadow:
+        0 34px 74px rgba(7, 29, 44, 0.18),
+        0 0 0 1px rgba(173, 219, 236, 0.16);
+    --detail-reading-current-glow-opacity: 0.56;
+    --detail-reading-current-glow-inset: -26px -20px -34px -32px;
+    --detail-reading-current-glow-radius: 44px;
+}
+
+.related-spots.detail-reading-section {
+    --detail-reading-section-lift: 9px;
+    --detail-reading-current-shadow:
+        0 30px 66px rgba(11, 36, 52, 0.16),
+        0 0 0 1px rgba(175, 220, 235, 0.14);
+    --detail-reading-current-glow-opacity: 0.44;
+}
+
+@keyframes detailReadingRailAwaken {
+    0% {
+        opacity: 0;
+        transform: scaleY(0.38);
+        box-shadow: 0 0 0 rgba(143, 207, 228, 0);
+    }
+
+    58% {
+        opacity: 1;
+        transform: scaleY(1.18);
+        box-shadow: 0 0 26px rgba(183, 230, 244, 0.34);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scaleY(1);
+        box-shadow: 0 0 18px rgba(143, 207, 228, 0.24);
+    }
+}
+
+@keyframes detailReadingGlowAwaken {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(0.94);
+        filter: blur(24px);
+    }
+
+    60% {
+        opacity: calc(var(--detail-reading-current-glow-opacity) + 0.12);
+        transform: translate3d(0, -2px, 0) scale(1.02);
+        filter: blur(6px);
+    }
+
+    100% {
+        opacity: var(--detail-reading-current-glow-opacity);
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
 }
 
 /* ============================================
@@ -649,6 +781,37 @@ body.has-overlay-lock {
     grid-column: 1;
     display: grid;
     gap: 22px;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+    transition:
+        opacity 720ms ease,
+        transform 860ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 620ms ease;
+}
+
+.intro-section:not(.is-shell-visible) {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+    filter: blur(18px);
+}
+
+.intro-section.is-shell-visible:not(.is-visible) {
+    opacity: 0.94;
+    transform: translate3d(0, 14px, 0);
+    filter: blur(8px) saturate(1.01) brightness(1);
+}
+
+.intro-section.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+}
+
+.intro-section.detail-reading-section.is-reading-current.is-shell-visible:not(.is-visible) {
+    opacity: 0.96;
+    transform: translate3d(0, 10px, 0);
+    filter: blur(6px) saturate(1.03) brightness(1.01);
 }
 
 /* 潜点介绍的章节头：
@@ -665,6 +828,12 @@ body.has-overlay-lock {
         opacity 620ms ease,
         transform 760ms cubic-bezier(0.22, 0.72, 0.2, 1),
         filter 560ms ease;
+}
+
+.intro-section.is-shell-visible:not(.is-visible) .intro-section-head {
+    opacity: 0.86;
+    transform: translate3d(0, 10px, 0);
+    filter: blur(8px);
 }
 
 .intro-section-head::before {
@@ -706,14 +875,81 @@ body.has-overlay-lock {
 /* spotMapSection：
    “潜点位置”这一层是海域定位台的章节标题，语义上和“潜点介绍 / 用户评价”是同一层级。
    这里单独提深颜色和一点轻微阴影，避免在海雾背景上发灰看不清。 */
+.detail-reading-section-map {
+    display: grid;
+    gap: 8px;
+    margin-top: 2px;
+    padding: 4px 0 2px;
+    border-radius: 42px 42px 24px 24px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.24), transparent 30%),
+        radial-gradient(circle at 82% 8%, rgba(186, 220, 233, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(248, 252, 255, 0.1) 0%, rgba(237, 245, 249, 0.05) 20%, rgba(173, 208, 223, 0.08) 42%, rgba(42, 91, 118, 0.12) 66%, rgba(9, 45, 67, 0.1) 84%, rgba(9, 45, 67, 0) 100%);
+}
+
+.spot-map-head {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    max-width: none;
+    padding: 4px 22px 10px 8px;
+}
+
+.spot-map-head::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 4px;
+    width: 132px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(79, 138, 165, 0.74), rgba(79, 138, 165, 0.2) 42%, rgba(79, 138, 165, 0));
+    opacity: 0.74;
+}
+
+.spot-map-head::after {
+    content: "";
+    position: absolute;
+    left: -48px;
+    right: -72px;
+    top: -38px;
+    height: 220px;
+    background:
+        radial-gradient(ellipse at 24% 16%, rgba(255, 255, 255, 0.48), transparent 48%),
+        radial-gradient(ellipse at 74% 18%, rgba(197, 232, 240, 0.18), transparent 34%),
+        linear-gradient(180deg, rgba(248, 252, 255, 0.24), rgba(236, 244, 248, 0.16) 34%, rgba(182, 214, 228, 0.1) 58%, rgba(17, 73, 102, 0.06) 82%, rgba(17, 73, 102, 0) 100%);
+    filter: blur(22px);
+    opacity: 0.88;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.spot-map-kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(88, 123, 145, 0.64);
+}
+
 #spotMapSection {
-    margin: 0 0 18px;
+    margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: clamp(1.88rem, 2.9vw, 2.4rem);
+    font-size: clamp(2.04rem, 3.1vw, 2.72rem);
     font-weight: 600;
-    line-height: 1.16;
-    color: #173a53;
-    text-shadow: 0 10px 22px rgba(10, 29, 43, 0.08);
+    line-height: 1.12;
+    color: #143852;
+    text-shadow: 0 14px 30px rgba(10, 29, 43, 0.1);
+    transition:
+        transform 720ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        text-shadow 520ms ease,
+        color 420ms ease;
+}
+
+.spot-map-lead {
+    margin: 0;
+    max-width: 900px;
+    color: rgba(73, 104, 123, 0.8);
+    line-height: 1.76;
 }
 
 /* 潜点介绍正文层：
@@ -730,11 +966,15 @@ body.has-overlay-lock {
 
 .intro-archive-card {
     --intro-card-delay: calc(140ms + (var(--intro-card-order, 0) * 110ms));
+    --intro-card-radius: 28px;
+    --intro-card-shell-tilt: 6deg;
+    --intro-card-shell-delay: 0ms;
+    --intro-card-content-delay: 0ms;
     position: relative;
     display: grid;
     gap: 18px;
     padding: 24px 24px 22px;
-    border-radius: 28px;
+    border-radius: var(--intro-card-radius);
     background:
         radial-gradient(circle at 15% 18%, rgba(141, 198, 220, 0.16), transparent 26%),
         linear-gradient(155deg, rgba(198, 217, 229, 0.84), rgba(180, 201, 214, 0.76));
@@ -746,12 +986,27 @@ body.has-overlay-lock {
     -webkit-backdrop-filter: blur(16px);
     overflow: hidden;
     opacity: 0;
-    transform: translate3d(0, 22px, 0);
-    filter: blur(14px);
+    clip-path: inset(0 0 100% 0 round var(--intro-card-radius));
+    transform: perspective(1600px) translate3d(0, 26px, 0) scale(0.985) rotateX(var(--intro-card-shell-tilt));
+    transform-origin: center top;
+    filter: blur(8px) saturate(0.96) brightness(0.98);
     transition:
         opacity 620ms ease,
-        transform 780ms cubic-bezier(0.22, 0.72, 0.2, 1),
-        filter 560ms ease;
+        transform 860ms cubic-bezier(0.22, 0.72, 0.2, 1),
+        filter 620ms ease,
+        clip-path 860ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        box-shadow 320ms ease;
+    transition-delay: var(--intro-card-shell-delay);
+}
+
+.intro-archive-card.is-shell-visible {
+    opacity: 1;
+    clip-path: inset(0 0 0 0 round var(--intro-card-radius));
+    transform: perspective(1600px) translate3d(0, 0, 0) scale(1) rotateX(0deg);
+    filter: blur(0) saturate(1) brightness(1);
+    box-shadow:
+        0 24px 46px rgba(13, 35, 52, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
 .intro-archive-card::before {
@@ -760,8 +1015,49 @@ body.has-overlay-lock {
     inset: 0;
     background:
         linear-gradient(120deg, rgba(255, 255, 255, 0.16), transparent 36%, rgba(255, 255, 255, 0.08) 60%, transparent 82%);
-    opacity: 0.42;
+    opacity: 0.18;
+    transform: translate3d(0, 14px, 0);
+    transition:
+        opacity 620ms ease,
+        transform 820ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    transition-delay: calc(var(--intro-card-shell-delay) + 120ms);
     pointer-events: none;
+    z-index: 0;
+}
+
+.intro-archive-card.is-shell-visible::before {
+    opacity: 0.46;
+    transform: translate3d(0, 0, 0);
+}
+
+.intro-archive-card::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background:
+        linear-gradient(180deg, rgba(246, 251, 253, 0.9), rgba(227, 240, 246, 0.62) 42%, rgba(215, 230, 238, 0.18) 72%, rgba(215, 230, 238, 0)),
+        radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.42), transparent 46%);
+    opacity: 0.92;
+    clip-path: inset(0 0 0 0 round var(--intro-card-radius));
+    transform-origin: center top;
+    transform: translate3d(0, 0, 0) scaleY(1.02);
+    filter: blur(0);
+    transition:
+        opacity 560ms ease,
+        transform 820ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        clip-path 900ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 560ms ease;
+    transition-delay: calc(var(--intro-card-shell-delay) + 30ms);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.intro-archive-card.is-shell-visible::after {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0 round var(--intro-card-radius));
+    transform: translate3d(0, -20%, 0) scaleY(0.76);
+    filter: blur(6px);
 }
 
 .intro-card-location,
@@ -794,6 +1090,16 @@ body.has-overlay-lock {
     color: rgba(80, 114, 134, 0.72);
     background: rgba(221, 236, 243, 0.52);
     border: 1px solid rgba(150, 189, 206, 0.24);
+    opacity: 0;
+    clip-path: inset(0 0 100% 0 round 999px);
+    transform: translate3d(0, 10px, 0);
+    filter: blur(6px);
+    transition:
+        opacity 420ms ease,
+        transform 620ms cubic-bezier(0.22, 0.72, 0.2, 1),
+        filter 480ms ease,
+        clip-path 620ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    transition-delay: calc(var(--intro-card-content-delay) + 0ms);
 }
 
 .intro-card-title {
@@ -802,13 +1108,15 @@ body.has-overlay-lock {
     font-weight: 600;
     color: #163b54;
     opacity: 0;
-    transform: translate3d(-10px, 0, 0);
-    filter: blur(10px);
+    clip-path: inset(0 0 100% 0);
+    transform: translate3d(-8px, 12px, 0);
+    filter: blur(8px);
     transition:
         opacity 520ms ease,
         transform 680ms cubic-bezier(0.22, 0.72, 0.2, 1),
-        filter 500ms ease;
-    transition-delay: calc(var(--intro-card-delay) + 40ms);
+        filter 500ms ease,
+        clip-path 700ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    transition-delay: calc(var(--intro-card-content-delay) + 40ms);
 }
 
 .intro-card-body {
@@ -822,13 +1130,15 @@ body.has-overlay-lock {
     font-size: 0.96rem;
     line-height: 1.9;
     opacity: 0;
-    transform: translate3d(0, 10px, 0);
-    filter: blur(12px);
+    clip-path: inset(0 0 100% 0);
+    transform: translate3d(0, 12px, 0);
+    filter: blur(8px);
     transition:
         opacity 560ms ease,
         transform 720ms cubic-bezier(0.22, 0.72, 0.2, 1),
-        filter 520ms ease;
-    transition-delay: calc(var(--intro-card-delay) + 120ms + var(--intro-item-delay, 0ms));
+        filter 520ms ease,
+        clip-path 720ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    transition-delay: calc(var(--intro-card-content-delay) + 120ms + var(--intro-item-delay, 0ms));
 }
 
 .intro-bullet-list {
@@ -848,14 +1158,16 @@ body.has-overlay-lock {
     font-size: 0.94rem;
     line-height: 1.82;
     opacity: 0;
-    transform: translate3d(0, 10px, 0);
-    filter: blur(10px);
+    clip-path: inset(0 0 100% 0);
+    transform: translate3d(0, 12px, 0);
+    filter: blur(8px);
     transition:
         opacity 520ms ease,
         transform 680ms cubic-bezier(0.22, 0.72, 0.2, 1),
         filter 480ms ease,
+        clip-path 680ms cubic-bezier(0.22, 0.72, 0.2, 1),
         color 220ms ease;
-    transition-delay: calc(var(--intro-card-delay) + 160ms + var(--intro-item-delay, 0ms));
+    transition-delay: calc(var(--intro-card-content-delay) + 170ms + var(--intro-item-delay, 0ms));
 }
 
 .intro-bullet-item:hover {
@@ -898,15 +1210,16 @@ body.has-overlay-lock {
         0 14px 28px rgba(12, 31, 46, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.52);
     opacity: 0;
-    transform: translate3d(0, 10px, 0);
-    filter: blur(10px);
+    clip-path: inset(0 0 100% 0 round 20px);
+    transform: translate3d(0, 12px, 0);
+    filter: blur(8px);
     transition:
         opacity 520ms ease,
         transform 700ms cubic-bezier(0.22, 0.72, 0.2, 1),
         filter 500ms ease,
-        box-shadow 240ms ease,
-        transform 240ms ease;
-    transition-delay: calc(var(--intro-card-delay) + 160ms + var(--intro-item-delay, 0ms));
+        clip-path 720ms cubic-bezier(0.22, 0.72, 0.2, 1),
+        box-shadow 240ms ease;
+    transition-delay: calc(var(--intro-card-content-delay) + 150ms + var(--intro-item-delay, 0ms));
 }
 
 .intro-weather-card:hover {
@@ -936,20 +1249,74 @@ body.has-overlay-lock {
     filter: blur(0);
 }
 
-.intro-section.is-visible .intro-archive-card {
+.intro-archive-card.is-content-visible .intro-card-index {
     opacity: 1;
+    clip-path: inset(0 0 0 0 round 999px);
     transform: translate3d(0, 0, 0);
     filter: blur(0);
-    transition-delay: var(--intro-card-delay);
 }
 
-.intro-section.is-visible .intro-card-title,
-.intro-section.is-visible .intro-card-paragraph,
-.intro-section.is-visible .intro-bullet-item,
-.intro-section.is-visible .intro-weather-card {
+.intro-archive-card.is-content-visible .intro-card-title,
+.intro-archive-card.is-content-visible .intro-card-paragraph,
+.intro-archive-card.is-content-visible .intro-bullet-item,
+.intro-archive-card.is-content-visible .intro-weather-card {
     opacity: 1;
+    clip-path: inset(0 0 0 0);
     transform: translate3d(0, 0, 0);
     filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intro-section,
+    .intro-section-head {
+        transition-duration: 260ms;
+    }
+
+    .intro-archive-card {
+        clip-path: inset(0 0 0 0 round var(--intro-card-radius));
+        transform: translate3d(0, 16px, 0);
+        filter: none;
+        transition:
+            opacity 220ms ease,
+            transform 260ms ease,
+            box-shadow 220ms ease;
+    }
+
+    .intro-archive-card::before {
+        transform: none;
+        transition-duration: 220ms;
+    }
+
+    .intro-archive-card::after {
+        content: none;
+    }
+
+    .intro-archive-card.is-shell-visible {
+        transform: translate3d(0, 0, 0);
+    }
+
+    .intro-card-index,
+    .intro-card-title,
+    .intro-card-paragraph,
+    .intro-bullet-item,
+    .intro-weather-card {
+        clip-path: inset(0 0 0 0);
+        transform: translate3d(0, 10px, 0);
+        filter: none;
+        transition:
+            opacity 200ms ease,
+            transform 240ms ease,
+            color 220ms ease,
+            box-shadow 220ms ease;
+    }
+
+    .intro-archive-card.is-content-visible .intro-card-index,
+    .intro-archive-card.is-content-visible .intro-card-title,
+    .intro-archive-card.is-content-visible .intro-card-paragraph,
+    .intro-archive-card.is-content-visible .intro-bullet-item,
+    .intro-archive-card.is-content-visible .intro-weather-card {
+        transform: translate3d(0, 0, 0);
+    }
 }
 
 /* ============================================
@@ -958,8 +1325,16 @@ body.has-overlay-lock {
 
 /* 控制 .map-container 的布局、视觉和状态表现 */
 .map-container {
+    --sea-map-core-bg: linear-gradient(180deg, rgba(8, 38, 58, 0.94), rgba(5, 26, 41, 0.96));
+    --sea-map-tint: linear-gradient(165deg, rgba(6, 37, 56, 0.56), rgba(8, 52, 77, 0.42) 42%, rgba(2, 20, 32, 0.48) 100%);
+    --sea-map-fog-top: rgba(210, 241, 250, 0.15);
+    --sea-map-fog-mid: rgba(117, 178, 201, 0.07);
+    --sea-map-fog-bottom: rgba(4, 17, 28, 0.28);
+    --sea-map-glow: rgba(174, 229, 242, 0.24);
+    --sea-map-route-soft: rgba(183, 229, 240, 0.24);
+    --sea-map-route-main: rgba(235, 250, 255, 0.9);
     width: 100%;
-    min-height: 860px;
+    min-height: 940px;
     display: flex;
     align-items: stretch;
     justify-content: center;
@@ -968,13 +1343,68 @@ body.has-overlay-lock {
     box-shadow:
         0 28px 58px rgba(11, 34, 52, 0.16),
         inset 0 1px 0 rgba(255, 255, 255, 0.18);
-    margin: var(--spacing-2xl) 0;
+    margin: 0;
     background:
         radial-gradient(circle at 18% 18%, rgba(112, 186, 219, 0.16), transparent 32%),
         radial-gradient(circle at 82% 14%, rgba(134, 213, 224, 0.12), transparent 30%),
         linear-gradient(160deg, rgba(8, 35, 54, 0.96), rgba(12, 58, 84, 0.92) 44%, rgba(9, 79, 109, 0.88) 100%);
     border: 1px solid rgba(147, 200, 220, 0.2);
     position: relative;
+    transition:
+        transform 780ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        box-shadow 620ms ease,
+        filter 520ms ease;
+}
+
+.map-container::before {
+    content: "";
+    position: absolute;
+    left: 64px;
+    right: 64px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(209, 235, 244, 0), rgba(209, 235, 244, 0.58) 18%, rgba(209, 235, 244, 0.18) 50%, rgba(209, 235, 244, 0.58) 82%, rgba(209, 235, 244, 0));
+    z-index: 2;
+    pointer-events: none;
+}
+
+.map-container::after {
+    content: "";
+    position: absolute;
+    left: 34px;
+    right: 34px;
+    top: 0;
+    height: 92px;
+    background: linear-gradient(180deg, rgba(219, 240, 247, 0.12), rgba(118, 178, 201, 0.12) 30%, rgba(9, 47, 69, 0.05) 72%, rgba(9, 47, 69, 0));
+    filter: blur(16px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.detail-reading-section-map.is-reading-current #spotMapSection {
+    transform: translate3d(0, -3px, 0);
+    text-shadow: 0 16px 30px rgba(8, 25, 38, 0.12);
+    color: #133a53;
+}
+
+.detail-reading-section-map.is-reading-current .spot-map-head {
+    transform: translate3d(0, -1px, 0);
+}
+
+.detail-reading-section-map.is-reading-current .spot-map-kicker {
+    color: rgba(84, 126, 151, 0.82);
+}
+
+.detail-reading-section-map.is-reading-current .spot-map-lead {
+    color: rgba(63, 96, 116, 0.88);
+}
+
+.detail-reading-section-map.is-reading-current .map-container {
+    transform: translate3d(0, -4px, 0);
+    filter: saturate(1.03) brightness(1.01);
+    box-shadow:
+        0 36px 76px rgba(9, 31, 47, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* sea-atlas-shell：
@@ -987,8 +1417,35 @@ body.has-overlay-lock {
     min-height: 860px;
     margin: 0 auto;
     flex: 0 1 auto;
+    isolation: isolate;
     transform: translate3d(var(--sea-atlas-shell-shift-x), 0, 0);
     transition: transform 220ms ease;
+}
+
+.sea-atlas-shell::before {
+    content: "";
+    position: absolute;
+    inset: -18px -18px -24px;
+    border-radius: 38px;
+    background:
+        radial-gradient(circle at 18% 16%, rgba(154, 219, 234, 0.18), transparent 32%),
+        radial-gradient(circle at 82% 14%, rgba(191, 232, 243, 0.14), transparent 28%),
+        linear-gradient(180deg, rgba(214, 242, 249, 0.08), rgba(5, 24, 37, 0));
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(0.986);
+    filter: blur(24px);
+    transition:
+        opacity 860ms ease,
+        transform 1080ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 820ms ease;
+    pointer-events: none;
+}
+
+.sea-atlas-shell.is-atlas-awakening::before,
+.sea-atlas-shell.is-atlas-awake::before {
+    opacity: 0.92;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
 }
 
 /* sea-atlas-resize-layer：
@@ -1111,7 +1568,20 @@ body.has-overlay-lock {
     min-height: 100%;
     height: 100%;
     color: rgba(238, 247, 252, 0.94);
-    animation: seaAtlasReveal 0.9s ease-out forwards;
+    container-type: inline-size;
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: none;
+    transition:
+        opacity 780ms ease,
+        transform 1080ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 820ms ease;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas {
+    opacity: 0;
+    transform: translate3d(0, 34px, 0) scale(0.986);
+    filter: blur(18px) saturate(0.92);
 }
 
 /* .sea-atlas::before, 的前置装饰层 */
@@ -1146,6 +1616,24 @@ body.has-overlay-lock {
     flex-direction: column;
     gap: 16px;
     margin-bottom: 22px;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+    transition:
+        opacity 620ms ease,
+        transform 860ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 720ms ease;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-head {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    filter: blur(16px);
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-head,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-head {
+    transition-delay: 140ms;
 }
 
 /* 控制 .sea-atlas-kicker 的布局、视觉和状态表现 */
@@ -1170,6 +1658,103 @@ body.has-overlay-lock {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.sea-atlas-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.sea-atlas-kicker,
+.sea-atlas-lead,
+.sea-atlas-controls {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+    transition:
+        opacity 520ms ease,
+        transform 760ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 620ms ease;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-kicker,
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-lead,
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-controls {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+    filter: blur(12px);
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-kicker,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-kicker {
+    transition-delay: 200ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-lead,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-lead {
+    transition-delay: 260ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-controls,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-controls {
+    transition-delay: 340ms;
+}
+
+.sea-atlas-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.sea-atlas-reset-view,
+.sea-atlas-open-map,
+.sea-atlas-map-fallback-action {
+    appearance: none;
+    border: 1px solid rgba(184, 225, 236, 0.18);
+    background:
+        linear-gradient(180deg, rgba(242, 251, 254, 0.11), rgba(221, 243, 249, 0.04)),
+        rgba(6, 27, 41, 0.44);
+    color: rgba(235, 248, 252, 0.88);
+    border-radius: 999px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition:
+        border-color 220ms ease,
+        background 220ms ease,
+        transform 220ms ease,
+        color 220ms ease;
+}
+
+.sea-atlas-reset-view:hover,
+.sea-atlas-reset-view:focus-visible,
+.sea-atlas-open-map:hover,
+.sea-atlas-open-map:focus-visible,
+.sea-atlas-map-fallback-action:hover,
+.sea-atlas-map-fallback-action:focus-visible {
+    border-color: rgba(200, 236, 245, 0.3);
+    background:
+        linear-gradient(180deg, rgba(246, 253, 255, 0.16), rgba(227, 246, 251, 0.06)),
+        rgba(8, 34, 51, 0.56);
+    color: rgba(246, 252, 255, 0.96);
+    transform: translateY(-1px);
+}
+
+.sea-atlas-reset-view[disabled],
+.sea-atlas-open-map[disabled] {
+    opacity: 0.42;
+    cursor: default;
+    transform: none;
+    pointer-events: none;
 }
 
 /* 控制 .sea-atlas-tab 的布局、视觉和状态表现 */
@@ -1212,7 +1797,25 @@ body.has-overlay-lock {
 .sea-atlas-stage {
     position: relative;
     z-index: 1;
-    min-height: 790px;
+    min-height: 860px;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+    transition:
+        opacity 660ms ease,
+        transform 900ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 760ms ease;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-stage {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    filter: blur(18px);
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-stage,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-stage {
+    transition-delay: 260ms;
 }
 
 /* 控制 .sea-atlas-panel 的布局、视觉和状态表现 */
@@ -1220,7 +1823,7 @@ body.has-overlay-lock {
     position: absolute;
     inset: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(360px, 0.8fr);
+    grid-template-columns: minmax(0, 1.68fr) minmax(300px, 0.62fr);
     align-items: stretch;
     gap: 28px;
     opacity: 0;
@@ -1230,12 +1833,44 @@ body.has-overlay-lock {
     transition: opacity 520ms ease, transform 620ms cubic-bezier(0.22, 1, 0.36, 1), filter 520ms ease;
 }
 
+.sea-atlas-map-panel {
+    align-items: start;
+}
+
 /* .sea-atlas-panel.is-active 在对应状态下的样式 */
 .sea-atlas-panel.is-active {
     opacity: 1;
     transform: translateY(0) scale(1);
     filter: blur(0);
     pointer-events: auto;
+}
+
+@container (max-width: 920px) {
+    .sea-atlas-stage {
+        min-height: 0;
+    }
+
+    .sea-atlas-panel {
+        position: relative;
+        inset: auto;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        gap: 22px;
+        margin-bottom: 18px;
+    }
+
+    .sea-atlas-panel:not(.is-active) {
+        display: none;
+    }
+
+    .sea-atlas-visual {
+        min-height: 600px;
+    }
+
+    .sea-atlas-dossier {
+        min-height: auto;
+        padding: 28px 24px 26px;
+    }
 }
 
 /* 控制 .sea-atlas-visual, 的布局、视觉和状态表现 */
@@ -1252,13 +1887,82 @@ body.has-overlay-lock {
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+    transition:
+        opacity 660ms ease,
+        transform 860ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 760ms ease,
+        background 280ms ease,
+        border-color 280ms ease,
+        box-shadow 280ms ease;
+}
+
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-panel.is-active .sea-atlas-visual,
+.sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas-panel.is-active .sea-atlas-dossier {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0) scale(0.986);
+    filter: blur(18px);
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-panel.is-active .sea-atlas-visual,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-panel.is-active .sea-atlas-visual {
+    transition-delay: 360ms;
+}
+
+.sea-atlas-shell.is-atlas-awakening .sea-atlas-panel.is-active .sea-atlas-dossier,
+.sea-atlas-shell.is-atlas-awake .sea-atlas-panel.is-active .sea-atlas-dossier {
+    transition-delay: 460ms;
 }
 
 /* 控制 .sea-atlas-visual 的布局、视觉和状态表现 */
 .sea-atlas-visual {
-    min-height: 500px;
+    min-height: 580px;
     padding: 28px 20px;
     overflow: hidden;
+}
+
+.sea-atlas-visual-map {
+    display: grid;
+}
+
+.sea-atlas-visual-map > * {
+    grid-area: 1 / 1;
+}
+
+.sea-atlas-visual-view {
+    position: relative;
+    min-height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, 10px, 0);
+    transition:
+        opacity 360ms ease,
+        transform 420ms cubic-bezier(0.2, 0.78, 0.22, 1),
+        visibility 0s linear 420ms;
+}
+
+.sea-atlas-visual-view.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0);
+    transition-delay: 0s;
+}
+
+.sea-atlas-map-slot,
+.sea-route-board-slot {
+    width: 100%;
+    min-height: 0;
+}
+
+.sea-route-board {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    align-self: start;
 }
 
 /* 控制 .sea-atlas-dossier 的布局、视觉和状态表现 */
@@ -1351,9 +2055,11 @@ body.has-overlay-lock {
 .sea-atlas-map {
     position: relative;
     height: 100%;
-    min-height: 420px;
+    min-height: 520px;
     border-radius: 22px;
     overflow: hidden;
+    isolation: isolate;
+    contain: paint;
     background:
         radial-gradient(circle at 28% 24%, rgba(129, 195, 219, 0.2), transparent 22%),
         radial-gradient(circle at 70% 36%, rgba(92, 177, 206, 0.16), transparent 24%),
@@ -1371,7 +2077,7 @@ body.has-overlay-lock {
 }
 
 /* .sea-atlas-map::before 的前置装饰层 */
-.sea-atlas-map::before {
+.sea-atlas-map:not(.is-live-map)::before {
     background:
         linear-gradient(rgba(199, 230, 240, 0.08) 1px, transparent 1px),
         linear-gradient(90deg, rgba(199, 230, 240, 0.08) 1px, transparent 1px);
@@ -1380,10 +2086,698 @@ body.has-overlay-lock {
 }
 
 /* .sea-atlas-map::after 的后置装饰层 */
-.sea-atlas-map::after {
+.sea-atlas-map:not(.is-live-map)::after {
     background:
         radial-gradient(circle at 50% 50%, rgba(170, 225, 239, 0.16), transparent 42%),
         linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+}
+
+/* 真地图态下，原有网格假海图退为兼容层，不再承担主视觉。 */
+.sea-atlas-map.is-live-map {
+    background: var(--sea-map-core-bg);
+}
+
+.sea-atlas-map.is-live-map:not(.sea-route-map)::before,
+.sea-atlas-map.is-live-map:not(.sea-route-map)::after {
+    opacity: 0;
+}
+
+.sea-atlas-map.is-live-map.sea-route-map {
+    contain: none;
+}
+
+/* Leaflet 主舞台容器 */
+.sea-atlas-map-base {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.sea-atlas-map-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    border-radius: inherit;
+    background: var(--sea-map-core-bg);
+    opacity: 0;
+    filter: saturate(0.82) brightness(0.86) contrast(1.04);
+    transform: scale(1.01);
+    transition:
+        opacity 480ms ease,
+        filter 900ms ease,
+        transform 780ms cubic-bezier(0.2, 0.78, 0.22, 1);
+}
+
+.sea-atlas-map.is-live-map.is-map-awake .sea-atlas-map-canvas,
+.sea-atlas-map.is-live-map.is-map-route-drawn .sea-atlas-map-canvas {
+    opacity: 1;
+    filter: saturate(0.98) brightness(0.93) contrast(1.08);
+    transform: scale(1);
+}
+
+/* 深海 tint、雾感和轻海流纹理，专门负责把真实底图收进盐憩语境。 */
+.sea-atlas-map-tint,
+.sea-atlas-map-fog,
+.sea-atlas-map-currents,
+.sea-atlas-map-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.sea-atlas-map-tint {
+    z-index: 2;
+    background: var(--sea-map-tint);
+    mix-blend-mode: multiply;
+    opacity: 0.86;
+}
+
+.sea-atlas-map-fog {
+    z-index: 3;
+    background:
+        radial-gradient(circle at 16% 10%, var(--sea-map-fog-top), transparent 28%),
+        radial-gradient(circle at 78% 22%, var(--sea-map-fog-mid), transparent 34%),
+        linear-gradient(180deg, rgba(225, 247, 253, 0.08), transparent 18%, transparent 70%, var(--sea-map-fog-bottom));
+    mix-blend-mode: screen;
+    opacity: 0.72;
+    filter: blur(0.5px);
+}
+
+.sea-atlas-map-currents {
+    z-index: 4;
+    background:
+        radial-gradient(120% 56% at 10% 12%, rgba(171, 223, 236, 0.1), transparent 62%),
+        radial-gradient(120% 56% at 92% 68%, rgba(145, 209, 227, 0.08), transparent 58%),
+        repeating-linear-gradient(116deg, rgba(199, 233, 244, 0.08) 0 1px, transparent 1px 34px);
+    opacity: 0.2;
+    animation: seaAtlasCurrentDrift 32s linear infinite;
+}
+
+.sea-atlas-map-vignette {
+    z-index: 5;
+    background: radial-gradient(circle at 50% 48%, rgba(0, 0, 0, 0), rgba(3, 15, 26, 0.42) 82%);
+    opacity: 0.66;
+}
+
+/* Leaflet 默认控件弱化，避免“地图产品 UI”跳出页面语境。 */
+.sea-atlas-map .leaflet-container {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: #0a3248;
+    color: rgba(226, 241, 248, 0.9);
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+}
+
+.sea-atlas-map .leaflet-pane,
+.sea-atlas-map .leaflet-control-container {
+    z-index: 6;
+}
+
+.sea-atlas-map .leaflet-tile-pane {
+    filter: saturate(0.78) brightness(0.84) contrast(1.1);
+}
+
+.sea-atlas-map .leaflet-control-zoom {
+    display: none;
+}
+
+.sea-atlas-map .leaflet-control-attribution {
+    margin: 0 10px 8px 0;
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid rgba(218, 241, 248, 0.26);
+    background:
+        linear-gradient(180deg, rgba(244, 251, 254, 0.1), rgba(229, 245, 250, 0.04)),
+        rgba(3, 12, 21, 0.9);
+    color: rgba(252, 255, 255, 0.96);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    text-shadow: 0 1px 8px rgba(2, 12, 20, 0.38);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 253, 255, 0.16),
+        0 14px 26px rgba(1, 10, 18, 0.3);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.sea-atlas-map .leaflet-control-attribution a {
+    color: rgba(255, 255, 255, 0.98);
+    text-decoration-color: rgba(255, 255, 255, 0.62);
+}
+
+.sea-atlas-map .leaflet-popup {
+    display: none;
+}
+
+/* Marker 设计：非 pin 语义，保留深海浮标感与呼吸感。 */
+.sea-atlas-marker {
+    --sea-marker-core-size: 14px;
+    --sea-marker-ring-size: 34px;
+    --sea-marker-halo-size: 56px;
+    --sea-marker-core: rgba(236, 250, 255, 0.95);
+    --sea-marker-ring: rgba(178, 228, 240, 0.44);
+    --sea-marker-halo: rgba(164, 223, 237, 0.2);
+    position: relative;
+    width: var(--sea-marker-halo-size);
+    height: var(--sea-marker-halo-size);
+    --sea-marker-transform: translate(-50%, -50%);
+    transform: var(--sea-marker-transform);
+    pointer-events: auto;
+    opacity: 0;
+    filter: blur(7px);
+}
+
+.sea-atlas-marker::before,
+.sea-atlas-marker::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 999px;
+    transform: translate(-50%, -50%);
+}
+
+.sea-atlas-marker::before {
+    width: var(--sea-marker-ring-size);
+    height: var(--sea-marker-ring-size);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.06), rgba(167, 224, 238, 0.2) 56%, rgba(167, 224, 238, 0) 82%);
+    box-shadow: 0 0 0 1px var(--sea-marker-ring);
+}
+
+.sea-atlas-marker::after {
+    width: var(--sea-marker-core-size);
+    height: var(--sea-marker-core-size);
+    background: var(--sea-marker-core);
+    box-shadow:
+        0 0 0 10px var(--sea-marker-halo),
+        0 12px 24px rgba(2, 16, 27, 0.22);
+}
+
+.sea-atlas-marker.is-port {
+    --sea-marker-core-size: 10px;
+    --sea-marker-ring-size: 24px;
+    --sea-marker-halo-size: 44px;
+    --sea-marker-core: rgba(222, 240, 247, 0.92);
+    --sea-marker-ring: rgba(160, 209, 224, 0.32);
+    --sea-marker-halo: rgba(146, 203, 219, 0.14);
+}
+
+.sea-atlas-marker.is-spot {
+    --sea-marker-core-size: 14px;
+    --sea-marker-ring-size: 34px;
+    --sea-marker-halo-size: 56px;
+}
+
+.sea-atlas-marker.is-active {
+    animation: seaAtlasMarkerPulse 8.6s ease-in-out infinite;
+}
+
+.sea-atlas-map.is-live-map.is-map-awake .sea-atlas-marker,
+.sea-atlas-map.is-live-map.is-map-route-drawn .sea-atlas-marker {
+    opacity: 1;
+    filter: blur(0);
+    animation-name: seaAtlasMarkerRise;
+    animation-duration: 680ms;
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0.2, 0.78, 0.22, 1);
+    animation-delay: var(--sea-marker-delay, 280ms);
+}
+
+.sea-atlas-map.is-live-map.is-map-awake .sea-atlas-marker.is-active,
+.sea-atlas-map.is-live-map.is-map-route-drawn .sea-atlas-marker.is-active {
+    animation-name: seaAtlasMarkerRise, seaAtlasMarkerPulse;
+    animation-duration: 680ms, 8.6s;
+    animation-delay: var(--sea-marker-delay, 280ms), calc(var(--sea-marker-delay, 280ms) + 760ms);
+    animation-iteration-count: 1, infinite;
+}
+
+.sea-atlas-marker-label {
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(187, 229, 240, 0.22);
+    background: rgba(4, 24, 38, 0.42);
+    color: rgba(231, 247, 252, 0.86);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* 统一路线叠层命名，兼容旧 .sea-route-line* 语汇与新地图叠层。 */
+.sea-atlas-route-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 480ms ease;
+}
+
+.sea-atlas-map.is-live-map.is-map-awake .sea-atlas-route-overlay,
+.sea-atlas-map.is-live-map.is-map-route-drawn .sea-atlas-route-overlay {
+    opacity: 1;
+    transition-delay: 220ms;
+}
+
+.sea-atlas-route-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.sea-atlas-dossier-map {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    align-self: start;
+    gap: 0;
+    min-height: auto;
+    height: auto;
+    overflow: hidden;
+}
+
+.sea-atlas-dossier-map .sea-atlas-dossier-view {
+    display: grid;
+    grid-area: 1 / 1;
+    gap: 20px;
+    align-content: start;
+    min-width: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, 16px, 0) scale(0.985);
+    filter: blur(10px);
+    transition:
+        opacity 360ms ease,
+        transform 460ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 420ms ease,
+        visibility 0s linear 420ms;
+}
+
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+    transition-delay: 0s;
+}
+
+.sea-atlas-dossier-map .sea-atlas-card-title,
+.sea-atlas-dossier-map .sea-atlas-card-copy,
+.sea-atlas-dossier-map .sea-atlas-meta-grid,
+.sea-atlas-dossier-map .sea-atlas-tags,
+.sea-atlas-dossier-map .sea-route-journey {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    filter: blur(8px);
+    transition:
+        opacity 320ms ease,
+        transform 420ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 360ms ease;
+}
+
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-title,
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-copy,
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-meta-grid,
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-tags,
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-route-journey {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+}
+
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-title {
+    transition-delay: 40ms;
+}
+
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-card-copy {
+    transition-delay: 90ms;
+}
+
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-meta-grid,
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-route-journey {
+    transition-delay: 150ms;
+}
+
+.sea-atlas-dossier-map .sea-atlas-dossier-view.is-active .sea-atlas-tags {
+    transition-delay: 210ms;
+}
+
+.sea-atlas-route-line-glow,
+.sea-route-line-glow {
+    stroke: var(--sea-map-route-soft);
+}
+
+.sea-atlas-route-line-base,
+.sea-route-line-base {
+    stroke: rgba(166, 222, 235, 0.2);
+}
+
+.sea-atlas-route-line,
+.sea-route-line {
+    stroke: var(--sea-map-route-main);
+    stroke-dasharray: var(--sea-route-length, 1);
+    stroke-dashoffset: var(--sea-route-length, 1);
+}
+
+.sea-atlas-route-line-sheen,
+.sea-route-line-sheen {
+    stroke-dasharray: var(--sea-route-sheen-length, 88) var(--sea-route-length, 1);
+}
+
+.sea-atlas-info-root {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+}
+
+.sea-atlas-map.is-fallback-active .sea-atlas-info-root {
+    display: none;
+}
+
+/* 玻璃信息卡：不使用默认 popup。 */
+.sea-atlas-info-card {
+    position: absolute;
+    left: 20px;
+    bottom: 18px;
+    z-index: 8;
+    width: min(290px, calc(100% - 40px));
+    padding: 14px 14px 12px;
+    border-radius: 18px;
+    border: 1px solid rgba(189, 229, 239, 0.24);
+    background:
+        linear-gradient(180deg, rgba(240, 250, 254, 0.12), rgba(238, 249, 253, 0.04)),
+        rgba(4, 22, 35, 0.52);
+    box-shadow:
+        inset 0 1px 0 rgba(245, 252, 255, 0.15),
+        0 14px 28px rgba(1, 14, 23, 0.28);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+    filter: blur(8px);
+    transition:
+        opacity 420ms ease,
+        transform 620ms cubic-bezier(0.2, 0.78, 0.22, 1),
+        filter 520ms ease;
+}
+
+.sea-atlas-map.is-live-map.is-map-awake .sea-atlas-info-card,
+.sea-atlas-map.is-live-map.is-map-route-drawn .sea-atlas-info-card {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+    transition-delay: 520ms;
+}
+
+.sea-atlas-map.is-live-map.is-route-emphasis .sea-atlas-info-card {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    filter: blur(10px);
+    transition-delay: 0s;
+}
+
+.sea-atlas-map.is-live-map.is-map-interacting .sea-atlas-info-card {
+    opacity: 0.12;
+    filter: blur(10px);
+    transform: translate3d(0, 10px, 0) scale(0.985);
+}
+
+.sea-atlas-info-title {
+    margin: 0 0 10px;
+    color: rgba(245, 252, 255, 0.98);
+    font-size: 0.98rem;
+    line-height: 1.38;
+}
+
+.sea-atlas-info-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 9px;
+}
+
+.sea-atlas-info-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(199, 233, 243, 0.2);
+    background: rgba(228, 246, 252, 0.08);
+    color: rgba(233, 247, 252, 0.9);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.sea-atlas-info-route {
+    margin: 0;
+    color: rgba(222, 241, 248, 0.84);
+    font-size: 0.82rem;
+    line-height: 1.64;
+}
+
+.sea-atlas-info-card.is-port-card {
+    left: auto;
+    right: 18px;
+    bottom: auto;
+    top: 22px;
+    width: min(206px, calc(100% - 52px));
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+    pointer-events: none;
+}
+
+.sea-atlas-info-card.is-port-card.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+}
+
+/* 状态切换时压低闪烁感，维持“潜游到另一片海”的稳定过渡。 */
+.sea-atlas-map.is-live-map.is-map-switching .sea-atlas-map-canvas {
+    opacity: 0.82;
+    filter: saturate(0.88) brightness(0.88) blur(0.5px);
+}
+
+.sea-atlas-map.is-live-map.is-map-switching .sea-atlas-route-overlay,
+.sea-atlas-map.is-live-map.is-map-switching .sea-atlas-info-card,
+.sea-atlas-map.is-live-map.is-map-switching .sea-atlas-marker {
+    opacity: 0.38;
+    transition-duration: 220ms;
+}
+
+.sea-atlas-map.is-live-map.is-route-emphasis .sea-atlas-route-overlay {
+    opacity: 1;
+}
+
+.sea-atlas-map.is-live-map.is-route-emphasis .sea-atlas-map-currents {
+    opacity: 0.28;
+}
+
+.sea-atlas-map.is-live-map:not(.is-route-emphasis) .sea-route-anchor-dot,
+.sea-atlas-map.is-live-map:not(.is-route-emphasis) .sea-route-node {
+    opacity: 0 !important;
+    animation: none !important;
+}
+
+/* 地图失败降级：仍保持盐憩语境，不回到普通错误块。 */
+.sea-atlas-map-fallback {
+    position: absolute;
+    inset: 16px;
+    z-index: 9;
+    display: grid;
+    gap: 10px;
+    align-content: end;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(189, 226, 237, 0.22);
+    background:
+        radial-gradient(circle at 20% 20%, rgba(190, 231, 243, 0.14), transparent 34%),
+        linear-gradient(160deg, rgba(5, 29, 44, 0.8), rgba(5, 22, 35, 0.62));
+    box-shadow:
+        inset 0 1px 0 rgba(245, 252, 255, 0.14),
+        0 18px 30px rgba(2, 14, 24, 0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    pointer-events: auto;
+}
+
+.sea-atlas-map-fallback[hidden] {
+    display: none !important;
+}
+
+.sea-atlas-map-fallback-title {
+    margin: 0;
+    color: rgba(241, 250, 254, 0.96);
+    font-size: 0.94rem;
+}
+
+.sea-atlas-map-fallback-copy {
+    margin: 0;
+    color: rgba(218, 240, 247, 0.82);
+    font-size: 0.82rem;
+    line-height: 1.65;
+}
+
+.sea-atlas-map-fallback-action {
+    justify-self: start;
+    pointer-events: auto;
+}
+
+.sea-atlas-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: clamp(18px, 3vw, 34px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 320ms ease;
+}
+
+.sea-atlas-fullscreen.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.sea-atlas-fullscreen-backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 18%, rgba(134, 201, 224, 0.1), transparent 28%),
+        rgba(2, 12, 21, 0.76);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.sea-atlas-fullscreen-panel {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px;
+    width: min(1260px, 100%);
+    height: min(92vh, 920px);
+    padding: clamp(16px, 1.8vw, 20px);
+    border-radius: 32px;
+    border: 1px solid rgba(187, 228, 239, 0.16);
+    background:
+        linear-gradient(165deg, rgba(6, 28, 42, 0.92), rgba(5, 20, 32, 0.9)),
+        rgba(5, 21, 33, 0.9);
+    box-shadow:
+        0 30px 80px rgba(1, 10, 18, 0.46),
+        inset 0 1px 0 rgba(246, 252, 255, 0.08);
+}
+
+.sea-atlas-fullscreen-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sea-atlas-fullscreen-copy {
+    display: grid;
+    gap: 6px;
+    max-width: 640px;
+}
+
+.sea-atlas-fullscreen-kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(192, 228, 239, 0.68);
+}
+
+.sea-atlas-fullscreen-title {
+    margin: 0;
+    color: rgba(246, 252, 255, 0.98);
+    font-size: clamp(1.16rem, 1.55vw, 1.46rem);
+}
+
+.sea-atlas-fullscreen-meta {
+    margin: 0;
+    color: rgba(220, 239, 247, 0.82);
+    line-height: 1.56;
+}
+
+.sea-atlas-fullscreen-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.sea-atlas-fullscreen-close {
+    appearance: none;
+    border: 1px solid rgba(190, 228, 239, 0.16);
+    background:
+        linear-gradient(180deg, rgba(240, 250, 254, 0.1), rgba(221, 243, 249, 0.04)),
+        rgba(5, 21, 33, 0.48);
+    color: rgba(238, 249, 253, 0.9);
+    border-radius: 999px;
+    padding: 10px 16px;
+    font: inherit;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition:
+        border-color 220ms ease,
+        background 220ms ease,
+        color 220ms ease,
+        transform 220ms ease;
+}
+
+.sea-atlas-fullscreen-close:hover,
+.sea-atlas-fullscreen-close:focus-visible {
+    border-color: rgba(207, 238, 246, 0.28);
+    background:
+        linear-gradient(180deg, rgba(246, 253, 255, 0.14), rgba(227, 246, 251, 0.06)),
+        rgba(7, 30, 45, 0.58);
+    color: rgba(247, 252, 255, 0.98);
+    transform: translateY(-1px);
+}
+
+.sea-atlas-fullscreen-map-shell {
+    position: relative;
+    min-height: 0;
+}
+
+.sea-atlas-fullscreen-map-slot,
+.sea-atlas-fullscreen-map-shell .sea-atlas-map {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+.sea-atlas-map.is-fullscreen {
+    min-height: 100%;
+    border-radius: 26px;
+}
+
+.sea-atlas-map.is-fullscreen .sea-atlas-info-card {
+    width: min(268px, calc(100% - 56px));
+    padding: 12px 12px 11px;
 }
 
 /* 控制 .sea-atlas-flowline 的布局、视觉和状态表现 */
@@ -1474,13 +2868,19 @@ body.has-overlay-lock {
 
 /* 控制 .sea-route-map 的布局、视觉和状态表现 */
 .sea-route-map {
+    --sea-route-length: 1;
+    --sea-route-sheen-length: 48;
     position: relative;
-    height: 100%;
-    min-height: 368px;
+    display: grid;
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: 18px;
+    height: auto;
+    min-height: 0;
+    width: 100%;
+    padding: 20px 18px 18px;
     border-radius: 28px;
     overflow: visible;
-    width: calc(100% + 28px);
-    margin-left: -6px;
     background:
         radial-gradient(circle at 14% 16%, rgba(153, 223, 241, 0.12), transparent 28%),
         radial-gradient(circle at 82% 22%, rgba(120, 188, 216, 0.1), transparent 32%),
@@ -1490,6 +2890,10 @@ body.has-overlay-lock {
     box-shadow:
         inset 0 1px 0 rgba(236, 248, 252, 0.14),
         0 24px 46px rgba(2, 18, 31, 0.18);
+}
+
+.sea-route-board {
+    contain: none;
 }
 
 /* .sea-route-map::before 用极淡的流线和等压纹理，把路线图从“空底板”收成更像海面路径板。 */
@@ -1523,13 +2927,21 @@ body.has-overlay-lock {
 
 /* 路径板左上角的小标题，作用是先告诉用户“这是靠近这片海的过程”，而不是普通路线图。 */
 .sea-route-heading {
-    position: absolute;
-    left: 22px;
-    top: 20px;
+    position: relative;
     z-index: 2;
     display: grid;
     gap: 8px;
-    max-width: 240px;
+    max-width: 272px;
+}
+
+/* 固定 16:9 舞台，避免 SVG 为了撑满容器而被横向或纵向拉伸。 */
+.sea-route-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
 }
 
 /* 英文 overline 只做极轻的海图标记，不抢节点卡。 */
@@ -1555,90 +2967,165 @@ body.has-overlay-lock {
     height: 100%;
     overflow: visible;
     pointer-events: none;
+    z-index: 5;
 }
 
-/* 路径背后先垫一层更宽的柔光，让航线像在海面上被慢慢照亮。 */
+.sea-route-svg path {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* 路径背后只保留贴线柔雾，避免超宽光晕把主线挤成忽粗忽细。 */
 .sea-route-line-glow {
-    fill: none;
-    stroke: rgba(146, 216, 232, 0.18);
-    stroke-width: 16;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    filter: blur(10px);
+    stroke: rgba(178, 231, 242, 0.82);
+    stroke-width: 6;
+    opacity: 0.16;
+    filter: blur(6px);
 }
 
-/* 细碎虚线只负责带一点海流方向感，不做地铁线路图那种强方向箭头。 */
-.sea-route-line-wake {
-    fill: none;
-    stroke: rgba(202, 236, 244, 0.18);
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 2 15;
-    opacity: 0.48;
+/* 底层先放一条已经存在的海流轨迹，真正描亮的主线会从它身上慢慢浮出来。 */
+.sea-route-line-base {
+    stroke: rgba(173, 225, 238, 0.52);
+    stroke-width: 1.8;
+    opacity: 0.16;
+    transition: opacity 360ms ease, filter 360ms ease;
 }
 
 /* 控制 .sea-route-line 的布局、视觉和状态表现 */
 .sea-route-line {
-    fill: none;
-    stroke: rgba(204, 239, 245, 0.82);
-    stroke-width: 4.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 100;
-    filter: drop-shadow(0 0 12px rgba(151, 220, 235, 0.14));
-}
-
-/* .sea-route-line.is-route-animating 在路线首次激活时只播放一次描线动画 */
-.sea-route-line.is-route-animating {
-    animation: routeDraw 2.5s cubic-bezier(0.2, 0.72, 0.18, 1) forwards;
-}
-
-/* .sea-route-line.is-route-drawn 控制动画结束后的静态完成状态 */
-.sea-route-line.is-route-drawn {
-    stroke-dashoffset: 0;
+    stroke: rgba(233, 249, 253, 0.94);
+    stroke-width: 2.5;
+    opacity: 0.96;
+    stroke-dasharray: var(--sea-route-length);
+    stroke-dashoffset: var(--sea-route-length);
+    transition: filter 320ms ease, opacity 320ms ease;
+    filter: drop-shadow(0 0 10px rgba(176, 231, 243, 0.18));
 }
 
 /* 描线完成后，让一小段很淡的光沿路径慢慢走一次，像海面光线掠过航线。 */
 .sea-route-line-sheen {
-    fill: none;
-    stroke: rgba(236, 249, 252, 0.48);
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 12 88;
-    stroke-dashoffset: 112;
+    stroke: rgba(246, 252, 255, 0.94);
+    stroke-width: 1.1;
+    stroke-dasharray: var(--sea-route-sheen-length) var(--sea-route-length);
+    stroke-dashoffset: calc(var(--sea-route-length) + (var(--sea-route-sheen-length) * 0.2));
     opacity: 0;
-    filter: blur(2px);
+    transition: stroke-width 220ms ease, filter 220ms ease;
+    filter: drop-shadow(0 0 8px rgba(232, 247, 252, 0.2));
+}
+
+/* 沿路径滑行的海流光珠，比之前更小、更安静。 */
+.sea-route-current {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    transform: translate(-50%, -50%) rotate(var(--sea-route-current-angle, 0deg));
+    transform-origin: 50% 50%;
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0;
+    mix-blend-mode: screen;
+    transition: width 220ms ease, height 220ms ease, filter 220ms ease;
+    filter: drop-shadow(0 0 10px rgba(191, 236, 246, 0.24));
+}
+
+.sea-route-map.is-route-awakened .sea-route-line-base {
+    opacity: 0.22;
+}
+
+.sea-route-map.is-route-passing .sea-route-line-base {
+    opacity: 0.1;
+    filter: drop-shadow(0 0 8px rgba(168, 224, 238, 0.12));
+}
+
+.sea-route-map.is-route-passing .sea-route-line {
+    opacity: 1;
+    filter: drop-shadow(0 0 16px rgba(198, 238, 247, 0.3));
+}
+
+.sea-route-map.is-route-passing .sea-route-line-glow {
+    opacity: 0.24;
+    filter: blur(8px);
+}
+
+.sea-route-map.is-route-passing .sea-route-line-sheen {
+    stroke-width: 1.35;
+    filter: drop-shadow(0 0 11px rgba(240, 250, 254, 0.32));
+}
+
+.sea-route-map.is-route-passing .sea-route-current {
+    width: 14px;
+    height: 14px;
+    filter: drop-shadow(0 0 16px rgba(206, 242, 249, 0.38));
+}
+
+.sea-route-current::before,
+.sea-route-current::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    border-radius: 999px;
+}
+
+.sea-route-current::before {
+    inset: 0;
+    top: 0;
+    left: 0;
+    transform: none;
+    background: radial-gradient(circle, rgba(251, 255, 255, 0.98), rgba(226, 247, 252, 0.9) 48%, rgba(167, 227, 241, 0.4) 74%, rgba(167, 227, 241, 0) 100%);
+    box-shadow: 0 0 0 3px rgba(173, 229, 241, 0.12);
+}
+
+.sea-route-current::after {
+    right: calc(100% - 1px);
+    width: 10px;
+    height: 2px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg, rgba(173, 228, 240, 0), rgba(196, 236, 246, 0.38), rgba(244, 251, 254, 0.82));
+}
+
+.sea-route-map.is-route-drawn .sea-route-line {
+    animation: seaRouteLineBreath 6.4s ease-in-out infinite alternate;
+}
+
+.sea-route-map.is-route-drawn .sea-route-line-glow {
+    animation: seaRouteGlowBreath 6.4s ease-in-out infinite alternate;
 }
 
 /* 控制 .sea-route-anchor-dot 的布局、视觉和状态表现 */
 .sea-route-anchor-dot {
-    position: absolute;
-    left: calc((var(--route-x, 0) / 640) * 100%);
-    top: calc((var(--route-y, 0) / 360) * 100%);
-    width: 12px;
-    height: 12px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: rgba(220, 243, 249, 0.94);
-    box-shadow:
-        0 0 0 8px rgba(120, 197, 219, 0.24),
-        0 8px 18px rgba(4, 18, 30, 0.16);
     pointer-events: none;
     opacity: 0;
     z-index: 2;
+    transform-box: fill-box;
+    transform-origin: center;
+    filter: drop-shadow(0 8px 18px rgba(4, 18, 30, 0.16));
+}
+
+.sea-route-anchor-dot-halo {
+    fill: rgba(120, 197, 219, 0.24);
+}
+
+.sea-route-anchor-dot-core {
+    fill: rgba(220, 243, 249, 0.98);
+    stroke: rgba(244, 251, 254, 0.56);
+    stroke-width: 1.2;
 }
 
 /* .sea-route-anchor-dot.is-final 在终点锚点上稍微加重存在感 */
 .sea-route-anchor-dot.is-final {
-    width: 14px;
-    height: 14px;
-    background: rgba(235, 248, 252, 0.98);
-    box-shadow:
-        0 0 0 10px rgba(158, 220, 236, 0.22),
-        0 10px 22px rgba(4, 18, 30, 0.18);
+    filter: drop-shadow(0 10px 22px rgba(4, 18, 30, 0.18));
+}
+
+.sea-route-anchor-dot.is-final .sea-route-anchor-dot-halo {
+    fill: rgba(158, 220, 236, 0.22);
+}
+
+.sea-route-anchor-dot.is-final .sea-route-anchor-dot-core {
+    fill: rgba(235, 248, 252, 0.98);
 }
 
 /* 控制 .sea-route-node 的布局、视觉和状态表现 */
@@ -1646,7 +3133,7 @@ body.has-overlay-lock {
     position: absolute;
     left: calc((var(--route-x, 0) / 640) * 100% + var(--route-shift-x, 0px));
     top: calc((var(--route-y, 0) / 360) * 100%);
-    transform: translate(-50%, calc(-100% - 16px));
+    transform: translate(-50%, calc(-100% - var(--route-node-gap, 16px)));
     transform-origin: 50% 100%;
     width: var(--route-node-width, 132px);
     min-width: var(--route-node-width, 132px);
@@ -1661,12 +3148,12 @@ body.has-overlay-lock {
         0 14px 30px rgba(2, 18, 31, 0.18);
     backdrop-filter: blur(14px);
     opacity: 0;
-    z-index: 3;
+    z-index: 2;
 }
 
 /* .sea-route-node.is-below 把终点卡片放到锚点下方，避免和上一张节点卡在宽屏下重叠 */
 .sea-route-node.is-below {
-    transform: translate(-50%, 18px);
+    transform: translate(-50%, var(--route-node-gap, 18px));
     transform-origin: 50% 0;
 }
 
@@ -1677,7 +3164,7 @@ body.has-overlay-lock {
     left: calc(50% - var(--route-shift-x, 0px));
     top: 100%;
     width: 2px;
-    height: 16px;
+    height: var(--route-node-gap, 16px);
     transform: translateX(-50%);
     border-radius: 999px;
     background: linear-gradient(180deg, rgba(205, 237, 246, 0.7), rgba(205, 237, 246, 0.08));
@@ -1693,8 +3180,8 @@ body.has-overlay-lock {
 /* .sea-atlas-panel[data-sea-panel="route"] .sea-atlas-visual 让路线卡片在宽屏下可轻微溢出，避免边缘裁切 */
 .sea-atlas-panel[data-sea-panel="route"] .sea-atlas-visual {
     overflow: visible;
-    padding-left: 10px;
-    padding-right: 30px;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 /* .sea-atlas-panel[data-sea-panel="underwater"] .sea-atlas-dossier 单独加高，避免水下结构层级卡片顶出容器 */
@@ -1729,23 +3216,17 @@ body.has-overlay-lock {
 }
 
 /* 第一次进入路线视图时，节点和锚点跟着航线一层层亮起来。 */
-.sea-route-map.is-route-awakened .sea-route-anchor-dot,
-.sea-route-map.is-route-drawn .sea-route-anchor-dot {
+.sea-route-map.is-route-awakened .sea-route-anchor-dot {
     animation: seaRouteDotReveal 0.7s ease forwards;
-    animation-delay: calc(0.42s + (var(--route-index, 0) * 0.2s));
+    animation-delay: calc(0.32s + (var(--route-index, 0) * 0.16s));
 }
 
-.sea-route-map.is-route-awakened .sea-route-node,
-.sea-route-map.is-route-drawn .sea-route-node {
+.sea-route-map.is-route-awakened .sea-route-node {
     animation: seaRouteNodeReveal 0.9s cubic-bezier(0.2, 0.78, 0.22, 1) forwards;
-    animation-delay: calc(0.52s + (var(--route-index, 0) * 0.2s));
+    animation-delay: calc(0.42s + (var(--route-index, 0) * 0.16s));
 }
 
 /* 航线完全建立后，流光再很慢地沿路径走一次，不做频繁循环。 */
-.sea-route-map.is-route-drawn .sea-route-line-sheen {
-    animation: seaRouteSheen 8.2s ease-in-out 1 forwards;
-}
-
 /* 控制 .sea-route-journey 的布局、视觉和状态表现 */
 .sea-route-journey {
     display: flex;
@@ -1778,11 +3259,19 @@ body.has-overlay-lock {
 .sea-profile {
     position: relative;
     height: 100%;
-    min-height: 368px;
-    border-radius: 22px;
+    min-height: 420px;
+    border-radius: 26px;
     overflow: hidden;
+    padding: 110px 24px 28px 28px;
+    display: grid;
+    align-content: end;
     background:
-        linear-gradient(180deg, rgba(86, 172, 206, 0.28) 0%, rgba(42, 116, 154, 0.42) 18%, rgba(17, 74, 104, 0.72) 44%, rgba(8, 42, 63, 0.94) 100%);
+        radial-gradient(circle at 16% 8%, rgba(236, 249, 253, 0.26), transparent 18%),
+        radial-gradient(circle at 74% 20%, rgba(126, 207, 228, 0.12), transparent 28%),
+        linear-gradient(180deg, rgba(124, 207, 230, 0.28) 0%, rgba(46, 118, 154, 0.5) 16%, rgba(10, 55, 79, 0.84) 54%, rgba(4, 20, 33, 0.98) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 -22px 44px rgba(2, 10, 18, 0.18);
 }
 
 /* .sea-profile::before 的前置装饰层 */
@@ -1791,30 +3280,111 @@ body.has-overlay-lock {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.22), transparent 18%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 14%, transparent 82%, rgba(0, 0, 0, 0.16)),
+        linear-gradient(110deg, rgba(255, 255, 255, 0.02), transparent 34%, rgba(255, 255, 255, 0.06) 58%, transparent 84%);
+    pointer-events: none;
+}
+
+.sea-profile::after {
+    content: "";
+    position: absolute;
+    inset: auto 18px 24px 18px;
+    height: 34%;
+    border-radius: 999px;
+    background: radial-gradient(circle at 50% 50%, rgba(3, 14, 25, 0.16), rgba(3, 14, 25, 0));
+    opacity: 0.72;
+    filter: blur(18px);
+    pointer-events: none;
 }
 
 /* 控制 .sea-profile-surface 的布局、视觉和状态表现 */
 .sea-profile-surface {
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 16px;
+    right: 16px;
     top: 0;
-    height: 46px;
-    background: linear-gradient(180deg, rgba(215, 244, 250, 0.26), rgba(149, 214, 234, 0.04));
+    height: 86px;
+    border-radius: 0 0 28px 28px;
+    background:
+        linear-gradient(180deg, rgba(233, 249, 253, 0.42), rgba(164, 217, 233, 0.12) 44%, rgba(164, 217, 233, 0));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.26),
+        0 12px 24px rgba(11, 42, 61, 0.12);
+}
+
+.sea-profile-surface::before,
+.sea-profile-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.sea-profile-surface::before {
+    background: linear-gradient(96deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.16) 20%, rgba(255, 255, 255, 0.48) 48%, rgba(212, 240, 247, 0.2) 66%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0.48;
+    transform: translate3d(8%, 0, 0) scaleX(1);
+    filter: blur(14px);
+    mix-blend-mode: screen;
+}
+
+.sea-profile-surface::after {
+    inset: auto 8% 18px 8%;
+    height: 18px;
+    border-radius: 999px;
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(239, 249, 253, 0.56) 28%, rgba(197, 232, 242, 0.24) 60%, rgba(255, 255, 255, 0)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+    opacity: 0.4;
+    transform: translate3d(0, 0, 0) scaleX(1);
+    filter: blur(12px);
+}
+
+.sea-profile-grid,
+.sea-profile-depth-rail {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.84;
+}
+
+.sea-profile-grid {
+    inset: 104px 22px 26px 22px;
+    border-radius: 26px;
+    background:
+        linear-gradient(rgba(197, 231, 240, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(197, 231, 240, 0.05) 1px, transparent 1px);
+    background-size: 100% 74px, 64px 100%;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.96), rgba(0, 0, 0, 0.52) 78%, rgba(0, 0, 0, 0));
+}
+
+.sea-profile-depth-rail {
+    left: 62px;
+    top: 118px;
+    bottom: 34px;
+    width: 1px;
+    background: linear-gradient(180deg, rgba(226, 246, 252, 0.82), rgba(162, 211, 226, 0.26) 18%, rgba(111, 176, 199, 0.22) 74%, rgba(111, 176, 199, 0));
+    box-shadow: 0 0 14px rgba(157, 217, 232, 0.2);
 }
 
 /* 控制 .sea-profile-arrow 的布局、视觉和状态表现 */
 .sea-profile-arrow {
     position: absolute;
-    top: 58px;
-    right: 34px;
+    top: 34px;
+    right: 26px;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    color: rgba(231, 245, 250, 0.84);
-    font-size: 0.84rem;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(189, 230, 240, 0.24);
+    background:
+        linear-gradient(180deg, rgba(243, 251, 254, 0.12), rgba(218, 243, 250, 0.04)),
+        rgba(7, 32, 48, 0.34);
+    color: rgba(240, 249, 253, 0.88);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 /* 控制 .sea-profile-arrow svg 的布局、视觉和状态表现 */
@@ -1830,109 +3400,646 @@ body.has-overlay-lock {
 
 /* 控制 .sea-profile-layers 的布局、视觉和状态表现 */
 .sea-profile-layers {
-    position: absolute;
-    inset: 72px 20px 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 10px;
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 16px;
 }
 
 /* 控制 .sea-profile-layer 的布局、视觉和状态表现 */
 .sea-profile-layer {
+    position: relative;
     display: grid;
-    grid-template-columns: 92px minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 18px;
     align-items: center;
-    min-height: 74px;
-    padding: 10px 12px;
-    border-radius: 18px;
-    background: rgba(6, 30, 47, 0.22);
-    border: 1px solid rgba(191, 225, 236, 0.12);
+    min-height: 100px;
+}
+
+.sea-profile-layer::before {
+    content: "";
+    position: absolute;
+    left: 63px;
+    top: 50%;
+    width: 46px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(211, 241, 249, 0.7), rgba(211, 241, 249, 0));
+    opacity: 0.72;
 }
 
 /* 控制 .sea-profile-depth 的布局、视觉和状态表现 */
 .sea-profile-depth {
-    color: rgba(240, 248, 252, 0.92);
+    position: relative;
+    padding-left: 16px;
+    color: rgba(242, 249, 252, 0.94);
     font-weight: 700;
+    font-size: 1.02rem;
+    letter-spacing: 0.02em;
+}
+
+.sea-profile-depth::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    background:
+        radial-gradient(circle at 35% 35%, rgba(251, 255, 255, 0.98), rgba(203, 237, 245, 0.88) 52%, rgba(120, 183, 205, 0.84) 100%);
+    box-shadow:
+        0 0 0 6px rgba(166, 219, 232, 0.1),
+        0 0 16px rgba(186, 232, 242, 0.28);
 }
 
 /* 控制 .sea-profile-band 的布局、视觉和状态表现 */
 .sea-profile-band {
     position: relative;
-    padding: 12px 14px;
-    border-radius: 16px;
-    background: rgba(238, 249, 253, 0.08);
-    border: 1px solid rgba(194, 228, 239, 0.14);
+    overflow: hidden;
+    padding: 18px 22px 18px;
+    border-radius: 24px;
+    background:
+        linear-gradient(152deg, rgba(243, 251, 254, 0.1), rgba(218, 243, 250, 0.04)),
+        rgba(8, 35, 52, 0.34);
+    border: 1px solid rgba(194, 228, 239, 0.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 18px 34px rgba(3, 16, 27, 0.18);
+}
+
+.sea-profile-band-glow {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.2), transparent 30%),
+        linear-gradient(112deg, rgba(186, 235, 245, 0.1), transparent 42%, rgba(255, 255, 255, 0.08) 70%, transparent 100%);
+    opacity: 0.84;
+    pointer-events: none;
 }
 
 /* 控制 .sea-profile-band strong 的布局、视觉和状态表现 */
 .sea-profile-band strong {
+    position: relative;
     display: block;
-    margin-bottom: 6px;
-    color: rgba(245, 251, 255, 0.92);
+    margin-bottom: 8px;
+    font-size: 1.08rem;
+    color: rgba(245, 251, 255, 0.94);
 }
 
 /* 控制 .sea-profile-band span 的布局、视觉和状态表现 */
 .sea-profile-band span {
-    color: rgba(226, 240, 246, 0.78);
+    position: relative;
+    display: block;
+    color: rgba(226, 240, 246, 0.82);
     line-height: 1.68;
+}
+
+.sea-profile-markers {
+    position: absolute;
+    inset: 136px 24px 34px 154px;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.sea-profile-marker {
+    position: absolute;
+    top: var(--sea-profile-marker-top);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transform: translate3d(0, -50%, 0);
+}
+
+.sea-profile-marker.is-left {
+    left: clamp(120px, 28%, 220px);
+}
+
+.sea-profile-marker.is-right {
+    right: 14px;
+    flex-direction: row-reverse;
+    text-align: right;
+}
+
+.sea-profile-marker::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 42px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(204, 238, 247, 0.74), rgba(204, 238, 247, 0));
+    opacity: 0.7;
+}
+
+.sea-profile-marker.is-left::before {
+    right: -34px;
+}
+
+.sea-profile-marker.is-right::before {
+    left: -34px;
+    transform: scaleX(-1);
+}
+
+.sea-profile-marker-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 35%, rgba(252, 255, 255, 0.98), rgba(206, 239, 246, 0.9) 50%, rgba(133, 198, 218, 0.9) 100%);
+    box-shadow:
+        0 0 0 8px rgba(175, 226, 239, 0.08),
+        0 0 22px rgba(201, 239, 248, 0.28);
+    animation: seaProfileMarkerPulse 6.8s ease-in-out infinite;
+    animation-delay: calc(var(--sea-profile-index, 0) * 0.46s);
+}
+
+.sea-profile-marker-copy {
+    display: grid;
+    gap: 4px;
+    min-width: 112px;
+    padding: 10px 12px 9px;
+    border-radius: 18px;
+    border: 1px solid rgba(193, 229, 239, 0.18);
+    background:
+        linear-gradient(180deg, rgba(243, 251, 254, 0.1), rgba(219, 243, 250, 0.04)),
+        rgba(6, 28, 43, 0.38);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 12px 24px rgba(2, 15, 25, 0.16);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.sea-profile-marker-copy em {
+    font-style: normal;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(191, 228, 238, 0.68);
+}
+
+.sea-profile-marker-copy strong {
+    font-size: 0.82rem;
+    color: rgba(245, 251, 255, 0.92);
 }
 
 /* 控制 .sea-profile-hotspots 的布局、视觉和状态表现 */
-.sea-profile-hotspots {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* 控制 .sea-profile-hotspot 的布局、视觉和状态表现 */
-.sea-profile-hotspot {
-    padding: 14px 16px;
-    border-radius: 18px;
-    background: rgba(238, 249, 253, 0.08);
-    border: 1px solid rgba(194, 228, 239, 0.14);
-}
-
-/* 控制 .sea-profile-hotspot strong 的布局、视觉和状态表现 */
-.sea-profile-hotspot strong {
-    display: block;
-    margin-bottom: 6px;
-    color: rgba(245, 251, 255, 0.92);
-}
-
-/* 控制 .sea-profile-hotspot span 的布局、视觉和状态表现 */
-.sea-profile-hotspot span {
-    color: rgba(226, 240, 246, 0.78);
-    line-height: 1.68;
-}
-
-/* 控制 .sea-atlas-levels 的布局、视觉和状态表现 */
+.sea-profile-hotspots,
 .sea-atlas-levels {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
-/* 控制 .sea-atlas-level 的布局、视觉和状态表现 */
+/* 控制 .sea-profile-hotspot 的布局、视觉和状态表现 */
+.sea-profile-hotspot,
 .sea-atlas-level {
-    padding: 14px 16px;
-    border-radius: 18px;
-    background: rgba(238, 249, 253, 0.08);
-    border: 1px solid rgba(194, 228, 239, 0.14);
+    position: relative;
+    overflow: hidden;
+    padding: 16px 18px 15px 20px;
+    border-radius: 20px;
+    background:
+        linear-gradient(150deg, rgba(239, 249, 253, 0.1), rgba(219, 241, 248, 0.04)),
+        rgba(7, 29, 44, 0.44);
+    border: 1px solid rgba(194, 228, 239, 0.16);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 12px 24px rgba(2, 15, 25, 0.14);
 }
 
-/* 控制 .sea-atlas-level strong 的布局、视觉和状态表现 */
+.sea-profile-hotspot::before,
+.sea-atlas-level::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(197, 233, 243, 0), rgba(197, 233, 243, 0.84), rgba(197, 233, 243, 0));
+    opacity: 0.72;
+}
+
+/* 控制 .sea-profile-hotspot strong 的布局、视觉和状态表现 */
+.sea-profile-hotspot strong,
 .sea-atlas-level strong {
     display: block;
-    margin-bottom: 6px;
-    color: rgba(245, 251, 255, 0.92);
+    margin-bottom: 7px;
+    color: rgba(245, 251, 255, 0.94);
 }
 
-/* 控制 .sea-atlas-level span 的布局、视觉和状态表现 */
+/* 控制 .sea-profile-hotspot span 的布局、视觉和状态表现 */
+.sea-profile-hotspot span,
 .sea-atlas-level span {
-    color: rgba(226, 240, 246, 0.78);
+    color: rgba(226, 240, 246, 0.82);
     line-height: 1.68;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-atlas-dossier {
+    min-height: 700px;
+}
+
+.sea-atlas-dossier-underwater {
+    display: grid;
+    align-content: start;
+    gap: 18px;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile-surface,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile-grid,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile-depth-rail,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile-arrow,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile-layer,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile-marker,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-atlas-card-title,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-atlas-card-copy,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile-hotspot,
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-atlas-level {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"] .sea-profile {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0) saturate(1);
+    transform-origin: center;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile {
+    opacity: 0.82;
+    transform: translate3d(0, 18px, 0) scale(0.985);
+    filter: blur(14px) saturate(0.92);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile::before {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.98);
+    filter: blur(18px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile::after {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.9);
+    filter: blur(22px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-surface {
+    opacity: 0;
+    transform: translate3d(0, -30px, 0) scaleX(0.9) scaleY(0.84);
+    filter: blur(18px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-surface::before {
+    opacity: 0;
+    transform: translate3d(-28%, -6px, 0) scaleX(1.12);
+    filter: blur(18px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-surface::after {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scaleX(1.08);
+    filter: blur(18px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-grid,
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-depth-rail {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scaleY(0.82);
+    filter: blur(16px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-arrow,
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-atlas-card-title,
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-atlas-card-copy {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+    filter: blur(12px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-layer,
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-hotspot,
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-atlas-level {
+    opacity: 0;
+    transform: translate3d(0, 34px, 0) scale(0.972);
+    filter: blur(18px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-active:not(.is-profile-awakening):not(.is-profile-settled) .sea-profile-marker {
+    opacity: 0;
+    transform: translate3d(0, calc(-50% + 28px), 0) scale(0.86);
+    filter: blur(16px);
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile {
+    animation: seaProfileStageWake 1220ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile::before {
+    animation: seaProfileStageVeil 1180ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile::after {
+    animation: seaProfileFloorGather 1220ms cubic-bezier(0.18, 0.84, 0.22, 1) 80ms both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-surface {
+    animation: seaProfileSurfaceWake 1180ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-surface::before {
+    animation: seaProfileSurfaceShimmer 1260ms cubic-bezier(0.18, 0.84, 0.22, 1) 40ms both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-surface::after {
+    animation: seaProfileSurfaceRipple 980ms cubic-bezier(0.18, 0.84, 0.22, 1) 90ms both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-grid,
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-depth-rail {
+    animation: seaProfileVeilLift 860ms cubic-bezier(0.18, 0.84, 0.22, 1) 90ms both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-arrow {
+    animation: seaProfileCurrentSweep 900ms cubic-bezier(0.18, 0.84, 0.22, 1) 170ms both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-layer {
+    animation: seaProfileLayerRise 940ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+    animation-delay: calc(200ms + (var(--sea-profile-index, 0) * 120ms));
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-band-glow {
+    animation: seaProfileBandPulse 1220ms ease-out both;
+    animation-delay: calc(260ms + (var(--sea-profile-index, 0) * 120ms));
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-marker {
+    animation: seaProfileMarkerSettle 900ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+    animation-delay: calc(520ms + (var(--sea-profile-index, 0) * 120ms));
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-atlas-card-title {
+    animation: seaProfileCopyReveal 760ms cubic-bezier(0.18, 0.84, 0.22, 1) 560ms both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-atlas-card-copy {
+    animation: seaProfileCopyReveal 760ms cubic-bezier(0.18, 0.84, 0.22, 1) 640ms both;
+}
+
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-profile-hotspot,
+.sea-atlas-panel[data-sea-panel="underwater"].is-profile-awakening .sea-atlas-level {
+    animation: seaProfileCardSettle 780ms cubic-bezier(0.18, 0.84, 0.22, 1) both;
+    animation-delay: calc(760ms + (var(--sea-profile-copy-index, 0) * 100ms));
+}
+
+@keyframes seaProfileStageWake {
+    0% {
+        opacity: 0.82;
+        transform: translate3d(0, 18px, 0) scale(0.985);
+        filter: blur(14px) saturate(0.92);
+    }
+
+    58% {
+        opacity: 1;
+        transform: translate3d(0, -2px, 0) scale(1.004);
+        filter: blur(4px) saturate(1.03);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0) saturate(1);
+    }
+}
+
+@keyframes seaProfileStageVeil {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 16px, 0) scale(0.98);
+        filter: blur(18px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileFloorGather {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 22px, 0) scale(0.9);
+        filter: blur(22px);
+    }
+
+    100% {
+        opacity: 0.72;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(18px);
+    }
+}
+
+@keyframes seaProfileSurfaceWake {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -30px, 0) scaleX(0.9) scaleY(0.84);
+        filter: blur(18px);
+    }
+
+    52% {
+        opacity: 1;
+        transform: translate3d(0, 2px, 0) scaleX(1.03) scaleY(1.02);
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scaleX(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileSurfaceShimmer {
+    0% {
+        opacity: 0;
+        transform: translate3d(-28%, -6px, 0) scaleX(1.12);
+        filter: blur(18px);
+    }
+
+    56% {
+        opacity: 0.7;
+        transform: translate3d(4%, 0, 0) scaleX(1.04);
+        filter: blur(10px);
+    }
+
+    100% {
+        opacity: 0.48;
+        transform: translate3d(8%, 0, 0) scaleX(1);
+        filter: blur(14px);
+    }
+}
+
+@keyframes seaProfileSurfaceRipple {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -8px, 0) scaleX(1.08);
+        filter: blur(18px);
+    }
+
+    60% {
+        opacity: 0.62;
+        transform: translate3d(0, 1px, 0) scaleX(1.02);
+        filter: blur(10px);
+    }
+
+    100% {
+        opacity: 0.4;
+        transform: translate3d(0, 0, 0) scaleX(1);
+        filter: blur(12px);
+    }
+}
+
+@keyframes seaProfileVeilLift {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0) scaleY(0.82);
+        filter: blur(16px);
+    }
+
+    58% {
+        opacity: 0.92;
+        transform: translate3d(0, -1px, 0) scaleY(1.02);
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 0.84;
+        transform: scaleY(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileCurrentSweep {
+    0% {
+        opacity: 0;
+        transform: translate3d(28px, -18px, 0) scale(0.96);
+        filter: blur(14px);
+    }
+
+    54% {
+        opacity: 1;
+        transform: translate3d(-2px, 1px, 0) scale(1.01);
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileLayerRise {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 34px, 0) scale(0.972);
+        filter: blur(18px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translate3d(0, -4px, 0) scale(1.01);
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileBandPulse {
+    0% {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+
+    56% {
+        opacity: 0.96;
+        transform: scale(1.04);
+    }
+
+    100% {
+        opacity: 0.84;
+        transform: scale(1);
+    }
+}
+
+@keyframes seaProfileMarkerSettle {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, calc(-50% + 28px), 0) scale(0.86);
+        filter: blur(16px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translate3d(0, calc(-50% - 4px), 0) scale(1.02);
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, -50%, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileMarkerPulse {
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 8px rgba(175, 226, 239, 0.08),
+            0 0 22px rgba(201, 239, 248, 0.2);
+    }
+
+    50% {
+        box-shadow:
+            0 0 0 11px rgba(175, 226, 239, 0.04),
+            0 0 28px rgba(201, 239, 248, 0.3);
+    }
+}
+
+@keyframes seaProfileCopyReveal {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+        filter: blur(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes seaProfileCardSettle {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(0.986);
+        filter: blur(12px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
 }
 
 /* 定义 seaAtlasReveal 动画关键帧 */
@@ -1971,13 +4078,13 @@ body.has-overlay-lock {
 @keyframes seaAtlasMarkerRise {
     0% {
         opacity: 0;
-        transform: scale(0.62);
+        transform: var(--sea-marker-transform, translate(-50%, -50%)) scale(0.62);
         filter: blur(6px);
     }
 
     100% {
         opacity: 1;
-        transform: scale(1);
+        transform: var(--sea-marker-transform, translate(-50%, -50%)) scale(1);
         filter: blur(0);
     }
 }
@@ -1985,27 +4092,47 @@ body.has-overlay-lock {
 @keyframes seaAtlasMarkerPulse {
     0%,
     100% {
-        box-shadow:
-            0 0 0 10px rgba(148, 216, 233, 0.16),
-            0 12px 24px rgba(3, 18, 31, 0.24);
+        transform: var(--sea-marker-transform, translate(-50%, -50%)) scale(1);
+        filter: drop-shadow(0 0 0 rgba(172, 227, 240, 0));
     }
 
     50% {
-        box-shadow:
-            0 0 0 13px rgba(148, 216, 233, 0.22),
-            0 12px 24px rgba(3, 18, 31, 0.24);
+        transform: var(--sea-marker-transform, translate(-50%, -50%)) scale(1.04);
+        filter: drop-shadow(0 0 10px rgba(172, 227, 240, 0.32));
     }
 }
 
-/* 定义 routeDraw 动画关键帧 */
-@keyframes routeDraw {
-/* 控制动画在 from 阶段的状态 */
+@keyframes seaAtlasCurrentDrift {
     from {
-        stroke-dashoffset: 100;
+        background-position: 0 0, 0 0, 0 0;
     }
-/* 控制动画在 to 阶段的状态 */
+
     to {
-        stroke-dashoffset: 0;
+        background-position: -40px 20px, 34px -26px, 160px -70px;
+    }
+}
+
+@keyframes seaRouteLineBreath {
+    0% {
+        opacity: 0.82;
+        filter: drop-shadow(0 0 7px rgba(176, 231, 243, 0.12));
+    }
+
+    100% {
+        opacity: 0.96;
+        filter: drop-shadow(0 0 12px rgba(186, 236, 246, 0.24));
+    }
+}
+
+@keyframes seaRouteGlowBreath {
+    0% {
+        opacity: 0.08;
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 0.16;
+        filter: blur(6px);
     }
 }
 
@@ -2013,14 +4140,14 @@ body.has-overlay-lock {
 @keyframes seaRouteDotReveal {
     0% {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(0.68);
-        filter: blur(6px);
+        transform: scale(0.68);
+        filter: blur(4px) drop-shadow(0 8px 18px rgba(4, 18, 30, 0.12));
     }
 
     100% {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-        filter: blur(0);
+        transform: scale(1);
+        filter: drop-shadow(0 8px 18px rgba(4, 18, 30, 0.16));
     }
 }
 
@@ -2034,28 +4161,6 @@ body.has-overlay-lock {
     100% {
         opacity: 1;
         filter: blur(0);
-    }
-}
-
-/* 航线完成后的一次性慢流光。
-   它更像海面光带顺着路径走过，不像进度条循环。 */
-@keyframes seaRouteSheen {
-    0% {
-        opacity: 0;
-        stroke-dashoffset: 112;
-    }
-
-    12% {
-        opacity: 0.42;
-    }
-
-    68% {
-        opacity: 0.26;
-    }
-
-    100% {
-        opacity: 0;
-        stroke-dashoffset: -24;
     }
 }
 
@@ -2094,6 +4199,13 @@ body.has-overlay-lock {
     background: linear-gradient(90deg, rgba(92, 147, 174, 0.68), rgba(92, 147, 174, 0));
 }
 
+/* 控制 评论容器的 containment */
+#spotReviews,
+.reviews-stage {
+    contain: layout paint style;
+    isolation: isolate;
+}
+
 /* 控制 .reviews-stage 的布局、视觉和状态表现 */
 .reviews-stage {
     display: flex;
@@ -2108,7 +4220,7 @@ body.has-overlay-lock {
         opacity 620ms ease,
         transform 780ms cubic-bezier(0.22, 0.72, 0.2, 1),
         filter 560ms ease;
-    transition-delay: 100ms;
+    transition-delay: 0ms;
 }
 
 /* 控制 .reviews-intro 的布局、视觉和状态表现 */
@@ -2173,12 +4285,13 @@ body.has-overlay-lock {
     gap: 18px;
     opacity: 0;
     transform: translate3d(0, 24px, 0);
-    filter: blur(14px);
     transition:
         opacity 640ms ease,
-        transform 820ms cubic-bezier(0.22, 0.72, 0.2, 1),
-        filter 560ms ease;
-    transition-delay: 180ms;
+        transform 820ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    transition-delay: 0ms;
+    contain: layout paint style;
+    isolation: isolate;
+    will-change: opacity, transform;
 }
 
 /* 控制 .review-card 的布局、视觉和状态表现 */
@@ -2200,12 +4313,20 @@ body.has-overlay-lock {
     opacity: 0;
     overflow: hidden;
     transform: translate3d(0, 18px, 0);
-    filter: blur(12px);
     transition:
         opacity 540ms ease,
         transform 720ms cubic-bezier(0.22, 0.72, 0.2, 1),
-        filter 520ms ease,
         box-shadow 260ms ease;
+    transition-delay: var(--review-card-shell-delay, 0ms);
+    position: relative;
+    isolation: isolate;
+    contain: layout paint style;
+    will-change: opacity, transform;
+}
+
+.review-card > * {
+    position: relative;
+    z-index: 1;
 }
 
 .review-card[data-review-primary-focus="diving"] {
@@ -2229,16 +4350,10 @@ body.has-overlay-lock {
     display: none;
 }
 
-.reviews-section.is-visible .review-card {
+.review-card.is-shell-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-    filter: blur(0);
 }
-
-.reviews-section.is-visible .review-card:nth-child(1) { transition-delay: 0ms; }
-.reviews-section.is-visible .review-card:nth-child(2) { transition-delay: 90ms; }
-.reviews-section.is-visible .review-card:nth-child(3) { transition-delay: 180ms; }
-.reviews-section.is-visible .review-card:nth-child(4) { transition-delay: 270ms; }
 
 #spotReviews.is-visible,
 .reviews-stage.is-visible,
@@ -2246,6 +4361,31 @@ body.has-overlay-lock {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
+}
+
+.detail-reading-section-reviews #spotReviews,
+.detail-reading-section-reviews .reviews-stage,
+.detail-reading-section-reviews .reviews-section {
+    transition:
+        opacity 620ms ease,
+        transform 780ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 560ms ease,
+        box-shadow 620ms ease;
+}
+
+.detail-reading-section-reviews.is-reading-current #spotReviews.is-visible {
+    transform: translate3d(0, -6px, 0);
+    text-shadow: 0 14px 28px rgba(8, 27, 40, 0.12);
+}
+
+.detail-reading-section-reviews.is-reading-current .reviews-stage.is-visible {
+    transform: translate3d(0, -5px, 0);
+    filter: saturate(1.03) brightness(1.01);
+}
+
+.detail-reading-section-reviews.is-reading-current .reviews-section.is-visible {
+    transform: translate3d(0, -6px, 0);
+    filter: saturate(1.04) brightness(1.01);
 }
 
 /* 控制 .review-body 的布局、视觉和状态表现 */
@@ -2500,6 +4640,60 @@ body.has-overlay-lock {
     font-size: 0.9rem;
 }
 
+/* 控制评论卡内部文字的 reveal 节奏 */
+.review-header,
+.review-scene,
+.review-summary,
+.review-actions,
+.review-dimension {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+    transition:
+        opacity 480ms ease,
+        transform 680ms cubic-bezier(0.2, 0.82, 0.24, 1),
+        filter 520ms ease;
+}
+
+.review-header {
+    transition-delay: 0ms;
+}
+
+.review-scene {
+    transition-delay: 60ms;
+}
+
+.review-summary {
+    transition-delay: 120ms;
+}
+
+.review-actions {
+    transition-delay: 180ms;
+}
+
+.review-dimension:nth-child(1) { transition-delay: 220ms; }
+.review-dimension:nth-child(2) { transition-delay: 280ms; }
+.review-dimension:nth-child(3) { transition-delay: 340ms; }
+.review-dimension:nth-child(4) { transition-delay: 400ms; }
+
+.review-card:not(.is-copy-visible) .review-header,
+.review-card:not(.is-copy-visible) .review-scene,
+.review-card:not(.is-copy-visible) .review-summary,
+.review-card:not(.is-copy-visible) .review-actions,
+.review-card:not(.is-copy-visible) .review-dimension {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+}
+
+.review-card.is-copy-visible .review-header,
+.review-card.is-copy-visible .review-scene,
+.review-card.is-copy-visible .review-summary,
+.review-card.is-copy-visible .review-actions,
+.review-card.is-copy-visible .review-dimension {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
 /* 控制 .review-gallery 的布局、视觉和状态表现 */
 .review-gallery {
     display: grid;
@@ -2527,23 +4721,31 @@ body.has-overlay-lock {
 /* 控制 .review-photo-button 的布局、视觉和状态表现 */
 .review-photo-button {
     all: unset;
+    display: block;
     position: relative;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     aspect-ratio: 1 / 0.82;
     border-radius: 18px;
     overflow: hidden;
     cursor: zoom-in;
+    --review-photo-hidden-scale: 1.075;
+    --review-photo-visible-scale: 1.012;
     box-shadow: 0 14px 26px rgba(22, 55, 80, 0.12);
 }
 
 .review-gallery .review-photo-button {
     opacity: 0;
     transform: translate3d(0, 18px, 0) scale(0.986);
-    filter: blur(12px);
     transition:
         opacity 620ms ease,
         transform 760ms cubic-bezier(0.2, 0.84, 0.24, 1),
-        filter 560ms ease,
         box-shadow 260ms ease;
+    transition-delay: 0ms;
+    min-height: 0;
+    contain: layout paint style;
+    isolation: isolate;
 }
 
 .review-gallery .review-photo-button:nth-child(1) { transition-delay: 120ms; }
@@ -2554,7 +4756,6 @@ body.has-overlay-lock {
 .review-gallery .review-photo-button.is-photo-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
 }
 
 /* 控制 .review-photo 的布局、视觉和状态表现 */
@@ -2562,7 +4763,21 @@ body.has-overlay-lock {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 320ms ease, filter 320ms ease;
+    transition: transform 320ms ease, filter 320ms ease, opacity 320ms ease;
+}
+
+.review-gallery .review-photo-button .review-photo {
+    opacity: 0.74;
+    transform: scale(var(--review-photo-hidden-scale));
+    filter: saturate(0.88) brightness(0.88);
+    display: block;
+    aspect-ratio: inherit;
+}
+
+.review-gallery .review-photo-button.is-photo-visible .review-photo {
+    opacity: 1;
+    transform: scale(var(--review-photo-visible-scale));
+    filter: saturate(1) brightness(1);
 }
 
 /* .review-photo-button::after 的后置装饰层 */
@@ -2579,7 +4794,7 @@ body.has-overlay-lock {
 
 /* .review-photo-button:hover .review-photo 鼠标移入时的样式 */
 .review-photo-button:hover .review-photo {
-    transform: scale(1.05);
+    transform: scale(calc(var(--review-photo-visible-scale) + 0.038));
     filter: saturate(1.04);
 }
 
@@ -2590,18 +4805,15 @@ body.has-overlay-lock {
 
 /* 控制 .review-featured-photo-button 的布局、视觉和状态表现 */
 .review-featured-photo-button {
+    --review-photo-hidden-scale: 1.1;
+    --review-photo-visible-scale: 1.02;
     grid-column: 1 / -1;
     aspect-ratio: 1 / 0.66;
 }
 
-/* 控制 .review-featured-photo 的布局、视觉和状态表现 */
-.review-featured-photo {
-    transform: scale(1.02);
-}
-
 /* .review-featured-photo-button:hover .review-featured-photo 鼠标移入时的样式 */
 .review-featured-photo-button:hover .review-featured-photo {
-    transform: scale(1.05);
+    transform: scale(calc(var(--review-photo-visible-scale) + 0.03));
 }
 
 /* 控制 .review-photo-caption-featured 的布局、视觉和状态表现 */
@@ -2775,7 +4987,13 @@ body.has-overlay-lock {
     margin-bottom: 16px;
 }
 
-.booking-sticky.is-focus-only-context {
+.booking-sticky[data-focus-context-phase="entering"],
+.booking-sticky[data-focus-context-phase="leaving"] {
+    max-height: calc(100vh - var(--detail-sidebar-stick-top) - var(--detail-sidebar-stick-bottom));
+    overflow-y: auto;
+}
+
+.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) {
     max-height: none;
     overflow: visible;
     scrollbar-width: none;
@@ -2784,9 +5002,9 @@ body.has-overlay-lock {
 .booking-sticky[data-focus-context-phase="entering"] .price-badge,
 .booking-sticky[data-focus-context-phase="entering"] .booking-match,
 .booking-sticky[data-focus-context-phase="entering"] .booking-note,
-.booking-sticky.is-focus-only-context:not([data-focus-context-phase="leaving"]) .price-badge,
-.booking-sticky.is-focus-only-context:not([data-focus-context-phase="leaving"]) .booking-match,
-.booking-sticky.is-focus-only-context:not([data-focus-context-phase="leaving"]) .booking-note {
+.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) .price-badge,
+.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) .booking-match,
+.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) .booking-note {
     opacity: 0;
     max-height: 0;
     margin-top: 0;
@@ -2804,7 +5022,7 @@ body.has-overlay-lock {
     z-index: auto;
 }
 
-.booking-sticky:not(.is-focus-only-context):not([data-focus-context-phase="entering"]) .booking-focus-panel,
+.booking-sticky:not(.is-focus-only-context):not([data-focus-context-phase]) .booking-focus-panel,
 .booking-sticky[data-focus-context-phase="leaving"] .booking-focus-panel {
     max-height: 0;
     margin-bottom: 0;
@@ -2851,6 +5069,146 @@ body.has-overlay-lock {
     transform: translate3d(0, -2px, 0);
     border-color: rgba(129, 182, 209, 0.96);
     box-shadow: 0 10px 18px rgba(14, 55, 82, 0.14);
+}
+
+.booking-match-floating-root {
+    position: fixed;
+    inset: 0;
+    z-index: 1840;
+    pointer-events: none;
+}
+
+.booking-sticky[data-focus-return-phase="returning"] .booking-focus-panel {
+    max-height: 520px;
+    margin-bottom: var(--booking-sticky-stack-gap, 18px);
+    padding-top: 16px;
+    padding-bottom: 16px;
+    border-width: 1px;
+    border-color: rgba(164, 213, 232, 0.2);
+    opacity: 1;
+    box-shadow:
+        0 18px 36px rgba(4, 20, 34, 0.22),
+        inset 0 1px 0 rgba(243, 249, 252, 0.14);
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: none;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.booking-match-floating-root[aria-hidden="true"] {
+    display: none;
+}
+
+.booking-match-floating-confirm {
+    position: absolute;
+    min-width: 240px;
+    max-width: 320px;
+    padding: 12px 18px;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 22% 20%, rgba(175, 221, 238, 0.35), transparent 45%),
+        linear-gradient(160deg, rgba(10, 28, 45, 0.95), rgba(5, 16, 24, 0.9));
+    border: 1px solid rgba(165, 214, 232, 0.3);
+    box-shadow:
+        0 24px 48px rgba(2, 9, 18, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, 8px, 0) scale(0.98);
+    transition:
+        opacity 220ms ease,
+        transform 260ms cubic-bezier(0.22, 0.78, 0.3, 1),
+        visibility 0s linear 220ms;
+    z-index: 1850;
+}
+
+.booking-match-floating-confirm.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.booking-match-floating-confirm.is-closing {
+    opacity: 0;
+    visibility: visible;
+    pointer-events: none;
+    transform: translate3d(0, 10px, 0) scale(0.972);
+}
+
+.booking-match-floating-confirm::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: inherit;
+    border: inherit;
+    border-radius: 4px;
+    transform: rotate(45deg);
+    right: 22px;
+    top: 100%;
+    box-shadow:
+        0 12px 24px rgba(3, 10, 18, 0.25);
+    opacity: 0.95;
+}
+
+.booking-match-floating-confirm[data-placement='top']::after {
+    top: auto;
+    bottom: 100%;
+    transform: rotate(45deg);
+}
+
+.booking-match-floating-confirm > * {
+    color: rgba(235, 247, 255, 0.92);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.booking-match-floating-confirm p {
+    margin: 0;
+}
+
+.booking-match-floating-confirm .booking-match-floating-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.booking-match-floating-confirm .booking-match-floating-actions {
+    margin-top: 6px;
+    display: flex;
+    gap: 8px;
+}
+
+.booking-match-floating-confirm .booking-match-floating-actions button {
+    flex: 1;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(181, 212, 226, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: transform 180ms ease, background 180ms ease;
+}
+
+.booking-match-floating-confirm .booking-match-floating-actions button:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.14);
+}
+
+@media (max-width: 960px) {
+    .booking-match-floating-confirm {
+        left: auto;
+        right: 16px;
+        min-width: 200px;
+        max-width: 260px;
+    }
+    .booking-match-floating-confirm::after {
+        right: 16px;
+    }
 }
 
 /* 控制 .booking-copy 的布局、视觉和状态表现 */
@@ -3140,6 +5498,9 @@ body.has-overlay-lock {
    用户读评论时不需要只靠高亮卡片猜现在对应的是哪一套安排。 */
 .booking-focus-panel {
     position: sticky;
+    contain: layout paint style;
+    isolation: isolate;
+    will-change: transform, opacity;
     top: calc(
         var(--booking-copy-stick-top, 0px) +
         var(--booking-copy-stick-height, 0px) +
@@ -3500,6 +5861,52 @@ body.has-overlay-lock {
     animation: bookingFocusSwapGlow 940ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
 }
 
+@keyframes bookingFocusReturnIn {
+    0% {
+        opacity: 0.58;
+        transform: translate3d(0, 18px, 0) scale(0.976);
+        filter: blur(14px) saturate(0.88);
+    }
+
+    58% {
+        opacity: 1;
+        transform: translate3d(0, -2px, 0) scale(1.008);
+        filter: blur(0px) saturate(1.04);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0px) saturate(1);
+    }
+}
+
+@keyframes bookingFocusReturnGlow {
+    0% {
+        opacity: 0;
+        transform: translate3d(-18px, 18px, 0) scale(0.96);
+        filter: blur(24px);
+    }
+
+    36% {
+        opacity: 0.62;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(12px, -4px, 0) scale(1.02);
+        filter: blur(16px);
+    }
+}
+
+.booking-focus-panel.is-returning {
+    animation: bookingFocusReturnIn 560ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+}
+
+.booking-focus-panel.is-returning::after {
+    animation: bookingFocusReturnGlow 620ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+}
+
 @keyframes bookingFocusPulse {
     0% {
         transform: translate3d(0, 10px, 0);
@@ -3581,10 +5988,21 @@ body.has-overlay-lock {
     transform: translate3d(0, 22px, 0) scale(0.985);
 }
 
+.booking-sticky[data-focus-context-phase="entering"] .itinerary-list {
+    max-height: 2400px;
+    margin-bottom: 18px;
+    opacity: 0;
+    overflow: visible;
+    pointer-events: none;
+    filter: blur(10px);
+    transform: translate3d(0, 22px, 0) scale(0.985);
+}
+
 .itinerary-list::before {
     display: none;
 }
 
+.booking-sticky[data-focus-context-phase="entering"] .itinerary-list::before,
 .itinerary-list.is-focus-only-context::before {
     opacity: 0;
     transform: translate3d(0, 18px, 0);
@@ -4501,17 +6919,17 @@ body.has-overlay-lock {
     gap: 24px;
     align-items: stretch;
     min-height: var(--related-stage-height, auto);
+    contain: layout paint style;
+    isolation: isolate;
     --related-flow-sign: 1;
     --related-feature-tilt: 1.2deg;
     --related-feature-exit-tilt: -0.9deg;
     opacity: 0;
     transform: translate3d(0, 30px, 0);
-    filter: blur(18px);
     transition:
         opacity 620ms ease,
-        transform 820ms cubic-bezier(0.16, 0.8, 0.2, 1),
-        filter 620ms ease;
-    will-change: transform, opacity, filter;
+        transform 820ms cubic-bezier(0.16, 0.8, 0.2, 1);
+    will-change: transform, opacity;
 }
 
 .related-grid.is-stage-switching {
@@ -4552,14 +6970,12 @@ body.has-overlay-lock {
     pointer-events: none;
     transition:
         transform 820ms cubic-bezier(0.16, 0.8, 0.2, 1),
-        opacity 620ms ease,
-        filter 620ms ease;
+        opacity 620ms ease;
 }
 
 .related-stage-shell.is-stage-outgoing {
     z-index: 1;
     opacity: 0.18;
-    filter: blur(9px) saturate(0.88);
     pointer-events: none;
     transform: translate3d(calc(var(--outgo-x, -64px) * 1.06), -6px, 0) scale(0.992);
 }
@@ -4567,13 +6983,11 @@ body.has-overlay-lock {
 .related-stage-shell.is-stage-incoming {
     z-index: 2;
     opacity: 0.38;
-    filter: blur(7px) saturate(0.95);
     transform: translate3d(calc(var(--incoming-x, 72px) * 0.72), 6px, 0) scale(0.996);
 }
 
 .related-stage-shell.is-stage-active {
     opacity: 1;
-    filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
     pointer-events: auto;
 }
@@ -4649,7 +7063,7 @@ body.has-overlay-lock {
 
 .related-stage-shell.is-stage-incoming .related-feature-card {
     opacity: 0.98;
-    filter: blur(2px) saturate(0.96);
+    filter: saturate(0.96);
     transform: translate3d(calc(var(--incoming-x, 72px) * 0.12), 5px, 0) scale(0.998) rotate(calc(var(--related-feature-tilt) * 0.58));
     box-shadow:
         0 24px 50px rgba(9, 38, 58, 0.14),
@@ -4660,13 +7074,13 @@ body.has-overlay-lock {
 .related-stage-shell.is-stage-incoming.is-stage-active .related-feature-card,
 .related-stage-shell.is-stage-active .related-feature-card {
     opacity: 1;
-    filter: blur(0) saturate(1);
+    filter: saturate(1);
     transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
 }
 
 .related-stage-shell.is-stage-outgoing .related-feature-card {
     opacity: 0.24;
-    filter: blur(5px) saturate(0.88);
+    filter: saturate(0.88);
     transform: translate3d(calc(var(--outgo-x, -72px) * 0.14), -5px, 0) scale(0.992) rotate(calc(var(--related-feature-exit-tilt) * 0.78));
     box-shadow:
         0 20px 38px rgba(9, 38, 58, 0.12),
@@ -4677,12 +7091,19 @@ body.has-overlay-lock {
 /* 控制 .related-feature-media 的布局、视觉和状态表现 */
 .related-feature-media {
     position: relative;
-    min-height: 100%;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
+    contain: layout paint;
+    isolation: isolate;
     transition:
         transform 820ms cubic-bezier(0.16, 0.8, 0.2, 1),
-        filter 680ms ease;
-    will-change: transform, filter;
+        opacity 520ms ease;
+    will-change: transform, opacity;
 }
 
 /* 控制 .related-feature-image 的布局、视觉和状态表现 */
@@ -4691,6 +7112,7 @@ body.has-overlay-lock {
     height: 100%;
     object-fit: cover;
     transition: transform 780ms cubic-bezier(0.18, 0.78, 0.2, 1), filter 420ms ease;
+    display: block;
 }
 
 /* .related-feature-card:hover .related-feature-image 鼠标移入时的样式 */
@@ -4724,24 +7146,23 @@ body.has-overlay-lock {
 }
 
 .related-stage-shell.is-stage-incoming .related-feature-media {
-    filter: blur(2px) saturate(0.97);
+    filter: saturate(0.97);
     transform: translate3d(calc(var(--incoming-x, 72px) * -0.05), 0, 0) scale(1.012);
 }
 
 .related-stage-shell.is-stage-incoming.is-stage-active .related-feature-media,
 .related-stage-shell.is-stage-active .related-feature-media {
-    filter: blur(0) saturate(1);
+    filter: saturate(1);
     transform: translate3d(0, 0, 0) scale(1);
 }
 
 .related-stage-shell.is-stage-outgoing .related-feature-media {
-    filter: blur(4px) saturate(0.9);
+    filter: saturate(0.9);
     transform: translate3d(calc(var(--outgo-x, -72px) * 0.1), 0, 0) scale(0.982);
 }
 
 .related-stage-shell.is-stage-incoming .related-feature-copy {
     opacity: 0.28;
-    filter: blur(6px);
     transform: translate3d(calc(var(--incoming-x, 72px) * 0.1), 10px, 0);
     transition-delay: 20ms;
 }
@@ -4749,13 +7170,11 @@ body.has-overlay-lock {
 .related-stage-shell.is-stage-incoming.is-stage-active .related-feature-copy,
 .related-stage-shell.is-stage-active .related-feature-copy {
     opacity: 1;
-    filter: blur(0);
     transform: translate3d(0, 0, 0);
 }
 
 .related-stage-shell.is-stage-outgoing .related-feature-copy {
     opacity: 0;
-    filter: blur(10px);
     transform: translate3d(calc(var(--outgo-x, -72px) * 0.12), 10px, 0);
 }
 
@@ -4905,20 +7324,20 @@ body.has-overlay-lock {
 
 .related-stage-shell.is-stage-incoming .related-neighbor-stack {
     opacity: 0.48;
-    filter: blur(5px) saturate(0.94);
+    filter: saturate(0.94);
     transform: translate3d(calc(var(--incoming-x, 72px) * 0.16), 6px, 0) scale(0.996);
 }
 
 .related-stage-shell.is-stage-incoming.is-stage-active .related-neighbor-stack,
 .related-stage-shell.is-stage-active .related-neighbor-stack {
     opacity: 1;
-    filter: blur(0) saturate(1);
+    filter: saturate(1);
     transform: translate3d(0, 0, 0) scale(1);
 }
 
 .related-stage-shell.is-stage-outgoing .related-neighbor-stack {
     opacity: 0.04;
-    filter: blur(11px) saturate(0.8);
+    filter: saturate(0.8);
     transform: translate3d(calc(var(--outgo-x, -72px) * 0.28), -4px, 0) scale(0.99);
 }
 
@@ -5000,8 +7419,15 @@ body.has-overlay-lock {
 
 /* 控制 .related-neighbor-media 的布局、视觉和状态表现 */
 .related-neighbor-media {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
     border-radius: 20px;
     overflow: hidden;
+    contain: layout paint style;
 }
 
 /* 控制 .related-neighbor-image 的布局、视觉和状态表现 */
@@ -5010,6 +7436,7 @@ body.has-overlay-lock {
     height: 100%;
     object-fit: cover;
     transition: transform 520ms ease;
+    display: block;
 }
 
 /* .related-neighbor-card:hover .related-neighbor-image 鼠标移入时的样式 */
@@ -5086,7 +7513,6 @@ body.has-overlay-lock {
 .related-spots.is-visible .related-grid:not(.is-stage-switching) .related-stage-shell.is-entry-reveal {
     opacity: 1;
     transform: translate3d(0, 0, 0);
-    filter: blur(0);
     transition-delay: 120ms;
 }
 
@@ -5281,18 +7707,18 @@ body.has-overlay-lock {
 .detail-footer-reveal {
     opacity: 0;
     transform: translate3d(0, 26px, 0);
-    filter: blur(10px);
     transition:
         opacity 560ms ease,
-        transform 760ms cubic-bezier(0.22, 0.72, 0.2, 1),
-        filter 520ms ease;
+        transform 760ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    contain: layout paint style;
+    isolation: isolate;
+    will-change: opacity, transform;
 }
 
 /* .detail-footer.is-visible .detail-footer-reveal 在对应状态下的样式 */
 .detail-footer.is-visible .detail-footer-reveal {
     opacity: 1;
     transform: translate3d(0, 0, 0);
-    filter: blur(0);
 }
 
 .detail-footer.is-harbor-awake::before {
@@ -5995,6 +8421,13 @@ body.has-overlay-lock {
     pointer-events: none;
 }
 
+.booking-modal.is-closing.is-returning-to-focus-panel {
+    transition:
+        opacity 220ms ease,
+        visibility 0s linear 220ms,
+        background-color 260ms ease;
+}
+
 /* 控制 .modal-content 的布局、视觉和状态表现 */
 .modal-content {
     background: white;
@@ -6082,6 +8515,26 @@ body.has-overlay-lock {
     opacity: 0;
     transform: translate3d(0, 12px, 0) scale(0.992);
     filter: blur(6px);
+}
+
+.booking-modal.is-closing.is-returning-to-focus-panel .booking-modal-content {
+    transition:
+        opacity 220ms ease,
+        transform 260ms cubic-bezier(0.18, 0.84, 0.2, 1),
+        filter 220ms ease,
+        visibility 0s linear 0s;
+}
+
+.booking-modal.is-navigating-away .booking-modal-content {
+    opacity: 0;
+    visibility: visible;
+    pointer-events: none;
+    transform: translate3d(0, 18px, 0) scale(0.986);
+    filter: blur(6px);
+    transition:
+        opacity 280ms ease,
+        transform 320ms cubic-bezier(0.22, 0.78, 0.3, 1),
+        filter 320ms ease;
 }
 
 .booking-modal-content::-webkit-scrollbar {
@@ -6276,6 +8729,113 @@ body.has-overlay-lock {
     border-color: rgba(180, 223, 237, 0.18);
     color: rgba(228, 244, 249, 0.92);
     box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+}
+
+.booking-match-confirm {
+    position: relative;
+    margin-top: 12px;
+    padding: 16px 20px;
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at 15% 0%, rgba(132, 209, 239, 0.2), transparent 42%),
+        linear-gradient(175deg, rgba(12, 35, 58, 0.95), rgba(8, 22, 33, 0.88));
+    border: 1px solid rgba(173, 227, 244, 0.28);
+    box-shadow:
+        0 28px 60px rgba(4, 13, 24, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(0, 10px, 0) scale(0.992);
+    transition:
+        opacity 280ms ease,
+        transform 360ms cubic-bezier(0.2, 0.82, 0.2, 1),
+        filter 360ms ease,
+        visibility 0s linear 280ms;
+    pointer-events: none;
+}
+
+.booking-match-confirm.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.booking-match-confirm.is-closing {
+    opacity: 0;
+    visibility: visible;
+    pointer-events: none;
+    transform: translate3d(0, 12px, 0) scale(0.98);
+}
+
+.booking-match-confirm-heading {
+    margin: 0;
+    font-size: 0.9rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(204, 235, 247, 0.86);
+}
+
+.booking-match-confirm-copy {
+    margin: 6px 0 0;
+    font-size: 1rem;
+    color: rgba(232, 244, 252, 0.94);
+    line-height: 1.4;
+}
+
+.booking-match-confirm-actions {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.booking-match-confirm-primary,
+.booking-match-confirm-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    line-height: 1;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.booking-match-confirm-primary {
+    background: linear-gradient(145deg, rgba(176, 226, 241, 0.96), rgba(143, 207, 236, 0.94));
+    color: #052040;
+    box-shadow: 0 14px 30px rgba(8, 34, 66, 0.28);
+}
+
+.booking-match-confirm-primary:hover {
+    transform: translateY(-1px) scale(1.01);
+}
+
+.booking-match-confirm-secondary {
+    border-color: rgba(193, 211, 222, 0.5);
+    color: rgba(219, 239, 247, 0.94);
+    background: rgba(14, 36, 55, 0.4);
+}
+
+.booking-match-confirm-secondary:hover {
+    transform: translateY(-1px);
+}
+
+@media (max-width: 960px) {
+    .booking-match-confirm {
+        padding: 14px 16px;
+        border-radius: 22px;
+    }
+    .booking-match-confirm-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
 
 /* 套餐弹层顶部的“展开卡面”：
@@ -7234,27 +9794,662 @@ body.has-overlay-lock {
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .package-modal-price-editor,
-    .package-modal-price-editor.is-open,
-    .package-modal-price-editor .package-modal-option-group,
-    .package-modal-price-editor .package-modal-option,
-    .package-modal-price-editor .package-modal-custom-duration,
-    .package-modal-price-editor .package-modal-price-support,
-    .package-modal-price.is-opening,
-    .package-modal-price.is-opening .package-modal-price-core,
-    .package-modal-price.is-opening .package-modal-price-summary,
-    .package-modal-price.is-opening .package-modal-editor-layer.is-open,
-    .package-modal-price.is-opening .package-modal-editor-fragment,
-    .package-modal-price.is-opening .package-modal-editor-subfragment,
-    .package-modal-price.is-opening .package-modal-price-summary-item,
-    .package-modal-price.is-opening .package-modal-price-summary-kicker,
-    .package-modal-price.is-opening .package-modal-price-summary-note {
-        transition-duration: 0.01ms !important;
-        transition-delay: 0ms !important;
-        animation: none !important;
-        transform: none !important;
-        filter: none !important;
+/* Detail modal signal v2.6 patch:
+   1) The signal area follows the current dual-cabin DOM instead of the old hidden-summary layout.
+   2) Slip blocks use real meta/text rows, not overlay pseudo headings.
+   3) The price toggle animates with real labels and a tide rail tied to JS state. */
+.package-modal-signal {
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.package-modal-price-layout,
+.package-modal-price-main,
+.package-modal-signal-aside {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+.package-modal-price {
+    align-content: start;
+}
+
+.package-modal-price-layout {
+    align-content: start;
+}
+
+.package-modal-price-main {
+    align-content: start;
+}
+
+.package-modal-price-core {
+    align-items: start;
+}
+
+.package-modal-price-copy {
+    gap: 6px;
+}
+
+.package-modal-price-mini-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.package-modal-price-mini-chip {
+    appearance: none;
+    -webkit-appearance: none;
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    min-height: 46px;
+    padding: 6px 9px 7px;
+    border-radius: 12px;
+    border: 1px solid rgba(180, 223, 237, 0.12);
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.08), rgba(112, 181, 208, 0.05)),
+        rgba(255, 255, 255, 0.03);
+    box-shadow: inset 0 1px 0 rgba(248, 251, 253, 0.05);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 260ms ease,
+        border-color 260ms ease,
+        background-color 260ms ease,
+        box-shadow 260ms ease;
+}
+
+.package-modal-price-mini-chip:hover,
+.package-modal-price-mini-chip:focus-visible {
+    transform: translate3d(0, -0.5px, 0);
+    border-color: rgba(190, 229, 242, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.08),
+        0 6px 12px rgba(5, 19, 29, 0.1);
+}
+
+.package-modal-price-mini-label {
+    font-size: 0.54rem;
+    line-height: 1.12;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(187, 224, 236, 0.58);
+}
+
+.package-modal-price .package-modal-price-mini-value {
+    min-width: 0;
+    color: rgba(244, 250, 253, 0.96);
+    font-size: 0.76rem;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.package-modal-price-mini-chip.is-shifted,
+.package-modal-price-mini-chip[data-summary-tone="shifted"],
+.package-modal-price-mini-chip.is-set,
+.package-modal-price-mini-chip[data-summary-tone="set"],
+.package-modal-price-mini-chip.is-custom,
+.package-modal-price-mini-chip[data-summary-tone="custom"] {
+    border-color: rgba(188, 228, 241, 0.2);
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.12), rgba(118, 186, 213, 0.07)),
+        rgba(255, 255, 255, 0.04);
+}
+
+.package-modal-price-mini-chip.is-empty,
+.package-modal-price-mini-chip[data-summary-tone="empty"] {
+    opacity: 0.88;
+}
+
+.package-modal-price-summary {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: 14px 14px 12px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 72% 8%, rgba(182, 227, 241, 0.14), transparent 50%),
+        linear-gradient(180deg, rgba(149, 208, 229, 0.11), rgba(22, 78, 104, 0.24)),
+        rgba(7, 28, 42, 0.4);
+    border: 1px solid rgba(180, 223, 237, 0.16);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 251, 253, 0.07),
+        0 10px 18px rgba(3, 15, 24, 0.12);
+    overflow: hidden;
+}
+
+.package-modal-price-summary::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(193, 232, 243, 0.08), rgba(193, 232, 243, 0) 36%),
+        radial-gradient(circle at 50% 100%, rgba(120, 188, 215, 0.12), transparent 62%);
+    pointer-events: none;
+}
+
+.package-modal-price-summary-kicker,
+.package-modal-price-summary-note,
+.package-modal-price-summary-list {
+    position: relative;
+    z-index: 1;
+}
+
+.package-modal-price-summary-kicker {
+    margin: 0;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(192, 229, 240, 0.64);
+}
+
+.package-modal-price-summary-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.package-modal-price-summary-item {
+    display: grid;
+    gap: 4px;
+    padding: 9px 10px;
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, rgba(232, 247, 252, 0.08), rgba(112, 180, 209, 0.05)),
+        rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(176, 219, 234, 0.12);
+    box-shadow: inset 0 1px 0 rgba(248, 251, 253, 0.06);
+}
+
+.package-modal-price-summary-item.is-shifted,
+.package-modal-price-summary-item[data-summary-tone="shifted"] {
+    border-color: rgba(191, 229, 242, 0.22);
+    background:
+        linear-gradient(180deg, rgba(238, 249, 253, 0.12), rgba(118, 185, 213, 0.08)),
+        rgba(255, 255, 255, 0.03);
+}
+
+.package-modal-price-summary-item.is-set,
+.package-modal-price-summary-item[data-summary-tone="set"],
+.package-modal-price-summary-item.is-custom,
+.package-modal-price-summary-item[data-summary-tone="custom"] {
+    border-color: rgba(183, 223, 236, 0.2);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.09),
+        0 8px 18px rgba(5, 19, 29, 0.1);
+}
+
+.package-modal-price-summary-item.is-empty,
+.package-modal-price-summary-item[data-summary-tone="empty"] {
+    opacity: 0.86;
+}
+
+.package-modal-price-summary-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(188, 225, 238, 0.58);
+}
+
+.package-modal-price-summary-value {
+    color: rgba(244, 250, 253, 0.96);
+    font-size: 0.86rem;
+    line-height: 1.32;
+}
+
+.package-modal-price-summary-note {
+    margin: 0;
+    color: rgba(214, 236, 246, 0.8);
+    font-size: 0.75rem;
+    line-height: 1.58;
+}
+
+.package-modal-route-echo {
+    gap: 10px;
+}
+
+.package-modal-route-echo-label,
+.package-modal-journey-label {
+    opacity: 0.94;
+}
+
+.package-modal-route-echo-route {
+    margin: 0;
+    color: rgba(245, 251, 254, 0.98);
+    font-size: 0.9rem;
+    line-height: 1.36;
+}
+
+.package-modal-route-echo-note {
+    margin: 0;
+    color: rgba(214, 236, 246, 0.78);
+    font-size: 0.74rem;
+    line-height: 1.56;
+}
+
+.package-modal-route-echo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.package-modal-route-echo-chip {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding: 7px 9px;
+    border-radius: 11px;
+    border: 1px solid rgba(176, 219, 234, 0.12);
+    background:
+        linear-gradient(180deg, rgba(232, 247, 252, 0.08), rgba(112, 180, 209, 0.05)),
+        rgba(255, 255, 255, 0.02);
+}
+
+.package-modal-route-echo-chip.is-shifted,
+.package-modal-route-echo-chip[data-summary-tone="shifted"],
+.package-modal-route-echo-chip.is-set,
+.package-modal-route-echo-chip[data-summary-tone="set"],
+.package-modal-route-echo-chip.is-custom,
+.package-modal-route-echo-chip[data-summary-tone="custom"] {
+    border-color: rgba(188, 228, 241, 0.2);
+}
+
+.package-modal-route-echo-chip.is-empty,
+.package-modal-route-echo-chip[data-summary-tone="empty"] {
+    opacity: 0.86;
+}
+
+.package-modal-route-echo-chip-label {
+    font-size: 0.53rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(188, 225, 238, 0.56);
+}
+
+.package-modal-route-echo-chip-value {
+    color: rgba(244, 250, 253, 0.96);
+    font-size: 0.73rem;
+    line-height: 1.28;
+}
+
+.package-modal-price-summary-footnote::after,
+.package-modal-route-echo-tail::after,
+.package-modal-journey-secondary::after {
+    content: none !important;
+}
+
+.package-modal-price-summary-footnote,
+.package-modal-route-echo-tail,
+.package-modal-journey-secondary {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 9px 10px 10px 11px;
+    border-radius: 13px;
+    background:
+        linear-gradient(126deg, rgba(206, 240, 250, 0.11), rgba(206, 240, 250, 0) 48%),
+        linear-gradient(180deg, rgba(179, 223, 237, 0.08), rgba(22, 77, 103, 0.14)),
+        rgba(5, 24, 37, 0.32);
+    border: 1px solid rgba(177, 221, 236, 0.16);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.07),
+        0 6px 12px rgba(3, 15, 24, 0.1);
+}
+
+.package-modal-price-summary-footnote .package-modal-slip-meta,
+.package-modal-route-echo-tail .package-modal-slip-meta,
+.package-modal-journey-secondary .package-modal-slip-meta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 17px;
+    margin: 0;
+    padding: 3px 7px 2px;
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(229, 246, 252, 0.12), rgba(126, 192, 218, 0.06)),
+        rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(181, 223, 237, 0.16);
+    color: rgba(192, 226, 238, 0.72);
+    font-size: 0.5rem;
+    line-height: 1;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.package-modal-price-summary-footnote .package-modal-slip-text,
+.package-modal-route-echo-tail .package-modal-slip-text,
+.package-modal-journey-secondary .package-modal-slip-text {
+    display: block;
+    min-width: 0;
+    margin: 0;
+    color: rgba(205, 232, 242, 0.84);
+    font-size: 0.66rem;
+    line-height: 1.5;
+    letter-spacing: 0.008em;
+}
+
+.package-modal-price-summary-footnote {
+    z-index: 1;
+}
+
+.package-modal-route-echo-tail,
+.package-modal-journey-secondary {
+    justify-self: stretch;
+}
+
+.package-modal-signal-aside .package-modal-summary-block {
+    gap: 7px;
+    padding: 14px 14px 12px;
+    border-radius: 18px;
+}
+
+.package-modal-signal-aside .package-modal-journey-primary {
+    font-size: 0.88rem;
+    line-height: 1.54;
+}
+
+.package-modal-signal-aside .package-modal-journey-secondary {
+    font-size: 0.74rem;
+    line-height: 1.52;
+}
+
+.package-modal-price .package-modal-price-toggle {
+    position: relative;
+    overflow: hidden;
+    font-size: 0;
+    line-height: 1;
+    color: transparent;
+    --package-toggle-rail-progress: 0.18;
+    background:
+        radial-gradient(circle at 14% 10%, rgba(214, 243, 252, 0.14), rgba(214, 243, 252, 0) 34%),
+        linear-gradient(180deg, rgba(233, 247, 252, 0.12), rgba(124, 188, 214, 0.06)),
+        rgba(255, 255, 255, 0.03);
+}
+
+.package-modal-price .package-modal-price-toggle-shell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 20px;
+    padding: 1px 18px 8px;
+}
+
+.package-modal-price .package-modal-price-toggle-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    display: block;
+    font-size: 0.79rem;
+    line-height: 1.12;
+    letter-spacing: 0.08em;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.package-modal-price .package-modal-price-toggle-label[data-package-price-toggle-label="closed"] {
+    color: rgba(237, 248, 252, 0.94);
+}
+
+.package-modal-price .package-modal-price-toggle-label[data-package-price-toggle-label="open"] {
+    color: rgba(201, 231, 241, 0.8);
+}
+
+.package-modal-price .package-modal-price-toggle-rail {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 1px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(171, 217, 233, 0.26), rgba(171, 217, 233, 0.06));
+    overflow: hidden;
+}
+
+.package-modal-price .package-modal-price-toggle-rail::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(199, 236, 248, 0.92), rgba(144, 205, 227, 0.82));
+    transform-origin: left center;
+    transform: scaleX(var(--package-toggle-rail-progress));
+    opacity: 0.82;
+    transition:
+        transform 360ms cubic-bezier(0.2, 0.74, 0.22, 1),
+        opacity 260ms ease;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closed"] {
+    --package-toggle-rail-progress: 0.18;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="open"],
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="opening"] {
+    --package-toggle-rail-progress: 1;
+    border-color: rgba(190, 229, 242, 0.24);
+    box-shadow:
+        inset 0 1px 0 rgba(248, 251, 253, 0.12),
+        0 8px 16px rgba(4, 17, 27, 0.12),
+        0 0 0 1px rgba(161, 214, 232, 0.08);
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closed"] .package-modal-price-toggle-label[data-package-price-toggle-label="closed"],
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closing"] .package-modal-price-toggle-label[data-package-price-toggle-label="closed"] {
+    opacity: 1;
+    transform: translate3d(0, -50%, 0);
+    filter: blur(0);
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closed"] .package-modal-price-toggle-label[data-package-price-toggle-label="open"],
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closing"] .package-modal-price-toggle-label[data-package-price-toggle-label="open"] {
+    opacity: 0;
+    transform: translate3d(0, calc(-50% + 8px), 0);
+    filter: blur(1.6px);
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="open"] .package-modal-price-toggle-label[data-package-price-toggle-label="closed"],
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="opening"] .package-modal-price-toggle-label[data-package-price-toggle-label="closed"] {
+    opacity: 0;
+    transform: translate3d(0, calc(-50% - 8px), 0);
+    filter: blur(1.6px);
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="open"] .package-modal-price-toggle-label[data-package-price-toggle-label="open"],
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="opening"] .package-modal-price-toggle-label[data-package-price-toggle-label="open"] {
+    opacity: 1;
+    transform: translate3d(0, -50%, 0);
+    filter: blur(0);
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="opening"] .package-modal-price-toggle-label[data-package-price-toggle-label="closed"] {
+    animation: packageModalToggleLabelOutV26 300ms cubic-bezier(0.24, 0.68, 0.22, 1) both;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="opening"] .package-modal-price-toggle-label[data-package-price-toggle-label="open"] {
+    animation: packageModalToggleLabelInV26 380ms cubic-bezier(0.18, 0.8, 0.22, 1) both;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="opening"] .package-modal-price-toggle-rail::before {
+    animation: packageModalToggleRailSweepV26 420ms cubic-bezier(0.18, 0.8, 0.22, 1) both;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closing"] {
+    --package-toggle-rail-progress: 0.18;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closing"] .package-modal-price-toggle-label[data-package-price-toggle-label="closed"] {
+    animation: packageModalToggleLabelInV26 340ms cubic-bezier(0.2, 0.74, 0.22, 1) both;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closing"] .package-modal-price-toggle-label[data-package-price-toggle-label="open"] {
+    animation: packageModalToggleLabelOutV26 280ms cubic-bezier(0.24, 0.68, 0.22, 1) both;
+}
+
+.package-modal-price .package-modal-price-toggle[data-package-price-toggle-state="closing"] .package-modal-price-toggle-rail::before {
+    animation: packageModalToggleRailRetractV26 320ms cubic-bezier(0.22, 0.76, 0.2, 1) both;
+}
+
+.package-modal-price .package-modal-price-toggle:hover,
+.package-modal-price .package-modal-price-toggle:focus-visible {
+    transform: none;
+}
+
+@keyframes packageModalToggleLabelInV26 {
+    0% {
+        opacity: 0.28;
+        transform: translate3d(0, calc(-50% + 8px), 0);
+        filter: blur(1.6px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, -50%, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes packageModalToggleLabelOutV26 {
+    0% {
+        opacity: 0.88;
+        transform: translate3d(0, -50%, 0);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(0, calc(-50% - 8px), 0);
+        filter: blur(1.8px);
+    }
+}
+
+@keyframes packageModalToggleRailSweepV26 {
+    0% {
+        transform: scaleX(0.22);
+        opacity: 0.48;
+    }
+
+    58% {
+        transform: scaleX(1.06);
+        opacity: 0.92;
+    }
+
+    100% {
+        transform: scaleX(1);
+        opacity: 0.82;
+    }
+}
+
+@keyframes packageModalToggleRailRetractV26 {
+    0% {
+        transform: scaleX(1);
+        opacity: 0.82;
+    }
+
+    100% {
+        transform: scaleX(0.18);
+        opacity: 0.64;
+    }
+}
+
+@media (min-width: 901px) {
+    .package-modal-signal {
+        grid-template-columns: minmax(0, 1.16fr) minmax(252px, 312px);
+        gap: 16px;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] {
+        grid-template-areas:
+            "price summary"
+            "route journey";
+        align-items: start;
+        row-gap: 10px;
+    }
+
+    .package-modal-price-layout {
+        display: block;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] > .package-modal-price {
+        grid-area: price;
+        align-self: start;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] > .package-modal-price.is-editor-closed {
+        min-height: clamp(214px, 20.4vw, 238px);
+        padding-bottom: 16px;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] > .package-modal-price.is-editor-closed .package-modal-price-main {
+        min-height: 100%;
+        align-content: space-between;
+    }
+
+    .package-modal-price-core {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+    }
+
+    .package-modal-price-toggle {
+        width: auto;
+        min-width: 168px;
+        justify-self: start;
+    }
+
+    .package-modal-signal-aside {
+        align-content: start;
+        gap: 10px;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] > .package-modal-signal-aside {
+        display: contents;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] > .package-modal-signal-aside > .package-modal-price-summary {
+        grid-area: summary;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] > .package-modal-signal-aside > .package-modal-route-echo {
+        grid-area: route;
+        align-self: start;
+        min-height: clamp(232px, 21.2vw, 258px);
+        margin-top: clamp(-96px, -6.2vw, -82px);
+        align-content: space-between;
+    }
+
+    .package-modal-signal[data-package-signal-state="compact"] > .package-modal-signal-aside > .package-modal-journey {
+        grid-area: journey;
+        align-self: start;
+    }
+
+    .package-modal-price:not(.is-editor-open) {
+        padding-bottom: 12px;
+    }
+
+    .package-modal-signal .package-modal-journey-primary,
+    .package-modal-signal .package-modal-journey-secondary {
+        max-width: none;
+    }
+
+    .package-modal-journey-secondary .package-modal-slip-text {
+        white-space: nowrap;
+        max-width: none;
     }
 }
 
@@ -8072,6 +11267,7 @@ body.has-overlay-lock {
     }
 
     .related-feature-media {
+        height: auto;
         min-height: 300px;
     }
 
@@ -8218,9 +11414,44 @@ body.has-overlay-lock {
         line-height: 1.84;
     }
 
+    .detail-reading-section-map {
+        gap: 8px;
+        margin-top: 0;
+        padding-top: 2px;
+    }
+
+    .spot-map-head {
+        gap: 8px;
+        padding: 2px 8px 8px 4px;
+    }
+
+    .spot-map-head::before {
+        left: 4px;
+        top: 2px;
+        width: 64px;
+    }
+
+    .spot-map-head::after {
+        left: -18px;
+        right: -24px;
+        top: -20px;
+        height: 150px;
+    }
+
+    .spot-map-kicker {
+        font-size: 0.68rem;
+        letter-spacing: 0.22em;
+    }
+
+    .spot-map-lead {
+        font-size: 0.95rem;
+        line-height: 1.82;
+    }
+
     .intro-archive-card {
+        --intro-card-radius: 24px;
+        --intro-card-shell-tilt: 4deg;
         padding: 20px 18px 18px;
-        border-radius: 24px;
     }
 
     .intro-card-head {
@@ -8240,6 +11471,48 @@ body.has-overlay-lock {
     .detail-tags {
         flex-direction: column;
         gap: var(--spacing-sm);
+    }
+
+    .sea-atlas-controls {
+        align-items: stretch;
+    }
+
+    .sea-atlas-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .sea-atlas-reset-view,
+    .sea-atlas-open-map {
+        flex: 0 1 auto;
+        padding: 9px 14px;
+        font-size: 0.74rem;
+        letter-spacing: 0.1em;
+    }
+
+    .sea-atlas-fullscreen {
+        padding: 10px;
+    }
+
+    .sea-atlas-fullscreen-panel {
+        width: 100%;
+        height: min(100vh - 20px, 1000px);
+        padding: 16px;
+        border-radius: 24px;
+    }
+
+    .sea-atlas-fullscreen-head {
+        gap: 14px;
+    }
+
+    .sea-atlas-fullscreen-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .sea-atlas-fullscreen-close,
+    .sea-atlas-fullscreen .sea-atlas-reset-view {
+        padding: 9px 14px;
     }
 
 /* 控制 .detail-content, 的布局、视觉和状态表现 */
@@ -8344,6 +11617,17 @@ body.has-overlay-lock {
         border-radius: 24px;
     }
 
+    .map-container::before {
+        left: 18px;
+        right: 18px;
+    }
+
+    .map-container::after {
+        left: 12px;
+        right: 12px;
+        height: 72px;
+    }
+
     .sea-atlas-resize-layer {
         display: none;
     }
@@ -8389,21 +11673,138 @@ body.has-overlay-lock {
         padding: 8px 10px;
     }
 
+    .sea-atlas-map-currents {
+        opacity: 0.14;
+    }
+
+    .sea-atlas-marker-label {
+        display: none;
+    }
+
+    .sea-atlas-info-card {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        width: auto;
+        padding: 12px 12px 11px;
+        border-radius: 16px;
+    }
+
+    .sea-atlas-info-card.is-port-card {
+        display: none;
+    }
+
+    .sea-atlas-map .leaflet-control-attribution {
+        margin: 0 8px 8px 0;
+        padding: 6px 11px;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+    }
+
 /* 控制 .sea-profile-arrow 的布局、视觉和状态表现 */
     .sea-profile-arrow {
-        top: 52px;
-        right: 16px;
-        font-size: 0.76rem;
+        top: 20px;
+        right: 14px;
+        padding: 8px 10px;
+        font-size: 0.7rem;
     }
 
 /* 控制 .sea-profile-layers 的布局、视觉和状态表现 */
     .sea-profile-layers {
-        inset: 68px 12px 12px;
+        gap: 12px;
     }
 
 /* 控制 .sea-profile-layer 的布局、视觉和状态表现 */
     .sea-profile-layer {
-        grid-template-columns: 72px minmax(0, 1fr);
+        grid-template-columns: 74px minmax(0, 1fr);
+        gap: 12px;
+        min-height: 84px;
+    }
+
+    .sea-profile {
+        min-height: 380px;
+        padding: 92px 16px 22px 18px;
+    }
+
+    .sea-profile-grid {
+        inset: 94px 12px 20px 12px;
+        background-size: 100% 62px, 48px 100%;
+    }
+
+    .sea-profile-depth-rail {
+        left: 36px;
+        top: 102px;
+        bottom: 26px;
+    }
+
+    .sea-profile-layer::before {
+        left: 40px;
+        width: 26px;
+    }
+
+    .sea-profile-depth {
+        padding-left: 10px;
+        font-size: 0.9rem;
+    }
+
+    .sea-profile-depth::before {
+        left: -4px;
+        width: 9px;
+        height: 9px;
+        box-shadow:
+            0 0 0 5px rgba(166, 219, 232, 0.08),
+            0 0 12px rgba(186, 232, 242, 0.22);
+    }
+
+    .sea-profile-band {
+        padding: 15px 16px 14px;
+        border-radius: 20px;
+    }
+
+    .sea-profile-band strong {
+        font-size: 0.98rem;
+    }
+
+    .sea-profile-markers {
+        inset: 116px 10px 22px 88px;
+    }
+
+    .sea-profile-marker {
+        gap: 8px;
+    }
+
+    .sea-profile-marker.is-left {
+        left: 12px;
+    }
+
+    .sea-profile-marker.is-right {
+        right: 0;
+    }
+
+    .sea-profile-marker::before {
+        width: 22px;
+    }
+
+    .sea-profile-marker.is-left::before {
+        right: -16px;
+    }
+
+    .sea-profile-marker.is-right::before {
+        left: -16px;
+    }
+
+    .sea-profile-marker-copy {
+        min-width: 88px;
+        padding: 8px 10px 7px;
+        border-radius: 14px;
+    }
+
+    .sea-profile-marker-copy em {
+        font-size: 0.56rem;
+    }
+
+    .sea-profile-marker-copy strong {
+        font-size: 0.74rem;
     }
 
 /* 控制 .package-card-topline, 的布局、视觉和状态表现 */
@@ -8948,6 +12349,18 @@ body.page-transition-active .booking-confirm-feedback {
     transition: opacity 160ms ease, visibility 0s linear 160ms;
 }
 
+body.page-transition-active .booking-modal,
+body.page-transition-active .booking-modal-content,
+body.page-transition-active .booking-match-floating-root,
+body.page-transition-active .booking-match-confirm,
+body.page-transition-active .booking-match-floating-confirm {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    transition: none;
+}
+
 .booking-confirm-feedback.active {
     opacity: 1;
     visibility: visible;
@@ -9133,6 +12546,46 @@ body.page-transition-active .booking-confirm-feedback {
 /* 控制大屏下 .sea-route-node 的布局、视觉和状态表现 */
     .sea-route-node {
         max-width: 160px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sea-atlas,
+    .sea-atlas-head,
+    .sea-atlas-kicker,
+    .sea-atlas-lead,
+    .sea-atlas-controls,
+    .sea-atlas-stage,
+    .sea-atlas-visual,
+    .sea-atlas-dossier,
+    .sea-atlas-panel,
+    .spot-map-head,
+    .map-container {
+        transition-duration: 280ms !important;
+    }
+
+    .sea-profile-marker-dot {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    .sea-profile,
+    .sea-profile::before,
+    .sea-profile::after,
+    .sea-profile-surface,
+    .sea-profile-surface::before,
+    .sea-profile-surface::after,
+    .sea-profile-grid,
+    .sea-profile-depth-rail,
+    .sea-profile-arrow,
+    .sea-profile-layer,
+    .sea-profile-band-glow,
+    .sea-profile-marker,
+    .sea-profile-hotspot,
+    .sea-atlas-level,
+    .sea-atlas-card-title,
+    .sea-atlas-card-copy {
+        animation: none !important;
     }
 }
 

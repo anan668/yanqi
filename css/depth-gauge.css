@@ -275,7 +275,7 @@ body {
         0 0 12px rgba(161, 223, 255, 0.16);
 }
 
-@media (max-width: 780px), (prefers-reduced-motion: reduce) {
+@media (max-width: 780px) {
     .depth-gauge::after {
         filter: blur(4px);
         opacity: calc(0.14 + var(--ocean-depth-progress) * 0.24);

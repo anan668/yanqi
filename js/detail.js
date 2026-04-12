@@ -14,12 +14,27 @@
 // 共享价格配置：详情页与首页共用同一套人民币展示规则。
 const sharedPriceTools = window.YanqiPriceConfig || null;
 const sharedSpotCatalog = window.YanqiSpotCatalog || null;
+const sharedSpotMapCatalog = window.YanqiSpotMapCatalog || null;
 const PRICE_DISPLAY_VERSION = sharedPriceTools?.PRICE_DISPLAY_VERSION || '';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
 const PACKAGE_MODAL_DURATION_MIN_DAYS = 2;
 const PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS = 6;
 const PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS = 12;
+const BOOKING_MATCH_CONFIRM_CLOSE_DURATION = 380;
+const SEA_ATLAS_EMPTY_TILE_DATA_URI = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+const SEA_ATLAS_FALLBACK_TILE_ERROR_THRESHOLD = 3;
+const SEA_ATLAS_MOBILE_PASSIVE_QUERY = '(max-width: 960px)';
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+const SEA_ATLAS_ROUTE_VIEWBOX_WIDTH = 640;
+const SEA_ATLAS_ROUTE_VIEWBOX_HEIGHT = 360;
+const SEA_ATLAS_TILE_ATTRIBUTION = 'Offline Sea Atlas · Natural Earth land data';
+const SEA_ATLAS_OFFLINE_TILE_SIZE = 1024;
+const SEA_ATLAS_OFFLINE_TILE_ZOOM_OFFSET = -2;
+const SEA_ATLAS_TILE_BUFFER_COLUMNS = 2;
+const SEA_ATLAS_TILE_BUFFER_ROWS = 2;
+const seaAtlasPackCache = new Map();
+let SeaAtlasPackedTileLayerClass = null;
 
 /**
  * resolveStageDebugMode() - 读取当前页面是否需要暴露舞台调试能力
@@ -202,6 +217,12 @@ function getCatalogSpotById(spotId) {
         : null;
 }
 
+function getMapCatalogSpotById(spotId) {
+    return sharedSpotMapCatalog && typeof sharedSpotMapCatalog.getById === 'function'
+        ? sharedSpotMapCatalog.getById(spotId)
+        : null;
+}
+
 function injectCatalogIdentityForDetailItem(record, fallbackId) {
     const normalizedFallbackId = Number(fallbackId);
     const candidateId = Number(record?.id);
@@ -241,6 +262,301 @@ function injectCatalogIdentityForDetailSpots(spots) {
             ];
         })
     );
+}
+
+function injectSpotMapDataForDetailSpots(spots) {
+    return Object.fromEntries(
+        Object.entries(spots).map(([spotId, spot]) => {
+            const normalizedSpotId = Number(spotId);
+            const mapRecord = getMapCatalogSpotById(normalizedSpotId);
+
+            return [
+                spotId,
+                {
+                    ...spot,
+                    map: mapRecord ? {
+                        ...mapRecord
+                    } : null
+                }
+            ];
+        })
+    );
+}
+
+function formatLatLngDisplay(coords) {
+    if (!Array.isArray(coords) || coords.length < 2) {
+        return '';
+    }
+
+    const [lat, lng] = coords;
+    const latDirection = lat >= 0 ? '北纬' : '南纬';
+    const lngDirection = lng >= 0 ? '东经' : '西经';
+    return `${latDirection} ${Math.abs(lat).toFixed(3)}°, ${lngDirection} ${Math.abs(lng).toFixed(3)}°`;
+}
+
+function expandLatLngBounds(bounds, factor = 0.12, lngFactor = factor) {
+    if (!Array.isArray(bounds) || bounds.length !== 2) {
+        return null;
+    }
+
+    const [[south, west], [north, east]] = bounds;
+    const latPad = (north - south) * factor;
+    const lngPad = (east - west) * lngFactor;
+    return [
+        [south - latPad, west - lngPad],
+        [north + latPad, east + lngPad]
+    ];
+}
+
+function tileXToLng(x, zoom) {
+    return ((Number(x) || 0) / (2 ** zoom)) * 360 - 180;
+}
+
+function tileYToLat(y, zoom) {
+    const normalizedZoom = Math.max(0, Number(zoom) || 0);
+    const n = Math.PI - ((2 * Math.PI * (Number(y) || 0)) / (2 ** normalizedZoom));
+    return (180 / Math.PI) * Math.atan(Math.sinh(n));
+}
+
+function latToTileY(lat, zoom) {
+    const normalizedZoom = Math.max(0, Number(zoom) || 0);
+    const maxLat = 85.05112878;
+    const clampedLat = Math.max(-maxLat, Math.min(maxLat, Number(lat) || 0));
+    const latRad = clampedLat * Math.PI / 180;
+    const n = 2 ** normalizedZoom;
+    return (
+        (1 - (Math.log(Math.tan(latRad) + (1 / Math.cos(latRad))) / Math.PI)) / 2
+    ) * n;
+}
+
+function padLatLngBoundsByTiles(bounds, zoom, latTiles = 0, lngTiles = latTiles) {
+    if (!Array.isArray(bounds) || bounds.length !== 2) {
+        return null;
+    }
+
+    const normalizedZoom = Math.max(0, Number(zoom) || 0);
+    const [[south, west], [north, east]] = bounds;
+    const latCenter = (south + north) / 2;
+    const tileLngSpan = 360 / (2 ** normalizedZoom);
+    const tileY = latToTileY(latCenter, normalizedZoom);
+    const tileLatSpan = Math.abs(tileYToLat(Math.floor(tileY), normalizedZoom) - tileYToLat(Math.floor(tileY) + 1, normalizedZoom));
+    const latPad = tileLatSpan * Math.max(0, Number(latTiles) || 0);
+    const lngPad = tileLngSpan * Math.max(0, Number(lngTiles) || 0);
+
+    return [
+        [south - latPad, west - lngPad],
+        [north + latPad, east + lngPad]
+    ];
+}
+
+function normalizeSeaAtlasPackEntryPath(value) {
+    return String(value || '')
+        .replace(/\\/g, '/')
+        .replace(/^\.?\//, '');
+}
+
+function getSeaAtlasPackRegistry() {
+    if (!window.__YANQI_SEA_ATLAS_PACKS__) {
+        window.__YANQI_SEA_ATLAS_PACKS__ = Object.create(null);
+    }
+
+    return window.__YANQI_SEA_ATLAS_PACKS__;
+}
+
+function getSeaAtlasPackRegistryKey(packPath) {
+    const normalizedPath = normalizeSeaAtlasPackEntryPath(packPath).split('?')[0];
+    const filename = normalizedPath.split('/').pop() || '';
+    return filename
+        .replace(/\.pack\.js$/i, '')
+        .replace(/\.js$/i, '')
+        .trim();
+}
+
+function buildSeaAtlasScriptPackArchive(packPath, rawPack) {
+    const files = new Map();
+    Object.entries(rawPack?.tiles || {}).forEach(([entryName, entryData]) => {
+        const normalizedEntryName = normalizeSeaAtlasPackEntryPath(entryName);
+        if (!normalizedEntryName || typeof entryData !== 'string') {
+            return;
+        }
+
+        files.set(normalizedEntryName, entryData);
+    });
+
+    return {
+        packPath,
+        manifest: rawPack?.manifest || null,
+        files,
+        dataUrls: new Map()
+    };
+}
+
+async function loadSeaAtlasTilePackArchive(packPath, packFormat = 'script') {
+    if (!packPath) {
+        throw new Error('Missing sea atlas pack path');
+    }
+
+    const existingArchive = seaAtlasPackCache.get(packPath);
+    if (existingArchive) {
+        return existingArchive;
+    }
+
+    const archivePromise = (async () => {
+        if (packFormat !== 'script') {
+            throw new Error(`Unsupported sea atlas pack format: ${packFormat || 'unknown'}`);
+        }
+
+        const registryKey = getSeaAtlasPackRegistryKey(packPath);
+        const registry = getSeaAtlasPackRegistry();
+        if (registry[registryKey]) {
+            return buildSeaAtlasScriptPackArchive(packPath, registry[registryKey]);
+        }
+
+        await new Promise((resolve, reject) => {
+            let script = document.head?.querySelector(`script[data-sea-atlas-pack="${packPath}"]`) || null;
+            const handleLoad = () => {
+                script?.setAttribute('data-sea-atlas-pack-ready', 'true');
+                resolve();
+            };
+            const handleError = () => {
+                script?.remove();
+                reject(new Error(`Failed to load sea atlas pack script: ${packPath}`));
+            };
+
+            if (!script) {
+                script = document.createElement('script');
+                script.src = packPath;
+                script.async = true;
+                script.setAttribute('data-sea-atlas-pack', packPath);
+                script.addEventListener('load', handleLoad, {
+                    once: true
+                });
+                script.addEventListener('error', handleError, {
+                    once: true
+                });
+                document.head?.appendChild(script);
+                return;
+            }
+
+            if (script.getAttribute('data-sea-atlas-pack-ready') === 'true') {
+                resolve();
+                return;
+            }
+
+            script.addEventListener('load', handleLoad, {
+                once: true
+            });
+            script.addEventListener('error', handleError, {
+                once: true
+            });
+        });
+
+        if (!registry[registryKey]) {
+            throw new Error(`Sea atlas pack script loaded without registry payload: ${packPath}`);
+        }
+
+        return buildSeaAtlasScriptPackArchive(packPath, registry[registryKey]);
+    })();
+
+    seaAtlasPackCache.set(packPath, archivePromise);
+    return archivePromise;
+}
+
+async function resolveSeaAtlasPackedTileUrl(packPath, packFormat, coords) {
+    const archive = await loadSeaAtlasTilePackArchive(packPath, packFormat);
+    const entryPath = normalizeSeaAtlasPackEntryPath(`${coords.z}/${coords.x}/${coords.y}.webp`);
+    const tileData = archive.files.get(entryPath);
+    if (!tileData) {
+        return null;
+    }
+
+    const cachedUrl = archive.dataUrls.get(entryPath);
+    if (cachedUrl) {
+        return cachedUrl;
+    }
+
+    const dataUrl = tileData.startsWith('data:')
+        ? tileData
+        : `data:image/webp;base64,${tileData}`;
+    archive.dataUrls.set(entryPath, dataUrl);
+    return dataUrl;
+}
+
+function ensureSeaAtlasPackedTileLayerClass() {
+    if (SeaAtlasPackedTileLayerClass || !window.L) {
+        return SeaAtlasPackedTileLayerClass;
+    }
+
+    SeaAtlasPackedTileLayerClass = window.L.TileLayer.extend({
+        initialize(packPath, packFormat, options = {}) {
+            this._seaAtlasPackPath = packPath;
+            this._seaAtlasPackFormat = packFormat || 'script';
+            window.L.TileLayer.prototype.initialize.call(this, '', options);
+        },
+
+        createTile(coords, done) {
+            const tile = document.createElement('img');
+            const tileSize = this.getTileSize();
+            const urlZoom = typeof this._getZoomForUrl === 'function'
+                ? this._getZoomForUrl()
+                : coords.z;
+            let completed = false;
+
+            const finalize = (error = null) => {
+                if (completed) {
+                    return;
+                }
+                completed = true;
+                if (typeof done === 'function') {
+                    done(error, tile);
+                }
+            };
+
+            tile.width = tileSize.x;
+            tile.height = tileSize.y;
+            tile.alt = '';
+            tile.decoding = 'async';
+            tile.className = 'leaflet-tile';
+            tile.setAttribute('role', 'presentation');
+            tile.onload = () => finalize(null);
+            tile.onerror = () => finalize(new Error('Packed sea atlas tile failed to load'));
+
+            resolveSeaAtlasPackedTileUrl(this._seaAtlasPackPath, this._seaAtlasPackFormat, {
+                ...coords,
+                z: urlZoom
+            })
+                .then((tileUrl) => {
+                    if (!tileUrl) {
+                        tile.onload = null;
+                        tile.onerror = null;
+                        tile.src = SEA_ATLAS_EMPTY_TILE_DATA_URI;
+                        finalize(new Error(`Packed sea atlas tile missing: ${urlZoom}/${coords.x}/${coords.y}`));
+                        return;
+                    }
+
+                    tile.src = tileUrl;
+                })
+                .catch((error) => {
+                    tile.onload = null;
+                    tile.onerror = null;
+                    tile.src = SEA_ATLAS_EMPTY_TILE_DATA_URI;
+                    finalize(error);
+                });
+
+            return tile;
+        }
+    });
+
+    return SeaAtlasPackedTileLayerClass;
+}
+
+function createQuadraticBezierPoint(start, control, end, t) {
+    const progress = Math.min(Math.max(Number(t) || 0, 0), 1);
+    const inverse = 1 - progress;
+    return {
+        x: (inverse * inverse * start.x) + (2 * inverse * progress * control.x) + (progress * progress * end.x),
+        y: (inverse * inverse * start.y) + (2 * inverse * progress * control.y) + (progress * progress * end.y)
+    };
 }
 
 /**
@@ -408,6 +724,63 @@ function createDeferredSectionBootstrap(target, bootstrap, options = {}) {
     return { run, destroy };
 }
 
+const DETAIL_REVIEW_CONTENT_SCRIPT_SRC = 'js/detail-review-content.js';
+let detailReviewContentPromise = null;
+
+/**
+ * loadDetailReviewContent() - 延迟加载详情页评论原始内容模块，并复用同一份 Promise
+ * @returns {Promise<{ buildRawReviews: Function }>} - 评论原始内容接口
+ */
+function loadDetailReviewContent() {
+    if (window.YanqiDetailReviewContent?.buildRawReviews) {
+        return Promise.resolve(window.YanqiDetailReviewContent);
+    }
+
+    if (detailReviewContentPromise) {
+        return detailReviewContentPromise;
+    }
+
+    detailReviewContentPromise = new Promise((resolve, reject) => {
+        const existingScript = document.querySelector('script[data-detail-review-content-script="true"]');
+        if (existingScript) {
+            existingScript.addEventListener('load', () => {
+                if (window.YanqiDetailReviewContent?.buildRawReviews) {
+                    resolve(window.YanqiDetailReviewContent);
+                    return;
+                }
+
+                reject(new Error('Yanqi detail review content loaded without buildRawReviews().'));
+            }, { once: true });
+            existingScript.addEventListener('error', () => {
+                detailReviewContentPromise = null;
+                reject(new Error(`Failed to load ${DETAIL_REVIEW_CONTENT_SCRIPT_SRC}.`));
+            }, { once: true });
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = DETAIL_REVIEW_CONTENT_SCRIPT_SRC;
+        script.async = true;
+        script.dataset.detailReviewContentScript = 'true';
+        script.addEventListener('load', () => {
+            if (window.YanqiDetailReviewContent?.buildRawReviews) {
+                resolve(window.YanqiDetailReviewContent);
+                return;
+            }
+
+            detailReviewContentPromise = null;
+            reject(new Error('Yanqi detail review content loaded without buildRawReviews().'));
+        }, { once: true });
+        script.addEventListener('error', () => {
+            detailReviewContentPromise = null;
+            reject(new Error(`Failed to load ${DETAIL_REVIEW_CONTENT_SCRIPT_SRC}.`));
+        }, { once: true });
+        document.head.appendChild(script);
+    });
+
+    return detailReviewContentPromise;
+}
+
 /**
  * restartTransientClassAnimation(element, className) - 用下一帧重新挂载状态类，避免为了重启动画强制回流。
  * @param {HTMLElement|null} element - 目标节点
@@ -427,8 +800,17 @@ function restartTransientClassAnimation(element, className) {
     });
 }
 
+/**
+ * prefersReducedMotion() - 读取系统是否要求弱化复杂动画
+ * @returns {boolean} - 当前是否启用 reduced motion
+ */
+function prefersReducedMotion() {
+    return typeof window.matchMedia === 'function'
+        && window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
 // 潜点主数据：这里集中定义每个潜点的文案、图片、套餐、评论与相关推荐信息。
-const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetailSpots({
+const divingSpotDetails = convertSpotPriceDisplay(injectSpotMapDataForDetailSpots(injectCatalogIdentityForDetailSpots({
     1: {
         name: '诗巴丹',
         tagline: '鱼群会先靠近，海墙随后把整片蓝慢慢放深。',
@@ -608,7 +990,7 @@ const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetail
                 id: 7,
                 name: '科莫多',
                 description: '同样是流潜胜地，但地形和鱼群风格完全不同。',
-                image: 'assets/images/komodo-hero.jpg',
+                image: 'assets/images/komodo-review-2-feature.jpg',
                 price: '¥3,880'
             }
         ]
@@ -785,7 +1167,7 @@ const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetail
                 id: 7,
                 name: '科莫多',
                 description: '如果想从珊瑚花园切换到高能流潜，可以接科莫多。',
-                image: 'assets/images/komodo-hero.jpg',
+                image: 'assets/images/komodo-review-2-feature.jpg',
                 price: '¥3,880'
             },
             {
@@ -976,7 +1358,7 @@ const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetail
                 id: 7,
                 name: '科莫多',
                 description: '如果想从布纳肯继续转向更强洋流和大景流潜，科莫多是自然延伸。',
-                image: 'assets/images/komodo-hero.jpg',
+                image: 'assets/images/komodo-review-2-feature.jpg',
                 price: '¥3,880'
             }
         ]
@@ -984,7 +1366,7 @@ const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetail
     7: {
         name: '科莫多',
         tagline: '流会更明显一些，大景与停顿也因此更有层次。',
-        image: 'assets/images/komodo-hero.jpg',
+        image: 'assets/images/komodo-review-2-feature.jpg',
         difficulty: '需要洋流适应',
         depth: '8-34m',
         season: '4月-11月',
@@ -1160,7 +1542,7 @@ const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetail
                 id: 7,
                 name: '科莫多',
                 description: '如果想要更强的流潜和蝠鲼机会，科莫多是自然延伸。',
-                image: 'assets/images/komodo-hero.jpg',
+                image: 'assets/images/komodo-review-2-feature.jpg',
                 price: '¥3,880'
             }
         ]
@@ -1429,7 +1811,7 @@ const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetail
                 id: 7,
                 name: '科莫多',
                 description: '如果想把地形张力继续往更完整的海况里推深，科莫多会更强一些。',
-                image: 'assets/images/komodo-hero.jpg',
+                image: 'assets/images/komodo-review-2-feature.jpg',
                 price: '¥3,880'
             },
             {
@@ -1717,25 +2099,7 @@ const divingSpotDetails = convertSpotPriceDisplay(injectCatalogIdentityForDetail
             }
         ]
     }
-}));
-
-// 评论图片区命名规则：为每个潜点分配固定英文前缀，便于后续补齐独立评论照片文件。
-const REVIEW_IMAGE_PREFIX = Object.freeze({
-    1: 'sipadan',
-    2: 'palau',
-    3: 'blue-hole',
-    4: 'timor',
-    5: 'pohnpei',
-    6: 'bunaken',
-    7: 'komodo',
-    8: 'tuamotu',
-    9: 'mabul',
-    10: 'maldives-liveaboard',
-    11: 'coron',
-    12: 'bohol',
-    13: 'racha',
-    14: 'redang'
-});
+})));
 
 // 相关推荐切换配置：控制详情页之间的卡片式切页时长、状态存储和方向 class。
 /**
@@ -2282,6 +2646,7 @@ class DetailPage {
         this.packageData = [];
         this.reviewData = [];
         this.reviewDataCache = new Map();
+        this.reviewDataPromiseCache = new Map();
         this.activeReviewFilter = 'all';
         this.selectedPackageId = null;
         this.tripStore = window.YanqiTripStore || null;
@@ -2314,9 +2679,26 @@ class DetailPage {
         this.bookingModalCloseTimer = 0;
         this.bookingModalMorphRevealTimer = 0;
         this.bookingModalMorphCleanupTimer = 0;
+        this.bookingModalSourceRevealTimer = 0;
+        this.packageModalPriceOpenTimer = 0;
+        this.packageModalEditorStateMotion = [];
+        this.packageModalEditorCloseTimer = 0;
+        this.packageModalEditorTransitioning = false;
+        this.packageModalEditorFocusTimer = 0;
         this.bookingModalMorphGhost = null;
         this.bookingModalDrafts = new Map();
         this.activeBookingSourceCard = null;
+        this.activeBookingSourceSnapshot = null;
+        this.bookingMatchFloatingRoot = document.getElementById('bookingMatchFloatingRoot');
+        this.seaAtlasFullscreen = document.querySelector('[data-sea-atlas-fullscreen]');
+        this.seaAtlasFullscreenSlot = document.querySelector('[data-sea-atlas-fullscreen-slot]');
+        this.seaAtlasFullscreenTitle = document.querySelector('[data-sea-atlas-fullscreen-title]');
+        this.seaAtlasFullscreenMeta = document.querySelector('[data-sea-atlas-fullscreen-meta]');
+        this.bookingMatchConfirmState = null;
+        this.bookingMatchConfirmCloseTimer = 0;
+        this.bookingMatchConfirmFocusRaf = 0;
+        this.bookingMatchNavigationTimer = 0;
+        this.bookingModalNavigationAway = false;
         this.bookingConfirmFeedback = document.getElementById('bookingConfirmFeedback');
         this.bookingConfirmCopy = document.getElementById('bookingConfirmCopy');
         this.bookingConfirmMeta = document.getElementById('bookingConfirmMeta');
@@ -2350,6 +2732,11 @@ class DetailPage {
         };
         this.seaGuideMetrics = [];
         this.reviewCardMetrics = [];
+        this.reviewCards = [];
+        this.reviewCardsById = new Map();
+        this.reviewPhotoGalleries = [];
+        this.reviewPhotoButtons = [];
+        this.reviewSummaryOverflowCache = new Map();
         this.introSection = document.getElementById('spotOverview');
         this.detailReadingSections = Array.from(document.querySelectorAll('[data-detail-reading-section]'));
         this.detailFooter = document.getElementById('detailFooter');
@@ -2363,6 +2750,63 @@ class DetailPage {
         this.relatedLiveSummary = document.getElementById('relatedLiveSummary');
         this.activeSeaView = 'location';
         this.routeAnimationPlayed = false;
+        this.seaRouteMotionRafId = 0;
+        this.seaRouteMotionDelayId = 0;
+        this.seaRouteLayoutKey = '';
+        this.seaAtlasMap = null;
+        this.seaAtlasTileLayer = null;
+        this.seaAtlasMarkerLayer = null;
+        this.seaAtlasMapMount = null;
+        this.seaRouteBoardMount = null;
+        this.seaRouteBoardStage = null;
+        this.seaAtlasMapBase = null;
+        this.seaAtlasInfoRoot = null;
+        this.seaAtlasFallback = null;
+        this.seaAtlasRouteOverlay = null;
+        this.seaAtlasHeadingKicker = null;
+        this.seaAtlasHeadingMurmur = null;
+        this.seaAtlasSpotCard = null;
+        this.seaAtlasPortCard = null;
+        this.seaAtlasSpotMarker = null;
+        this.seaAtlasPortMarker = null;
+        this.seaAtlasCurrentMapData = null;
+        this.seaAtlasCurrentAtlasData = null;
+        this.seaAtlasCurrentTileTemplate = '';
+        this.seaAtlasTileErrorCount = 0;
+        this.seaAtlasTileLoadCount = 0;
+        this.seaAtlasOfflineFallbackTimer = 0;
+        this.seaAtlasRevealObserver = null;
+        this.seaAtlasEntranceTimer = 0;
+        this.seaAtlasInvalidateRafId = 0;
+        this.seaAtlasOverlaySyncRafId = 0;
+        this.seaAtlasSyncNeedsInvalidate = false;
+        this.seaAtlasReplayRouteAfterSync = false;
+        this.seaProfileEntranceTimer = 0;
+        this.seaProfileEntranceDelayId = 0;
+        this.seaAtlasPortCardVisible = false;
+        this.seaAtlasMapInteractionTimer = 0;
+        this.seaAtlasInlineInitialView = null;
+        this.seaAtlasFullscreenMap = null;
+        this.seaAtlasFullscreenTileLayer = null;
+        this.seaAtlasFullscreenMarkerLayer = null;
+        this.seaAtlasFullscreenMapMount = null;
+        this.seaAtlasFullscreenMapBase = null;
+        this.seaAtlasFullscreenInfoRoot = null;
+        this.seaAtlasFullscreenFallback = null;
+        this.seaAtlasFullscreenRouteOverlay = null;
+        this.seaAtlasFullscreenSpotCard = null;
+        this.seaAtlasFullscreenPortCard = null;
+        this.seaAtlasFullscreenSpotMarker = null;
+        this.seaAtlasFullscreenPortMarker = null;
+        this.seaAtlasFullscreenCurrentTileTemplate = '';
+        this.seaAtlasFullscreenTileErrorCount = 0;
+        this.seaAtlasFullscreenTileLoadCount = 0;
+        this.seaAtlasFullscreenOverlaySyncRafId = 0;
+        this.seaAtlasFullscreenSyncNeedsInvalidate = false;
+        this.seaAtlasFullscreenPortCardVisible = false;
+        this.seaAtlasFullscreenInteractionTimer = 0;
+        this.seaAtlasFullscreenInitialView = null;
+        this.seaAtlasFullscreenOpen = false;
         this.seaAtlasResizeStorageKey = 'yanqi_sea_atlas_size';
         this.seaAtlasResizeCleanup = null;
         this.reviewDetailCloseTimer = 0;
@@ -2377,9 +2821,21 @@ class DetailPage {
         this.footerRevealObserver = null;
         this.relatedRevealObserver = null;
         this.introRevealObserver = null;
+        this.introRevealDelayTimer = 0;
+        this.introRevealCommitRafId = 0;
+        this.introCardShellRevealRafId = 0;
+        this.introCardContentRevealRafId = 0;
+        this.introCardContentRevealTimers = [];
+        this.introCardContentRevealCleanup = new Map();
         this.reviewsRevealObserver = null;
+        this.reviewsRevealCommitRafId = 0;
+        this.reviewsRevealTimers = [];
         this.reviewGalleryPhotoObserver = null;
         this.reviewGalleryPhotoRevealRafId = 0;
+        this.reviewCardShellRevealRafId = 0;
+        this.reviewCardContentRevealRafId = 0;
+        this.reviewCardContentRevealTimers = [];
+        this.reviewCardContentRevealCleanup = new Map();
         this.bookingCopyObserver = null;
         this.packageTitleObserver = null;
         this.bookingCopyTypeTimers = [];
@@ -2393,11 +2849,20 @@ class DetailPage {
         this.bookingFocusSwapTimers = [];
         this.bookingFocusSwapVersion = 0;
         this.bookingFocusPulseTimer = 0;
+        this.bookingFocusReturnTimer = 0;
+        this.detailReadingAwakenTimer = 0;
         this.bookingFocusContextPhaseTimer = 0;
+        this.bookingStickyFocusContextCommitTimer = 0;
+        this.bookingStickyFocusContextRaf = 0;
+        this.handleBookingStickyListScroll = null;
+        this.bookingStickyFocusContextState = this.bookingSticky?.classList.contains('is-focus-only-context') ? 'focus' : 'list';
+        this.bookingStickyListContextScrollTop = this.bookingSticky?.scrollTop || 0;
+        this.activeDetailReadingSectionKey = '';
         this.activeReviewLinkedPackageId = null;
         this.bookingStickyScrollTargetTop = 0;
         this.bookingStickyScrollRaf = 0;
         this.hasRenderedReviews = false;
+        this.reviewsHydrationPromise = null;
         this.seaGuideInitialized = false;
         this.deferredReviewsHydration = null;
         this.deferredRelatedHydration = null;
@@ -2531,39 +2996,97 @@ class DetailPage {
 
     /**
      * ensureReviewDataReady() - 在真正进入评论区前再构建评论数据，并按潜点做实例内缓存
-     * @returns {Array<Object>}
+     * @returns {Promise<Array<Object>>}
      */
-    ensureReviewDataReady() {
-        if (this.reviewDataCache.has(this.spotId)) {
-            const cachedReviewData = this.reviewDataCache.get(this.spotId);
-            this.reviewData = Array.isArray(cachedReviewData) ? cachedReviewData : [];
-            return this.reviewData;
+    async ensureReviewDataReady() {
+        const requestedSpotId = this.spotId;
+        const requestedSpotName = this.spotData?.name || '';
+
+        if (this.reviewDataCache.has(requestedSpotId)) {
+            const cachedReviewData = this.reviewDataCache.get(requestedSpotId);
+            const safeCachedReviewData = Array.isArray(cachedReviewData) ? cachedReviewData : [];
+            if (this.spotId === requestedSpotId) {
+                this.reviewData = safeCachedReviewData;
+            }
+            return safeCachedReviewData;
         }
 
-        const nextReviewData = this.buildReviewData();
-        this.reviewData = Array.isArray(nextReviewData) ? nextReviewData : [];
-        this.reviewDataCache.set(this.spotId, this.reviewData);
-        return this.reviewData;
+        if (this.reviewDataPromiseCache.has(requestedSpotId)) {
+            return this.reviewDataPromiseCache.get(requestedSpotId);
+        }
+
+        const reviewDataPromise = loadDetailReviewContent()
+            .then((reviewContentModule) => {
+                const rawReviews = reviewContentModule?.buildRawReviews?.({
+                    spotId: requestedSpotId,
+                    spotName: requestedSpotName
+                });
+                const nextReviewData = this.applyReviewRatingVariation(
+                    this.attachReviewPackageLinks(Array.isArray(rawReviews) ? rawReviews : [])
+                );
+                this.reviewDataCache.set(requestedSpotId, nextReviewData);
+                if (this.spotId === requestedSpotId) {
+                    this.reviewData = nextReviewData;
+                }
+                return nextReviewData;
+            })
+            .catch((error) => {
+                if (this.spotId === requestedSpotId) {
+                    this.reviewData = [];
+                }
+                console.error('[Yanqi detail] Failed to load review content:', error);
+                return [];
+            })
+            .finally(() => {
+                this.reviewDataPromiseCache.delete(requestedSpotId);
+            });
+
+        this.reviewDataPromiseCache.set(requestedSpotId, reviewDataPromise);
+        return reviewDataPromise;
     }
 
     /**
      * ensureReviewsHydrated() - 真正渲染评论区，并在渲染后刷新阅读与导览度量
-     * @returns {void}
+     * @returns {Promise<Array<Object>>}
      */
-    ensureReviewsHydrated() {
+    async ensureReviewsHydrated() {
         if (this.reviewsHydrated) {
-            return;
+            return this.reviewData;
         }
 
-        this.ensureReviewDataReady();
-        this.reviewsHydrated = true;
-        this.renderReviews();
-        this.scheduleDetailScrollMetricsMeasure();
-        window.requestAnimationFrame(() => {
-            if (this.seaGuideInitialized) {
-                this.updateSeaGuideState();
-            }
-        });
+        if (this.reviewsHydrationPromise) {
+            return this.reviewsHydrationPromise;
+        }
+
+        const requestedSpotId = this.spotId;
+        this.reviewsSection?.setAttribute('aria-busy', 'true');
+        this.reviewsFilters?.setAttribute('aria-busy', 'true');
+
+        this.reviewsHydrationPromise = this.ensureReviewDataReady()
+            .then((reviewData) => {
+                if (this.spotId !== requestedSpotId) {
+                    return reviewData;
+                }
+
+                this.renderReviews();
+                this.reviewsHydrated = true;
+                this.measureDetailScrollMetrics();
+                window.requestAnimationFrame(() => {
+                    if (this.seaGuideInitialized) {
+                        this.updateSeaGuideState();
+                    }
+                });
+                return reviewData;
+            })
+            .finally(() => {
+                if (this.spotId === requestedSpotId) {
+                    this.reviewsSection?.removeAttribute('aria-busy');
+                    this.reviewsFilters?.removeAttribute('aria-busy');
+                }
+                this.reviewsHydrationPromise = null;
+            });
+
+        return this.reviewsHydrationPromise;
     }
 
     /**
@@ -2756,6 +3279,10 @@ class DetailPage {
             this.primeDetailHistoryState();
         }
 
+        this.clearBookingMatchConfirmationImmediately({
+            restoreFocus: false
+        });
+        this.resetBookingModalNavigateAwayState();
         if (this.bookingModal?.classList.contains('active')) {
             this.closeBookingModal();
         }
@@ -2772,6 +3299,11 @@ class DetailPage {
         this.clearBookingFocusSwapTimers();
         this.resetBookingCopySwapState();
         this.resetBookingFocusSwapState();
+        this.clearBookingStickyFocusContextTransition();
+        this.setBookingStickyFocusContextPhase('');
+        this.applyBookingStickyFocusOnlyState(false);
+        this.bookingStickyFocusContextState = 'list';
+        this.bookingStickyListContextScrollTop = this.bookingSticky?.scrollTop || 0;
         this.resetRelatedSwapClasses();
         sessionStorage.removeItem(DETAIL_SWAP_STORAGE_KEY);
         if (this.pageStage) {
@@ -3137,1398 +3669,19 @@ class DetailPage {
      * @returns {Array<Object>} - 评论数据数组
      */
     buildReviewData() {
-        const { name } = this.spotData;
-        const finalizeReviews = (reviews) => this.applyReviewRatingVariation(this.attachReviewPackageLinks(reviews));
-        const imagePrefix = REVIEW_IMAGE_PREFIX[this.spotId] || 'spot';
-        const createReviewPhoto = (reviewNumber, photoKey, caption, position) => ({
-            src: `assets/images/${imagePrefix}-review-${reviewNumber}-${photoKey}.jpg`,
-            caption,
-            position
+        const rawReviewBuilder = window.YanqiDetailReviewContent?.buildRawReviews;
+        if (typeof rawReviewBuilder !== 'function') {
+            return [];
+        }
+
+        const rawReviews = rawReviewBuilder({
+            spotId: this.spotId,
+            spotName: this.spotData?.name || ''
         });
-        const makeReviewPhotos = (reviewNumber, photoDefs) => photoDefs.map((photo) => (
-            createReviewPhoto(reviewNumber, photo.key, photo.caption, photo.position)
-        ));
-        const reviewOnePhotoDefs = this.spotId === 1
-            ? [
-                { key: 'departure', caption: '诗巴丹 · 龟洞入口', position: '50% 40%' },
-                { key: 'return', caption: '诗巴丹 · 鲨鱼', position: '50% 58%' },
-                { key: 'sea-at-dusk', caption: '诗巴丹 · 鱼群风暴', position: '50% 32%' }
-            ]
-            : [
-                { key: 'departure', caption: `${name} · 清晨出海`, position: '50% 40%' },
-                { key: 'return', caption: `${name} · 午后回船`, position: '50% 58%' },
-                { key: 'sea-at-dusk', caption: `${name} · 傍晚海面`, position: '50% 32%' }
-            ];
 
-        if (this.spotId === 1) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '先经过那道蓝',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '诗巴丹 · 龟洞入口',
-                    subtitle: '真正让人记住诗巴丹的，不只是热闹，而是先被龟洞入口那道忽然亮起来的蓝收住。',
-                    summary: '这组图把诗巴丹的开场拍得很准。一边是洞口里被光拉开的水层，一边是鲨鱼贴着沙地慢慢过去。它不是直接把最大声的部分砸过来，而是先让海安静一下，再让你看见压迫感从侧面靠近。',
-                    diving: '先经过这种洞口和结构，再遇到鲨鱼，会更能感觉诗巴丹的层次感。不是单点刺激，而是明暗、地形和生物一起把节奏铺开。',
-                    stay: '诗巴丹真正舒服的地方，在于岸上准备通常很直接，出海以后很快就能进入状态，不会把精力浪费在多余折返里。',
-                    food: '潜后热食和补水会显得格外重要，因为水下记忆太强，身体反而需要被慢慢接回来。',
-                    scenery: '洞口那一下的蓝和沙地上的鲨鱼放在一起，会让人明白诗巴丹不是只靠“多”好看，而是靠空间突然被打开。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '诗巴丹 · 龟洞入口', '50% 42%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'reef-shark', caption: '诗巴丹 · 鲨鱼从沙地过去', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '鱼群贴得很近',
-                    date: '2025年12月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '诗巴丹 · 鱼群风暴贴到身边',
-                    subtitle: '等鱼群不再只是一面墙，而是直接从潜水员身边合拢过来，诗巴丹才真正开始变大。',
-                    summary: '这组图最动人的地方，是水下和海面以上的尺度被连在了一起。一边是潜水员几乎被整个鱼群包进去，另一边从空中看见外礁和深蓝一起把这片海围成很清楚的边。诗巴丹那种“海忽然变大”的感觉，就是这样同时发生的。',
-                    diving: '比起远远看见鱼墙，更难忘的是自己在里面时仍然能保持节奏。诗巴丹的鱼群不是背景，而是会主动把空间改写掉。',
-                    stay: '回到岸上以后，你会需要一点真正安静的时间，把这种高密度的蓝慢慢从身体里放下来。',
-                    food: '潜后坐下来喝水、吃点热的东西，反而更能感到刚刚那种鱼群贴脸而过的场面有多强。',
-                    scenery: '一张把潜水员留在鱼群正中，一张把鱼墙真正立起来的密度留下来，另一张则从上面把外礁、深蓝和浅色边界一起摊开。它让“鱼群风暴”不只是一堵墙，也是一整片海的轮廓。',
-                    featurePhoto: createReviewPhoto(2, 'feature', '诗巴丹 · 鱼群从身边合拢', '50% 48%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'jack-wall', caption: '诗巴丹 · 鱼墙慢慢立起来', position: '42% 52%' },
-                        { key: 'atoll-rim', caption: '诗巴丹 · 从空中看见外礁边界', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '风暴还没散',
-                    date: '2025年10月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '诗巴丹 · 在鱼墙边继续前进',
-                    subtitle: '当鱼群没有立刻散开，而是一路陪着潜水员往前，诗巴丹最著名的那种推力就会一直跟着你。',
-                    summary: '最后这组图更像风暴的后半段。一张把珊瑚平台、潜水员和鱼群同时留住，另一张从更远的海面上把浅色礁盘和岛影轻轻托出来。它提醒人，诗巴丹不是只有某一个瞬间最强，而是整段下潜和整片海的形状都会一起留下来。',
-                    diving: '这种连续感是诗巴丹最难替代的部分。鱼群、礁坡和人的移动不会被切成几段，而是一直在同一口呼吸里进行。',
-                    stay: '真正好的安排，是让人出水以后能马上有地方收拾设备、把刚刚那片海慢慢消化完。',
-                    food: '等情绪慢慢落下来以后，再去吃饭和复盘这一潜，记忆反而会更清楚。',
-                    scenery: '鱼群、珊瑚平台和潜水员一起入镜，会让诗巴丹的推力变得很具体；而从上面看出去时，浅色礁盘像一道安静的弧线把深蓝切开，又把这股力量重新收回到整片海里。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '诗巴丹 · 鱼墙边继续前进', '50% 58%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'school-close', caption: '诗巴丹 · 风暴贴到呼吸边', position: '50% 46%' },
-                        { key: 'lagoon-window', caption: '诗巴丹 · 浅色礁盘把深蓝切开', position: '50% 52%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 2) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '先看见第一层蓝',
-                    date: '2026年2月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '帕劳 · 从第一层蓝开始',
-                    subtitle: '真正把人带进帕劳的，常常不是下水那一下，而是船先停在一片浅蓝和深蓝交界里。',
-                    summary: '这组图很像帕劳的开场：俯拍时小船先被放进珊瑚纹理里，靠岸时白船又停在绿色山体和清水前，最后日落把码头、人影和海面一起收住。它不是急着把蓝洞和转角一次讲完，而是先让你知道这片海连海面以上都很有层次。',
-                    diving: '帕劳当然有更强的水下名场面，但真正让人放松下来的是这种进海方式。先在干净的浅蓝里找回节奏，再去理解洞穴、断层和流线，会比一上来就追刺激更完整。',
-                    stay: '如果第一天住处和码头离得顺，整趟体验会轻很多。看完这种靠山的停船画面，再在傍晚从栈桥慢慢走回去，身体会比较容易进入帕劳的节奏。',
-                    food: '这种海上天色一落下去，晚餐反而会变成很重要的一环。不是因为要吃得多隆重，而是热食、海鲜和一顿安静坐下来的时间，能把出海后的兴奋慢慢收回来。',
-                    scenery: '最好看的不是单独哪一张，而是三张之间的关系：珊瑚纹理里的小船、靠山停着的白船、以及橙色晚霞下的栈桥。它们一起把帕劳从“潜点目的地”拉回成一片真正可以进入的海。',
-                    featurePhoto: createReviewPhoto(1, 'departure', '帕劳 · 船先停在第一层蓝里', '50% 56%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'return', caption: '帕劳 · 绿山前停着的白船', position: '50% 58%' },
-                        { key: 'sea-at-dusk', caption: '帕劳 · 日落把码头慢慢收住', position: '50% 58%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '住在海湾里面',
-                    date: '2025年12月',
-                    level: 'OW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'scenery', 'diving'],
-                    title: '帕劳 · 海湾里的住处',
-                    subtitle: '帕劳不是每一眼都往外海推，有些记忆反而发生在近岸这层静水里。',
-                    summary: '这组图把帕劳较少被说到的柔和部分拍出来了：一边是棕榈树和白沙围住的翠色海湾，另一边是两条小船停在白沙外侧的浅礁边。比起“刺激”，它更像在告诉你，帕劳的岸线和浅滩本身就已经很完整。',
-                    diving: '住在这种海湾边，最大的好处是出海和回程都会很顺。即使主潜点在更外海，回到近岸时看见浅滩和白沙，整个人也会一下子从流线里缓下来。',
-                    stay: '房间正对这种被群岛围住的水色，其实会很影响整趟体感。它不是夸张的度假村展示，而是真正让人愿意在潜前潜后多停一会儿的住处。',
-                    food: '这种近水的住处很适合把早餐和潜后简餐吃得慢一点。看着海湾颜色一点点变亮或变深，吃什么反而会变成次要的，节奏才是重点。',
-                    scenery: '白沙、棕榈、浅礁和停船线离得很近，是这组最迷人的地方。帕劳当然有著名的蓝洞和转角，但这些近岸的浅色层次，会让整趟旅行不只有“下去看海”，也有“回到海边”的感觉。',
-                    featurePhoto: createReviewPhoto(2, 'pier-morning', '帕劳 · 住处前是一整片翠色海湾', '50% 50%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'boat-return', caption: '帕劳 · 白沙外侧停着两条小船', position: '48% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '岛影把风慢下来',
-                    date: '2025年10月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['scenery', 'stay'],
-                    title: '帕劳 · 群岛和石门之间',
-                    subtitle: '真正的帕劳不只是一道蓝洞入口，很多时候，它先用岛影和石灰岩把视线慢慢排开。',
-                    summary: '这一组几乎把帕劳的地貌气质说明白了：远处是一连串圆润的石灰岩群岛，近一点又出现一座像被海风掏开的天然石门，最后连住处也贴着安静水面排开。它让人明白，帕劳的“结构感”不只在水下，也在海面以上持续存在。',
-                    diving: '如果水下看的是洞穴和断层，那么海面上这组地貌就是最自然的前情提要。你会更容易理解为什么帕劳的潜点总带着一种被切开的空间感。',
-                    stay: '房间直接朝水展开这件事很重要。潜完回来，不需要再找一个“补景点”，岸边这层安静反射和成排屋顶就已经能把人慢慢接住。',
-                    food: '这类行程最适合把晚餐放在天快暗的时候。白天看过群岛和石门以后，再在靠水的位置坐下来吃一顿热的，整片海会从大景慢慢变成很私人的记忆。',
-                    scenery: '我最喜欢的是这组三张图都在讲“轮廓”：群岛的起伏、石门中间被掏空的那道弧线、还有屋檐和棕榈在水面的倒影。帕劳的好看并不喧哗，它总是靠形状先留下来。',
-                    featurePhoto: createReviewPhoto(3, 'before-dinner', '帕劳 · 群岛把海面一层层排开', '50% 52%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'pier-breeze', caption: '帕劳 · 石门把海风穿过去', position: '50% 54%' },
-                        { key: 'room-view', caption: '帕劳 · 房间朝着安静水面', position: '50% 54%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '早上的浅滩很轻',
-                    date: '2025年8月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving', 'stay'],
-                    title: '帕劳 · 清晨浅滩与靠岸前后',
-                    subtitle: '有些记忆不在主潜点，而在船靠岸前那层亮起来的浅水和椰影下突然打开的蓝。',
-                    summary: '最后这组图更像帕劳每天最轻的一段时间：高处看见浅滩和短码头把深蓝切开，靠岸时白船停在草绿山体前，另一张又把椰影、云和开阔水面一起放得很松。比起强调动作，它更像是在说，帕劳连休息和移动的空档都很值得被记住。',
-                    diving: '真正好的外海行程，不会只有主潜线好看。回程时看见这种浅滩和岸线，反而会更清楚地感觉自己刚刚从另一层更深的蓝里回来。',
-                    stay: '如果住处附近就能看见这种清透浅水，潜后恢复会很自然。你不需要再做什么安排，只要站在岸边看一会儿，身体就会慢慢松下来。',
-                    food: '清晨出海前或下午回来后，这样的海景很适合配一顿简单但稳的餐。比起热闹，它更像让人把体力和情绪都轻轻放回原位。',
-                    scenery: '这组三张图几乎把帕劳的蓝拆成了三层：浅滩的奶蓝、岛边的青蓝、外侧更深的海。再加上白船、短码头和椰影，帕劳那种“既开阔又被群岛轻轻收住”的感觉就很完整了。',
-                    featurePhoto: createReviewPhoto(4, 'morning-sea', '帕劳 · 清晨浅滩把深蓝切开', '64% 48%'),
-                    photos: makeReviewPhotos(4, [
-                        { key: 'after-dive-pier', caption: '帕劳 · 靠岸前的白船和山体', position: '50% 56%' },
-                        { key: 'bow-blue', caption: '帕劳 · 椰影下突然打开的蓝', position: '50% 52%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 3) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '先去那圈深蓝',
-                    date: '2026年2月',
-                    level: 'AOW / 进阶',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '大蓝洞 · 先从长航程出海开始',
-                    subtitle: '真正把人带进这条伯利兹航线的，不是入水那一下，而是天还没全亮时，木栈桥、平水面和那段慢慢离岸的时间。',
-                    summary: '这组图最像去大蓝洞那天的完整开场。海面还很平，栈桥和天光都压得很低；等真正到外海，看见那一圈深蓝终于被浅礁衬出来，整趟出海才会忽然有了中心。回程不是立刻结束，而是又经过椰影、浅水和傍晚码头，把这段很长的海路慢慢收住。',
-                    diving: '大蓝洞当然是为了那一下垂直深蓝去的，但真正舒服的节奏，反而靠岸上的前后段把它托住。先在安静的海面里把状态调稳，再去面对深井结构，整个人会更从容。',
-                    stay: '如果前一晚就住在离出海口很近的地方，这条线会轻很多。清晨不用被交通和换点打断，回来以后也能把那片深蓝顺顺地带回岸上。',
-                    food: '这种长航程日子，早餐和回程后的热食都比平时重要。它们不是行程装饰，而是把身体从早起、日晒和深潜里重新接回来的那一段。',
-                    scenery: '最动人的其实是两层蓝的关系：一层是蓝洞那种近乎纯色的深蓝，一层是码头、浅滩和傍晚海面的低饱和亮蓝。它们放在一起，大蓝洞才不只是一个点，而是一整条慢慢潜进去又慢慢浮回来的海线。',
-                    featurePhoto: {
-                        src: 'assets/images/blue-hole.jpg',
-                        caption: '大蓝洞 · 外海那一圈深蓝终于显出来',
-                        position: '50% 68%'
-                    },
-                    photos: makeReviewPhotos(1, [
-                        { key: 'departure', caption: '伯利兹 · 出海前的平静栈桥', position: '50% 58%' },
-                        { key: 'return', caption: '伯利兹 · 回到浅水和椰影边', position: '50% 54%' },
-                        { key: 'sea-at-dusk', caption: '伯利兹 · 傍晚把长航程慢慢收住', position: '50% 56%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '浅水先把人接住',
-                    date: '2025年12月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'diving', 'scenery'],
-                    title: '大蓝洞 · 靠岸前后的浅水',
-                    subtitle: '真正让这条深潜线不显得过于绷紧的，是返程时那些奶蓝色浅水、短栈桥和停得很近的小船。',
-                    summary: '第二组图没有去强调蓝洞主体，而是在讲它回来以后为什么还会让人记很久。船停在很浅的水边，码头不大，风也不急，身体会在这种近岸层次里慢慢把刚才那段更深的压力卸掉。它会提醒你，大蓝洞不是只在外海突然发生的一下，返程这段浅水也属于这次体验。',
-                    diving: '对大蓝洞来说，这种近岸段很重要。因为主潜点本身偏深、偏克制，回到浅水时你会更清楚地感觉自己刚刚经历的是另一种完全不同的蓝。',
-                    stay: '住处如果就在这种码头和小船旁边，整趟行程会有一种被轻轻接住的感觉，不会只剩下“今天完成了一个著名潜点”的用力感。',
-                    food: '这种画面很适合接一顿不着急的午后餐或回程简餐。海风不大，光线又亮，整个人会愿意把节奏放下来，而不是急着进入下一个安排。',
-                    scenery: '我喜欢的是小船、短栈桥和浅水之间没有被拉得很远。它让大蓝洞这条线不只是外海地标，也有伯利兹近岸那种很轻、很通透的余白。',
-                    featurePhoto: createReviewPhoto(2, 'boat-return', '伯利兹 · 小船停在浅水回程边', '50% 54%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'pier-morning', caption: '伯利兹 · 码头晨光还没完全亮起来', position: '50% 58%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '岸上那段风',
-                    date: '2025年10月',
-                    level: 'OW / 同行不潜',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '大蓝洞 · 回来以后住在海边',
-                    subtitle: '这条线如果只记蓝洞本身，会少掉一半。排椅、木桥和房间外那层风，才是把深蓝慢慢收回日常里的地方。',
-                    summary: '第三组图更像回到伯利兹岸上之后的后半天。白色排椅和棕榈把午后的光放得很亮，另一张木栈桥又把风和水面拉得很直，最后连房间外的小路都直接通向海边。大蓝洞这类长航程深潜，真正珍贵的不是一直保持兴奋，而是回来以后还有地方可以慢慢坐下。',
-                    diving: '潜水本身当然有强烈的地貌记忆，但如果岸上没有这样一段缓冲，整趟体验会显得过于陡。蓝洞舒服的地方，是它允许人从深蓝再慢慢回到更松的海边生活。',
-                    stay: '这组图把住处的重要性拍得很准。不是豪华感，而是潜后真的能走回一个有树影、步道和海风的位置，让身体慢慢回稳。',
-                    food: '潜后那顿饭往往就发生在这样的光线里。不是热闹庆祝，而是海风从排椅和木桥边穿过去，你吃得慢一点，整天的记忆才会真正沉下来。',
-                    scenery: '如果蓝洞本身像一个突然向下打开的句号，那岸上这几张图就是它后面的留白。它们不抢戏，却会把这片海留得更久。',
-                    featurePhoto: createReviewPhoto(3, 'room-view', '伯利兹 · 房间外直接通向海边', '50% 50%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'before-dinner', caption: '伯利兹 · 午后排椅和海风', position: '50% 56%' },
-                        { key: 'pier-breeze', caption: '伯利兹 · 木桥把晚风慢慢拉长', position: '50% 58%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '回程里的蓝',
-                    date: '2025年8月',
-                    level: 'AOW / 摄影',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '大蓝洞 · 蓝不会只停在井口',
-                    subtitle: '真正留下来的，常常不是那一个圆，而是回程途中那些被船尾、水纹和近岸小船继续拆开的蓝。',
-                    summary: '最后这组图很适合做大蓝洞的收尾：一张从高处看，小船像被放进一整片通透浅蓝里；一张是红色小船靠在岸边，海和沙都静下来；最后只剩水纹本身，把颜色推到很近。看完这组会更明白，大蓝洞的记忆不会只停在“那个圆”，它会继续留在整片伯利兹海面的纹理里。',
-                    diving: '真正好的蓝洞行程，不会让深潜体验在出水后立刻断掉。回程看见这种浅蓝和水纹时，你会觉得自己还没有完全离开那片海，只是从更深的一层慢慢浮回来。',
-                    stay: '这种回到岸边的小船和空水面，会让人很想在潜后把时间再留一点给自己。哪怕只是回酒店冲洗完、重新走到海边看一会儿，也会比匆忙结束更像这条线真正的收尾。',
-                    food: '这组更适合放在潜后傍晚或第二天清晨的节奏里。吃不需要很重，重要的是让海的颜色继续停一会儿，不要太快把自己从这趟出海里抽离。',
-                    scenery: '最喜欢的是颜色被拆成了三种方式：俯拍时像一整片玻璃蓝，岸边时又变成更轻的灰蓝，最后只剩水纹本身在发亮。它们比“著名景点”更安静，却更像真正会留在身体里的海。',
-                    featurePhoto: createReviewPhoto(4, 'bow-blue', '伯利兹 · 回程里的整片玻璃蓝', '50% 50%'),
-                    photos: makeReviewPhotos(4, [
-                        { key: 'after-dive-pier', caption: '伯利兹 · 小船把潜后时间停在岸边', position: '50% 54%' },
-                        { key: 'morning-sea', caption: '伯利兹 · 水纹把蓝继续轻轻推开', position: '50% 54%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 5) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '云层下面',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '波纳佩岛 · 从机窗开始下潜',
-                    subtitle: '先看见泻湖、礁线和低云，身体才会慢慢跟上这片海的节奏。',
-                    summary: `这组三张图把 ${name} 的开场讲得很准: 先从机窗看见泻湖把岛体轻轻托住，再看到礁线把深浅蓝慢慢分开，最后连低云和雨都压到海面上。它不会一上来就用最热闹的潜点抓人，而是先让你知道，这是一座海、岛和天气一直缠在一起的地方。`,
-                    diving: `${name} 不太像那种一入水就要立刻追着大场面跑的海。先在这种泻湖和礁线关系里把呼吸放稳，再去看静水、微距和浅礁细节，整个人会更容易对上它的节奏。`,
-                    stay: '如果抵达后的住处离海湾不远，第一天会很舒服。看完这种低云压海的画面，再慢慢去休息、整理装备、等身体跟上岛上的湿热，旅程会显得特别顺。',
-                    food: '这组最适合接一顿热的简餐。不是为了丰盛，而是让人从航程、潮湿空气和海色里慢慢落下来，不要太快把自己从刚进入这片海的感觉里抽离。',
-                    scenery: `最喜欢的是三张图把 ${name} 的海拆成了三种方式: 泻湖像一整片亮开的留白，礁线把深浅蓝轻轻推开，雨云又把海面压回更安静的一层。`,
-                    photos: makeReviewPhotos(1, [
-                        { key: 'lagoon-arrival', caption: `${name} · 从机窗看见第一层泻湖`, position: '50% 52%' },
-                        { key: 'reef-band', caption: `${name} · 礁线把深浅蓝慢慢推开`, position: '50% 50%' },
-                        { key: 'rainy-sea', caption: `${name} · 低云把海面压得更安静`, position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '岛体慢慢靠近',
-                    date: '2025年12月',
-                    level: 'OW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'scenery', 'diving'],
-                    title: '波纳佩岛 · 靠近岛体的时候',
-                    subtitle: '从外海回望和真正靠岸，是两种不同的安静。',
-                    summary: `第二组图更像 ${name} 真正把人留住的方式: 一张是在外海远远看见岛体自己浮出来，另一张则已经靠到岸线边，山、树和海水都贴得很近。你会发现这里最动人的不是某一个潜点名字，而是岛一直带着很厚的陆地感和潮湿感。`,
-                    diving: `${name} 的潜水不会把人一下扔进最深的节奏里。很多时候，先看到岛影从远处慢慢靠近，反而更容易理解这里为什么适合慢潜和静水观察，因为整片海本来就不是急着往外推的类型。`,
-                    stay: '如果住处离这种岸线和海湾很近，潜前潜后都会轻很多。你不会觉得自己只是去一个码头上下船，而是真的住在一座被海和雨林包围的岛上。',
-                    food: '这种靠岸感很适合接早餐或者潜后热汤。坐下来时，山体和海面还留在眼前，吃什么会变得次要，真正留下来的是整个人被轻轻接住的感觉。',
-                    scenery: `我最喜欢的是这组把“远”和“近”放在了一起: 远处看岛像一整块安静的深色轮廓，靠岸以后又变成树影、岸线和低饱和海水慢慢贴近身体。`,
-                    photos: makeReviewPhotos(2, [
-                        { key: 'island-outline', caption: `${name} · 从外海回望整座岛体`, position: '50% 54%' },
-                        { key: 'shoreline-rest', caption: `${name} · 靠岸以后海和树都压得很近`, position: '50% 48%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '岸上还有水声',
-                    date: '2025年10月',
-                    level: '同行不潜',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '波纳佩岛 · 红树林与雨林的后半天',
-                    subtitle: '这座岛不会把海停在海边，红树林、水道和瀑布会把潮湿感继续往里带。',
-                    summary: `第三组图把 ${name} 和普通海岛潜旅区分开了: 先是红树林边的静水通道，再是雨林里的瀑布，最后石墙和水道把时间压得更慢。你会发现这趟行程并不只有下潜，岸上的潮湿空气、淡水和石头也一直在参与。`,
-                    diving: `如果白天做的是慢潜、微距或比较轻的静水观察，岸上这层安静会把节奏托得更稳。不是每一刻都要往海里更深处去，${name} 很特别的一点，就是你回到陆地以后，旅程也没有立刻断掉。`,
-                    stay: '住处最好离海湾和绿意近一点。潜后回来，哪怕只是沿着红树林边走一段，或者在雨林气味还很重的傍晚坐一会儿，身体都会比匆忙回房更容易松下来。',
-                    food: '这种气候特别适合把潜后热汤、热茶和简单晚餐吃得慢一点。外面有水声，空气里又带着雨林湿气，整个人会自然愿意把当天的节奏收长一点。',
-                    scenery: `红树林的静水、瀑布边的白水和石墙间的水道，把 ${name} 从一片海扩成了一整座岛。它不只是蓝，也有绿色、灰黑石头和一直没停过的潮湿空气。`,
-                    photos: makeReviewPhotos(3, [
-                        { key: 'mangrove-channel', caption: `${name} · 红树林边的静水通道`, position: '50% 52%' },
-                        { key: 'forest-fall', caption: `${name} · 雨林把淡水慢慢送下来`, position: '50% 50%' },
-                        { key: 'stone-water', caption: `${name} · 石墙和水道把时间压低`, position: '50% 48%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '石墙之间的潮水',
-                    date: '2025年8月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving', 'stay'],
-                    title: '波纳佩岛 · 南马都把海留得更深',
-                    subtitle: '真正让波纳佩在记忆里沉下去的，往往不是一潜，而是石墙和潮水之间那种更古老的安静。',
-                    summary: `最后这组图把 ${name} 最深的一层留给了南马都: 一张是低而静的水道，一张是树影压在石墙上的遗址内部，最后一张把巨石结构本身慢慢展开。看到这里会明白，波纳佩真正留下来的，不只是海水颜色，而是海和时间一起沉下去的感觉。`,
-                    diving: `${name} 的潜水本来就更适合放慢呼吸，所以回到这种石墙与潮水之间的空间时，会特别容易把水下那种安静继续带上来。它不靠强刺激收尾，而是让整趟旅程往更深的停驻里落。`,
-                    stay: '如果把南马都排进休息日或潜后较轻的时段，整趟体验会更完整。你不会觉得自己在补一个景点，而是像从海的表层继续往下潜到另一种更古老的水域里。',
-                    food: '这组最适合接潜后傍晚或休息日的热食。不是要热闹庆祝，而是让石头、水道和树影留下来的那种安静，继续陪你把一天慢慢收住。',
-                    scenery: `我最喜欢的是这三张图几乎都没有在用力展示什么: 水很浅，石头很重，树影也不喧哗，但它们会把 ${name} 变成一片真的有余韵的海，而不只是一个潜水目的地。`,
-                    photos: makeReviewPhotos(4, [
-                        { key: 'quiet-canal', caption: `${name} · 南马都的低水道先把声音放轻`, position: '50% 52%' },
-                        { key: 'ruins-shadow', caption: `${name} · 树影压在石墙上的那一层静`, position: '50% 46%' },
-                        { key: 'basalt-echo', caption: `${name} · 巨石结构把海留得更深`, position: '50% 50%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 8) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '海面以下',
-                    date: '2026年2月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    summary: `这组三张图更像 ${name} 真正的开场：先从贴着蓝水的船头离岸，回程再落回白沙和浅滩边，最后傍晚海面把整天慢慢收平。它不是一上来就用最热闹的场面抓人，而是先让你知道，这片海连出发和回来的空档都很有层次。`,
-                    diving: `${name} 真正迷人的地方，不只是某一潜看见了什么，而是你会先被这种出海尺度带进去。船先往通道外的蓝里走，再从近岸浅水慢慢回来，水下那种等流、等光、等鱼群靠近的心态，也会自然很多。`,
-                    stay: '如果住处离这种近岸浅水和回船点不远，整趟体验会轻很多。潜完回来不用再赶，冲洗、休息、坐一会儿看海，都像是同一段节奏里的延续。',
-                    food: '最适合接这组图的，反而是一顿安静的潜后晚餐。不是为了隆重，而是让热食和海风一起把白天那层亮蓝慢慢收住。',
-                    scenery: `最动人的是三张图之间的关系：船头先把人推向外海，白沙和低水位又把视线收回近岸，最后只剩日落压在平静海面上。${name} 的美不是喧哗型的，它总是慢慢排开，再慢慢收住。`,
-                    photos: makeReviewPhotos(1, [
-                        { key: 'departure', caption: `${name} · 船头先往亮蓝里去`, position: '50% 40%' },
-                        { key: 'return', caption: `${name} · 回到白沙和浅滩边`, position: '50% 58%' },
-                        { key: 'sea-at-dusk', caption: `${name} · 日落把海面慢慢收平`, position: '50% 32%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '礁线记录员',
-                    date: '2025年12月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'scenery', 'diving'],
-                    summary: `第二组图把 ${name} 更私人的一面拍出来了：住处和泻湖离得很近，水面一直很平，另一张小船就停在一层通透的浅蓝里。整趟体验不像只是在赶去潜点，更像先住进海边，再从这里慢慢出发。`,
-                    diving: `通道和海流当然是这片海的重点，但每天真正让人状态对上的，反而是这种从住处前的静水到出海小船之间的过渡。不是一上来就紧，而是先被干净的浅蓝轻轻接住。`,
-                    stay: '这组最能说明住处的重要性。屋檐、棕榈和水边靠得很近，不像为了展示而摆出来的度假村，更像潜水员真会在这里慢慢住上几晚。',
-                    food: '早餐或潜后简单吃点热的，如果就在这种贴着水边的位置，会比餐食本身更容易留下来。因为光线和海面一直在眼前，人不需要从海里抽离得太快。',
-                    scenery: `一张是屋檐贴着泻湖展开，一张是小船停在玻璃蓝里。它们一起把 ${name} 从“远一点的海域”拉回成可以真正住进去的海边日常。`,
-                    photos: makeReviewPhotos(2, [
-                        { key: 'pier-morning', caption: `${name} · 住处前的静水`, position: '50% 40%' },
-                        { key: 'boat-return', caption: `${name} · 小船停在浅蓝里`, position: '50% 58%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '晚风里的海',
-                    date: '2025年10月',
-                    level: '同行不潜',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['stay', 'scenery', 'food'],
-                    summary: `第三组没有去强调出海动作，而是在讲 ${name} 怎么把人慢慢留在岸上：浅滩边的鸟、靠着防波堤停住的小船、还有从房间里直接看见的海。这种安静比很多“著名场面”更像真正住在这里的记忆。`,
-                    diving: `如果同行的人安排去通道潜，这种岸上的安静反而会把整趟节奏托得更稳。不是每一刻都要在海里往前冲，${name} 难得的地方，是有人在外海下潜，也有人能在岸上慢慢等那阵风和光回来。`,
-                    stay: '房间最好的地方，是海一直没有被关在外面。窗帘一拉开就是水面，潜后回来坐一会儿，不需要额外安排，整个人就会慢慢松下来。',
-                    food: '晚餐前先去浅滩边走一会儿，再回到房间附近吃一顿热的，这种节奏会比菜单本身更让人记得住。因为这片海不是催着你前进，而是一直让你慢下来。',
-                    scenery: `我最喜欢的是这组三张图都不喧哗：岸边的鸟、小船停住的防波堤、窗帘拉开后那一整片浅蓝。它们不像景点打卡，更像真正住在 ${name} 的后半天。`,
-                    photos: makeReviewPhotos(3, [
-                        { key: 'before-dinner', caption: `${name} · 浅滩边的晚光`, position: '50% 40%' },
-                        { key: 'pier-breeze', caption: `${name} · 防波堤外停着的小船`, position: '50% 58%' },
-                        { key: 'room-view', caption: `${name} · 拉开窗帘就是海`, position: '50% 32%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '深蓝留白',
-                    date: '2025年8月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving', 'stay'],
-                    summary: `最后这组更像把 ${name} 的蓝拆开来看：一张是在船头贴着外海走，一张是回到树影和浅水边，另一张从高处把整片泻湖的亮蓝摊开。它会让人明白，这里真正留下来的不只是某一潜，而是你一整天都在不同深浅之间来回移动。`,
-                    diving: `${name} 的潜水确实有通道和流，但真正舒服的方式不是一直绷着，而是让自己跟着船和水色慢慢进入状态。看见这种外海蓝、近岸浅蓝和高处的环礁层次时，会更明白为什么这片海需要耐心。`,
-                    stay: '如果住处能让你在回程后很快重新走到水边，这种蓝就不会在出水那一刻断掉。树影、浅滩和很短的回岸路，会让整趟体验显得特别完整。',
-                    food: '这种海很适合把早餐和潜后简餐都吃得慢一点。不是为了丰盛，而是因为每次抬头都还能看见不同层次的蓝，节奏自然就会放下来。',
-                    scenery: `我最喜欢的是这组三张图把 ${name} 的空间关系讲清楚了：船头在深蓝边推进，岸边把人接回树影和浅水里，高处又把整片环礁重新展开。它不是单点风景，而是一整片海的呼吸。`,
-                    photos: makeReviewPhotos(4, [
-                        { key: 'bow-blue', caption: `${name} · 船头先往亮蓝里去`, position: '50% 40%' },
-                        { key: 'after-dive-pier', caption: `${name} · 回到树影和浅水边`, position: '50% 58%' },
-                        { key: 'morning-sea', caption: `${name} · 高处看见一整片浅蓝`, position: '50% 32%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 10) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '和蝠鲼擦身而过',
-                    date: '2026年2月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '马尔代夫船宿 · 与蝠鲼同潜',
-                    subtitle: '真正把人拉进这条船宿线里的，往往不是登船那一刻，而是第一次在蓝水里看见它从身边掠过去。',
-                    summary: '这组图里最直接的一张，就是蝠鲼从潜水员头顶掠过去的那一刻。马尔代夫船宿当然会先用水下把人打动，但真正让这趟旅程变完整的，是你回到船上以后没有立刻从海里掉出来，而是继续在一条会移动的船上住下、休息、再准备下一潜。',
-                    diving: '马代这条线最难忘的，往往就是这种和大体型生物同处一片蓝水里的时刻。不是一直追着刺激跑，而是在沙地和清水里慢慢等它靠近，那种压迫感和安静感会一起留下来。',
-                    stay: '客舱比我原本想象得更舒展，床、木地板和窗边留白都很完整。潜完回来以后能直接回到一个像真正房间一样的空间里，这件事会让船宿的体感从“连续出海”变成“真的住在海上”。',
-                    food: '船上的三餐还是偏照顾潜水员节奏的路线，热食、水果和汤都来得很及时。它不是华丽型的用餐记忆，但会把身体接得很稳，让人有力气继续下一段海况。',
-                    scenery: '最打动我的反而是两种画面靠得很近: 一张是蓝水里巨大的蝠鲼，另一张是回到船舱后安静下来的木色和床。船宿真正迷人的地方，就是海下和海上的生活不会被切断。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '马尔代夫船宿 · 与蝠鲼同潜', '56% 36%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'deck-first-light', caption: '马尔代夫船宿 · 船上的客舱', position: '54% 48%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '船上的白天',
-                    date: '2025年12月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '马尔代夫船宿 · 白天的公共区',
-                    subtitle: '真正把节奏拉顺的，不只是潜导和航线，还有这些潜前潜后可以慢慢停一下的公共空间。',
-                    summary: '这两张图把船上的白天拍得很准确: 一边是半露天的船尾休息区，大家可以坐着等风、说话、看海；另一边是室内公共沙龙，光线很亮，沙发也足够松弛。船宿不像一直在赶潜点，更像在同一条海上生活线里来回进出。',
-                    diving: '有这些公共区以后，潜水前后的状态会被照顾得更完整。brief 不会显得仓促，回船以后也不是马上散掉，而是自然地在船尾或室内继续把这一潜消化完。',
-                    stay: '很多人会以为船宿公共区只是“能坐一下”，但这条船看起来更像真的把日常停驻考虑进去了。半露天区和室内沙龙都不局促，所以连续住几天也不会觉得被空间压住。',
-                    food: '餐和茶点大概率也会在这些区域前后接上。对船宿来说，真正舒服的不是某一道菜，而是潜完以后有地方慢慢坐下、喝点东西、把身体收回来。',
-                    scenery: '这类空间最好的地方，是海不会被关在外面。船尾的风、室内窗边的亮光、坐着时还能看见的海平线，都会让船宿比普通酒店更有“海一直在旁边”的感觉。',
-                    photos: makeReviewPhotos(2, [
-                        { key: 'dhoni-boarding', caption: '马尔代夫船宿 · 半露天船尾休息区', position: '52% 50%' },
-                        { key: 'blue-channel', caption: '马尔代夫船宿 · 白天的公共沙龙', position: '50% 48%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '风从上层来',
-                    date: '2025年10月',
-                    level: 'OW',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['stay', 'scenery'],
-                    title: '马尔代夫船宿 · 上层甲板',
-                    subtitle: '白色甲板、泡池和离水面更远一点的风，会把船宿的停驻感慢慢托出来。',
-                    summary: '这张图不是水下，也不是房间，而是船最松弛的一层。上到顶层以后，视线会一下子打开，白色甲板和泡池把整条船变得很轻，潜后那种还没完全收住的身体，也会在这里慢慢回到平稳。',
-                    diving: '真正好的船宿，不会让潜水只剩下“下去、上来、换下一站”。像这样的上层甲板，会把每一潜之间留出呼吸，让整天的节奏更像慢慢排开的海流，而不是被行程推着走。',
-                    stay: '船上有这种完全朝海打开的空间，其实很重要。它让人不会总被关在舱内，而是能在白天风平的时候走上去，把目光重新放远，住起来就会轻很多。',
-                    food: '哪怕只是带一杯水或者潜后简单吃点东西上来坐一会儿，也会比一直待在室内舒服很多。船宿里很多真正放松的瞬间，反而都发生在这种没有太多安排的甲板空档里。',
-                    scenery: '这张图里最动人的不是设施本身，而是白色、海面和远处岛影靠在一起的那种开阔感。它会让人记住，船宿不只是“住在船上”，而是真的一直漂在海中间。',
-                    photos: makeReviewPhotos(3, [
-                        { key: 'sundeck-tea', caption: '马尔代夫船宿 · 上层甲板的泡池', position: '50% 56%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '夜里回到船里',
-                    date: '2025年8月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['stay', 'scenery'],
-                    title: '马尔代夫船宿 · 傍晚以后',
-                    subtitle: '等光线慢慢退下去，船上的白色甲板会安静下来，室内的木色和灯光再把一天收住。',
-                    summary: '这一组更像船宿真正的后半段: 天还没完全黑时，上层甲板对着海先留下一片安静的白；再晚一点回到室内，灯光、走道和休息区会把白天那些下潜记忆慢慢收拢。马代船宿真正让人留恋的，往往就是这种“海和生活一起慢下来”的收尾方式。',
-                    diving: '船宿厉害的地方，是水下强烈的部分不会在出水后立刻断掉。到了傍晚，你还会带着白天那片蓝回到甲板和室内区，所以整天不会被切成零碎的几潜。',
-                    stay: '夜里的室内区看起来安静、稳定，而且有很明显的木色温度。对连续住在船上的人来说，这种从海风切回灯光的落差，会让休息变得特别具体，也更容易真正放松下来。',
-                    food: '晚饭后的记忆通常也会留在这个时段。不是热闹型的夜生活，而是吃完以后慢慢走回室内、坐一会儿、听见船和水声还在外面，整个人就自然收住了。',
-                    scenery: '如果白天的马代船宿是清亮的蓝，那傍晚以后的好看就在于它不再往外推，而是慢慢往里收。甲板的白和室内灯光一起，让整条船像一片被夜色轻轻包住的海面。',
-                    photos: [
-                        createReviewPhoto(4, 'lagoon-dusk', '马尔代夫船宿 · 靠海的上层甲板', '50% 54%'),
-                        createReviewPhoto(1, 'cabin-window', '马尔代夫船宿 · 夜里回到室内区', '50% 46%')
-                    ]
-                }
-            ]);
-        }
-
-        if (this.spotId === 9) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '潮汐边的房间',
-                    date: '2026年2月',
-                    level: 'OW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '马布岛 · 潜前慢住',
-                    subtitle: '先在海风里安静下来，再把身体慢慢交给这片蓝。',
-                    summary: '马布岛最舒服的地方，是它不会把潜水和生活切开。我们住在离码头不远的房间里，清晨先听见风，再看见海。出发前不需要太赶，回到岸上也不会立刻被推着走，整个人会自然慢下来。',
-                    diving: '潜水本身比想象中更温柔，浅礁和码头外侧的水下层次很适合慢慢进入状态。不是每一潜都追求冲击力，但你会记得自己是怎么慢慢喜欢上这片海的。',
-                    stay: '房间不夸张，但干净、安静，潜后回来冲澡、晾装备、在门口坐一会儿都很顺。那种离海很近、离喧闹很远的松弛感，很适合住上几晚。',
-                    food: '早餐是温热、简单但舒服的那种，潜后补给也照顾得很细。晚餐的海鲜和汤都不复杂，却刚好能把人从一整天的海风里慢慢收回来。',
-                    scenery: '最喜欢木栈道和海面之间那一层很轻的蓝。天色亮起来以后，海风、树影和远处的人声都很轻，像整座岛在提醒你先慢一点，再下去看海。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '马布岛 · 潜前慢住', '50% 52%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'boardwalk-breeze', caption: '马布岛 · 木栈道海风', position: '50% 48%' },
-                        { key: 'before-return', caption: '马布岛 · 回房之前', position: '50% 60%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '树影下的人',
-                    date: '2025年12月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'scenery'],
-                    title: '马布岛 · 沙滩游走',
-                    subtitle: '沿着细白沙和浅浅树影慢慢走，岛上的风把时间放得比海更轻一些。',
-                    summary: '这次在马布岛最常做的事不是赶行程，而是在潜前或潜后沿着沙滩慢慢走。树影压下来一点，海面就会显得更安静。那种不用急着去下一个地方的感觉，反而让整趟旅程更完整。',
-                    diving: '潜点本身不压迫人，适合已经有一点经验、但不想把整天都放在强节奏里的潜水员。回来以后还有余裕继续散步、吹风、坐着发会儿呆。',
-                    stay: '住处离海边很近，回房放下装备后很快就能重新走到树影和沙地之间。房间本身安静，午后休息和夜里入睡都很舒服。',
-                    food: '餐食不是铺张的路线，但热食和海鲜都让人安心，吃完不会觉得仓促，反而更愿意慢慢把岛上的节奏留长一点。',
-                    scenery: '比起“打卡视角”，我更喜欢脚下沙子和风从树间穿过去的声音。马布岛的好看，不是某一秒，而是你愿意在这里多停一会儿。',
-                    photos: makeReviewPhotos(2, [
-                        { key: 'beach-walk', caption: '马布岛 · 沙滩游走', position: '48% 56%' },
-                        { key: 'green-shade-walk', caption: '马布岛 · 绿荫漫步', position: '52% 44%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '饭后的风',
-                    date: '2025年10月',
-                    level: '入门新手',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['food', 'stay', 'scenery'],
-                    title: '马布岛 · 饭后茶歇',
-                    subtitle: '潜后不急着回房，海风、茶饮和码头边缓下来的说话声，会把这一天安静地收住。',
-                    summary: '我是第一次把潜水和海岛停驻感真正放在一起。傍晚吃完饭后，大家没有立刻散掉，而是在码头边继续坐一会儿。风不大，海面很平，讲话声也慢下来，整个人会觉得这一天刚刚好。',
-                    diving: '对新手来说，这里的安排有安全感，不会一上来就把节奏推得太深。潜后还能留得住力气去吹海风、喝点热茶，这点很加分。',
-                    stay: '房间适合潜后短休，收拾装备和洗漱动线也顺。饭后再走回去时，整座岛已经安静下来，不会有被行程推着走的感觉。',
-                    food: '晚餐偏本地海鲜和热菜，潜完回来吃会觉得身体慢慢热起来。后面再来一杯茶或简单饮品，很自然就把一天收住了。',
-                    scenery: '马布岛傍晚最迷人的不是颜色有多夸张，而是海风和人声都会一点点降下来，让你愿意在码头边多坐几分钟。',
-                    photos: makeReviewPhotos(3, [
-                        { key: 'tea-break', caption: '马布岛 · 饭后茶歇', position: '50% 54%' },
-                        { key: 'pier-sit', caption: '马布岛 · 码头边坐一会儿', position: '54% 46%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '午后还很长',
-                    date: '2025年8月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '马布岛 · 岛上日常',
-                    subtitle: '潜水之外，小卖部桌边打盹的猫和岛上的学校，会把马布岛更贴近生活的一面慢慢露出来。',
-                    summary: '马布岛最打动我的，不只是海里的那部分。午后从码头回来，经过岛上的小卖部，看见猫安静地睡在桌上，再路过当地学校，听见孩子们放学时的声音，你会突然明白，这片海真正迷人的地方，是潜水和日常一直靠得很近。',
-                    diving: '这里的下潜体验不会把人和岸上生活切开。上午在海里看见蓝和鱼群，午后回到岛上，又能很自然地接上另一种节奏，整趟旅程不会被硬生生分成“潜水”和“非潜水”。',
-                    stay: '住处和公共空间之间保留着很自然的岛上距离。你不会被困在某一个观景点里，而是能走进真正有人生活的路径，看见这座岛安静、松弛的一面。',
-                    food: '比起专门去找某一道菜，我更喜欢这种走进小卖部、顺手买点饮料和零食的日常感。它让马布岛不是被安排好的度假场景，而是更真实地被住进了一会儿。',
-                    scenery: '这组照片里最动人的不是海面，而是桌边睡着的猫和岛上的学校。它们让人记住，马布岛不只是一片蓝，也是一座正在慢慢生活着的岛。',
-                    photos: makeReviewPhotos(4, [
-                        { key: 'afternoon-chat', caption: '马布岛 · 桌边午睡', position: '50% 48%' },
-                        { key: 'sea-under-shade', caption: '马布岛 · 岛上学校', position: '52% 42%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 11) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '飞进群岛时',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '科隆 · 先从海面以上开始',
-                    subtitle: '很多人因为沉船记住科隆，但真正让人进入状态的，往往是机窗外那圈一层层亮起来的礁缘。',
-                    summary: '这组图最能说明科隆为什么会让人一到就安静下来。它先从机窗外的深蓝和浅礁边界开始，再把视线慢慢压低到黑色石灰岩贴近海面的那一下。还没下水，就已经知道这里不会只有单一的“潜点感”，而是海面以上也有很完整的过渡。',
-                    diving: '如果先从空中看见这些浅礁边界，再去下沉船或礁坡，会更容易理解科隆的节奏: 深的、浅的、开的、收住的，都挨得很近。它不是一上来就把强度推满，而是先让人把这一片海的层次看懂。',
-                    stay: '抵达科隆前，身体会先被这种群岛和海湾的密度提醒“节奏要慢一点”。这对后面的上船、换港、出海其实很重要，因为这里舒服的方式从来不是赶。',
-                    food: '科隆不是靠餐桌先打动人的地方。抵达日真正重要的，反而是把水补够、把身体从飞行和日晒里收回来，让第二天出海时人已经稳住。',
-                    scenery: '这组图的顺序很像科隆真正的开场: 先从空中看见更完整的岛群轮廓和浅礁边界，再在靠近海面时看见黑色石灰岩把一小片清水轻轻收住。很多人后来记住 wreck，其实是从这种海面以上的层次开始的。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '科隆 · 飞进群岛时', '50% 52%'),
-                    photos: [
-                        createReviewPhoto(1, 'reef-rim', '科隆 · 礁缘先亮起来', '50% 54%'),
-                        {
-                            src: 'assets/images/coron.jpg',
-                            caption: '科隆 · 黑石把海湾轻轻收住',
-                            position: '50% 52%'
-                        }
-                    ]
-                },
-                {
-                    id: 'review-2',
-                    user: '黑石之间',
-                    date: '2025年12月',
-                    level: 'OW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '科隆 · 黑石与白沙',
-                    subtitle: '真正靠近岸边时，才会发现这里的黑色石灰岩、白沙和玻璃水离得非常近。',
-                    summary: '科隆岸边最动人的不是“大景”，而是这些很近的关系: 黑色石灰岩把空间收住，脚下却是很白的沙，水浅得能直接看见底。人从船边走到岸上，动作会自然放慢，因为这里的好看不需要追，停一下就已经够完整。',
-                    diving: '哪怕这些照片拍的是海面以上，也能看见科隆为什么适合沉船初体验和节奏型潜旅。石灰岩海湾会先把人带进一种更安静的状态，真正下水时反而不容易慌，呼吸也会更稳。',
-                    stay: '跳岛或住在镇上时，这种黑石、浅湾和短暂停靠的节奏会一直跟着你。它不是那种被酒店完全包起来的海，而是一片需要你自己慢慢走近的海。',
-                    food: '岛上简餐和船上午餐通常都不会喧宾夺主，反而和这种轻一点的海况很合。吃完再看一眼浅水和石壁，会觉得科隆适合把一整天排得留白一些。',
-                    scenery: '这一组最准确的地方，是它把科隆的“近景美感”拍出来了: 岩石的黑、沙的白、玻璃水下那层淡青色，以及被海湾收住后的安静。它不是只靠远处好看，而是靠近以后更好看。',
-                    featurePhoto: createReviewPhoto(2, 'white-sand-cove', '科隆 · 白沙与黑石之间', '50% 56%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'lagoon-glasswater', caption: '科隆 · 海湾里更静的一层水', position: '50% 54%' },
-                        { key: 'limestone-shallows', caption: '科隆 · 玻璃水下的石灰岩', position: '50% 48%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '船切进海湾时',
-                    date: '2025年10月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '科隆 · 船切进石灰岩海湾',
-                    subtitle: '船一慢下来，阴影、岩壁和水色会一起把声音压低，像在靠近另一层更静的海。',
-                    summary: '这组图把科隆最像“进入”的时刻拍出来了。不是站上观景台，而是船慢慢切进石灰岩海湾，黑色岩壁把四周收住，水色一下子从亮青变深，再在船边变得几乎透明。人在这种地方会很自然地把动作放轻，连说话都变慢。',
-                    diving: '如果科隆的沉船是水下的骨架，那这些海湾就是整段旅程的呼吸区。潜前经过这样的入口，潜后再从这里出来，旅程不会只剩一个个点位，而会被海湾之间的移动慢慢连起来。',
-                    stay: '科隆舒服的地方，是船程本身也算体验的一部分。坐在 bangka 上看岩壁和阴影移过去，不会觉得自己只是在被运去下一个点，而是真的在同一片海里平移。',
-                    food: '这种海湾里最合适的通常不是丰盛的东西，而是潜前潜后的一点水、果和热量补给。它把身体接住就够了，剩下的让海自己说。',
-                    scenery: '一张是绿船停在高耸岩壁前，一张是阴影压下来的海湾入口，一张是紧贴岩壁的透明水线。它们一起把科隆最迷人的张力说明白了: 既有石头的重量，也有水的轻。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '科隆 · 船切进石灰岩海湾', '50% 50%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'boat-under-cliffs', caption: '科隆 · 阴影里的绿船', position: '50% 48%' },
-                        { key: 'cliffside-water', caption: '科隆 · 岩壁边的透明水线', position: '50% 58%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '回到岸边以后',
-                    date: '2025年8月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['diving', 'stay', 'food', 'scenery'],
-                    title: '科隆 · 靠岸后的节奏',
-                    subtitle: '看见岸线、装备和镇边的山以后，才会发现科隆不是只用水下记住人的地方。',
-                    summary: '很多地方的评论会把“岸上”写成过场，但科隆不是。你会记得回港前那片宽一点的海湾、岸边低低的房子和码头边排好的装备。它们会把整天从风景收回到生活里，让这趟旅程不只剩几潜，而是真的有开始、有准备、也有回来的落点。',
-                    diving: '装备摆出来的那张照片很能说明科隆潜旅的质感: 没有过分用力的华丽感，但动线清楚、准备直接，下水之前人会很容易进入状态。对想试 wreck 或者把潜旅排得更完整的人，这种岸上节奏很重要。',
-                    stay: '科隆镇边的岸线和小码头不会把自己包装得很夸张，但正因为如此，潜后回去会有一种很具体的落地感。洗完澡、整理器材、再看一眼山和水色，整个人会慢慢收住。',
-                    food: '回到镇上以后，真正让人舒服的往往也不是“吃到什么名菜”，而是热的、咸的、能把海风和日晒慢慢接住的一顿饭。科隆适合这种不吵的收尾。',
-                    scenery: '这一组从回程海湾、岸边小屋到装备台，刚好把科隆的后半段串起来。它提醒人，这里之所以耐看，不只是因为某一潜，而是因为海和岸一直贴得很近。',
-                    featurePhoto: createReviewPhoto(4, 'bay-return', '科隆 · 回港前的海湾', '50% 52%'),
-                    photos: makeReviewPhotos(4, [
-                        { key: 'shore-village', caption: '科隆 · 岸线慢慢出现', position: '50% 54%' },
-                        { key: 'dock-gear', caption: '科隆 · 下水前的装备台', position: '52% 50%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 12) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '先看见岸线',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '薄荷岛 · 白沙外侧的第一条浅礁线',
-                    subtitle: '很多人对薄荷岛的第一印象，不是某一潜，而是先看见深蓝、浅礁和白沙排成一条很轻的边。',
-                    summary: '这些航拍最能说明薄荷岛为什么适合把潜水放进更轻一点的假期。岸线不夸张，浅礁贴着白沙慢慢往外过渡，外侧才是更深的蓝。海还没真正开始，呼吸已经先被放慢。',
-                    diving: '这种岸线和浅礁的过渡会让人对当天水况很有感觉。不是先追强度，而是先把海读清楚，再慢慢下去。',
-                    stay: '如果住在近岸一带，很多出海日都会从这种看得见白沙和树线的节奏开始，身体很容易放松。',
-                    food: '薄荷岛更适合吃完早一点的早餐就出海，回来再把热食和水果慢慢接上，整天不会被推得太满。',
-                    scenery: '三张图放在一起刚好把它的气质说明白了：岸线是白的，浅礁是亮的，外海的蓝却很稳。它不是喧闹型的美，而是一直轻轻展开。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '薄荷岛 · 白沙外侧的第一条浅礁线', '52% 52%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'reef-line', caption: '薄荷岛 · 岸线慢慢弯进去', position: '50% 52%' },
-                        { key: 'coast-boats', caption: '薄荷岛 · 岸边停着几条小船', position: '52% 54%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '船停在外侧',
-                    date: '2025年12月',
-                    level: 'OW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'stay', 'scenery'],
-                    title: '薄荷岛 · 船停在浅水边',
-                    subtitle: '船离岸不远，脚下已经是清透的蓝和浅礁，真正的船潜会从这种不太用力的靠近开始。',
-                    summary: '这几张图把薄荷岛最舒服的地方拍得很直接：bangka 没有开到很远的外海，而是先停在白沙外侧的清水里。你能看见岸线，还能看见船下浅礁和色带，整个人不会被突然扔进完全陌生的节奏里。',
-                    diving: '这种轻船潜很适合作为入门或恢复状态。上船、brief、下水都很清楚，海况再复杂也会先被拆成更好读的几步。',
-                    stay: '住在岸边潜店附近时，来回动线通常很短，潜后不会有太强的奔波感，这对想把假期放轻的人很重要。',
-                    food: '这种日程通常会把午餐和简单补给安排得比较顺，你出水之后不需要再被推着走，很容易慢慢收回来。',
-                    scenery: '船停在清透浅水上的那一下，其实就已经解释了为什么薄荷岛会让人放松：岸线近，水色浅，外侧深蓝又没有压得太重。',
-                    featurePhoto: createReviewPhoto(2, 'feature', '薄荷岛 · 船停在浅水边', '50% 54%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'bangka-close', caption: '薄荷岛 · 跳下去前的停靠', position: '50% 56%' },
-                        { key: 'topdown-boat', caption: '薄荷岛 · 浅礁和深蓝之间', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: 'briefing 开始前',
-                    date: '2025年10月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'stay', 'food', 'scenery'],
-                    title: '薄荷岛 · briefing 在船上开始',
-                    subtitle: '大家围坐在船上听 brief 的时候，岸边的房子、树线和器材会一起把这趟出海收进一种很日常的节奏里。',
-                    summary: '薄荷岛这组图和很多“只拍海”的地方不一样。大家坐在船上，器材堆在脚边，岸上房子和水面都还很近，这种普通又松弛的出海感，反而很容易让人记住。它不装成冒险，也不急着制造压迫感，就是把一整天慢慢展开。',
-                    diving: 'briefing 清楚、上船节奏稳，对轻船潜来说非常重要。它会让整天的呼吸从一开始就是顺的，而不是到了水里才临时适应。',
-                    stay: '能从住的地方很自然地接到这条出海线，是薄荷岛的一大优点。你不会觉得自己被硬切进“景点”，更像从岸边生活慢慢走进海里。',
-                    food: '这种出海日最舒服的部分，往往也是船上那些简单的水、零食和回去以后的一顿正餐。它不会抢戏，但会把身体接得很稳。',
-                    scenery: '一张是人和器材在船上围成一圈，一张是船刚离开岸边后还停在浅礁上方。它们让薄荷岛的海不是只有风景，也有很真实的出发感。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '薄荷岛 · briefing 在船上开始', '50% 48%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'briefing-circle', caption: '薄荷岛 · 先把这一潜说清楚', position: '50% 46%' },
-                        { key: 'topdown-glasswater', caption: '薄荷岛 · 刚离岸不久的清水', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '再往外看一点',
-                    date: '2025年8月',
-                    level: 'OW',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '薄荷岛 · 岸线慢慢弯过去',
-                    subtitle: '从上面看时，才会发现这片海不是一块平蓝，而是白沙、浅礁、停船线和云影一层层往外排开。',
-                    summary: '最后这组更像薄荷岛真正留在记忆里的方式：岸线在下面慢慢弯过去，浅礁颜色一块块散开，停在外侧的船把尺度变得更轻。就算云压下来一点，这片海也不会显得沉，反而更有呼吸感。',
-                    diving: '这样的海况很适合把潜水安排得从容一些。你知道船会从哪里出去，也知道浅礁和深水的边界在哪里，下去时心里会更稳。',
-                    stay: '回到岸边以后再看这种海岸线，会觉得整趟旅程不是围着某一个点转，而是围着一整条海边生活慢慢展开。',
-                    food: '薄荷岛很适合把晚饭留给潜后那段慢下来的时间，海风、盐分和疲惫一起退下去以后，整天才真正收住。',
-                    scenery: '一张是云影压下来的岸线，一张是白沙和浅礁继续往前铺开。它们把薄荷岛最舒服的地方留得很具体：轻、亮，而且不急。',
-                    featurePhoto: createReviewPhoto(4, 'feature', '薄荷岛 · 岸线慢慢弯过去', '50% 52%'),
-                    photos: makeReviewPhotos(4, [
-                        { key: 'cloudline', caption: '薄荷岛 · 云影压下来时的岸线', position: '50% 50%' },
-                        { key: 'reef-curve', caption: '薄荷岛 · 白沙外侧的浅礁带', position: '52% 54%' }
-                    ])
-                }
-            ]);
-        }
-
-
-        if (this.spotId === 13) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '先在花园里慢下来',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'scenery'],
-                    title: '皇帝岛 · 住处先把节奏放轻',
-                    subtitle: '大厅、花园步道和夜里安静的回程，会先把这片海的进入方式说清楚。',
-                    summary: '皇帝岛很舒服的一点，是你还没真正出海，身体就已经慢慢放松下来。大厅干净、步道安静、树影把风压得很低，整段靠近不是突然切换，而是轻轻下潜。',
-                    diving: '这种岸上节奏会让第二天的船潜更顺。你不是仓促下水，而是先把呼吸和注意力都整理好。',
-                    stay: '住处本身就像这片海的浅层入口：白色大厅、花园步道和低饱和的绿，会把整趟假期先收成一种更从容的状态。',
-                    food: '这类海域适合把早餐和潜前补给做得清楚一点，不需要复杂，但要稳稳接住身体。',
-                    scenery: '真正打动人的不是大场面，而是大厅的白、步道的绿和还没完全亮开的海一起出现。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '皇帝岛 · 花园步道把心跳慢慢放轻', '50% 54%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'lobby-night', caption: '皇帝岛 · 夜里回到大厅也还是很安静', position: '50% 48%' },
-                        { key: 'garden-path', caption: '皇帝岛 · 另一条步道把海风留在树影里', position: '50% 54%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '早餐之后再去码头',
-                    date: '2025年12月',
-                    level: 'OW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.7 / 5',
-                    focus: ['food', 'stay'],
-                    title: '皇帝岛 · 餐桌会把潜前节奏接住',
-                    subtitle: '先吃水果、热食，再在木椅和餐桌之间慢慢醒过来，皇帝岛很适合这样的开场。',
-                    summary: '皇帝岛这一程不会急着把你推到最重的海况里。早餐盘、热菜和餐厅里那种不需要大声说话的气氛，会让人觉得今天的潜水已经被妥帖安放。',
-                    diving: '潜前节奏被照顾好以后，下水会轻很多，判断压力也会小很多。',
-                    stay: '餐厅和住处的距离不远，回到岸上以后也能自然续上，不会一直被切换感打断。',
-                    food: '水果、热饮和一顿像样的餐桌，是皇帝岛轻船潜体验的重要一部分。',
-                    scenery: '连餐桌上的光都像海的前奏：不夸张，却把之后那层更亮的蓝提前说给你听。',
-                    featurePhoto: createReviewPhoto(2, 'feature', '皇帝岛 · 潜前的餐厅会先把身体接住', '50% 50%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'breakfast-fruit', caption: '皇帝岛 · 水果和热饮把清晨慢慢拉开', position: '50% 56%' },
-                        { key: 'dinner-table', caption: '皇帝岛 · 潜后那顿饭也不需要很赶', position: '50% 56%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '甲板先读今天的云',
-                    date: '2025年10月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '皇帝岛 · 出海前先把风向看清楚',
-                    subtitle: '豆袋甲板、上层甲板和远处的云线排在一起，会让人知道今天的海会怎样展开。',
-                    summary: '从船面到外海，皇帝岛很少一下子把张力拉满。你会先在甲板上看见今天的风、云和海面怎么连起来，再慢慢驶进真正该下水的那片蓝里。',
-                    diving: '这种“先读懂再下去”的海很适合恢复状态，也适合 OW / AOW 把连续几潜排得更安心。',
-                    stay: '哪怕只是坐在甲板上等 briefing，那种不慌的感觉都很重要，出海本身也成了旅程的一部分。',
-                    food: '这种海最适合把餐食和补水节点排得清楚：出海前轻一点，回船以后热一点。',
-                    scenery: '皇帝岛的画面感常常来自明暗边界：甲板黑得克制，外海蓝得很开，云墙又把层次一下拉出来。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '皇帝岛 · 上层甲板先把云和海摆出来', '50% 50%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'open-deck', caption: '皇帝岛 · 豆袋甲板上的第一层海风', position: '50% 48%' },
-                        { key: 'storm-wall', caption: '皇帝岛 · 远处云墙会把今天的海说得更清楚', position: '50% 54%' },
-                        { key: 'sea-window', caption: '皇帝岛 · 离岸以后海会一点点安静下来', position: '50% 48%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '回到岸上也不急',
-                    date: '2025年8月',
-                    level: 'OW',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.6 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '皇帝岛 · 回到陆地也还是慢慢上浮',
-                    subtitle: '夜里的小猫、车窗外的街道和坡路，会把皇帝岛这程从海上轻轻接回日常。',
-                    summary: '很多人只记得皇帝岛的海，但真正让人想再来一次的，常常是岸上收得也很舒服。你会在回程路上看见街道、坡路和晚一点才出现的小猫，整趟旅程像缓慢上浮，而不是突然结束。',
-                    diving: '有了这样的回岸段，前面的潜水会留得更久，因为你不是一下从海里跳回现实。',
-                    stay: '普吉一带的住处和岸上动线，让皇帝岛很适合排成轻一点的假期：潜水之后，生活感仍然能继续。',
-                    food: '回到岸上再找一顿热的，或者在车上慢慢喝掉一瓶水，都比急着赶路更像皇帝岛的收尾。',
-                    scenery: '街道、坡路和夜里的小动物，让这片海的回忆不只停在蓝水，也停在一整段温柔的陆地时间里。',
-                    featurePhoto: createReviewPhoto(4, 'feature', '皇帝岛 · 岸上的慢路会把这程轻轻接住', '50% 54%'),
-                    photos: makeReviewPhotos(4, [
-                        { key: 'night-cat', caption: '皇帝岛 · 夜里还有一只猫把路口守得很安静', position: '50% 46%' },
-                        { key: 'road-window', caption: '皇帝岛 · 车窗外的街道把这程慢慢收住', position: '50% 48%' },
-                        { key: 'town-slope', caption: '皇帝岛 · 坡路和树影会把海边时间继续拉长', position: '50% 50%' }
-                    ])
-                },
-                {
-                    id: 'review-5',
-                    user: '第一眼先给珊瑚',
-                    date: '2025年7月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '皇帝岛 · 水下先是珊瑚和明亮蓝',
-                    subtitle: '它不会先拿压迫感说话，而是先给你珊瑚、礁块和一层很清楚的亮蓝。',
-                    summary: '皇帝岛最舒服的地方，是它把水下层次摆得很开。你先看见软珊瑚、礁块和明亮的蓝，再看见潜水员慢慢进入这层海里，整片水下结构既轻，又很完整。',
-                    diving: '对想恢复状态、或想把一天里的几潜都做得更从容的人来说，这种亮、清楚、边界分明的结构非常友好。',
-                    stay: '因为海不会一上来就过度消耗人，所以潜后回到岸上时还能保留不少余地。',
-                    food: '潜后只需要一顿热的和一点盐分，身体就能慢慢接回来，它不会让你只剩疲惫。',
-                    scenery: '真正动人的是蓝不是整片砸过来，而是被珊瑚和礁块拆成很多层，每一层都很清楚。',
-                    featurePhoto: createReviewPhoto(5, 'feature', '皇帝岛 · 先看见一层很亮的珊瑚蓝', '50% 50%'),
-                    photos: makeReviewPhotos(5, [
-                        { key: 'reef-fan', caption: '皇帝岛 · 软珊瑚会先把视线留下来', position: '50% 50%' },
-                        { key: 'blue-reef', caption: '皇帝岛 · 明亮蓝水把礁坡慢慢推开', position: '50% 50%' },
-                        { key: 'coral-diver', caption: '皇帝岛 · 人一进去，海的层次就更清楚了', position: '50% 54%' }
-                    ])
-                },
-                {
-                    id: 'review-6',
-                    user: '再往里一点是更深的蓝',
-                    date: '2025年7月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '皇帝岛 · 礁坡往后，还有鱼群和船舱的蓝',
-                    subtitle: '当珊瑚和亮蓝都已经读懂，再往里一点，鱼群和船舱会把这片海真正收深。',
-                    summary: '皇帝岛不是只有白沙和缓坡。等你把外层亮蓝读熟以后，鱼群会先把坡面铺开，再由船舱里的冷蓝把这片海真正收深。它不会突然变得粗暴，却会让人觉得这片海比想象里更完整。',
-                    diving: '这就是皇帝岛适合 OW / AOW 逐步往前走的原因：你先在轻一点的层里找到节奏，再往更有结构的地方延展。',
-                    stay: '因为前面的铺垫够温和，走到这一层时不会只剩紧张，回到岸上以后也更容易慢慢回味。',
-                    food: '这种潜点最适合在潜后把餐食安排得简单但稳，让身体从更深一点的蓝里慢慢浮回来。',
-                    scenery: '最好的地方在于明暗衔接：鱼群的蓝、礁坡的蓝、再到船舱窗边那层更深的蓝，是一层层递进去的。',
-                    featurePhoto: createReviewPhoto(6, 'feature', '皇帝岛 · 外层亮蓝往后，还有一层更深的礁坡蓝', '50% 50%'),
-                    photos: makeReviewPhotos(6, [
-                        { key: 'reef-fish', caption: '皇帝岛 · 礁石和鱼会把这一潜继续往前推', position: '50% 48%' },
-                        { key: 'reef-slope', caption: '皇帝岛 · 礁坡会先把鱼和蓝一起摆出来', position: '50% 50%' },
-                        { key: 'schooling-fish', caption: '皇帝岛 · 再往前一点，鱼群开始把空间填满', position: '50% 52%' },
-                        { key: 'wreck-window', caption: '皇帝岛 · 船舱窗边那一格光会把人留下来', position: '50% 50%' },
-                        { key: 'wreck-inside', caption: '皇帝岛 · 里面的蓝很安静，也很完整', position: '50% 54%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 14) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '先经过转机和热食',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '热浪岛 · 先把路上的盐分收好',
-                    subtitle: '热浪岛这一程不是一落地就急着入海，小飞机、夜里的住处和第一顿热食，会先把身体接住。',
-                    summary: '真正的旅程不是从到达潜点的那一刻开始的，而是从你开始离开日常、进入假期的那一刻开始的。酒店的入住，路上的转机，都会让你感受到不一样的体验。在市中心的繁忙中体验喧闹，在热浪岛的夜晚体验安静，体验各种不同的节奏，都是这趟旅程的一部分。它不会让你一下子就被丢进很重的海里，而是先把路上的盐分和疲惫慢慢收好。',
-                    diving: '这种进入方式会让后面的船潜轻很多，因为你不是带着一路的疲惫直接下水。',
-                    stay: '夜里抵达也不会显得慌。只要住处和动线够稳，热浪岛就会从第一晚开始变得柔和。',
-                    food: '第一顿热食特别重要。它不抢戏，却决定你接下来几天是不是能舒服地跟上海。',
-                    scenery: '连路上的画面都很有热浪岛气质：灯光不大声，夜色很松，假期已经慢慢开始。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '热浪岛 · 小飞机落下来以后，这程才真正开始', '50% 58%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'arrival-night', caption: '热浪岛 · 夜里到住处，灯光也还是轻的', position: '50% 52%' },
-                        { key: 'plane-window', caption: '热浪岛 · 转机时先在城里停一会儿', position: '50% 42%' },
-                        { key: 'first-meal', caption: '热浪岛 · 第一顿热食把人稳稳接住', position: '50% 56%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '白沙先把一天点亮',
-                    date: '2025年12月',
-                    level: 'OW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.7 / 5',
-                    focus: ['scenery', 'stay'],
-                    title: '热浪岛 · 沙滩椅和餐桌边的第一层海',
-                    subtitle: '白沙、椅子、餐桌和一眼就能看懂的浅蓝，会先把整天点亮。',
-                    summary: '经过旅途的奔波后，站在柔软洁净的白沙上，迎面吹来的海风，远处的海浪，让我在忙碌的生活中脱离出来，丢下一切包袱，真正的享受到了热浪岛的美好。它不会一下子把你丢进很重的海里，而是先把这片海的亮度和层次说得很清楚，整个人就已经先放松了。',
-                    diving: '这种岸边层次会让后面的船潜更顺，因为在下水之前，你已经先把这片海的亮度和方向读懂了。',
-                    stay: '如果住处和海边真的离得很近，热浪岛会特别完整，靠近沙滩的过程本身就是旅程的一部分。',
-                    food: '面海的餐桌很适合潜前早餐和潜后补水，它们会把海风稳稳接进身体里。',
-                    scenery: '最喜欢的是白沙和桌椅没有被做得很热闹，反而把整片海留得更安静。',
-                    featurePhoto: createReviewPhoto(2, 'feature', '热浪岛 · 面海的餐桌会先把这一天点亮', '50% 52%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'deck-chairs', caption: '热浪岛 · 沙滩椅还空着，海已经亮起来了', position: '50% 50%' },
-                        { key: 'white-sand', caption: '热浪岛 · 白沙会先把呼吸放轻', position: '50% 52%' },
-                        { key: 'beachline', caption: '热浪岛 · 靠近岸线时海是很好读的', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '住处外面就是海风',
-                    date: '2025年10月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['stay', 'scenery'],
-                    title: '热浪岛 · 阳台、棕榈和停在海上的船',
-                    subtitle: '房间外、阳台边和树影底下，都还能继续看见海没有结束。',
-                    summary: '如果说白沙把热浪岛先点亮，那么住处会把这种亮慢慢留下来。阳台边有木纹和风，棕榈把海面分成几层，船停在湾里不急着动，整段停驻感会比“只去一个潜点”完整得多。',
-                    diving: '住得离海近，会让出海变成一种自然延伸，而不是每天重新启动一次。',
-                    stay: '这组图几乎把热浪岛为什么适合轻假期说清楚了：房间外就有海，走到阳台边就知道今天不需要太赶。',
-                    food: '这种住处最适合把潜后的水果和热饮留在房间外慢慢喝掉，让海风把一整天再往后放一会儿。',
-                    scenery: '真正好看的不是某一个打卡角度，而是棕榈、屋顶和海上的船一起把空间轻轻排开。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '热浪岛 · 从住处望出去，整片湾还在呼吸', '50% 54%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'balcony', caption: '热浪岛 · 阳台边的木纹和风都很轻', position: '50% 50%' },
-                        { key: 'palm-bay', caption: '热浪岛 · 棕榈会把海湾切成很多层浅蓝', position: '50% 50%' },
-                        { key: 'boat-between-palms', caption: '热浪岛 · 船停在树影之间，整片海显得更安静', position: '50% 50%' }
-                    ])
-                },
-                {
-                    id: 'review-4',
-                    user: '天气会把海再改一遍',
-                    date: '2025年9月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.7 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '热浪岛 · 云一压下来，海还是清楚的',
-                    subtitle: '就算云层压低、浪线起一点，这片海的层次仍然很好读。',
-                    summary: '同一片岸线，在天气换了一层之后会显出另一种安静。云墙压过来时，海边的人变得很小，浪线更明显，高一点的位置又能看见白沙仍然把蓝水稳稳托住。',
-                    diving: '这种天气变化会提醒人把节奏放稳：先读浪线，再决定今天往哪一层去。',
-                    stay: '当住处、岸线和海之间足够近时，天气变化本身也会变成旅程的一部分，而不是计划被打断。',
-                    food: '风大一点的时候，潜后回去喝热的、吃热的会更舒服，也更像热浪岛这种慢慢收住的节奏。',
-                    scenery: '我很喜欢这组里那种灰下来以后仍然很透的蓝，它让白沙和浪线都变得更清楚。',
-                    featurePhoto: createReviewPhoto(4, 'feature', '热浪岛 · 岸线和礁石会先把今天的海说清楚', '50% 52%'),
-                    photos: makeReviewPhotos(4, [
-                        { key: 'storm-front', caption: '热浪岛 · 云压下来的时候，海还是有层次的', position: '50% 54%' },
-                        { key: 'shore-swell', caption: '热浪岛 · 浪线把近岸的呼吸再说一遍', position: '50% 52%' },
-                        { key: 'high-view', caption: '热浪岛 · 从高一点看，白沙会把蓝稳稳托住', position: '50% 50%' }
-                    ])
-                },
-                {
-                    id: 'review-5',
-                    user: '岛上的慢路也很重要',
-                    date: '2025年9月',
-                    level: 'OW',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.6 / 5',
-                    focus: ['stay', 'scenery'],
-                    title: '热浪岛 · 路边的猴子会让人再慢一点',
-                    subtitle: '本来没把告示牌当回事，结果猴子真的突然跳上来，把衣服也弄脏了。',
-                    summary: '这是我在酒店附近遇到的一段小插曲。先碰到一只小松鼠，我还分了一点面包给它；看到旁边提醒有猴子的告示时，我并没有太在意，结果没过多久，真的有一只猴子突然跳到我衣服上，把衣服弄脏了。回头再想，这种带点狼狈的意外，反而让热浪岛更容易被记住。',
-                    diving: '热浪岛不只是下水时才有记忆点，连潜前潜后在住处附近遇到的小意外，都会把整段行程留得更深。',
-                    stay: '住在岛上的感觉，就是你不会只记住房间和海，还会记住酒店门口的小路、告示牌，还有那些突然闯进生活里的小动物。',
-                    food: '岛上连拿着面包停一下都会变成故事，所以节奏真的不用赶，慢一点，很多细节自己就会出现。',
-                    scenery: '这片海最特别的地方，是海景之外还带着一点野性，树影、告示和突然出现的猴子，都会把风景变得更真。',
-                    featurePhoto: createReviewPhoto(5, 'feature', '热浪岛 · 那张猴子警告牌，后来想起来很准', '50% 48%'),
-                    photos: makeReviewPhotos(5, [
-                        { key: 'island-path', caption: '热浪岛 · 酒店外面这段小路，后来也成了记忆的一部分', position: '50% 54%' },
-                        { key: 'monkey-warning', caption: '热浪岛 · 当时没太在意的提醒，后来全都应验了', position: '50% 48%' },
-                        { key: 'balcony-late', caption: '热浪岛 · 被猴子踩脏的衣服，也把这一天留得更牢', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-6',
-                    user: '潜前 briefing 到蓝水栏杆',
-                    date: '2025年8月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'stay'],
-                    title: '热浪岛 · 出海这件事本身也很顺',
-                    subtitle: 'briefing、船尾白浪、潜具和栏杆外的深蓝，会把热浪岛的轻船潜节奏解释得很清楚。',
-                    summary: '热浪岛让人愿意把连续几潜排进去，是因为出海本身就不太消耗人。你会先在 briefing 里把今天读清楚，再看见船尾把白浪拉开，潜具安静地靠在船边，最后栏杆外只剩一整片深一点的蓝。',
-                    diving: '对 OW / AOW 来说，这种有秩序、好理解的出海方式非常重要，注意力可以更多留给海。',
-                    stay: '当船潜日被安排得清楚，回到岸上也不会有那种被彻底掏空的感觉，假期节奏能继续保持轻。',
-                    food: '这类轻船潜很适合把补水和热食排在节点上，不需要大张旗鼓，却能让身体一直在舒服区间里。',
-                    scenery: '我很喜欢这组图里蓝是怎么慢慢加深的：先是人、再是船、再是栏杆外整片安静下来的海。',
-                    featurePhoto: createReviewPhoto(6, 'feature', '热浪岛 · briefing 结束以后，今天这片海就很清楚了', '50% 48%'),
-                    photos: makeReviewPhotos(6, [
-                        { key: 'boat-wake', caption: '热浪岛 · 船尾白浪会先把节奏拉开', position: '50% 52%' },
-                        { key: 'dive-gears', caption: '热浪岛 · 潜具靠在船边，整天都显得很稳', position: '50% 48%' },
-                        { key: 'blue-rail', caption: '热浪岛 · 栏杆外那层深蓝会把人继续往前带', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-7',
-                    user: '夜里回到海边还不想散',
-                    date: '2025年8月',
-                    level: 'OW',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.6 / 5',
-                    focus: ['food', 'stay', 'scenery'],
-                    title: '热浪岛 · 潜后还有一段夜色在等你',
-                    subtitle: '夜里的餐桌、靠海的小屋和很浅的一层水光，会把这一天再轻轻往后延一点。',
-                    summary: '热浪岛很适合把潜后时间留给海边。你会在夜色里看见桌椅和灯光，也会在更安静的位置再看见一点点仍然发亮的浅水，它不会用很强烈的夜生活把人拽走。',
-                    diving: '因为白天的船潜已经足够顺，晚上反而更愿意把潜水留在身体里，而不是马上切走。',
-                    stay: '热浪岛的晚上不是过度热闹的那种，它更像让你在饭后和海边之间再轻轻走一会儿。',
-                    food: '夜里的餐桌是这组图最重要的部分，它把潜后盐分、海风和一天的疲惫一起接回来。',
-                    scenery: '最动人的是夜色并没有把海吞掉，水边那层浅光还在，让人知道这片海并没有真正结束。',
-                    featurePhoto: createReviewPhoto(7, 'feature', '热浪岛 · 夜里的餐桌会把潜后余韵留住', '50% 52%'),
-                    photos: makeReviewPhotos(7, [
-                        { key: 'sunset-corner', caption: '热浪岛 · 夜色刚压下来时，角落里的海还是蓝的', position: '50% 52%' },
-                        { key: 'night-beach', caption: '热浪岛 · 小屋和沙地会把晚上留得很轻', position: '50% 52%' },
-                        { key: 'shallow-light', caption: '热浪岛 · 清澈见底的海水', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-8',
-                    user: '最后一晚也不急着告别',
-                    date: '2025年8月',
-                    level: 'OW',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.6 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '热浪岛 · 最后留下来的反而是这些普通时刻',
-                    subtitle: '夜里的小路、便利店货架和岸边那间安静的小屋，会让人明白热浪岛真正留下来的不是单点刺激。',
-                    summary: '离开热浪岛之前，最容易反复想起的，往往不是某一次下水，而是这些再普通不过的画面：夜里拐过弯的小路、便利店里临时买的零食、海边那间小屋和到达时那种并不喧闹的夜色。',
-                    diving: '正因为海不需要一直靠高张力维持存在感，离开时你才会发现，真正留下来的其实是整段潜前潜后的呼吸。',
-                    stay: '最后一晚还愿意在岛上再走一段路，本身就说明热浪岛适合停下来住，而不只是匆匆来回。',
-                    food: '便利店和零食这种很小的节点，反而会让人记住旅途是怎么被一口一口接住的。',
-                    scenery: '我喜欢这组图里那种不刻意的安静：不是大场面，却很像真正会留在记忆里的海岛。',
-                    featurePhoto: createReviewPhoto(8, 'feature', '热浪岛 · 最后一晚的小路把这程慢慢收住', '50% 52%'),
-                    photos: makeReviewPhotos(8, [
-                        { key: 'night-arrival', caption: '热浪岛 · 初到时那层夜色其实很轻', position: '50% 52%' },
-                        { key: 'resort-path', caption: '热浪岛 · 靠海的小屋会把最后的画面留住', position: '50% 52%' },
-                        { key: 'convenience-stop', caption: '热浪岛 · 离开前买的零食也会变成回忆的一部分', position: '50% 50%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 4) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '阿陶罗在远处',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '帝汶岛 · 先看见远处那层岛影',
-                    subtitle: '帝汶不会急着把人推进海里，它往往先用阿陶罗的轮廓和海平线，把呼吸放慢一点。',
-                    summary: '这组图很像帝汶真正的开场。风向袋旁边那片深一点的海，远处隐着阿陶罗的山体；另一张里岛影更低、更安静，岸边的线条也被拉得很长。还没下水，帝汶就先把“慢慢进入”这件事说清楚了。',
-                    diving: '这种靠近方式很适合帝汶。你会先看见海面怎么展开，再慢慢下到珊瑚坡地里，整个人比较不容易被节奏打断。',
-                    stay: '如果住处离岸边不远，第一天哪怕只是站着看一会儿远处岛影，也会很快进入这片海的状态。',
-                    food: '这类海最适合接一顿简单、热的潜前早餐。身体被接稳以后，后面的慢潜节奏才会更舒服。',
-                    scenery: '最动人的是帝汶的远近关系。远处是低低的岛体，近处是被风和光线压得很轻的岸线，它们把这片海留得很舒展。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '帝汶岛 · 阿陶罗会先在海平线后面出现', '50% 48%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'atauro-line', caption: '帝汶岛 · 更安静的一层阿陶罗轮廓', position: '50% 52%' },
-                        { key: 'cristo-rei', caption: '帝汶岛 · 岸线回头看时，岛影还留在后面', position: '50% 54%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '珊瑚坡地记录本',
-                    date: '2025年12月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '帝汶岛 · 珊瑚坡地会把颜色慢慢铺开',
-                    subtitle: '真正让帝汶留下来的，不只是“适合慢潜”，而是珊瑚、浅水和干燥岸线会一起把层次排得很清楚。',
-                    summary: '第二组图把帝汶的水下和岸上接在了一起。一张是珊瑚坡地本身，颜色不是炸开的那种，而是很完整地一层层摊开；另外两张里的 One Dollar Beach 让浅水、白沙和更干一点的岸线靠得很近，节奏一下就出来了。',
-                    diving: '帝汶的舒服，在于你不会一直被强流或过度密集的点位拉着走。珊瑚坡地很好读，适合把时间真的花在观察里。',
-                    stay: '住在这种浅水和岸线关系很近的位置，潜前潜后都不会显得仓促，体感会比只盯着潜点完整很多。',
-                    food: '这种行程很适合把午后补给和晚一点的热食吃得慢一点，因为岸上的风景本身就会把节奏再放长。',
-                    scenery: '最喜欢的是颜色被拆成了两层: 一层在水下，是珊瑚坡地的细节；一层在岸上，是白沙和低饱和海水把岛体轻轻托住。',
-                    featurePhoto: createReviewPhoto(2, 'feature', '帝汶岛 · 珊瑚坡地会先把海的颜色说明白', '50% 42%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'dollar-road', caption: '帝汶岛 · One Dollar Beach 的岸线很长', position: '52% 52%' },
-                        { key: 'dollar-bay', caption: '帝汶岛 · 浅水会把白沙慢慢推开', position: '50% 56%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '傍晚回到帝力',
-                    date: '2025年10月',
-                    level: '同行不潜',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '帝汶岛 · 傍晚会把这程轻轻收住',
-                    subtitle: '帝汶不只适合白天下潜，回到帝力海边以后，那层傍晚的风和水色也会把整趟旅程留得更久。',
-                    summary: '最后这组图更像帝汶的收尾。傍晚海边的光线不急，水面和天色都压得很平；另一张里 Mota Bidau 一带把岸线和城市边缘轻轻接起来。看完会更明白，帝汶之所以适合停留，是因为回岸以后也不会突然断掉。',
-                    diving: '对白天下过几潜的人来说，这样的傍晚很重要。它会把水下那种缓慢、完整的节奏继续保留下来。',
-                    stay: '帝汶的住处不需要夸张，只要离海近、能让人潜后走回这层晚光里，整趟体感就会很稳。',
-                    food: '热食和海风会在这个时段一起发挥作用。不是热闹型的晚餐，而是让人把盐分和疲惫慢慢放回岸上的那种收尾。',
-                    scenery: '我最喜欢帝汶这种不吵的傍晚。海边、城市边缘和一层很轻的晚光靠在一起，会让人想把时间再留一点。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '帝汶岛 · 帝力海边会把傍晚慢慢压平', '50% 54%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'mota-bidau', caption: '帝汶岛 · 回岸以后，岸线和城市会慢慢连起来', position: '50% 52%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 6) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '先停在清水边',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['stay', 'scenery', 'diving'],
-                    title: '布纳肯 · 岸边的小船会先把人接住',
-                    subtitle: '布纳肯不是一开始就把海墙的张力推到眼前，它会先用很静的清水、岸边小船和群岛轮廓让人慢下来。',
-                    summary: '这组图很像刚到布纳肯那天的状态。黄色小船停在很静的浅水边，回头又能看见马纳多湾和远处岛体慢慢展开。它让人先理解这片海为什么会显得通透，而不是一上来就去强调强度。',
-                    diving: '这样的开场很适合布纳肯。海墙当然重要，但真正舒服的是先把呼吸放稳，再慢慢下到蓝水和礁坡交界处去。',
-                    stay: '如果住处就在这种海湾和岸边附近，潜前潜后都会被轻轻接住，不会只有“上下船”的工具感。',
-                    food: '这类海域最适合把早餐和潜后热汤都做得清楚一点，让身体和节奏一起慢下来。',
-                    scenery: '最好的地方在于近和远都不喧哗。近处是几乎不动的浅水，远处是低低的岛影和山线，整片海显得特别松。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '布纳肯 · 小船停在很静的清水边', '50% 56%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'ridge-view', caption: '布纳肯 · 回头看马纳多湾时，层次会慢慢排开', position: '50% 52%' },
-                        { key: 'island-outline', caption: '布纳肯 · 离岸以后，岛的轮廓还留在海面上', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '海墙外侧的光',
-                    date: '2025年12月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'scenery'],
-                    title: '布纳肯 · 真正难忘的是海墙外侧那层蓝',
-                    subtitle: '等身体已经被岸上的安静接住，再下到海墙边时，布纳肯那种通透感才会真正完整。',
-                    summary: '第二组图把布纳肯的核心说明白了。海墙边的珊瑚没有被拍得很躁，而是和深一点的蓝一起慢慢推开；另一张里的珊瑚花园更像把颜色稳稳铺在坡地上。你会发现布纳肯的好看，是完整，而不是用力。',
-                    diving: '对喜欢墙潜和长线观察的人来说，这里很友好。你能清楚地读到坡地、蓝水和珊瑚层次，不会总被节奏催着往前冲。',
-                    stay: '因为水下不会把人一下掏空，回到岸上以后还会留有很多余裕，这也是布纳肯适合住几晚的原因。',
-                    food: '潜后吃点热的、补够水，再去回想水下那片蓝，会比匆匆赶下一站更像布纳肯的方式。',
-                    scenery: '最喜欢的是这里的蓝不会直接压下来，而是被珊瑚、坡地和光一点点拆开，所以看得越久越舒服。',
-                    featurePhoto: createReviewPhoto(2, 'feature', '布纳肯 · 海墙外侧的蓝会慢慢完全展开', '50% 46%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'coral-garden', caption: '布纳肯 · 珊瑚会把坡地安静地铺满', position: '50% 50%' },
-                        { key: 'wall-light', caption: '布纳肯 · 光线落到海墙边时，层次会更清楚', position: '50% 50%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '回到岛上的风',
-                    date: '2025年10月',
-                    level: '同行不潜',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '布纳肯 · 岛上的风会把这程再放轻一点',
-                    subtitle: '潜后回到梁海滩和山体之间，才会发现布纳肯真正好的地方，是水下和岸上的节奏都很顺。',
-                    summary: '最后这组更像布纳肯的后半天。梁海滩把岸线拉得很长，云和山体又把海面轻轻收住；另一张里两座岛彼此相望，像把这片海的呼吸拉得更开。它让布纳肯不只是一个潜点，而是一整段可以停住的海边时间。',
-                    diving: '这种回岸段会把白天的墙潜重新接起来，让布纳肯的记忆不只停在水下那一下。',
-                    stay: '住在岛上最大的好处，就是潜完以后真的还能回到风、树影和沙滩之间，而不是直接被行程切断。',
-                    food: '这组图最适合接一顿潜后晚餐。不是为了庆祝，而是让海风和岸上的安静把整天慢慢收平。',
-                    scenery: '我很喜欢布纳肯这种克制的热带感。海滩、山线和云都不喧哗，但会让人愿意在这里多留一会儿。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '布纳肯 · 梁海滩会把潜后的时间轻轻接住', '50% 56%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'cloud-bay', caption: '布纳肯 · 云和山体会把海面慢慢收低', position: '50% 50%' },
-                        { key: 'island-pair', caption: '布纳肯 · 两座岛把海的呼吸继续拉开', position: '50% 52%' }
-                    ])
-                }
-            ]);
-        }
-
-        if (this.spotId === 7) {
-            return finalizeReviews([
-                {
-                    id: 'review-1',
-                    user: '粉沙岸边',
-                    date: '2026年3月',
-                    level: 'OW / AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.9 / 5',
-                    focus: ['scenery', 'diving'],
-                    title: '科莫多 · 粉沙岸会先把这片海点亮',
-                    subtitle: '很多人先记住的是强流和蝠鲼，但科莫多真正的开场，常常是从粉沙岸和亮蓝海水开始的。',
-                    summary: '这组图把科莫多的第一层气质拍得很准。粉沙岸边的海亮得很直接，可山体还是干燥、克制的；另一张近岸水色更通透，像在提醒你这里的张力从来都来自“轻”和“重”同时出现。',
-                    diving: '先看见这样明亮的一层海，再去理解科莫多的流区和大景，会更容易对上它的节奏。',
-                    stay: '科莫多舒服的地方，不是把人一直推在船和潜点之间，而是允许你在这种浅水边先把状态放稳。',
-                    food: '这类海很适合把潜前简餐和午后补给做得清楚，让人有力气继续往更深的窗口走。',
-                    scenery: '最迷人的就是对比。粉色岸线、绿山和亮蓝水面都很轻，但放在一起以后，科莫多的张力已经出来了。',
-                    featurePhoto: createReviewPhoto(1, 'feature', '科莫多 · 粉沙岸会先把海点亮', '50% 52%'),
-                    photos: makeReviewPhotos(1, [
-                        { key: 'pink-beach-wide', caption: '科莫多 · 离岸一点看，粉沙和海会更开阔', position: '50% 54%' },
-                        { key: 'pink-beach-shore', caption: '科莫多 · 靠近岸边以后，水色会变得更轻', position: '50% 54%' }
-                    ])
-                },
-                {
-                    id: 'review-2',
-                    user: '海流之间',
-                    date: '2025年12月',
-                    level: 'AOW',
-                    ratingStars: '★★★★★',
-                    ratingScore: '4.8 / 5',
-                    focus: ['diving', 'scenery', 'stay'],
-                    title: '科莫多 · 船在干燥山体和水道之间穿过去',
-                    subtitle: '真正让科莫多变得有力量感的，不只是水下那一下，而是船在岛屿、水道和风之间移动时，整片海就已经开始发力了。',
-                    summary: '第二组图更像科莫多最典型的白天。船贴着海走，左右是干燥山体和开阔水道；另一张里海面更深，陆地也更硬朗。你会发现这里的“动感”不是热闹，而是水和地形一直在推着剧情往前。',
-                    diving: '这就是科莫多和很多慢海不同的地方。哪怕还没下去，你已经能感到窗口、流向和地形在同时工作。',
-                    stay: '如果把住处、船程和潜点安排顺，科莫多会很完整，因为它的移动过程本身就值得被留进记忆。',
-                    food: '这种海况会消耗人，所以补水和潜后热食都特别重要。身体被接稳，才有力气继续读这片海。',
-                    scenery: '我最喜欢的是海和陆地都带着硬朗边界。不是柔软地铺开，而是一层层切出来，这很科莫多。',
-                    featurePhoto: createReviewPhoto(2, 'feature', '科莫多 · 开阔水道会先把力量感摆出来', '50% 52%'),
-                    photos: makeReviewPhotos(2, [
-                        { key: 'boat-channel', caption: '科莫多 · 船在水道里推进时，节奏会一下变明显', position: '50% 54%' },
-                        { key: 'dry-coast', caption: '科莫多 · 海和干燥山体之间有很强的边界感', position: '50% 52%' }
-                    ])
-                },
-                {
-                    id: 'review-3',
-                    user: '傍晚靠回港里',
-                    date: '2025年10月',
-                    level: '同行不潜',
-                    ratingStars: '★★★★☆',
-                    ratingScore: '4.7 / 5',
-                    focus: ['stay', 'food', 'scenery'],
-                    title: '科莫多 · 回到拉布安巴霍以后，海还没有结束',
-                    subtitle: '傍晚的港湾、停船和屋顶，会把科莫多从大景流潜慢慢收回到一个更能停留的地方。',
-                    summary: '最后这组是科莫多最容易被忽略的一层。回到拉布安巴霍以后，天空变粉，船停在港里，屋顶和海面一起安静下来；另一张岸线又把白天的亮蓝重新接回来。看完会觉得，科莫多不只是一整天被海流推进去，也有很好看的回岸时刻。',
-                    diving: '对潜水员来说，这样的回港很重要。它会把白天那些强张力的片段重新收顺，让记忆不只剩下刺激。',
-                    stay: '住在港湾附近会特别容易理解科莫多的完整性。白天出海，傍晚回来，海并没有真的被关在外面。',
-                    food: '潜后最适合接一顿热的、安静的晚餐。看着港湾里的船灯一点点亮起来，整天才算真正收住。',
-                    scenery: '我很喜欢这片海在傍晚的样子。白天它很有推力，到了港里又忽然放轻，这种反差会让人记很久。',
-                    featurePhoto: createReviewPhoto(3, 'feature', '科莫多 · 傍晚回到拉布安巴霍，海还会继续发亮', '50% 50%'),
-                    photos: makeReviewPhotos(3, [
-                        { key: 'harbor-view', caption: '科莫多 · 港湾和群岛会把傍晚慢慢收平', position: '50% 50%' },
-                        { key: 'shoreline', caption: '科莫多 · 回到更轻的岸线时，这片海还留在身边', position: '50% 54%' }
-                    ])
-                }
-            ]);
-        }
-
-        return finalizeReviews([
-            {
-                id: 'review-1',
-                user: '海面以下',
-                date: '2026年2月',
-                level: 'OW',
-                ratingStars: '★★★★★',
-                ratingScore: '4.9 / 5',
-                focus: ['diving', 'scenery'],
-                summary: this.spotId === 1
-                    ? '第一次在诗巴丹下去的时候，最先记住的不是“我潜了多久”，而是龟洞入口那种突然安静下来的蓝。再往前，鲨鱼会从侧面的水层里慢慢出来，最后鱼群风暴真正把整片视线填满。它不是一上来就把你推到最热闹的那一刻，而是让海一层一层地往你面前打开。'
-                    : `第一次在 ${name} 下去的时候，真的会一下子忘记自己在数呼吸。水下并不是那种一上来就很吵的热闹，而是越往里看越有层次。我们住的酒店不算特别奢华，但潜完回来能很快安静下来，这一点比想象中重要得多。`,
-                diving: this.spotId === 1
-                    ? '这次最打动我的不是单一的大景，而是节奏被铺开的方式。先是龟洞入口的结构和光线把人带进去，再是鲨鱼贴着蓝水经过时那种很克制的压迫感，最后鱼群风暴把整片海彻底推满。诗巴丹真正厉害的地方，是它会让你一步一步走进那种“海忽然变得很大”的感觉。'
-                    : `水下体验最打动我的是节奏感。前半段先让你慢慢适应，后面才会看到真正让人心动的部分，能见度和海洋生物的出现都很自然。`,
-                stay: '房间安静、清洁度好，回到酒店冲完澡就能直接休息，离码头也不远，没有那种奔波感。',
-                food: '早餐偏简洁但够用，欢迎晚餐里的海鲜很新鲜，潜后补给也比较细致，不会让人饿着去赶下一段安排。',
-                scenery: this.spotId === 1
-                    ? '这组三张图比起“出海前后”的时间顺序，更像诗巴丹真正留在脑子里的三个瞬间：龟洞入口的光线、鲨鱼贴着蓝水经过的压迫感，还有鱼群风暴真正合拢时，整片海突然被填满的那一下。'
-                    : `最喜欢的是清晨出海前的海面，天刚亮的时候，${name} 的蓝是很安静的，像整天的节奏都先被放慢了。`,
-                photos: makeReviewPhotos(1, reviewOnePhotoDefs)
-            },
-            {
-                id: 'review-2',
-                user: '礁线记录员',
-                date: '2025年12月',
-                level: 'AOW',
-                ratingStars: '★★★★★',
-                ratingScore: '4.8 / 5',
-                focus: ['diving', 'stay'],
-                summary: `这次来 ${name} 更像是认真给自己排了一次海底假期。潜导会先判断当天状态再安排节奏，不会硬把所有重点都塞进同一天。住处不喧闹，晚上回房能明显感觉身体在慢慢放松下来。`,
-                diving: `潜点安排比较成熟，不是单纯堆次数，而是会看当天的窗口、流速和光线，把更值得下去的一潜放在状态更好的时段。`,
-                stay: '酒店不强调夸张度假感，但对潜水员非常友好，晾装备、冲洗、午后短休都顺手，住起来很轻松。',
-                food: '餐食偏本地风味，海鲜和热食都不错，潜后有热汤和水果会让体感好很多。',
-                scenery: '码头和房间外的海面都很干净，傍晚光线落下来时，会觉得这趟旅行不只是去潜水，也是在海边真正停了一会儿。',
-                photos: makeReviewPhotos(2, [
-                    { key: 'pier-morning', caption: `${name} · 码头晨光`, position: '50% 40%' },
-                    { key: 'boat-return', caption: `${name} · 船潜回程`, position: '50% 58%' }
-                ])
-            },
-            {
-                id: 'review-3',
-                user: '晚风里的海',
-                date: '2025年10月',
-                level: '入门新手',
-                ratingStars: '★★★★☆',
-                ratingScore: '4.7 / 5',
-                focus: ['food', 'scenery'],
-                summary: `原本担心自己经验不够，会不会把这趟行程弄得很紧张，但实际体验比想象中温柔很多。岸上安排不会一直催着赶路，吃饭、休息、看海的时间都有保留下来，所以整个人不会一直处于紧绷状态。`,
-                diving: `对入门用户来说，这里的安排算友好，会先让你把身体放进海里，再慢慢往更完整的体验靠，不会一开始就把海况一下子推深。`,
-                stay: '住宿最让我满意的是安静度，晚上几乎没有嘈杂声，潜完回来睡一会儿就能恢复很多。',
-                food: '早餐比较稳，欢迎晚餐和海鲜做得比预期好，口味不是特别重，潜后吃也舒服；忌口提前备注后也能照顾到。',
-                scenery: `我最喜欢的是傍晚码头那段时间，海水颜色会从亮蓝慢慢变深，风一吹过来，整个人会觉得这趟 ${name} 来对了。`,
-                photos: makeReviewPhotos(3, [
-                    { key: 'before-dinner', caption: `${name} · 潜后晚餐前`, position: '50% 40%' },
-                    { key: 'pier-breeze', caption: `${name} · 码头晚风`, position: '50% 58%' },
-                    { key: 'room-view', caption: `${name} · 房间外的海`, position: '50% 32%' }
-                ])
-            },
-            {
-                id: 'review-4',
-                user: '深蓝留白',
-                date: '2025年8月',
-                level: 'AOW',
-                ratingStars: '★★★★★',
-                ratingScore: '4.9 / 5',
-                focus: ['diving', 'food', 'scenery'],
-                summary: `如果你喜欢的是完整的旅行感，不只是看完一个潜点就走，那 ${name} 会很适合。白天的海底、午后的休息、晚上的餐桌和海风，其实都连在一起。这里最好的部分，不是某一秒的刺激，而是整趟行程都没有断掉。`,
-                diving: '水下层次很完整，既有让人记得住的生物和海况，也有足够时间把心态放稳，不会只剩“赶紧看完下一个点”的疲惫感。',
-                stay: '酒店不张扬，但空间干净，潜后晒装备、洗澡、休息都很顺，像是潜水员真正会需要的那种舒服。',
-                food: '晚上的餐桌氛围很好，海鲜和当地热菜都比较新鲜，潜后补充体力这件事被认真对待了，而不是随便解决。',
-                scenery: `最难忘的是每天出海和回来的海面颜色变化。${name} 的风景不是特别喧哗的那种美，但会慢慢留在心里。`,
-                photos: makeReviewPhotos(4, [
-                    { key: 'bow-blue', caption: `${name} · 船头蓝水`, position: '50% 40%' },
-                    { key: 'after-dive-pier', caption: `${name} · 潜后码头`, position: '50% 58%' },
-                    { key: 'morning-sea', caption: `${name} · 清晨海色`, position: '50% 32%' }
-                ])
-            }
-        ]);
+        return this.applyReviewRatingVariation(
+            this.attachReviewPackageLinks(Array.isArray(rawReviews) ? rawReviews : [])
+        );
     }
 
     /**
@@ -5191,8 +4344,66 @@ class DetailPage {
             return;
         }
 
+        this.clearBookingFocusPanelReturnMotion();
         this.bookingFocusPanel.classList.remove('is-swapping-out', 'is-swapping-in');
         this.bookingFocusPanel.style.removeProperty('will-change');
+    }
+
+    /**
+     * setBookingFocusReturnPhase() - 标记焦点舱当前是否处于关闭后的回场阶段。
+     * @param {string} phase - 仅支持 "returning" 或空字符串
+     * @returns {void}
+     */
+    setBookingFocusReturnPhase(phase) {
+        if (!this.bookingSticky) {
+            return;
+        }
+
+        if (phase === 'returning') {
+            this.bookingSticky.dataset.focusReturnPhase = 'returning';
+            return;
+        }
+
+        delete this.bookingSticky.dataset.focusReturnPhase;
+    }
+
+    /**
+     * clearBookingFocusPanelReturnMotion() - 清理焦点舱关闭回场动画与阶段标记。
+     * @returns {void}
+     */
+    clearBookingFocusPanelReturnMotion() {
+        if (this.bookingFocusReturnTimer) {
+            window.clearTimeout(this.bookingFocusReturnTimer);
+            this.bookingFocusReturnTimer = 0;
+        }
+
+        if (this.bookingFocusPulseTimer) {
+            window.clearTimeout(this.bookingFocusPulseTimer);
+            this.bookingFocusPulseTimer = 0;
+        }
+
+        this.setBookingFocusReturnPhase('');
+        this.bookingFocusPanel?.classList.remove('is-returning', 'is-pulsing');
+    }
+
+    /**
+     * startBookingFocusPanelReturnMotion() - 套餐弹层关闭回收到焦点舱时，让真实舱体先轻轻醒来。
+     * @returns {void}
+     */
+    startBookingFocusPanelReturnMotion() {
+        if (!this.bookingFocusPanel) {
+            return;
+        }
+
+        this.clearBookingFocusPanelReturnMotion();
+        this.setBookingFocusReturnPhase('returning');
+        restartTransientClassAnimation(this.bookingFocusPanel, 'is-returning');
+
+        this.bookingFocusReturnTimer = window.setTimeout(() => {
+            this.bookingFocusPanel?.classList.remove('is-returning');
+            this.setBookingFocusReturnPhase('');
+            this.bookingFocusReturnTimer = 0;
+        }, 620);
     }
 
     /**
@@ -5218,6 +4429,7 @@ class DetailPage {
         }
 
         if (!normalizedPhase) {
+            this.applyPackageCardSelectionState();
             return;
         }
 
@@ -5226,7 +4438,124 @@ class DetailPage {
                 delete this.bookingSticky.dataset.focusContextPhase;
             }
             this.bookingFocusContextPhaseTimer = 0;
+            this.applyPackageCardSelectionState();
         }, 380);
+    }
+
+    /**
+     * clearBookingStickyFocusContextTransition() - 清理 focus-only 过渡阶段的定时器与 RAF。
+     * @returns {void}
+     */
+    clearBookingStickyFocusContextTransition() {
+        if (this.bookingStickyFocusContextCommitTimer) {
+            window.clearTimeout(this.bookingStickyFocusContextCommitTimer);
+            this.bookingStickyFocusContextCommitTimer = 0;
+        }
+
+        if (this.bookingStickyFocusContextRaf) {
+            window.cancelAnimationFrame(this.bookingStickyFocusContextRaf);
+            this.bookingStickyFocusContextRaf = 0;
+        }
+    }
+
+    /**
+     * applyBookingStickyFocusOnlyState() - 统一写入 booking-sticky 与 itinerary-list 的 focus-only 稳定态。
+     * @param {boolean} isFocusOnly - 是否进入单焦点右栏稳定态
+     * @returns {void}
+     */
+    applyBookingStickyFocusOnlyState(isFocusOnly) {
+        if (this.bookingSticky) {
+            this.bookingSticky.classList.toggle('is-focus-only-context', Boolean(isFocusOnly));
+        }
+
+        if (!this.itineraryList) {
+            return;
+        }
+
+        this.itineraryList.classList.toggle('is-focus-only-context', Boolean(isFocusOnly));
+        if ('inert' in this.itineraryList) {
+            this.itineraryList.inert = Boolean(isFocusOnly);
+        }
+        this.itineraryList.setAttribute('aria-hidden', String(Boolean(isFocusOnly)));
+    }
+
+    /**
+     * syncBookingStickyFocusContext() - 以 entering / stable / leaving 三段时序切换右栏 focus-only 语境。
+     * @param {boolean} isFocusOnlyContext - 是否应进入 focus-only 语境
+     * @param {string} [packageId=this.selectedPackageId] - 当前套餐 ID，用于同步卡片选中态
+     * @returns {void}
+     */
+    syncBookingStickyFocusContext(isFocusOnlyContext, packageId = this.selectedPackageId) {
+        if (!this.bookingSticky) {
+            this.applyPackageCardSelectionState(packageId);
+            return;
+        }
+
+        const shouldFocusOnly = Boolean(isFocusOnlyContext);
+        const state = this.bookingStickyFocusContextState || (
+            this.bookingSticky.classList.contains('is-focus-only-context') ? 'focus' : 'list'
+        );
+
+        if (shouldFocusOnly) {
+            if (state === 'focus') {
+                this.applyPackageCardSelectionState(packageId);
+                return;
+            }
+
+            if (state === 'entering') {
+                return;
+            }
+
+            this.clearBookingStickyFocusContextTransition();
+            this.bookingStickyListContextScrollTop = this.bookingSticky.scrollTop || 0;
+            this.bookingStickyScrollTargetTop = this.bookingStickyListContextScrollTop;
+            this.bookingStickyFocusContextState = 'entering';
+            this.setBookingStickyFocusContextPhase('entering');
+            this.applyBookingStickyFocusOnlyState(false);
+
+            this.bookingStickyFocusContextCommitTimer = window.setTimeout(() => {
+                this.bookingStickyFocusContextCommitTimer = 0;
+                if (!this.bookingSticky || this.bookingStickyFocusContextState !== 'entering') {
+                    return;
+                }
+
+                this.applyBookingStickyFocusOnlyState(true);
+                this.bookingStickyFocusContextState = 'focus';
+                this.applyPackageCardSelectionState(packageId);
+            }, 360);
+            return;
+        }
+
+        if (state === 'list') {
+            this.applyBookingStickyFocusOnlyState(false);
+            this.applyPackageCardSelectionState(packageId);
+            return;
+        }
+
+        if (state === 'entering') {
+            this.clearBookingStickyFocusContextTransition();
+            this.bookingStickyFocusContextState = 'list';
+            this.setBookingStickyFocusContextPhase('');
+            this.applyBookingStickyFocusOnlyState(false);
+            this.applyPackageCardSelectionState(packageId);
+            return;
+        }
+
+        if (state === 'leaving') {
+            return;
+        }
+
+        this.clearBookingStickyFocusContextTransition();
+        this.bookingStickyFocusContextState = 'leaving';
+        this.setBookingStickyFocusContextPhase('leaving');
+        this.applyBookingStickyFocusOnlyState(false);
+
+        const maxScrollTop = this.getBookingStickyMaxScrollTop();
+        const restoreTop = Math.max(0, Math.min(this.bookingStickyListContextScrollTop || 0, maxScrollTop));
+        this.bookingStickyScrollTargetTop = restoreTop;
+        this.bookingSticky.scrollTop = restoreTop;
+        this.bookingStickyFocusContextState = 'list';
+        this.applyPackageCardSelectionState(packageId);
     }
 
     /**
@@ -5300,6 +4629,34 @@ class DetailPage {
         }
 
         this.updateBookingStickyStackOffsets();
+        if (typeof this.handleBookingStickyListScroll === 'function') {
+            this.bookingSticky.removeEventListener('scroll', this.handleBookingStickyListScroll);
+        }
+
+        this.handleBookingStickyListScroll = () => {
+            if (!this.bookingSticky) {
+                return;
+            }
+
+            if (this.isBookingMatchConfirmationVisible('sidebar')) {
+                this.closeBookingMatchConfirmation({
+                    immediate: true,
+                    restoreFocus: false,
+                    source: 'sidebar'
+                });
+            }
+
+            const focusContextState = this.bookingStickyFocusContextState || (
+                this.bookingSticky.classList.contains('is-focus-only-context') ? 'focus' : 'list'
+            );
+            if (focusContextState !== 'list') {
+                return;
+            }
+
+            this.bookingStickyListContextScrollTop = this.bookingSticky.scrollTop || 0;
+            this.bookingStickyScrollTargetTop = this.bookingStickyListContextScrollTop;
+        };
+        this.bookingSticky.addEventListener('scroll', this.handleBookingStickyListScroll, { passive: true });
 
         if ('ResizeObserver' in window) {
             this.bookingCopyResizeObserver?.disconnect();
@@ -5455,6 +4812,23 @@ class DetailPage {
     }
 
     /**
+     * isDetailSectionInView() - 判断正文区块是否已经进入当前阅读带，便于决定是否应该立刻播放 reveal。
+     * @param {HTMLElement|null} target - 目标区块
+     * @param {{ topRatio?: number, bottomRatio?: number }} [options={}] - 可见区阈值
+     * @returns {boolean} - 当前区块是否已进入阅读带
+     */
+    isDetailSectionInView(target, options = {}) {
+        if (!target) {
+            return false;
+        }
+
+        const { topRatio = 0.9, bottomRatio = 0.12 } = options;
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top < viewportHeight * topRatio && rect.bottom > viewportHeight * bottomRatio;
+    }
+
+    /**
      * updateDetailReadingAtmosphere() - 同步当前阅读章节，让正文与右侧 sticky 共用一套安静的区块状态。
      * @param {string} sectionKey - 当前阅读区块 key
      * @returns {void} - 无返回值，直接更新页面状态
@@ -5474,14 +4848,42 @@ class DetailPage {
             reviews: 'deep',
             related: 'buoyant'
         };
+        const previousZone = this.activeDetailReadingSectionKey || '';
+        const hasZoneChanged = previousZone !== nextZone;
 
+        this.activeDetailReadingSectionKey = nextZone;
         this.body.dataset.detailReadingZone = nextZone;
         this.body.dataset.scrollMood = zoneMoodMap[nextZone] || baseMood;
 
         this.detailReadingSections.forEach((section) => {
             const isCurrent = section.dataset.detailReadingSection === nextZone;
             section.classList.toggle('is-reading-current', isCurrent);
+            if (!isCurrent) {
+                section.classList.remove('is-reading-awakened');
+            }
         });
+
+        if (hasZoneChanged) {
+            const currentSection = this.detailReadingSections.find((section) => (
+                section.dataset.detailReadingSection === nextZone
+            ));
+
+            window.clearTimeout(this.detailReadingAwakenTimer);
+            this.detailReadingAwakenTimer = 0;
+
+            if (currentSection) {
+                restartTransientClassAnimation(currentSection, 'is-reading-awakened');
+                this.detailReadingAwakenTimer = window.setTimeout(() => {
+                    if (
+                        currentSection.isConnected
+                        && this.activeDetailReadingSectionKey === nextZone
+                    ) {
+                        currentSection.classList.remove('is-reading-awakened');
+                    }
+                    this.detailReadingAwakenTimer = 0;
+                }, 920);
+            }
+        }
 
         if (this.bookingSticky) {
             this.bookingSticky.dataset.readingZone = nextZone;
@@ -5754,27 +5156,10 @@ class DetailPage {
         this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg, { isBooked });
         this.updateBookingFocusPrice(pkg.price, { animate: animatePrice });
         this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey, { isBooked });
-        const hadFocusOnlyContext = this.bookingSticky?.classList.contains('is-focus-only-context') || false;
-        if (hadFocusOnlyContext !== isFocusOnlyContext) {
-            this.setBookingStickyFocusContextPhase(isFocusOnlyContext ? 'entering' : 'leaving');
-        }
-        this.bookingSticky?.classList.toggle('is-focus-only-context', isFocusOnlyContext);
+        this.syncBookingStickyFocusContext(isFocusOnlyContext, packageId);
         this.bookingSticky?.classList.toggle('has-booked-focus-package', isBooked);
         this.bookingFocusPanel.classList.toggle('is-booked', isBooked);
         this.bookingFocusPanel.classList.toggle('is-review-context', isReviewContext);
-        this.itineraryList?.classList.toggle('is-focus-only-context', isFocusOnlyContext);
-        if (this.itineraryList) {
-            if ('inert' in this.itineraryList) {
-                this.itineraryList.inert = isFocusOnlyContext;
-            }
-            this.itineraryList.setAttribute('aria-hidden', String(isFocusOnlyContext));
-        }
-        this.applyPackageCardSelectionState(packageId);
-
-        if (isFocusOnlyContext && this.bookingSticky) {
-            this.bookingStickyScrollTargetTop = 0;
-            this.bookingSticky.scrollTop = 0;
-        }
 
         if (this.bookingFocusAction) {
             this.bookingFocusAction.dataset.packageId = pkg.id;
@@ -6144,6 +5529,394 @@ class DetailPage {
     }
 
     /**
+     * clearPendingIntroReveal() - 清理介绍区待提交的 reveal 帧，避免新一轮重播被旧帧打断。
+     * @returns {void}
+     */
+    clearPendingIntroReveal() {
+        if (this.introRevealDelayTimer) {
+            window.clearTimeout(this.introRevealDelayTimer);
+            this.introRevealDelayTimer = 0;
+        }
+
+        if (this.introRevealCommitRafId) {
+            window.cancelAnimationFrame(this.introRevealCommitRafId);
+            this.introRevealCommitRafId = 0;
+        }
+    }
+
+    /**
+     * getIntroArchiveCards() - 收集“海域档案”区块里需要按层次翻开的卡片
+     * @returns {HTMLElement[]} - 介绍区档案卡列表
+     */
+    getIntroArchiveCards() {
+        if (!this.introSection) {
+            return [];
+        }
+
+        return Array.from(this.introSection.querySelectorAll('.intro-archive-card'));
+    }
+
+    /**
+     * clearIntroCardShellReveal() - 清理卡片壳体 reveal 的 raf，并移除延迟变量与显现状态
+     * @returns {void}
+     */
+    clearIntroCardShellReveal() {
+        if (this.introCardShellRevealRafId) {
+            window.cancelAnimationFrame(this.introCardShellRevealRafId);
+            this.introCardShellRevealRafId = 0;
+        }
+
+        this.getIntroArchiveCards().forEach((card) => {
+            card.classList.remove('is-shell-visible');
+            card.style.removeProperty('--intro-card-shell-delay');
+            card.style.removeProperty('--intro-card-content-delay');
+        });
+    }
+
+    /**
+     * clearIntroCardContentReveal() - 清理卡片正文 reveal 的 raf、定时器与过渡监听
+     * @returns {void}
+     */
+    clearIntroCardContentReveal() {
+        if (this.introCardContentRevealRafId) {
+            window.cancelAnimationFrame(this.introCardContentRevealRafId);
+            this.introCardContentRevealRafId = 0;
+        }
+
+        this.introCardContentRevealTimers.forEach((timerId) => {
+            window.clearTimeout(timerId);
+        });
+        this.introCardContentRevealTimers = [];
+
+        this.introCardContentRevealCleanup.forEach((cleanup) => {
+            cleanup?.();
+        });
+        this.introCardContentRevealCleanup.clear();
+
+        this.getIntroArchiveCards().forEach((card) => {
+            card.classList.remove('is-content-visible');
+            delete card.dataset.introContentRevealState;
+        });
+    }
+
+    /**
+     * queueIntroCardContentRevealTimer() - 为卡片正文 reveal 注册定时器，方便统一回收
+     * @param {Function} callback - 定时器触发时执行的逻辑
+     * @param {number} delay - 延迟毫秒数
+     * @returns {number} - 定时器 ID
+     */
+    queueIntroCardContentRevealTimer(callback, delay = 0) {
+        const timerId = window.setTimeout(() => {
+            this.introCardContentRevealTimers = this.introCardContentRevealTimers
+                .filter((activeTimerId) => activeTimerId !== timerId);
+            callback();
+        }, delay);
+
+        this.introCardContentRevealTimers.push(timerId);
+        return timerId;
+    }
+
+    /**
+     * isIntroCardInView() - 判断某张档案卡是否已经进入当前阅读带
+     * @param {HTMLElement|null} card - 待检查的档案卡
+     * @returns {boolean} - 当前卡片是否已进入用户可见区域
+     */
+    isIntroCardInView(card) {
+        if (!card) {
+            return false;
+        }
+
+        const rect = card.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top < viewportHeight * 0.92 && rect.bottom > viewportHeight * 0.12;
+    }
+
+    /**
+     * markIntroCardShellVisible() - 将档案卡壳体切换到已显现状态，并给同批次卡片轻微错峰
+     * @param {HTMLElement|null} card - 当前档案卡节点
+     * @param {number} staggerIndex - 当前批次中的序号
+     * @returns {boolean} - 是否成功切到壳体显现态
+     */
+    markIntroCardShellVisible(card, staggerIndex = 0) {
+        if (
+            !card
+            || !card.isConnected
+            || card.classList.contains('is-shell-visible')
+        ) {
+            return false;
+        }
+
+        const safeIndex = Math.max(0, Math.min(staggerIndex, 3));
+        card.style.setProperty('--intro-card-shell-delay', `${safeIndex * 90}ms`);
+        card.style.setProperty('--intro-card-content-delay', `${safeIndex * 30}ms`);
+        card.classList.add('is-shell-visible');
+        return true;
+    }
+
+    /**
+     * isIntroCardShellSettled() - 判断档案卡壳体是否已经基本显现完成
+     * @param {HTMLElement|null} card - 当前档案卡节点
+     * @returns {boolean} - 是否已接近稳定态
+     */
+    isIntroCardShellSettled(card) {
+        if (!card || !card.classList.contains('is-shell-visible')) {
+            return false;
+        }
+
+        const opacity = Number.parseFloat(window.getComputedStyle(card).opacity);
+        return Number.isFinite(opacity) && opacity >= 0.96;
+    }
+
+    /**
+     * getIntroCardShellTransitionWaitMs() - 读取档案卡壳体 reveal 的等待时间，供事件兜底
+     * @param {HTMLElement|null} card - 当前档案卡节点
+     * @returns {number} - 毫秒值
+     */
+    getIntroCardShellTransitionWaitMs(card) {
+        if (!card) {
+            return 0;
+        }
+
+        const styles = window.getComputedStyle(card);
+        return (
+            this.parseCssTimeToMs(styles.transitionDelay)
+            + this.parseCssTimeToMs(styles.transitionDuration)
+            + 120
+        );
+    }
+
+    /**
+     * markIntroCardContentVisible() - 将档案卡内部内容切换到已显现状态
+     * @param {HTMLElement|null} card - 当前档案卡节点
+     * @returns {void}
+     */
+    markIntroCardContentVisible(card) {
+        if (!card || !card.isConnected) {
+            return;
+        }
+
+        card.classList.add('is-content-visible');
+        card.dataset.introContentRevealState = 'revealed';
+
+        const cleanup = this.introCardContentRevealCleanup.get(card);
+        if (cleanup) {
+            cleanup();
+            this.introCardContentRevealCleanup.delete(card);
+        }
+    }
+
+    /**
+     * scheduleSingleIntroCardContentReveal() - 等档案卡壳体稳定后，再把标题和正文分层带出来
+     * @param {HTMLElement|null} card - 当前档案卡节点
+     * @returns {void}
+     */
+    scheduleSingleIntroCardContentReveal(card) {
+        if (
+            !card
+            || !card.isConnected
+            || !card.classList.contains('is-shell-visible')
+        ) {
+            return;
+        }
+
+        if (card.classList.contains('is-content-visible')) {
+            card.dataset.introContentRevealState = 'revealed';
+            return;
+        }
+
+        if (!this.isIntroCardInView(card)) {
+            return;
+        }
+
+        if (card.dataset.introContentRevealState === 'scheduled') {
+            return;
+        }
+
+        const revealCardContent = () => {
+            if (!card.isConnected) {
+                return;
+            }
+
+            this.markIntroCardContentVisible(card);
+        };
+
+        const existingCleanup = this.introCardContentRevealCleanup.get(card);
+        if (existingCleanup) {
+            existingCleanup();
+            this.introCardContentRevealCleanup.delete(card);
+        }
+
+        if (this.isIntroCardShellSettled(card)) {
+            revealCardContent();
+            return;
+        }
+
+        card.dataset.introContentRevealState = 'scheduled';
+
+        let hasSettled = false;
+        let fallbackTimer = 0;
+
+        const cleanup = () => {
+            card.removeEventListener('transitionend', onTransitionEnd);
+            if (fallbackTimer) {
+                window.clearTimeout(fallbackTimer);
+                this.introCardContentRevealTimers = this.introCardContentRevealTimers
+                    .filter((timerId) => timerId !== fallbackTimer);
+                fallbackTimer = 0;
+            }
+        };
+
+        const finish = () => {
+            if (hasSettled) {
+                return;
+            }
+
+            hasSettled = true;
+            cleanup();
+            this.introCardContentRevealCleanup.delete(card);
+            revealCardContent();
+        };
+
+        const onTransitionEnd = (event) => {
+            if (event.target !== card || event.propertyName !== 'opacity') {
+                return;
+            }
+
+            finish();
+        };
+
+        card.addEventListener('transitionend', onTransitionEnd);
+        fallbackTimer = this.queueIntroCardContentRevealTimer(() => {
+            finish();
+        }, this.getIntroCardShellTransitionWaitMs(card));
+        this.introCardContentRevealCleanup.set(card, cleanup);
+    }
+
+    /**
+     * scheduleIntroCardShellReveal() - 为当前进入阅读带的档案卡安排壳体翻开效果
+     * @returns {void}
+     */
+    scheduleIntroCardShellReveal() {
+        if (!this.introSection?.classList.contains('is-visible')) {
+            return;
+        }
+
+        if (this.introCardShellRevealRafId) {
+            window.cancelAnimationFrame(this.introCardShellRevealRafId);
+            this.introCardShellRevealRafId = 0;
+        }
+
+        this.introCardShellRevealRafId = window.requestAnimationFrame(() => {
+            let visibleBatchIndex = 0;
+
+            this.getIntroArchiveCards().forEach((card) => {
+                if (
+                    card.isConnected
+                    && !card.classList.contains('is-shell-visible')
+                    && this.isIntroCardInView(card)
+                ) {
+                    if (this.markIntroCardShellVisible(card, visibleBatchIndex)) {
+                        visibleBatchIndex += 1;
+                    }
+                }
+            });
+
+            this.introCardShellRevealRafId = 0;
+            this.scheduleIntroCardContentReveal();
+        });
+    }
+
+    /**
+     * scheduleIntroCardContentReveal() - 为当前已进入阅读带的档案卡安排内部内容 reveal
+     * @returns {void}
+     */
+    scheduleIntroCardContentReveal() {
+        if (!this.introSection?.classList.contains('is-visible')) {
+            return;
+        }
+
+        if (this.introCardContentRevealRafId) {
+            window.cancelAnimationFrame(this.introCardContentRevealRafId);
+            this.introCardContentRevealRafId = 0;
+        }
+
+        this.introCardContentRevealRafId = window.requestAnimationFrame(() => {
+            this.getIntroArchiveCards().forEach((card) => {
+                if (
+                    card.isConnected
+                    && card.classList.contains('is-shell-visible')
+                    && this.isIntroCardInView(card)
+                ) {
+                    this.scheduleSingleIntroCardContentReveal(card);
+                }
+            });
+
+            this.introCardContentRevealRafId = 0;
+        });
+    }
+
+    /**
+     * isIntroSectionInImmediateRevealBand() - 判断介绍区是否已经处于首屏应立即可见的阅读带。
+     * 只要用户一进入页面就能看见较完整的 overview，就先给壳体，再补内部 reveal。
+     * @returns {boolean}
+     */
+    isIntroSectionInImmediateRevealBand() {
+        if (!this.introSection) {
+            return false;
+        }
+
+        const rect = this.introSection.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const visibleTop = Math.max(rect.top, 0);
+        const visibleBottom = Math.min(rect.bottom, viewportHeight);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        const minimumVisibleHeight = Math.min(260, viewportHeight * 0.2);
+
+        return (
+            rect.top < viewportHeight * 0.82
+            && rect.bottom > viewportHeight * 0.16
+            && visibleHeight >= minimumVisibleHeight
+        );
+    }
+
+    /**
+     * scheduleIntroReveal() - 先提交一帧隐藏态，再让介绍区进入显现状态，确保壳体和正文能被肉眼看到。
+     * @returns {void}
+     */
+    scheduleIntroReveal(options = {}) {
+        if (!this.introSection) {
+            return;
+        }
+
+        const { delay = 0 } = options;
+        this.clearPendingIntroReveal();
+        this.introSection.classList.add('is-shell-visible');
+
+        const commitReveal = () => {
+            this.introRevealCommitRafId = window.requestAnimationFrame(() => {
+                this.introRevealCommitRafId = window.requestAnimationFrame(() => {
+                    if (this.introSection?.isConnected) {
+                        this.introSection.classList.add('is-visible');
+                        this.scheduleIntroCardShellReveal();
+                        this.scheduleIntroCardContentReveal();
+                    }
+                    this.introRevealCommitRafId = 0;
+                });
+            });
+        };
+
+        if (delay > 0) {
+            this.introRevealDelayTimer = window.setTimeout(() => {
+                this.introRevealDelayTimer = 0;
+                commitReveal();
+            }, delay);
+            return;
+        }
+
+        commitReveal();
+    }
+
+    /**
      * setupIntroReveal() - 监听“潜点介绍”进入视口后，再把章节标题和四张档案卡按层次唤醒。
      * 这里不做逐字效果，而是让整块内容像海域档案一样一层层被打开。
      * @returns {void} - 无返回值，直接注册介绍区显现逻辑
@@ -6155,8 +5928,14 @@ class DetailPage {
 
         this.introRevealObserver?.disconnect();
 
+        if (this.isIntroSectionInImmediateRevealBand()) {
+            this.introSection.classList.add('is-shell-visible');
+            this.scheduleIntroReveal({ delay: 90 });
+            return;
+        }
+
         if (!('IntersectionObserver' in window)) {
-            this.introSection.classList.add('is-visible');
+            this.scheduleIntroReveal();
             return;
         }
 
@@ -6166,16 +5945,12 @@ class DetailPage {
                     return;
                 }
 
-                entry.target.classList.add('is-visible');
+                this.scheduleIntroReveal();
                 this.introRevealObserver?.unobserve(entry.target);
             });
         }, {
-            // 介绍区本身比较高，如果用太高的 threshold，
-            // 用户明明已经先看到章节头了，整块档案卡却还没被唤醒。
-            // 这里把触发条件前提到“刚进入阅读区”就开始显形，
-            // 这样一进到这层海，文字和卡片就会更早把用户接住。
-            threshold: 0.04,
-            rootMargin: '0px 0px -4% 0px'
+            threshold: 0.1,
+            rootMargin: '0px 0px 8% 0px'
         });
 
         this.introRevealObserver.observe(this.introSection);
@@ -6191,27 +5966,25 @@ class DetailPage {
             return;
         }
 
+        this.clearPendingIntroReveal();
+        this.introRevealObserver?.disconnect();
+        this.clearIntroCardContentReveal();
+        this.clearIntroCardShellReveal();
         this.introSection.classList.remove('is-visible');
+        this.introSection.classList.remove('is-shell-visible');
+
+        if (this.isIntroSectionInImmediateRevealBand()) {
+            this.introSection.classList.add('is-shell-visible');
+            this.scheduleIntroReveal({ delay: 90 });
+            return;
+        }
 
         if (!('IntersectionObserver' in window)) {
-            this.introSection.classList.add('is-visible');
+            this.scheduleIntroReveal();
             return;
         }
 
         this.setupIntroReveal();
-
-        const rect = this.introSection.getBoundingClientRect();
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        // 详情页进入时，“潜点介绍”这一层经常已经贴近首屏下缘。
-        // 如果这里判断太保守，用户会先看到一片空的正文区域，
-        // 等再多滚一点才突然出现。把可见范围放宽后，
-        // 章节头和档案卡会在用户刚准备阅读时就开始动画。
-        if (rect.top < viewportHeight * 1.02 && rect.bottom > viewportHeight * 0.04) {
-            window.requestAnimationFrame(() => {
-                this.introSection.classList.add('is-visible');
-                this.introRevealObserver?.unobserve(this.introSection);
-            });
-        }
     }
 
     // 海域定位台数据：组织“海域位置 / 到达方式 / 水下结构”三态视图所需内容。
@@ -6668,124 +6441,87 @@ class DetailPage {
 
     // 海域定位台视图：负责生成三态切换按钮、深海地图舞台和信息档案结构。
     /**
-     * buildSeaRoutePath(routeNodes) - 根据到达方式节点生成一条经过所有锚点的 SVG 路线
-     * @param {Array<Object>} routeNodes - 路线节点数组，节点需要提供 x / y 锚点坐标
-     * @returns {string} - 可直接写入 SVG path 的 d 属性
+     * getSeaRouteLayoutPreset(viewportWidth) - 根据当前视口宽度返回固定路线舞台预设
+     * @param {number} viewportWidth - 当前视口宽度
+     * @returns {{ key:string, viewBox:{width:number,height:number}, path:string, nodes:Array<Object> }}
      */
-    buildSeaRoutePath(routeNodes) {
-        if (!Array.isArray(routeNodes) || routeNodes.length < 2) {
-            return '';
-        }
+    getSeaRouteLayoutPreset(viewportWidth = window.innerWidth) {
+        const presets = {
+            wide: {
+                key: 'wide',
+                viewBox: { width: 640, height: 360 },
+                path: 'M 88 258 C 126 240 172 214 232 196 C 300 174 360 144 420 134 C 474 132 522 164 548 214',
+                nodes: [
+                    { x: 88, y: 258, shiftX: 8, width: 156, nodeGap: 56 },
+                    { x: 232, y: 196, shiftX: 28, width: 152, nodeGap: 42 },
+                    { x: 420, y: 134, shiftX: -18, width: 154, nodeGap: 16 },
+                    { x: 548, y: 214, shiftX: -54, width: 176, nodeGap: 18, placement: 'below', final: true }
+                ]
+            },
+            compact: {
+                key: 'compact',
+                viewBox: { width: 640, height: 360 },
+                path: 'M 84 264 C 120 246 162 222 214 198 C 272 174 330 150 388 144 C 446 142 498 170 526 212',
+                nodes: [
+                    { x: 84, y: 264, shiftX: 6, width: 142, nodeGap: 52 },
+                    { x: 214, y: 198, shiftX: 26, width: 142, nodeGap: 40 },
+                    { x: 388, y: 144, shiftX: -12, width: 144, nodeGap: 16 },
+                    { x: 526, y: 212, shiftX: -46, width: 160, nodeGap: 18, placement: 'below', final: true }
+                ]
+            }
+        };
 
-        const pathSegments = [`M ${routeNodes[0].x} ${routeNodes[0].y}`];
-        const segmentProfiles = [
-            { midShift: -24, skew: -0.08, startNormal: -8, endNormal: 6, spread: 0.3 },
-            { midShift: -34, skew: 0.05, startNormal: 6, endNormal: -10, spread: 0.28 },
-            { midShift: 18, skew: 0.08, startNormal: -6, endNormal: 10, spread: 0.32 }
-        ];
-
-        for (let index = 0; index < routeNodes.length - 1; index += 1) {
-            const startNode = routeNodes[index];
-            const endNode = routeNodes[index + 1];
-            const profile = segmentProfiles[index] || segmentProfiles[segmentProfiles.length - 1];
-
-            const segmentDeltaX = endNode.x - startNode.x;
-            const segmentDeltaY = endNode.y - startNode.y;
-            const segmentLength = Math.max(Math.hypot(segmentDeltaX, segmentDeltaY), 1);
-            const tangentX = segmentDeltaX / segmentLength;
-            const tangentY = segmentDeltaY / segmentLength;
-            const normalX = -tangentY;
-            const normalY = tangentX;
-
-            // 每一段都先向海流方向轻轻漂出去一点，再回到下一个锚点。
-            // ·Ȼе㣬һߵĳڵϡĵߡ
-            const midpointX = startNode.x + segmentDeltaX * (0.5 + profile.skew) + normalX * profile.midShift;
-            const midpointY = startNode.y + segmentDeltaY * (0.5 + profile.skew) + normalY * profile.midShift;
-
-            const startControlX = startNode.x + tangentX * segmentLength * profile.spread + normalX * profile.startNormal;
-            const startControlY = startNode.y + tangentY * segmentLength * profile.spread + normalY * profile.startNormal;
-
-            const midControlInX = midpointX - tangentX * segmentLength * 0.16 + normalX * profile.midShift * 0.18;
-            const midControlInY = midpointY - tangentY * segmentLength * 0.16 + normalY * profile.midShift * 0.18;
-
-            const midControlOutX = midpointX + tangentX * segmentLength * 0.16 + normalX * profile.midShift * 0.08;
-            const midControlOutY = midpointY + tangentY * segmentLength * 0.16 + normalY * profile.midShift * 0.08;
-
-            const endControlX = endNode.x - tangentX * segmentLength * profile.spread + normalX * profile.endNormal;
-            const endControlY = endNode.y - tangentY * segmentLength * profile.spread + normalY * profile.endNormal;
-
-            pathSegments.push(
-                `C ${startControlX.toFixed(1)} ${startControlY.toFixed(1)}, `
-                + `${midControlInX.toFixed(1)} ${midControlInY.toFixed(1)}, `
-                + `${midpointX.toFixed(1)} ${midpointY.toFixed(1)} `
-                + `C ${midControlOutX.toFixed(1)} ${midControlOutY.toFixed(1)}, `
-                + `${endControlX.toFixed(1)} ${endControlY.toFixed(1)}, `
-                + `${endNode.x} ${endNode.y}`
-            );
-        }
-
-        return pathSegments.join(' ');
+        const selected = viewportWidth >= 1080 ? presets.wide : presets.compact;
+        return {
+            ...selected,
+            viewBox: { ...selected.viewBox },
+            nodes: selected.nodes.map((node) => ({ ...node }))
+        };
     }
     /**
-     * createSeaAtlasMarkup(atlas) - 生成海域定位台的完整 HTML 结构
+     * createSeaAtlasMarkup(atlas, mapData) - 生成海域定位台的完整 HTML 结构
      * @param {Object} atlas - 海域定位台数据对象
+     * @param {Object|null} mapData - 当前潜点的真地图数据
      * @returns {string} - 地图区域 HTML 字符串
      */
-    createSeaAtlasMarkup(atlas) {
+    createSeaAtlasMarkup(atlas, mapData = null) {
         const tabs = [
             { key: 'location', label: '海域位置' },
             { key: 'route', label: '到达方式' },
             { key: 'underwater', label: '水下结构' }
         ];
-
-        const locationNodes = [
-            { label: 'Country', value: atlas.country, top: '22%', left: '21%' },
-            { label: 'Region', value: atlas.region, top: '41%', left: '34%' },
-            { label: 'Sea', value: atlas.sea, top: '35%', left: '64%' },
-            { label: 'Site', value: atlas.spotName, top: '62%', left: '78%' }
+        const isUnderwaterView = this.activeSeaView === 'underwater';
+        const isRouteView = this.activeSeaView === 'route';
+        const isLocationView = !isUnderwaterView && !isRouteView;
+        const coordinateText = this.spotData.coordinates || formatLatLngDisplay(mapData?.spotCoords);
+        const locationMeta = [
+            ['区域海域', mapData?.regionTag || `${atlas.country} · ${atlas.sea}`],
+            ['真实坐标', coordinateText || '以当前海域为准'],
+            ['出发码头', mapData?.portLabel || atlas.route.harbor],
+            ['船程 / 靠近', mapData?.routeLabel || atlas.route.boatTime]
         ];
-
-        const routeNodes = [
-            {
-                label: '岸边集合',
-                value: atlas.route.hotel,
-                note: '从岸上开始，慢慢把呼吸交给这片海。',
-                x: 84,
-                y: 254,
-                shiftX: 34,
-                width: 156
-            },
-            {
-                label: '码头离岸',
-                value: atlas.route.harbor,
-                note: '在这里，陆地的节奏开始退到后面。',
-                x: 236,
-                y: 182,
-                shiftX: 8,
-                width: 152
-            },
-            {
-                label: '船行渐深',
-                value: atlas.route.boatTime,
-                note: '再往前一点，就是更完整的蓝。',
-                x: 428,
-                y: 118,
-                shiftX: -18,
-                width: 154
-            },
-            {
-                label: '入海点',
-                value: atlas.spotName,
-                note: '从这里下去，海会真正安静下来。',
-                x: 562,
-                y: 204,
-                shiftX: -58,
-                width: 176,
-                placement: 'below',
-                final: true
-            }
+        const routeMeta = [
+            ['出发酒店', atlas.route.hotel],
+            ['出发码头', mapData?.portLabel || atlas.route.harbor],
+            ['当前季节', mapData?.seasonLabel || atlas.season],
+            ['推荐深度', mapData?.depthRange || atlas.depth]
         ];
-        const routePath = this.buildSeaRoutePath(routeNodes);
+        const underwaterLayers = Array.isArray(atlas.underwater?.layers) ? atlas.underwater.layers : [];
+        const underwaterHotspots = Array.isArray(atlas.underwater?.hotspots) ? atlas.underwater.hotspots : [];
+        const underwaterLevels = Array.isArray(atlas.underwater?.levels) ? atlas.underwater.levels : [];
+        const visualHotspots = underwaterHotspots.map((spot, index) => {
+            const ratio = underwaterHotspots.length <= 1
+                ? 0.5
+                : index / Math.max(underwaterHotspots.length - 1, 1);
+
+            return {
+                ...spot,
+                index,
+                side: index % 2 === 0 ? 'left' : 'right',
+                serial: String(index + 1).padStart(2, '0'),
+                top: `${(28 + (ratio * 42)).toFixed(2)}%`
+            };
+        });
 
         return `
             <div class="sea-atlas-shell" id="seaAtlasShell">
@@ -6797,180 +6533,1533 @@ class DetailPage {
                     <button type="button" class="sea-atlas-resize-handle is-south-west" data-sea-atlas-resize="sw" tabindex="-1" aria-hidden="true"></button>
                 </div>
                 <div class="sea-atlas" data-sea-view="${this.activeSeaView}">
-                <div class="sea-atlas-head">
-                    <p class="sea-atlas-kicker">Sea Atlas</p>
-                    <p class="sea-atlas-lead">不是在看一张地图，而是在读一片海的进入方式、水下结构，以及它为什么适合你下去。</p>
-                    <div class="sea-atlas-tabs" role="tablist" aria-label="海域定位台视图切换">
-                        ${tabs.map((tab) => `
-                            <button
-                                type="button"
-                                class="sea-atlas-tab ${this.activeSeaView === tab.key ? 'is-active' : ''}"
-                                data-sea-view="${tab.key}"
-                                role="tab"
-                                aria-selected="${this.activeSeaView === tab.key ? 'true' : 'false'}"
-                            >
-                                ${tab.label}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="sea-atlas-stage">
-                    <section class="sea-atlas-panel ${this.activeSeaView === 'location' ? 'is-active' : ''}" data-sea-panel="location">
-                        <div class="sea-atlas-visual">
-                            <div class="sea-atlas-map">
-                                <svg class="sea-atlas-flowline" viewBox="0 0 640 360" aria-hidden="true">
-                                    <path d="M24 78 C122 28, 198 28, 272 82 S442 162, 616 104" />
-                                    <path d="M18 228 C118 182, 214 204, 286 246 S470 318, 620 264" />
-                                </svg>
-                                ${locationNodes.map((node) => `
-                                    <div class="sea-atlas-node" style="top:${node.top};left:${node.left};">
-                                        <span class="sea-atlas-node-label">${node.label}</span>
-                                        <span class="sea-atlas-node-value">${node.value}</span>
-                                    </div>
-                                `).join('')}
-                                <div class="sea-atlas-position-note">${atlas.positionNote}</div>
-                            </div>
-                        </div>
-
-                        <div class="sea-atlas-dossier">
-                            <h3 class="sea-atlas-card-title">海域位置</h3>
-                            <p class="sea-atlas-card-copy">${atlas.mapLocation} 位于 ${atlas.sea} 的主潜线之中。对盐憩来说，位置不是一个点，而是这片海如何开始显露性格。</p>
-                            <div class="sea-atlas-meta-grid">
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">国家 / 地区</span>
-                                    <span class="sea-atlas-meta-value">${atlas.country} · ${atlas.region}</span>
-                                </div>
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">坐标</span>
-                                    <span class="sea-atlas-meta-value">${atlas.coordinates}</span>
-                                </div>
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">最佳季节</span>
-                                    <span class="sea-atlas-meta-value">${atlas.season}</span>
-                                </div>
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">深度 / 节奏</span>
-                                    <span class="sea-atlas-meta-value">${atlas.depth} · ${atlas.difficulty}</span>
-                                </div>
-                            </div>
-                            <div class="sea-atlas-tags">
-                                <span class="sea-atlas-tag">${atlas.current}</span>
-                                <span class="sea-atlas-tag">${atlas.levelSummary}</span>
-                                <span class="sea-atlas-tag">适合在 ${atlas.season} 进入</span>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="sea-atlas-panel ${this.activeSeaView === 'route' ? 'is-active' : ''}" data-sea-panel="route">
-                        <div class="sea-atlas-visual">
-                            <div class="sea-route-map">
-                                <div class="sea-route-heading">
-                                    <span class="sea-route-kicker">Approach Line</span>
-                                    <p class="sea-route-murmur">从岸边到入海点，这不是交通说明，而是一段慢慢靠近这片海的过程。</p>
-                                </div>
-                                <svg class="sea-route-svg" viewBox="0 0 640 360" preserveAspectRatio="none" aria-hidden="true">
-                                    <path class="sea-route-line-glow" d="${routePath}" />
-                                    <path class="sea-route-line-wake" d="${routePath}" />
-                                    <path class="sea-route-line" pathLength="100" d="${routePath}" />
-                                    <path class="sea-route-line-sheen" pathLength="100" d="${routePath}" />
-                                </svg>
-                                ${routeNodes.map((node, index) => `
-                                    <span
-                                        class="sea-route-anchor-dot ${node.final ? 'is-final' : ''}"
-                                        style="--route-x:${node.x};--route-y:${node.y};--route-index:${index};"
-                                        aria-hidden="true"
-                                    ></span>
-                                `).join('')}
-                                ${routeNodes.map((node, index) => `
-                                    <div
-                                        class="sea-route-node ${node.final ? 'is-final' : ''} ${node.placement === 'below' ? 'is-below' : ''}"
-                                        style="--route-x:${node.x};--route-y:${node.y};--route-shift-x:${node.shiftX || 0}px;--route-node-width:${node.width || 132}px;--route-index:${index};"
+                    <div class="sea-atlas-head">
+                        <p class="sea-atlas-kicker">Sea Atlas</p>
+                        <p class="sea-atlas-lead">不是在看一张普通地图，而是在读这片海真实的位置、靠近方式，以及它如何慢慢把你带进更深一层。</p>
+                        <div class="sea-atlas-controls">
+                            <div class="sea-atlas-tabs" role="tablist" aria-label="海域定位台视图切换">
+                                ${tabs.map((tab) => `
+                                    <button
+                                        type="button"
+                                        class="sea-atlas-tab ${this.activeSeaView === tab.key ? 'is-active' : ''}"
+                                        data-sea-view="${tab.key}"
+                                        role="tab"
+                                        aria-selected="${this.activeSeaView === tab.key ? 'true' : 'false'}"
                                     >
-                                        <span class="sea-route-step">${node.label}</span>
-                                        <span class="sea-route-value">${node.value}</span>
-                                        <span class="sea-route-note">${node.note}</span>
-                                    </div>
+                                        ${tab.label}
+                                    </button>
                                 `).join('')}
                             </div>
-                        </div>
-
-                        <div class="sea-atlas-dossier">
-                            <h3 class="sea-atlas-card-title">到达方式</h3>
-                            <p class="sea-atlas-card-copy">${atlas.route.routeCopy}</p>
-                            <div class="sea-atlas-meta-grid">
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">出发酒店</span>
-                                    <span class="sea-atlas-meta-value">${atlas.route.hotel}</span>
-                                </div>
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">出发码头</span>
-                                    <span class="sea-atlas-meta-value">${atlas.route.harbor}</span>
-                                </div>
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">船程</span>
-                                    <span class="sea-atlas-meta-value">${atlas.route.boatTime}</span>
-                                </div>
-                                <div class="sea-atlas-meta-item">
-                                    <span class="sea-atlas-meta-label">抵达节奏</span>
-                                    <span class="sea-atlas-meta-value">先确认海况，再决定如何靠近这片海。</span>
-                                </div>
-                            </div>
-                            <div class="sea-route-journey">
-                                ${atlas.route.journey.map((item) => `<div class="sea-route-journey-item">${item}</div>`).join('')}
+                            <div class="sea-atlas-actions" ${isUnderwaterView ? 'hidden' : ''}>
+                                <button
+                                    type="button"
+                                    class="sea-atlas-reset-view"
+                                    data-sea-atlas-reset-view
+                                    data-sea-atlas-target="inline"
+                                    aria-label="恢复当前潜点的初始位置"
+                                >
+                                    恢复初始位置
+                                </button>
+                                <button
+                                    type="button"
+                                    class="sea-atlas-open-map"
+                                    data-sea-atlas-open-fullscreen
+                                    aria-label="展开当前潜点的全屏海图"
+                                >
+                                    展开全图
+                                </button>
                             </div>
                         </div>
-                    </section>
+                    </div>
 
-                    <section class="sea-atlas-panel ${this.activeSeaView === 'underwater' ? 'is-active' : ''}" data-sea-panel="underwater">
-                        <div class="sea-atlas-visual">
-                            <div class="sea-profile">
-                                <div class="sea-profile-surface"></div>
-                                <div class="sea-profile-arrow">
-                                    <span>${atlas.current}</span>
-                                    <svg viewBox="0 0 74 16" aria-hidden="true">
-                                        <path d="M2 8h60M52 2l10 6-10 6" />
-                                    </svg>
+                    <div class="sea-atlas-stage">
+                        <section class="sea-atlas-panel ${!isUnderwaterView ? 'is-active' : ''} sea-atlas-map-panel" data-sea-panel="map">
+                            <div class="sea-atlas-visual sea-atlas-visual-map">
+                                <div class="sea-atlas-visual-view ${isLocationView ? 'is-active' : ''}" data-sea-visual-view="location">
+                                    <div class="sea-atlas-map-slot" data-sea-atlas-map-slot></div>
                                 </div>
-                                <div class="sea-profile-layers">
-                                    ${atlas.underwater.layers.map((layer) => `
-                                        <div class="sea-profile-layer">
-                                            <div class="sea-profile-depth">${layer.depth}</div>
-                                            <div class="sea-profile-band">
-                                                <strong>${layer.title}</strong>
-                                                <span>${layer.note}</span>
+                                <div class="sea-atlas-visual-view ${isRouteView ? 'is-active' : ''}" data-sea-visual-view="route">
+                                    <div class="sea-route-board-slot" data-sea-route-board-slot></div>
+                                </div>
+                            </div>
+
+                            <div class="sea-atlas-dossier sea-atlas-dossier-map">
+                                <div class="sea-atlas-dossier-view ${!isRouteView ? 'is-active' : ''}" data-sea-dossier-view="location">
+                                    <h3 class="sea-atlas-card-title">海域位置</h3>
+                                    <p class="sea-atlas-card-copy">${atlas.positionNote}</p>
+                                    <div class="sea-atlas-meta-grid">
+                                        ${locationMeta.map(([label, value]) => `
+                                            <div class="sea-atlas-meta-item">
+                                                <span class="sea-atlas-meta-label">${label}</span>
+                                                <span class="sea-atlas-meta-value">${value}</span>
                                             </div>
+                                        `).join('')}
+                                    </div>
+                                    <div class="sea-atlas-tags">
+                                        <span class="sea-atlas-tag">${atlas.current}</span>
+                                        <span class="sea-atlas-tag">${atlas.levelSummary}</span>
+                                        <span class="sea-atlas-tag">${mapData?.seasonLabel || atlas.season}</span>
+                                    </div>
+                                </div>
+
+                                <div class="sea-atlas-dossier-view ${isRouteView ? 'is-active' : ''}" data-sea-dossier-view="route">
+                                    <h3 class="sea-atlas-card-title">到达方式</h3>
+                                    <p class="sea-atlas-card-copy">${atlas.route.routeCopy}</p>
+                                    <div class="sea-atlas-meta-grid">
+                                        ${routeMeta.map(([label, value]) => `
+                                            <div class="sea-atlas-meta-item">
+                                                <span class="sea-atlas-meta-label">${label}</span>
+                                                <span class="sea-atlas-meta-value">${value}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <div class="sea-route-journey">
+                                        ${atlas.route.journey.map((item) => `<div class="sea-route-journey-item">${item}</div>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="sea-atlas-panel ${isUnderwaterView ? 'is-active' : ''}" data-sea-panel="underwater">
+                            <div class="sea-atlas-visual">
+                                <div class="sea-profile">
+                                    <div class="sea-profile-surface"></div>
+                                    <div class="sea-profile-grid" aria-hidden="true"></div>
+                                    <div class="sea-profile-depth-rail" aria-hidden="true"></div>
+                                    <div class="sea-profile-arrow">
+                                        <span>${atlas.current}</span>
+                                        <svg viewBox="0 0 74 16" aria-hidden="true">
+                                            <path d="M2 8h60M52 2l10 6-10 6" />
+                                        </svg>
+                                    </div>
+                                    <div class="sea-profile-layers">
+                                        ${underwaterLayers.map((layer, index) => `
+                                            <article class="sea-profile-layer" style="--sea-profile-index:${index};">
+                                                <div class="sea-profile-depth">${layer.depth}</div>
+                                                <div class="sea-profile-band">
+                                                    <span class="sea-profile-band-glow" aria-hidden="true"></span>
+                                                    <strong>${layer.title}</strong>
+                                                    <span>${layer.note}</span>
+                                                </div>
+                                            </article>
+                                        `).join('')}
+                                    </div>
+                                    <div class="sea-profile-markers" aria-hidden="true">
+                                        ${visualHotspots.map((spot) => `
+                                            <article
+                                                class="sea-profile-marker is-${spot.side}"
+                                                style="--sea-profile-index:${spot.index}; --sea-profile-marker-top:${spot.top};"
+                                            >
+                                                <span class="sea-profile-marker-dot"></span>
+                                                <div class="sea-profile-marker-copy">
+                                                    <em>${spot.serial}</em>
+                                                    <strong>${spot.title}</strong>
+                                                </div>
+                                            </article>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="sea-atlas-dossier sea-atlas-dossier-underwater">
+                                <h3 class="sea-atlas-card-title">${atlas.underwater.title}</h3>
+                                <p class="sea-atlas-card-copy">${atlas.underwater.copy}</p>
+                                <div class="sea-profile-hotspots">
+                                    ${underwaterHotspots.map((spot, index) => `
+                                        <div class="sea-profile-hotspot" style="--sea-profile-copy-index:${index};">
+                                            <strong>${spot.title}</strong>
+                                            <span>${spot.text}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="sea-atlas-levels">
+                                    ${underwaterLevels.map((level, index) => `
+                                        <div class="sea-atlas-level" style="--sea-profile-copy-index:${index};">
+                                            <strong>${level.title}</strong>
+                                            <span>${level.text}</span>
                                         </div>
                                     `).join('')}
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="sea-atlas-dossier">
-                            <h3 class="sea-atlas-card-title">${atlas.underwater.title}</h3>
-                            <p class="sea-atlas-card-copy">${atlas.underwater.copy}</p>
-                            <div class="sea-profile-hotspots">
-                                ${atlas.underwater.hotspots.map((spot) => `
-                                    <div class="sea-profile-hotspot">
-                                        <strong>${spot.title}</strong>
-                                        <span>${spot.text}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <div class="sea-atlas-levels">
-                                ${atlas.underwater.levels.map((level) => `
-                                    <div class="sea-atlas-level">
-                                        <strong>${level.title}</strong>
-                                        <span>${level.text}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </section>
-                </div>
+                        </section>
+                    </div>
                 </div>
             </div>
         `;
+    }
+
+    createSeaAtlasStageMarkup({ fullscreen = false } = {}) {
+        return `
+            <div class="sea-atlas-map is-live-map${fullscreen ? ' is-fullscreen' : ''}" data-sea-atlas-map-stage>
+                <div class="sea-atlas-map-base" data-sea-atlas-map-base>
+                    <div class="sea-atlas-map-canvas" data-sea-atlas-map-canvas></div>
+                    <div class="sea-atlas-map-tint" aria-hidden="true"></div>
+                    <div class="sea-atlas-map-fog" aria-hidden="true"></div>
+                    <div class="sea-atlas-map-currents" aria-hidden="true"></div>
+                    <div class="sea-atlas-map-vignette" aria-hidden="true"></div>
+                    <div class="sea-atlas-map-fallback" data-sea-atlas-fallback hidden></div>
+                </div>
+                <div class="sea-atlas-route-overlay" data-sea-atlas-route-overlay aria-hidden="true">
+                    <svg class="sea-atlas-route-svg" data-sea-atlas-route-svg preserveAspectRatio="none">
+                        <path class="sea-atlas-route-line-glow sea-route-line-glow" data-sea-atlas-route-layer="glow"></path>
+                        <path class="sea-atlas-route-line-base sea-route-line-base" data-sea-atlas-route-layer="base"></path>
+                        <path class="sea-atlas-route-line sea-route-line" data-sea-atlas-route-layer="line"></path>
+                        <path class="sea-atlas-route-line-sheen sea-route-line-sheen" data-sea-atlas-route-layer="sheen"></path>
+                    </svg>
+                </div>
+                <div class="sea-atlas-info-root" data-sea-atlas-info-root></div>
+            </div>
+        `.trim();
+    }
+
+    getSeaAtlasMapMount() {
+        if (this.seaAtlasMapMount) {
+            return this.seaAtlasMapMount;
+        }
+
+        const template = document.createElement('template');
+        template.innerHTML = this.createSeaAtlasStageMarkup();
+        this.seaAtlasMapMount = template.content.firstElementChild;
+        this.seaAtlasMapBase = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-map-base]') || null;
+        this.seaAtlasRouteOverlay = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-route-overlay]') || null;
+        this.seaAtlasInfoRoot = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-info-root]') || null;
+        this.seaAtlasFallback = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-fallback]') || null;
+        return this.seaAtlasMapMount;
+    }
+
+    getSeaAtlasFullscreenMapMount() {
+        if (this.seaAtlasFullscreenMapMount) {
+            return this.seaAtlasFullscreenMapMount;
+        }
+
+        const template = document.createElement('template');
+        template.innerHTML = this.createSeaAtlasStageMarkup({
+            fullscreen: true
+        });
+        this.seaAtlasFullscreenMapMount = template.content.firstElementChild;
+        this.seaAtlasFullscreenMapBase = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-map-base]') || null;
+        this.seaAtlasFullscreenRouteOverlay = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-route-overlay]') || null;
+        this.seaAtlasFullscreenInfoRoot = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-info-root]') || null;
+        this.seaAtlasFullscreenFallback = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-fallback]') || null;
+        return this.seaAtlasFullscreenMapMount;
+    }
+
+    attachSeaAtlasMapMount() {
+        const slot = this.mapContainer?.querySelector('[data-sea-atlas-map-slot]') || null;
+        const mount = this.getSeaAtlasMapMount();
+        if (!slot || !mount) {
+            return null;
+        }
+
+        if (mount.parentElement !== slot) {
+            slot.appendChild(mount);
+        }
+
+        return mount;
+    }
+
+    attachSeaAtlasFullscreenMapMount() {
+        const slot = this.seaAtlasFullscreenSlot;
+        const mount = this.getSeaAtlasFullscreenMapMount();
+        if (!slot || !mount) {
+            return null;
+        }
+
+        if (mount.parentElement !== slot) {
+            slot.appendChild(mount);
+        }
+
+        return mount;
+    }
+
+    getSeaRouteBoardMount() {
+        if (this.seaRouteBoardMount) {
+            return this.seaRouteBoardMount;
+        }
+
+        const template = document.createElement('template');
+        template.innerHTML = `
+            <div class="sea-route-board sea-route-map" data-sea-route-board-stage>
+                <div class="sea-route-heading">
+                    <span class="sea-route-kicker" data-sea-atlas-heading-kicker>Approach Line</span>
+                    <p class="sea-route-murmur" data-sea-atlas-heading-murmur></p>
+                </div>
+                <div class="sea-route-stage" data-sea-route-stage></div>
+            </div>
+        `.trim();
+
+        this.seaRouteBoardMount = template.content.firstElementChild;
+        this.seaRouteBoardStage = this.seaRouteBoardMount?.querySelector('[data-sea-route-stage]') || null;
+        this.seaAtlasHeadingKicker = this.seaRouteBoardMount?.querySelector('[data-sea-atlas-heading-kicker]') || null;
+        this.seaAtlasHeadingMurmur = this.seaRouteBoardMount?.querySelector('[data-sea-atlas-heading-murmur]') || null;
+        return this.seaRouteBoardMount;
+    }
+
+    attachSeaRouteBoardMount() {
+        const slot = this.mapContainer?.querySelector('[data-sea-route-board-slot]') || null;
+        const mount = this.getSeaRouteBoardMount();
+        if (!slot || !mount) {
+            return null;
+        }
+
+        if (mount.parentElement !== slot) {
+            slot.appendChild(mount);
+        }
+
+        return mount;
+    }
+
+    syncSeaAtlasMapStageCopy() {
+        if (!this.mapContainer) {
+            return;
+        }
+
+        const isRouteView = this.activeSeaView === 'route';
+        const isUnderwaterView = this.activeSeaView === 'underwater';
+        const actionGroup = this.mapContainer.querySelector('.sea-atlas-actions');
+        if (actionGroup) {
+            actionGroup.hidden = isUnderwaterView;
+        }
+
+        if (this.seaAtlasHeadingKicker) {
+            this.seaAtlasHeadingKicker.textContent = 'Approach Line';
+        }
+        if (this.seaAtlasHeadingMurmur) {
+            this.seaAtlasHeadingMurmur.textContent = isRouteView
+                ? `${this.seaAtlasCurrentMapData?.portLabel || '出发点'} 到 ${this.seaAtlasCurrentMapData?.spotLabel || this.spotData.name} 的靠近路线，不是导航说明，而是这一程如何慢慢进入这片海。`
+                : `${this.seaAtlasCurrentMapData?.portLabel || '出发点'} 到 ${this.seaAtlasCurrentMapData?.spotLabel || this.spotData.name} 的这一程，会先从岸边节奏慢慢离开，再把海色一点点收深。`;
+        }
+
+        if (this.seaAtlasFullscreenTitle) {
+            this.seaAtlasFullscreenTitle.textContent = `${this.spotData.name} · 全屏海图`;
+        }
+
+        if (this.seaAtlasFullscreenMeta) {
+            this.seaAtlasFullscreenMeta.textContent = `${this.seaAtlasCurrentMapData?.regionTag || this.spotData.mapLocation || '当前海域'} · ${this.seaAtlasCurrentMapData?.routeLabel || '靠近路线会在这里完整展开'}`;
+        }
+
+        this.syncSeaAtlasResetButtonState('inline');
+        this.syncSeaAtlasResetButtonState('fullscreen');
+    }
+
+    getSeaRouteStageNodes(layout, atlas = this.seaAtlasCurrentAtlasData, mapData = this.seaAtlasCurrentMapData) {
+        const route = atlas?.route || {};
+        const spotLabel = mapData?.spotLabel || this.spotData.name;
+        const nodeCopy = [
+            {
+                step: '岸边集合',
+                value: route.hotel || '海边酒店',
+                note: '先把呼吸和海况慢慢对齐'
+            },
+            {
+                step: '码头离岸',
+                value: mapData?.portLabel || route.harbor || '出发码头',
+                note: '船身从这里离开岸边日常'
+            },
+            {
+                step: '船行渐深',
+                value: mapData?.routeLabel || route.boatTime || '30-60 分钟',
+                note: '海色会在这一程里慢慢收深'
+            },
+            {
+                step: '入海点',
+                value: spotLabel,
+                note: '在这里把今天的主潜线打开'
+            }
+        ];
+
+        return layout.nodes.map((node, index) => ({
+            ...node,
+            ...(nodeCopy[index] || {})
+        }));
+    }
+
+    renderSeaRouteStageLayout() {
+        const mount = this.seaRouteBoardMount;
+        const routeStage = this.seaRouteBoardStage || mount?.querySelector('[data-sea-route-stage]') || null;
+        if (!mount || !routeStage) {
+            return;
+        }
+
+        const routeLayout = this.getSeaRouteLayoutPreset(window.innerWidth);
+        const routeNodes = this.getSeaRouteStageNodes(routeLayout);
+        const { width, height } = routeLayout.viewBox;
+        const routePath = routeLayout.path;
+
+        routeStage.innerHTML = `
+            <svg class="sea-route-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+                <path class="sea-route-line-glow" d="${routePath}"></path>
+                <path class="sea-route-line-base" d="${routePath}"></path>
+                <path class="sea-route-line" d="${routePath}"></path>
+                <path class="sea-route-line-sheen" d="${routePath}"></path>
+                ${routeNodes.map((node, index) => `
+                    <g class="sea-route-anchor-dot${node.final ? ' is-final' : ''}" style="--route-index:${index};" aria-hidden="true">
+                        <circle class="sea-route-anchor-dot-halo" cx="${node.x}" cy="${node.y}" r="${node.final ? 12 : 10}"></circle>
+                        <circle class="sea-route-anchor-dot-core" cx="${node.x}" cy="${node.y}" r="${node.final ? 5.6 : 4.8}"></circle>
+                    </g>
+                `).join('')}
+            </svg>
+            <span class="sea-route-current" aria-hidden="true"></span>
+            ${routeNodes.map((node, index) => `
+                <article
+                    class="sea-route-node${node.placement === 'below' ? ' is-below' : ''}"
+                    style="--route-x:${node.x}; --route-y:${node.y}; --route-shift-x:${node.shiftX}px; --route-node-width:${node.width}px; --route-node-gap:${node.nodeGap ?? (node.placement === 'below' ? 18 : 16)}px; --route-index:${index};"
+                    aria-hidden="true"
+                >
+                    <span class="sea-route-step">${escapeHtml(node.step || '')}</span>
+                    <strong class="sea-route-value">${escapeHtml(node.value || '')}</strong>
+                    <span class="sea-route-note">${escapeHtml(node.note || '')}</span>
+                </article>
+            `).join('')}
+        `;
+
+        mount.dataset.routeLength = '';
+        mount.style.setProperty('--sea-route-length', '1');
+        mount.style.setProperty('--sea-route-sheen-length', '48');
+        mount.classList.remove('is-route-awakened', 'is-route-drawn');
+
+        const routeLine = routeStage.querySelector('.sea-route-line');
+        if (routeLine) {
+            const routeLength = routeLine.getTotalLength();
+            const sheenLength = Math.min(routeLength * 0.12, 72);
+            mount.dataset.routeLength = routeLength.toFixed(2);
+            mount.style.setProperty('--sea-route-length', `${routeLength}`);
+            mount.style.setProperty('--sea-route-sheen-length', `${sheenLength}`);
+        }
+
+        this.seaRouteLayoutKey = routeLayout.key;
+    }
+
+    createSeaAtlasInfoCardMarkup(kind, target = 'inline') {
+        const mapData = this.seaAtlasCurrentMapData;
+        if (!mapData) {
+            return '';
+        }
+
+        const portCardVisible = target === 'fullscreen'
+            ? this.seaAtlasFullscreenPortCardVisible
+            : this.seaAtlasPortCardVisible;
+
+        if (kind === 'port') {
+            return `
+                <article class="sea-atlas-info-card is-port-card${portCardVisible ? ' is-visible' : ''}" data-sea-atlas-card="port">
+                    <h4 class="sea-atlas-info-title">${mapData.portLabel}</h4>
+                    <div class="sea-atlas-info-meta">
+                        <span class="sea-atlas-info-pill">Departure</span>
+                        <span class="sea-atlas-info-pill">${mapData.regionTag}</span>
+                    </div>
+                    <p class="sea-atlas-info-route">${mapData.routeLabel}</p>
+                </article>
+            `;
+        }
+
+        return `
+            <article class="sea-atlas-info-card" data-sea-atlas-card="spot">
+                <h4 class="sea-atlas-info-title">${this.spotData.name}</h4>
+                <div class="sea-atlas-info-meta">
+                    <span class="sea-atlas-info-pill">${mapData.depthRange}</span>
+                    <span class="sea-atlas-info-pill">${mapData.seasonLabel}</span>
+                </div>
+                <p class="sea-atlas-info-route">${mapData.routeLabel}</p>
+            </article>
+        `;
+    }
+
+    getSeaAtlasInfoRoot(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenInfoRoot
+            : this.seaAtlasInfoRoot;
+    }
+
+    getSeaAtlasFallbackNode(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenFallback
+            : this.seaAtlasFallback;
+    }
+
+    getSeaAtlasMountNode(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenMapMount
+            : this.seaAtlasMapMount;
+    }
+
+    getSeaAtlasBaseNode(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenMapBase
+            : this.seaAtlasMapBase;
+    }
+
+    getSeaAtlasMapInstance(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenMap
+            : this.seaAtlasMap;
+    }
+
+    getSeaAtlasMarkerLayer(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenMarkerLayer
+            : this.seaAtlasMarkerLayer;
+    }
+
+    getSeaAtlasRouteOverlayNode(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenRouteOverlay
+            : this.seaAtlasRouteOverlay;
+    }
+
+    getSeaAtlasResetButton(target = 'inline') {
+        if (target === 'fullscreen') {
+            return this.seaAtlasFullscreen?.querySelector('[data-sea-atlas-reset-view][data-sea-atlas-target="fullscreen"]') || null;
+        }
+
+        return this.mapContainer?.querySelector('[data-sea-atlas-reset-view][data-sea-atlas-target="inline"]') || null;
+    }
+
+    getSeaAtlasViewPadding(target = 'inline') {
+        if (target === 'fullscreen') {
+            return [84, 84];
+        }
+
+        return window.matchMedia(SEA_ATLAS_MOBILE_PASSIVE_QUERY).matches
+            ? [44, 44]
+            : [78, 78];
+    }
+
+    getSeaAtlasExpandedBounds(mapData = this.seaAtlasCurrentMapData) {
+        const expanded = expandLatLngBounds(mapData?.mapBounds, 1.8, 4);
+        return padLatLngBoundsByTiles(
+            expanded,
+            Number(mapData?.zoom) || 9,
+            SEA_ATLAS_TILE_BUFFER_ROWS,
+            SEA_ATLAS_TILE_BUFFER_COLUMNS
+        );
+    }
+
+    getSeaAtlasDefaultViewDescriptor(mapData = this.seaAtlasCurrentMapData, target = 'inline') {
+        if (!mapData) {
+            return null;
+        }
+
+        const hasBounds = Array.isArray(mapData.mapBounds) && mapData.mapBounds.length === 2 && mapData.initialViewMode !== 'center';
+        const displayBounds = hasBounds
+            ? expandLatLngBounds(mapData.mapBounds, target === 'fullscreen' ? 0.72 : 0.5)
+            : null;
+        return {
+            mode: hasBounds ? 'bounds' : 'center',
+            bounds: displayBounds,
+            center: mapData.mapCenter,
+            zoom: Number(mapData.zoom) || 9,
+            maxBounds: this.getSeaAtlasExpandedBounds(mapData)
+        };
+    }
+
+    renderSeaAtlasInfoCards(target = 'inline') {
+        const infoRoot = this.getSeaAtlasInfoRoot(target);
+        if (!infoRoot) {
+            return;
+        }
+
+        infoRoot.hidden = false;
+        infoRoot.innerHTML = `
+            ${this.createSeaAtlasInfoCardMarkup('spot', target)}
+            ${this.createSeaAtlasInfoCardMarkup('port', target)}
+        `;
+
+        if (target === 'fullscreen') {
+            this.seaAtlasFullscreenSpotCard = infoRoot.querySelector('[data-sea-atlas-card="spot"]');
+            this.seaAtlasFullscreenPortCard = infoRoot.querySelector('[data-sea-atlas-card="port"]');
+            return;
+        }
+
+        this.seaAtlasSpotCard = infoRoot.querySelector('[data-sea-atlas-card="spot"]');
+        this.seaAtlasPortCard = infoRoot.querySelector('[data-sea-atlas-card="port"]');
+    }
+
+    setSeaAtlasPortCardVisible(isVisible, target = 'inline') {
+        const visible = Boolean(isVisible);
+        const card = target === 'fullscreen'
+            ? this.seaAtlasFullscreenPortCard
+            : this.seaAtlasPortCard;
+
+        if (target === 'fullscreen') {
+            this.seaAtlasFullscreenPortCardVisible = visible;
+        } else {
+            this.seaAtlasPortCardVisible = visible;
+        }
+
+        if (card) {
+            card.classList.toggle('is-visible', visible);
+        }
+    }
+
+    bindSeaAtlasControls() {
+        this.syncSeaAtlasResetButtonState('inline');
+        this.syncSeaAtlasResetButtonState('fullscreen');
+    }
+
+    createSeaAtlasMarkerIcon(kind, label, isActive = false) {
+        const isSpot = kind === 'spot';
+        const size = isSpot ? 56 : 44;
+        return window.L.divIcon({
+            className: `sea-atlas-marker-shell is-${kind}`,
+            html: `
+                <div class="sea-atlas-marker is-${kind}${isActive ? ' is-active' : ''}" style="--sea-marker-delay:${isSpot ? 320 : 180}ms;">
+                    <span class="sea-atlas-marker-label">${escapeHtml(label)}</span>
+                </div>
+            `,
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2]
+        });
+    }
+
+    updateSeaAtlasMarkers(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        const markerLayer = this.getSeaAtlasMarkerLayer(target);
+        if (!map || !markerLayer || !this.seaAtlasCurrentMapData || !window.L) {
+            return;
+        }
+
+        markerLayer.clearLayers();
+        const mapData = this.seaAtlasCurrentMapData;
+        const markerOptions = {
+            keyboard: false,
+            riseOnHover: false
+        };
+
+        const spotMarker = window.L.marker(mapData.spotCoords, {
+            ...markerOptions,
+            icon: this.createSeaAtlasMarkerIcon('spot', mapData.spotLabel || this.spotData.name, true)
+        });
+        const portMarker = window.L.marker(mapData.portCoords, {
+            ...markerOptions,
+            icon: this.createSeaAtlasMarkerIcon('port', mapData.portLabel || 'Departure', false)
+        });
+
+        portMarker.on('mouseover', () => this.setSeaAtlasPortCardVisible(true, target));
+        portMarker.on('mouseout', () => this.setSeaAtlasPortCardVisible(false, target));
+        portMarker.on('click', () => {
+            const currentVisible = target === 'fullscreen'
+                ? this.seaAtlasFullscreenPortCardVisible
+                : this.seaAtlasPortCardVisible;
+            this.setSeaAtlasPortCardVisible(!currentVisible, target);
+        });
+        spotMarker.on('click', () => this.setSeaAtlasPortCardVisible(false, target));
+
+        spotMarker.addTo(markerLayer);
+        portMarker.addTo(markerLayer);
+
+        if (target === 'fullscreen') {
+            this.seaAtlasFullscreenSpotMarker = spotMarker;
+            this.seaAtlasFullscreenPortMarker = portMarker;
+            return;
+        }
+
+        this.seaAtlasSpotMarker = spotMarker;
+        this.seaAtlasPortMarker = portMarker;
+    }
+
+    buildSeaAtlasTileOptions(mapData = this.seaAtlasCurrentMapData) {
+        return {
+            attribution: SEA_ATLAS_TILE_ATTRIBUTION,
+            minZoom: Number(mapData?.offlineMinZoom) || 4,
+            maxZoom: Number(mapData?.offlineMaxZoom) || 13,
+            tileSize: Number(mapData?.offlineTileSize) || SEA_ATLAS_OFFLINE_TILE_SIZE,
+            zoomOffset: Number.isFinite(Number(mapData?.offlineZoomOffset))
+                ? Number(mapData.offlineZoomOffset)
+                : SEA_ATLAS_OFFLINE_TILE_ZOOM_OFFSET,
+            noWrap: true,
+            updateWhenIdle: true,
+            keepBuffer: 4,
+            bounds: this.getSeaAtlasExpandedBounds(mapData) || undefined,
+            errorTileUrl: SEA_ATLAS_EMPTY_TILE_DATA_URI
+        };
+    }
+
+    showSeaAtlasFallback(reason = 'missing', target = 'inline') {
+        const fallbackNode = this.getSeaAtlasFallbackNode(target);
+        const infoRoot = this.getSeaAtlasInfoRoot(target);
+        const mount = this.getSeaAtlasMountNode(target);
+        if (!fallbackNode) {
+            return;
+        }
+
+        const mapData = this.seaAtlasCurrentMapData;
+        let fallbackCopy = `离线海图暂时没有完整显现，但你仍可以先记住 ${mapData?.regionTag || this.spotData.mapLocation || '当前海域'}、${mapData?.portLabel || '出发码头'}，以及 ${mapData?.routeLabel || '这一程的靠近方式'}。`;
+        if (reason === 'missing') {
+            fallbackCopy = `当前海域的离线海图包还没有随项目一起打包，底图因此没有完整显现。你仍可以先阅读 ${mapData?.regionTag || this.spotData.mapLocation || '这片海'}、${mapData?.portLabel || '出发码头'} 与 ${mapData?.routeLabel || '靠近方式'}。`;
+        } else if (reason === 'path') {
+            fallbackCopy = `离线海图包路径没有对上，底图暂时无法显现。请检查 ${mapData?.offlineTilePack || '当前海图包路径'} 是否存在。`;
+        } else if (reason === 'init') {
+            fallbackCopy = '海图舞台正在重新整理，稍后会把这片海的位置重新显现出来。';
+        }
+
+        fallbackNode.hidden = false;
+        fallbackNode.innerHTML = `
+            <p class="sea-atlas-map-fallback-title">这片海暂时没有完整显影</p>
+            <p class="sea-atlas-map-fallback-copy">${fallbackCopy}</p>
+        `;
+
+        if (infoRoot) {
+            infoRoot.hidden = true;
+        }
+        mount?.classList.add('is-fallback-active');
+    }
+
+    hideSeaAtlasFallback(target = 'inline') {
+        const fallbackNode = this.getSeaAtlasFallbackNode(target);
+        const infoRoot = this.getSeaAtlasInfoRoot(target);
+        const mount = this.getSeaAtlasMountNode(target);
+        if (!fallbackNode) {
+            return;
+        }
+
+        fallbackNode.hidden = true;
+        fallbackNode.innerHTML = '';
+        if (infoRoot) {
+            infoRoot.hidden = false;
+        }
+        mount?.classList.remove('is-fallback-active');
+    }
+
+    syncSeaAtlasTileLayerForSpot(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        const mapData = this.seaAtlasCurrentMapData;
+        if (!map || !window.L) {
+            this.showSeaAtlasFallback('init', target);
+            return false;
+        }
+
+        if (!mapData?.offlineTilePack) {
+            this.showSeaAtlasFallback('path', target);
+            return false;
+        }
+
+        const nextTemplate = mapData.offlineTilePack;
+        const isFullscreen = target === 'fullscreen';
+        const activeTemplate = isFullscreen
+            ? this.seaAtlasFullscreenCurrentTileTemplate
+            : this.seaAtlasCurrentTileTemplate;
+        let tileLayer = isFullscreen
+            ? this.seaAtlasFullscreenTileLayer
+            : this.seaAtlasTileLayer;
+
+        if (tileLayer && activeTemplate === nextTemplate) {
+            return true;
+        }
+
+        if (tileLayer) {
+            map.removeLayer(tileLayer);
+        }
+
+        const SeaAtlasPackedTileLayer = ensureSeaAtlasPackedTileLayerClass();
+        tileLayer = new SeaAtlasPackedTileLayer(nextTemplate, mapData.offlineTilePackFormat || 'script', this.buildSeaAtlasTileOptions(mapData));
+        tileLayer.on('tileload', () => {
+            if (isFullscreen) {
+                this.seaAtlasFullscreenTileLoadCount += 1;
+            } else {
+                this.seaAtlasTileLoadCount += 1;
+            }
+            this.hideSeaAtlasFallback(target);
+        });
+        tileLayer.on('tileerror', () => {
+            if (isFullscreen) {
+                this.seaAtlasFullscreenTileErrorCount += 1;
+                if (this.seaAtlasFullscreenTileErrorCount >= SEA_ATLAS_FALLBACK_TILE_ERROR_THRESHOLD) {
+                    this.showSeaAtlasFallback('missing', target);
+                }
+            } else {
+                this.seaAtlasTileErrorCount += 1;
+                if (this.seaAtlasTileErrorCount >= SEA_ATLAS_FALLBACK_TILE_ERROR_THRESHOLD) {
+                    this.showSeaAtlasFallback('missing', target);
+                }
+            }
+        });
+        tileLayer.addTo(map);
+
+        if (isFullscreen) {
+            this.seaAtlasFullscreenTileLayer = tileLayer;
+            this.seaAtlasFullscreenCurrentTileTemplate = nextTemplate;
+        } else {
+            this.seaAtlasTileLayer = tileLayer;
+            this.seaAtlasCurrentTileTemplate = nextTemplate;
+        }
+
+        return true;
+    }
+
+    ensureSeaAtlasMapReady(target = 'inline') {
+        const mount = target === 'fullscreen'
+            ? this.attachSeaAtlasFullscreenMapMount()
+            : this.attachSeaAtlasMapMount();
+        if (target === 'inline') {
+            this.syncSeaAtlasMapStageCopy();
+        }
+
+        if (!mount || !this.seaAtlasCurrentMapData) {
+            this.showSeaAtlasFallback('init', target);
+            return false;
+        }
+
+        const baseNode = this.getSeaAtlasBaseNode(target);
+        if (!window.L || !baseNode) {
+            this.showSeaAtlasFallback('init', target);
+            return false;
+        }
+
+        const canvas = baseNode.querySelector('[data-sea-atlas-map-canvas]');
+        if (!canvas) {
+            this.showSeaAtlasFallback('init', target);
+            return false;
+        }
+
+        const isFullscreen = target === 'fullscreen';
+        let map = this.getSeaAtlasMapInstance(target);
+        const allowDragging = isFullscreen || !window.matchMedia(SEA_ATLAS_MOBILE_PASSIVE_QUERY).matches;
+
+        if (!map) {
+            map = window.L.map(canvas, {
+                zoomControl: false,
+                scrollWheelZoom: false,
+                doubleClickZoom: false,
+                boxZoom: false,
+                keyboard: false,
+                tap: false,
+                touchZoom: false,
+                dragging: allowDragging,
+                attributionControl: true,
+                maxBoundsViscosity: 0.72
+            });
+            map.attributionControl.setPrefix('');
+
+            const markerLayer = window.L.layerGroup().addTo(map);
+            if (isFullscreen) {
+                this.seaAtlasFullscreenMap = map;
+                this.seaAtlasFullscreenMarkerLayer = markerLayer;
+            } else {
+                this.seaAtlasMap = map;
+                this.seaAtlasMarkerLayer = markerLayer;
+            }
+
+            map.on('move zoom resize moveend zoomend', () => this.scheduleSeaAtlasMapSync({
+                invalidateSize: false
+            }, target));
+            map.on('movestart dragstart zoomstart', () => {
+                const timerId = isFullscreen ? this.seaAtlasFullscreenInteractionTimer : this.seaAtlasMapInteractionTimer;
+                window.clearTimeout(timerId);
+                mount.classList.add('is-map-interacting');
+            });
+            map.on('moveend dragend zoomend', () => {
+                const nextTimer = window.setTimeout(() => {
+                    mount.classList.remove('is-map-interacting');
+                    this.syncSeaAtlasResetButtonState(target);
+                }, 160);
+
+                if (isFullscreen) {
+                    window.clearTimeout(this.seaAtlasFullscreenInteractionTimer);
+                    this.seaAtlasFullscreenInteractionTimer = nextTimer;
+                } else {
+                    window.clearTimeout(this.seaAtlasMapInteractionTimer);
+                    this.seaAtlasMapInteractionTimer = nextTimer;
+                }
+            });
+        } else if (allowDragging) {
+            map.dragging.enable();
+        } else {
+            map.dragging.disable();
+        }
+
+        this.syncSeaAtlasTileLayerForSpot(target);
+        return true;
+    }
+
+    positionSeaAtlasInfoCard(card, point, target = 'inline') {
+        const baseNode = this.getSeaAtlasBaseNode(target);
+        if (!card || !baseNode) {
+            return;
+        }
+        
+        const cardKind = card.dataset.seaAtlasCard || 'spot';
+        const inset = target === 'fullscreen' ? 24 : 18;
+
+        card.style.left = '';
+        card.style.right = '';
+        card.style.top = '';
+        card.style.bottom = '';
+
+        if (cardKind === 'port') {
+            card.style.right = `${inset}px`;
+            card.style.top = `${inset}px`;
+            return;
+        }
+
+        card.style.left = `${inset}px`;
+        card.style.bottom = `${inset}px`;
+    }
+
+    buildSeaAtlasRoutePath(routePoints, controlPoint = null) {
+        if (!Array.isArray(routePoints) || routePoints.length < 2) {
+            return '';
+        }
+
+        if (routePoints.length === 2) {
+            const [startPoint, endPoint] = routePoints;
+            if (controlPoint) {
+                return `M ${startPoint.x.toFixed(2)} ${startPoint.y.toFixed(2)} Q ${controlPoint.x.toFixed(2)} ${controlPoint.y.toFixed(2)} ${endPoint.x.toFixed(2)} ${endPoint.y.toFixed(2)}`;
+            }
+            return `M ${startPoint.x.toFixed(2)} ${startPoint.y.toFixed(2)} L ${endPoint.x.toFixed(2)} ${endPoint.y.toFixed(2)}`;
+        }
+
+        const commands = [`M ${routePoints[0].x.toFixed(2)} ${routePoints[0].y.toFixed(2)}`];
+        for (let index = 0; index < routePoints.length - 1; index += 1) {
+            const p0 = routePoints[index - 1] || routePoints[index];
+            const p1 = routePoints[index];
+            const p2 = routePoints[index + 1];
+            const p3 = routePoints[index + 2] || p2;
+            const cp1 = {
+                x: p1.x + ((p2.x - p0.x) / 6),
+                y: p1.y + ((p2.y - p0.y) / 6)
+            };
+            const cp2 = {
+                x: p2.x - ((p3.x - p1.x) / 6),
+                y: p2.y - ((p3.y - p1.y) / 6)
+            };
+            commands.push(`C ${cp1.x.toFixed(2)} ${cp1.y.toFixed(2)}, ${cp2.x.toFixed(2)} ${cp2.y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`);
+        }
+        return commands.join(' ');
+    }
+
+    syncSeaAtlasRouteOverlay(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        const baseNode = this.getSeaAtlasBaseNode(target);
+        const routeOverlay = this.getSeaAtlasRouteOverlayNode(target);
+        const mapData = this.seaAtlasCurrentMapData;
+        if (!map || !baseNode || !routeOverlay || !mapData) {
+            return;
+        }
+
+        const svg = routeOverlay.querySelector('[data-sea-atlas-route-svg]');
+        const glowPath = routeOverlay.querySelector('[data-sea-atlas-route-layer="glow"]');
+        const basePath = routeOverlay.querySelector('[data-sea-atlas-route-layer="base"]');
+        const linePath = routeOverlay.querySelector('[data-sea-atlas-route-layer="line"]');
+        const sheenPath = routeOverlay.querySelector('[data-sea-atlas-route-layer="sheen"]');
+        if (!svg || !glowPath || !basePath || !linePath || !sheenPath) {
+            return;
+        }
+
+        const frameRect = baseNode.getBoundingClientRect();
+        const width = Math.max(1, Math.round(frameRect.width || 0));
+        const height = Math.max(1, Math.round(frameRect.height || 0));
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+        const latLngPath = Array.isArray(mapData.routePath) && mapData.routePath.length >= 2
+            ? mapData.routePath
+            : [mapData.portCoords, mapData.spotCoords];
+        const routePoints = latLngPath.map((coords) => map.latLngToContainerPoint(coords));
+        const controlPoint = latLngPath.length === 2 && Array.isArray(mapData?.routeCurve?.control)
+            ? map.latLngToContainerPoint(mapData.routeCurve.control)
+            : null;
+        const routePath = this.buildSeaAtlasRoutePath(routePoints, controlPoint);
+
+        [glowPath, basePath, linePath, sheenPath].forEach((pathNode) => {
+            pathNode.setAttribute('d', routePath || '');
+        });
+
+        let routeLength = 0;
+        if (routePath) {
+            try {
+                routeLength = linePath.getTotalLength();
+            } catch (error) {
+                routeLength = 0;
+            }
+        }
+
+        routeOverlay.style.setProperty('--sea-route-length', `${Math.max(routeLength, 1)}`);
+        routeOverlay.style.setProperty('--sea-route-sheen-length', `${Math.max(Math.min(routeLength * 0.12, 72), 24)}`);
+    }
+
+    syncSeaAtlasMapOverlays(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        const baseNode = this.getSeaAtlasBaseNode(target);
+        if (!map || !this.seaAtlasCurrentMapData || !baseNode) {
+            return;
+        }
+
+        this.syncSeaAtlasRouteOverlay(target);
+        if (target === 'fullscreen') {
+            this.positionSeaAtlasInfoCard(this.seaAtlasFullscreenSpotCard, null, target);
+            this.positionSeaAtlasInfoCard(this.seaAtlasFullscreenPortCard, null, target);
+            return;
+        }
+
+        this.positionSeaAtlasInfoCard(this.seaAtlasSpotCard, null, target);
+        this.positionSeaAtlasInfoCard(this.seaAtlasPortCard, null, target);
+    }
+
+    scheduleSeaAtlasMapSync(options = {}, target = 'inline') {
+        const isFullscreen = target === 'fullscreen';
+        if (isFullscreen) {
+            this.seaAtlasFullscreenSyncNeedsInvalidate = this.seaAtlasFullscreenSyncNeedsInvalidate || Boolean(options.invalidateSize);
+            if (this.seaAtlasFullscreenOverlaySyncRafId) {
+                return;
+            }
+
+            this.seaAtlasFullscreenOverlaySyncRafId = requestAnimationFrame(() => {
+                this.seaAtlasFullscreenOverlaySyncRafId = 0;
+                if (this.seaAtlasFullscreenMap && this.seaAtlasFullscreenSyncNeedsInvalidate) {
+                    this.seaAtlasFullscreenMap.invalidateSize({
+                        pan: false,
+                        animate: false
+                    });
+                }
+                this.seaAtlasFullscreenSyncNeedsInvalidate = false;
+                this.renderSeaAtlasInfoCards(target);
+                this.syncSeaAtlasMapOverlays(target);
+                this.syncSeaAtlasResetButtonState(target);
+            });
+            return;
+        }
+
+        this.seaAtlasSyncNeedsInvalidate = this.seaAtlasSyncNeedsInvalidate || Boolean(options.invalidateSize);
+        if (this.seaAtlasOverlaySyncRafId) {
+            return;
+        }
+
+        this.seaAtlasOverlaySyncRafId = requestAnimationFrame(() => {
+            this.seaAtlasOverlaySyncRafId = 0;
+            if (this.seaAtlasMap && this.seaAtlasSyncNeedsInvalidate) {
+                this.seaAtlasMap.invalidateSize({
+                    pan: false,
+                    animate: false
+                });
+            }
+            this.seaAtlasSyncNeedsInvalidate = false;
+            this.syncSeaAtlasMapStageCopy();
+            this.renderSeaAtlasInfoCards(target);
+            this.syncSeaAtlasMapOverlays(target);
+            this.syncSeaAtlasResetButtonState(target);
+        });
+    }
+
+    getSeaAtlasCurrentViewState(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        if (!map) {
+            return null;
+        }
+
+        const center = map.getCenter();
+        return {
+            center: [center.lat, center.lng],
+            zoom: map.getZoom()
+        };
+    }
+
+    getSeaAtlasStoredInitialView(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenInitialView
+            : this.seaAtlasInlineInitialView;
+    }
+
+    storeSeaAtlasInitialView(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        const mapData = this.seaAtlasCurrentMapData;
+        if (!map || !mapData) {
+            return;
+        }
+
+        const center = map.getCenter();
+        const bounds = map.getBounds();
+        const snapshot = {
+            spotKey: mapData.key || this.spotData?.key || String(this.spotId),
+            center: [center.lat, center.lng],
+            zoom: map.getZoom(),
+            bounds: [
+                [bounds.getSouth(), bounds.getWest()],
+                [bounds.getNorth(), bounds.getEast()]
+            ]
+        };
+
+        if (target === 'fullscreen') {
+            this.seaAtlasFullscreenInitialView = snapshot;
+            return;
+        }
+
+        this.seaAtlasInlineInitialView = snapshot;
+    }
+
+    applySeaAtlasDefaultView(target = 'inline', options = {}) {
+        const map = this.getSeaAtlasMapInstance(target);
+        const mapData = this.seaAtlasCurrentMapData;
+        if (!map || !mapData) {
+            return;
+        }
+
+        const {
+            animate = false,
+            viewState = null
+        } = options;
+        const descriptor = this.getSeaAtlasDefaultViewDescriptor(mapData, target);
+        const padding = this.getSeaAtlasViewPadding(target);
+        if (descriptor?.maxBounds) {
+            map.setMaxBounds(descriptor.maxBounds);
+        } else {
+            map.setMaxBounds(null);
+        }
+
+        if (viewState?.center?.length === 2 && Number.isFinite(viewState.zoom)) {
+            map.setView(viewState.center, viewState.zoom, {
+                animate: false
+            });
+            return;
+        }
+
+        if (descriptor?.mode === 'bounds' && descriptor.bounds) {
+            if (animate && typeof map.flyToBounds === 'function') {
+                map.flyToBounds(descriptor.bounds, {
+                    padding,
+                    duration: 1.2
+                });
+            } else {
+                map.fitBounds(descriptor.bounds, {
+                    padding,
+                    animate: false
+                });
+            }
+            if (!animate) {
+                this.storeSeaAtlasInitialView(target);
+            }
+            return;
+        }
+
+        if (animate && typeof map.flyTo === 'function') {
+            map.flyTo(descriptor.center, descriptor.zoom, {
+                duration: 1.2
+            });
+            return;
+        }
+
+        map.setView(descriptor.center, descriptor.zoom, {
+            animate: false
+        });
+        this.storeSeaAtlasInitialView(target);
+    }
+
+    isSeaAtlasAtInitialView(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        const mapData = this.seaAtlasCurrentMapData;
+        const descriptor = this.getSeaAtlasDefaultViewDescriptor(mapData, target);
+        if (!map || !descriptor || !window.L) {
+            return true;
+        }
+
+        const storedView = this.getSeaAtlasStoredInitialView(target);
+        if (storedView && storedView.spotKey === (mapData?.key || this.spotData?.key || String(this.spotId))) {
+            const currentCenter = map.getCenter();
+            const targetCenter = window.L.latLng(storedView.center[0], storedView.center[1]);
+            const centerDistance = map.project(currentCenter, map.getZoom())
+                .distanceTo(map.project(targetCenter, map.getZoom()));
+            return centerDistance <= 12 && Math.abs(map.getZoom() - storedView.zoom) <= 0.1;
+        }
+
+        const targetCenter = descriptor.center || this.seaAtlasCurrentMapData?.mapCenter;
+        if (!Array.isArray(targetCenter) || targetCenter.length < 2) {
+            return true;
+        }
+
+        const pixelDistance = map.project(map.getCenter(), map.getZoom())
+            .distanceTo(map.project(window.L.latLng(targetCenter[0], targetCenter[1]), map.getZoom()));
+        return pixelDistance <= 12 && Math.abs(map.getZoom() - descriptor.zoom) <= 0.1;
+    }
+
+    syncSeaAtlasResetButtonState(target = 'inline') {
+        const resetButton = this.getSeaAtlasResetButton(target);
+        if (!resetButton) {
+            return;
+        }
+
+        const shouldHide = this.activeSeaView === 'underwater' && target === 'inline';
+        const hasMap = Boolean(this.getSeaAtlasMapInstance(target) || this.getSeaAtlasMountNode(target));
+        resetButton.hidden = shouldHide;
+        resetButton.disabled = !hasMap || this.isSeaAtlasAtInitialView(target);
+        resetButton.setAttribute('aria-disabled', String(resetButton.disabled));
+    }
+
+    resetSeaAtlasViewport(target = 'inline') {
+        if (!this.seaAtlasCurrentMapData) {
+            return;
+        }
+
+        if (target === 'inline' && this.activeSeaView === 'underwater') {
+            this.setSeaAtlasView('location');
+            return;
+        }
+
+        if (!this.ensureSeaAtlasMapReady(target)) {
+            return;
+        }
+
+        this.setSeaAtlasPortCardVisible(false, target);
+        this.applySeaAtlasDefaultView(target, {
+            animate: true
+        });
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        }, target);
+    }
+
+    openSeaAtlasFullscreen() {
+        if (!this.seaAtlasFullscreen || !this.seaAtlasCurrentMapData) {
+            return;
+        }
+
+        this.seaAtlasFullscreenOpen = true;
+        this.seaAtlasFullscreen.setAttribute('aria-hidden', 'false');
+        this.seaAtlasFullscreen.classList.add('is-open');
+        this.seaAtlasFullscreenMapMount?.classList.add('is-map-awake');
+        this.setSeaAtlasPortCardVisible(false, 'fullscreen');
+
+        const shouldReuseInlineView = !this.isSeaAtlasAtInitialView('inline');
+        const currentInlineView = shouldReuseInlineView
+            ? this.getSeaAtlasCurrentViewState('inline')
+            : null;
+        this.updateSeaAtlasMapScene({
+            target: 'fullscreen',
+            animate: false,
+            viewState: currentInlineView
+        });
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        }, 'fullscreen');
+        this.syncOverlayLock();
+    }
+
+    closeSeaAtlasFullscreen() {
+        if (!this.seaAtlasFullscreen) {
+            return;
+        }
+
+        this.seaAtlasFullscreenOpen = false;
+        this.setSeaAtlasPortCardVisible(false, 'fullscreen');
+        this.seaAtlasFullscreen.classList.remove('is-open');
+        this.seaAtlasFullscreen.setAttribute('aria-hidden', 'true');
+        this.syncOverlayLock();
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        }, 'inline');
+    }
+
+    updateSeaAtlasMapScene(options = {}) {
+        const {
+            animate = false,
+            target = 'inline',
+            viewState = null
+        } = options;
+
+        if (!this.ensureSeaAtlasMapReady(target)) {
+            return;
+        }
+
+        const map = this.getSeaAtlasMapInstance(target);
+        const mount = this.getSeaAtlasMountNode(target);
+        const isFullscreen = target === 'fullscreen';
+        if (!map || !this.seaAtlasCurrentMapData) {
+            this.showSeaAtlasFallback('init', target);
+            return;
+        }
+
+        mount?.classList.toggle('is-route-emphasis', this.activeSeaView === 'route');
+
+        if (isFullscreen) {
+            this.seaAtlasFullscreenTileLoadCount = 0;
+            this.seaAtlasFullscreenTileErrorCount = 0;
+        } else {
+            this.seaAtlasTileLoadCount = 0;
+            this.seaAtlasTileErrorCount = 0;
+        }
+
+        this.hideSeaAtlasFallback(target);
+        this.syncSeaAtlasTileLayerForSpot(target);
+        this.setSeaAtlasPortCardVisible(false, target);
+        this.updateSeaAtlasMarkers(target);
+        this.renderSeaAtlasInfoCards(target);
+        if (target === 'fullscreen') {
+            mount?.classList.add('is-map-awake');
+        }
+        this.applySeaAtlasDefaultView(target, {
+            animate,
+            viewState
+        });
+
+        mount?.classList.toggle('is-map-switching', animate);
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        }, target);
+
+        window.setTimeout(() => {
+            mount?.classList.remove('is-map-switching');
+            this.scheduleSeaAtlasMapSync({}, target);
+        }, animate ? 320 : 120);
+    }
+
+    getSeaAtlasViewMotionDelay(shell = null, view = this.activeSeaView) {
+        if (prefersReducedMotion()) {
+            return 0;
+        }
+
+        if (!shell) {
+            return 0;
+        }
+
+        const isAtlasAwake = shell.classList.contains('is-atlas-awake');
+        if (view === 'underwater') {
+            return isAtlasAwake ? 0 : 180;
+        }
+
+        if (view === 'route') {
+            return isAtlasAwake ? 100 : 420;
+        }
+
+        return isAtlasAwake ? 80 : 220;
+    }
+
+    playSeaAtlasEntrance(shell = null) {
+        if (!shell) {
+            return;
+        }
+
+        window.clearTimeout(this.seaAtlasEntranceTimer);
+        this.seaAtlasEntranceTimer = 0;
+
+        if (prefersReducedMotion()) {
+            shell.classList.remove('is-atlas-awakening');
+            shell.classList.add('is-atlas-awake');
+            return;
+        }
+
+        shell.classList.remove('is-atlas-awake');
+        restartTransientClassAnimation(shell, 'is-atlas-awakening');
+        this.seaAtlasEntranceTimer = window.setTimeout(() => {
+            if (shell.isConnected) {
+                shell.classList.remove('is-atlas-awakening');
+                shell.classList.add('is-atlas-awake');
+            }
+            this.seaAtlasEntranceTimer = 0;
+        }, 1280);
+    }
+
+    clearSeaProfileEntrance(options = {}) {
+        const { clearState = true } = options;
+
+        if (this.seaProfileEntranceDelayId) {
+            window.clearTimeout(this.seaProfileEntranceDelayId);
+            this.seaProfileEntranceDelayId = 0;
+        }
+
+        if (this.seaProfileEntranceTimer) {
+            window.clearTimeout(this.seaProfileEntranceTimer);
+            this.seaProfileEntranceTimer = 0;
+        }
+
+        if (!clearState) {
+            return;
+        }
+
+        const panel = this.mapContainer?.querySelector('[data-sea-panel="underwater"]');
+        panel?.classList.remove('is-profile-awakening', 'is-profile-settled');
+    }
+
+    getSeaProfileEntranceDuration(panel = this.mapContainer?.querySelector('[data-sea-panel="underwater"]')) {
+        if (!panel || prefersReducedMotion()) {
+            return 0;
+        }
+
+        const layerCount = panel.querySelectorAll('.sea-profile-layer').length;
+        const markerCount = panel.querySelectorAll('.sea-profile-marker').length;
+        const copyCount = panel.querySelectorAll('.sea-profile-hotspot, .sea-atlas-level').length;
+
+        const layerDelay = Math.max(layerCount - 1, 0) * 120;
+        const markerDelay = Math.max(markerCount - 1, 0) * 120;
+        const copyDelay = Math.max(copyCount - 1, 0) * 100;
+
+        return Math.max(
+            1220,
+            1180,
+            80 + 1220,
+            90 + 860,
+            170 + 900,
+            200 + layerDelay + 940,
+            260 + layerDelay + 1220,
+            520 + markerDelay + 900,
+            560 + 760,
+            640 + 760,
+            760 + copyDelay + 780
+        ) + 80;
+    }
+
+    playSeaProfileEntrance(delay = 0) {
+        const panel = this.mapContainer?.querySelector('[data-sea-panel="underwater"]');
+        if (!panel) {
+            return;
+        }
+
+        this.clearSeaProfileEntrance();
+
+        const start = () => {
+            if (!panel.isConnected || this.activeSeaView !== 'underwater') {
+                return;
+            }
+
+            panel.classList.remove('is-profile-settled');
+            if (prefersReducedMotion()) {
+                panel.classList.remove('is-profile-awakening');
+                panel.classList.add('is-profile-settled');
+                return;
+            }
+
+            restartTransientClassAnimation(panel, 'is-profile-awakening');
+            const entranceDuration = this.getSeaProfileEntranceDuration(panel);
+            this.seaProfileEntranceTimer = window.setTimeout(() => {
+                if (panel.isConnected && this.activeSeaView === 'underwater') {
+                    panel.classList.remove('is-profile-awakening');
+                    panel.classList.add('is-profile-settled');
+                }
+                this.seaProfileEntranceTimer = 0;
+            }, entranceDuration);
+        };
+
+        if (delay > 0) {
+            this.seaProfileEntranceDelayId = window.setTimeout(() => {
+                this.seaProfileEntranceDelayId = 0;
+                start();
+            }, delay);
+            return;
+        }
+
+        start();
+    }
+
+    awakenSeaAtlasShell(shell = null) {
+        const targetShell = shell || this.mapContainer?.querySelector('#seaAtlasShell');
+        if (!targetShell) {
+            return null;
+        }
+
+        if (targetShell.classList.contains('is-map-awake')) {
+            return targetShell;
+        }
+
+        targetShell.classList.add('is-map-awake');
+        this.seaAtlasMapMount?.classList.add('is-map-awake');
+        this.playSeaAtlasEntrance(targetShell);
+
+        const motionDelay = this.getSeaAtlasViewMotionDelay(targetShell, this.activeSeaView);
+        if (this.activeSeaView === 'route') {
+            this.clearSeaRouteMotion();
+            this.seaRouteMotionDelayId = window.setTimeout(() => {
+                this.seaRouteMotionDelayId = 0;
+                if (this.activeSeaView === 'route' && targetShell.classList.contains('is-map-awake')) {
+                    this.playSeaRouteAnimation();
+                }
+            }, motionDelay);
+            return targetShell;
+        }
+
+        this.syncSeaRouteLineState();
+        if (this.activeSeaView === 'underwater') {
+            this.playSeaProfileEntrance(motionDelay);
+        }
+
+        return targetShell;
+    }
+
+    setupSeaAtlasReveal() {
+        const shell = this.mapContainer?.querySelector('#seaAtlasShell');
+        if (!shell) {
+            return;
+        }
+
+        const awaken = () => this.awakenSeaAtlasShell(shell);
+
+        this.seaAtlasRevealObserver?.disconnect();
+        if (!('IntersectionObserver' in window)) {
+            awaken();
+            return;
+        }
+
+        const rect = shell.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.86 && rect.bottom > 0) {
+            requestAnimationFrame(awaken);
+            return;
+        }
+
+        this.seaAtlasRevealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                awaken();
+                this.seaAtlasRevealObserver?.disconnect();
+            });
+        }, {
+            threshold: 0.22,
+            rootMargin: '0px 0px -8% 0px'
+        });
+        this.seaAtlasRevealObserver.observe(shell);
+    }
+
+    ensureSeaAtlasAwakeState() {
+        const shell = this.mapContainer?.querySelector('#seaAtlasShell');
+        if (!shell) {
+            return null;
+        }
+
+        this.seaAtlasRevealObserver?.disconnect();
+        return this.awakenSeaAtlasShell(shell);
+    }
+
+    syncSeaAtlasMapViewState() {
+        const atlas = this.mapContainer?.querySelector('.sea-atlas');
+        const shell = this.mapContainer?.querySelector('#seaAtlasShell');
+        const mapPanel = this.mapContainer?.querySelector('[data-sea-panel="map"]');
+        const underwaterPanel = this.mapContainer?.querySelector('[data-sea-panel="underwater"]');
+        const isUnderwaterView = this.activeSeaView === 'underwater';
+        const isRouteView = this.activeSeaView === 'route';
+        const activeVisualView = isRouteView ? 'route' : 'location';
+
+        atlas?.setAttribute('data-sea-view', this.activeSeaView);
+        shell?.setAttribute('data-sea-view', this.activeSeaView);
+        mapPanel?.classList.toggle('is-active', !isUnderwaterView);
+        underwaterPanel?.classList.toggle('is-active', isUnderwaterView);
+        if (!isUnderwaterView) {
+            underwaterPanel?.classList.remove('is-profile-awakening', 'is-profile-settled');
+        }
+
+        this.mapContainer?.querySelectorAll('[data-sea-visual-view]').forEach((view) => {
+            const viewKey = view.dataset.seaVisualView || 'location';
+            view.classList.toggle('is-active', !isUnderwaterView && viewKey === activeVisualView);
+        });
+        this.mapContainer?.querySelectorAll('[data-sea-dossier-view]').forEach((view) => {
+            const viewKey = view.dataset.seaDossierView || 'location';
+            const shouldShow = !isUnderwaterView && (
+                (viewKey === 'route' && isRouteView)
+                || (viewKey === 'location' && !isRouteView)
+            );
+            view.classList.toggle('is-active', shouldShow);
+        });
+
+        this.seaAtlasMapMount?.classList.toggle('is-route-emphasis', isRouteView);
+        this.seaAtlasFullscreenMapMount?.classList.toggle('is-route-emphasis', isRouteView);
+        this.syncSeaAtlasMapStageCopy();
+        if (!isUnderwaterView) {
+            this.scheduleSeaAtlasMapSync({
+                invalidateSize: !isRouteView
+            }, 'inline');
+            if (this.seaAtlasFullscreenOpen) {
+                this.scheduleSeaAtlasMapSync({
+                    invalidateSize: false
+                }, 'fullscreen');
+            }
+        }
     }
 
     // 海域定位台切换：在三种视图间切换激活态和内容层级。
@@ -6984,22 +8073,218 @@ class DetailPage {
             return;
         }
 
+        const shell = this.mapContainer.querySelector('#seaAtlasShell');
+        const wasAtlasAwake = Boolean(shell?.classList.contains('is-map-awake'));
+        const motionDelay = this.getSeaAtlasViewMotionDelay(shell, view);
+        if (view !== 'underwater') {
+            this.clearSeaProfileEntrance();
+        }
+
         this.activeSeaView = view;
         this.mapContainer.querySelectorAll('.sea-atlas-tab').forEach((button) => {
             const isActive = button.dataset.seaView === view;
             button.classList.toggle('is-active', isActive);
             button.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
+        this.syncSeaAtlasMapViewState();
 
-        this.mapContainer.querySelectorAll('.sea-atlas-panel').forEach((panel) => {
-            panel.classList.toggle('is-active', panel.dataset.seaPanel === view);
-        });
+        if (view === 'underwater') {
+            this.syncSeaRouteLineState();
+            this.ensureSeaAtlasAwakeState();
+            this.playSeaProfileEntrance(wasAtlasAwake ? 0 : motionDelay);
+            return;
+        }
 
         if (view === 'route') {
-            this.playSeaRouteAnimation();
-        } else {
-            this.syncSeaRouteLineState();
+            const awakenedShell = this.ensureSeaAtlasAwakeState();
+            if (wasAtlasAwake && awakenedShell?.classList.contains('is-map-awake')) {
+                this.clearSeaRouteMotion();
+                this.seaRouteMotionDelayId = window.setTimeout(() => {
+                    this.seaRouteMotionDelayId = 0;
+                    if (
+                        this.activeSeaView === 'route'
+                        && awakenedShell?.classList.contains('is-map-awake')
+                    ) {
+                        this.playSeaRouteAnimation();
+                    }
+                }, Math.max(motionDelay, 80));
+            }
+            return;
         }
+
+        this.syncSeaRouteLineState();
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        }, 'inline');
+
+        if (this.seaAtlasFullscreenOpen) {
+            this.scheduleSeaAtlasMapSync({
+                invalidateSize: true
+            }, 'fullscreen');
+        }
+    }
+
+    /**
+     * clearSeaRouteMotion() - 停止当前路线光标与描线路径的逐帧动画
+     * @returns {void}
+     */
+    clearSeaRouteMotion() {
+        if (this.seaRouteMotionRafId) {
+            cancelAnimationFrame(this.seaRouteMotionRafId);
+            this.seaRouteMotionRafId = 0;
+        }
+
+        if (this.seaRouteMotionDelayId) {
+            clearTimeout(this.seaRouteMotionDelayId);
+            this.seaRouteMotionDelayId = 0;
+        }
+    }
+
+    /**
+     * getSeaRouteMotionParts() - 获取路线动画所需的 DOM 与路径长度信息
+     * @returns {Object|null}
+     */
+    getSeaRouteMotionParts() {
+        if (!this.mapContainer) {
+            return null;
+        }
+
+        const routeMap = this.mapContainer.querySelector('[data-sea-route-board-stage]');
+        const routeLine = routeMap?.querySelector('.sea-route-line');
+        const routeSheen = routeMap?.querySelector('.sea-route-line-sheen');
+        const routeCurrent = routeMap?.querySelector('.sea-route-current');
+        if (!routeMap || !routeLine || !routeSheen || !routeCurrent) {
+            return null;
+        }
+
+        const svgViewBox = routeLine.ownerSVGElement?.viewBox?.baseVal;
+        const viewBoxWidth = svgViewBox?.width || 640;
+        const viewBoxHeight = svgViewBox?.height || 360;
+        let routeLength = Number(routeMap.dataset.routeLength || 0);
+        if (!routeLength) {
+            try {
+                routeLength = routeLine.getTotalLength();
+            } catch (error) {
+                routeLength = 0;
+            }
+        }
+
+        if (!(routeLength > 0)) {
+            return null;
+        }
+
+        const sheenLength = Math.min(routeLength * 0.12, 72);
+
+        routeMap.dataset.routeLength = routeLength.toFixed(2);
+        routeMap.style.setProperty('--sea-route-length', `${routeLength}`);
+        routeMap.style.setProperty('--sea-route-sheen-length', `${sheenLength}`);
+
+        return {
+            routeMap,
+            routeLine,
+            routeSheen,
+            routeCurrent,
+            routeLength,
+            sheenLength,
+            viewBoxWidth,
+            viewBoxHeight
+        };
+    }
+
+    /**
+     * positionSeaRouteCurrent(parts, traceProgress) - 把流动光标放到当前路径进度对应的位置
+     * @param {Object} parts - 路线动画所需的 DOM 引用
+     * @param {number} traceProgress - 0 到 1 的路径进度
+     * @returns {void}
+     */
+    positionSeaRouteCurrent(parts, traceProgress) {
+        const safeProgress = Math.min(Math.max(traceProgress, 0), 1);
+        const currentLength = parts.routeLength * safeProgress;
+        const sampleSpan = Math.max(parts.routeLength * 0.006, 2);
+        const point = parts.routeLine.getPointAtLength(currentLength);
+        const previousPoint = parts.routeLine.getPointAtLength(Math.max(currentLength - sampleSpan, 0));
+        const nextPoint = parts.routeLine.getPointAtLength(Math.min(currentLength + sampleSpan, parts.routeLength));
+        const angle = Math.atan2(nextPoint.y - previousPoint.y, nextPoint.x - previousPoint.x) * (180 / Math.PI);
+
+        parts.routeCurrent.style.left = `${(point.x / parts.viewBoxWidth) * 100}%`;
+        parts.routeCurrent.style.top = `${(point.y / parts.viewBoxHeight) * 100}%`;
+        parts.routeCurrent.style.setProperty('--sea-route-current-angle', `${angle.toFixed(2)}deg`);
+    }
+
+    /**
+     * applySeaRouteProgress(parts, state) - 同步路线描边、流光和移动光标的当前进度
+     * @param {Object} parts - 路线动画所需的 DOM 引用
+     * @param {Object} state - 当前动画状态
+     * @returns {void}
+     */
+    applySeaRouteProgress(parts, state = {}) {
+        const lineProgress = Math.min(Math.max(state.lineProgress ?? 1, 0), 1);
+        const traceProgress = Math.min(Math.max(state.traceProgress ?? lineProgress, 0), 1);
+        const currentOpacity = Math.min(Math.max(state.currentOpacity ?? 0, 0), 0.56);
+        const sheenOpacity = Math.min(Math.max(state.sheenOpacity ?? 0, 0), 1);
+        const showCurrent = Boolean(state.showCurrent);
+
+        parts.routeLine.style.strokeDasharray = `${parts.routeLength}`;
+        parts.routeLine.style.strokeDashoffset = `${(1 - lineProgress) * parts.routeLength}`;
+        parts.routeSheen.style.strokeDasharray = `${parts.sheenLength} ${parts.routeLength}`;
+        parts.routeSheen.style.strokeDashoffset = `${(1 - traceProgress) * parts.routeLength + (parts.sheenLength * 0.2)}`;
+        parts.routeSheen.style.opacity = showCurrent ? `${sheenOpacity}` : '0';
+
+        this.positionSeaRouteCurrent(parts, traceProgress);
+        parts.routeCurrent.style.opacity = showCurrent ? `${currentOpacity}` : '0';
+    }
+
+    /**
+     * runSeaRoutePass(parts, options) - 播放一次沿路径推进的路线光流
+     * @param {Object} parts - 路线动画所需的 DOM 引用
+     * @param {{revealLine?: boolean}} options - 是否同时执行主线路描边
+     * @returns {void}
+     */
+    runSeaRoutePass(parts, options = {}) {
+        const revealLine = Boolean(options.revealLine);
+        const routeMap = parts.routeMap;
+
+        this.clearSeaRouteMotion();
+        routeMap.classList.add('is-route-passing');
+        const duration = revealLine ? 3200 : 1800;
+        const startTime = performance.now();
+
+        const step = (timestamp) => {
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            const easedProgress = 1 - Math.pow(1 - progress, 2.2);
+            const flowOpacity = Math.sin(progress * Math.PI);
+
+            this.applySeaRouteProgress(parts, {
+                lineProgress: revealLine ? easedProgress : 1,
+                traceProgress: easedProgress,
+                showCurrent: true,
+                currentOpacity: revealLine
+                    ? 0.24 + (flowOpacity * 0.32)
+                    : 0.18 + (flowOpacity * 0.3),
+                sheenOpacity: revealLine
+                    ? 0.2 + (flowOpacity * 0.28)
+                    : 0.16 + (flowOpacity * 0.26)
+            });
+
+            if (progress < 1) {
+                this.seaRouteMotionRafId = requestAnimationFrame(step);
+                return;
+            }
+
+            this.seaRouteMotionRafId = 0;
+            routeMap.classList.remove('is-route-passing');
+            routeMap.classList.add('is-route-drawn');
+            if (revealLine) {
+                this.routeAnimationPlayed = true;
+            }
+            this.applySeaRouteProgress(parts, {
+                lineProgress: 1,
+                traceProgress: 1,
+                showCurrent: false
+            });
+        };
+
+        this.seaRouteMotionRafId = requestAnimationFrame(step);
     }
 
     // 到达方式动画：只在第一次进入路线视图时播放一次描线，之后保持静态完成状态。
@@ -7012,32 +8297,44 @@ class DetailPage {
             return;
         }
 
-        const routeMap = this.mapContainer.querySelector('.sea-route-map');
-        const routeLine = this.mapContainer.querySelector('.sea-route-line');
-        if (!routeLine || !routeMap) {
+        if (prefersReducedMotion()) {
+            this.routeAnimationPlayed = true;
+            this.syncSeaRouteLineState();
             return;
         }
 
-        routeLine.classList.remove('is-route-animating');
-        routeMap.classList.remove('is-route-drawn');
+        const parts = this.getSeaRouteMotionParts();
+        if (!parts) {
+            return;
+        }
+
+        const { routeMap } = parts;
+        this.clearSeaRouteMotion();
+        routeMap.classList.remove('is-route-passing');
 
         if (this.routeAnimationPlayed) {
-            routeLine.classList.add('is-route-drawn');
-            routeMap.classList.add('is-route-drawn');
+            routeMap.classList.remove('is-route-awakened', 'is-route-drawn');
+            this.applySeaRouteProgress(parts, {
+                lineProgress: 1,
+                traceProgress: 0,
+                showCurrent: false
+            });
+            routeMap.getBoundingClientRect();
+            routeMap.classList.add('is-route-awakened');
+            this.runSeaRoutePass(parts, { revealLine: false });
             return;
         }
 
-        routeLine.classList.remove('is-route-drawn');
         routeMap.classList.remove('is-route-awakened');
-        routeLine.getBoundingClientRect();
+        routeMap.classList.remove('is-route-drawn');
+        this.applySeaRouteProgress(parts, {
+            lineProgress: 0,
+            traceProgress: 0,
+            showCurrent: false
+        });
+        routeMap.getBoundingClientRect();
         routeMap.classList.add('is-route-awakened');
-        routeLine.classList.add('is-route-animating');
-        routeLine.addEventListener('animationend', () => {
-            routeLine.classList.remove('is-route-animating');
-            routeLine.classList.add('is-route-drawn');
-            routeMap.classList.add('is-route-drawn');
-        }, { once: true });
-        this.routeAnimationPlayed = true;
+        this.runSeaRoutePass(parts, { revealLine: true });
     }
 
     // 路线面板静态态：当动画已经播过或当前不在路线页签时，保持路线完整可见。
@@ -7050,34 +8347,130 @@ class DetailPage {
             return;
         }
 
-        const routeMap = this.mapContainer.querySelector('.sea-route-map');
-        const routeLine = this.mapContainer.querySelector('.sea-route-line');
-        if (!routeLine || !routeMap) {
+        const parts = this.getSeaRouteMotionParts();
+        if (!parts) {
             return;
         }
 
-        routeLine.classList.remove('is-route-animating');
+        const { routeMap } = parts;
+        this.clearSeaRouteMotion();
+        routeMap.classList.remove('is-route-awakened', 'is-route-drawn', 'is-route-passing');
         if (this.routeAnimationPlayed) {
-            routeLine.classList.add('is-route-drawn');
-            routeMap.classList.add('is-route-drawn');
+            if (this.activeSeaView === 'route') {
+                routeMap.classList.add('is-route-awakened', 'is-route-drawn');
+                this.applySeaRouteProgress(parts, {
+                    lineProgress: 1,
+                    traceProgress: 1,
+                    showCurrent: false
+                });
+                return;
+            }
+
+            this.applySeaRouteProgress(parts, {
+                lineProgress: 1,
+                traceProgress: 0,
+                showCurrent: false
+            });
+            return;
         }
+
+        this.applySeaRouteProgress(parts, {
+            lineProgress: 0,
+            traceProgress: 0,
+            showCurrent: false
+        });
     }
 
     // 地图区渲染入口：把当前潜点的海域定位台整体注入页面容器。
     /**
      * renderMapInfo() - 渲染当前潜点的海域定位台
+     * @param {{ preserveRouteState?: boolean }} [options={}] - 是否在重渲染时保留路线完成态
      * @returns {void} - 无返回值，直接更新地图容器
      */
-    renderMapInfo() {
+    renderMapInfo(options = {}) {
         if (!this.mapContainer) {
             return;
         }
 
+        const { preserveRouteState = false } = options;
+        const routeLayout = this.getSeaRouteLayoutPreset(window.innerWidth);
         const atlas = this.buildSeaAtlasData();
-        this.routeAnimationPlayed = false;
-        this.mapContainer.innerHTML = this.createSeaAtlasMarkup(atlas);
-        this.syncSeaRouteLineState();
+        const mapData = this.spotData.map || getMapCatalogSpotById(this.spotId) || null;
+        const shouldPreserveRouteState = preserveRouteState && this.routeAnimationPlayed;
+        const shouldAnimateScene = Boolean(this.seaAtlasMap);
+
+        this.clearSeaRouteMotion();
+        this.clearSeaProfileEntrance();
+        this.seaAtlasRevealObserver?.disconnect();
+        window.clearTimeout(this.seaAtlasEntranceTimer);
+        this.seaAtlasEntranceTimer = 0;
+        this.routeAnimationPlayed = shouldPreserveRouteState;
+        this.seaAtlasPortCardVisible = false;
+        this.seaAtlasFullscreenPortCardVisible = false;
+        this.seaAtlasCurrentAtlasData = atlas;
+        this.seaAtlasCurrentMapData = mapData;
+        this.seaRouteLayoutKey = routeLayout.key;
+        this.mapContainer.innerHTML = this.createSeaAtlasMarkup(atlas, mapData);
+        this.bindSeaAtlasControls();
+        this.attachSeaAtlasMapMount();
+        this.attachSeaRouteBoardMount();
+        this.renderSeaRouteStageLayout();
+        this.syncSeaAtlasMapStageCopy();
+        this.renderSeaAtlasInfoCards('inline');
         this.setupSeaAtlasResize();
+        this.updateSeaAtlasMapScene({
+            animate: shouldAnimateScene,
+            target: 'inline'
+        });
+        if (this.seaAtlasFullscreenOpen) {
+            this.updateSeaAtlasMapScene({
+                animate: Boolean(this.seaAtlasFullscreenMap),
+                target: 'fullscreen'
+            });
+        }
+        this.setupSeaAtlasReveal();
+        this.syncSeaAtlasMapViewState();
+
+        if (this.activeSeaView === 'underwater') {
+            this.syncSeaRouteLineState();
+            return;
+        }
+
+        if (this.activeSeaView !== 'route' || shouldPreserveRouteState) {
+            this.syncSeaRouteLineState();
+        }
+    }
+
+    /**
+     * syncSeaRouteLayoutOnResize() - 在窗口尺寸变化后同步真地图尺寸与航线叠层
+     * @returns {void}
+     */
+    syncSeaRouteLayoutOnResize() {
+        if (!this.mapContainer) {
+            return;
+        }
+
+        const nextLayout = this.getSeaRouteLayoutPreset(window.innerWidth);
+        if (this.seaRouteLayoutKey && nextLayout.key !== this.seaRouteLayoutKey) {
+            const shell = this.mapContainer.querySelector('#seaAtlasShell');
+            const shouldReplayRoute = this.activeSeaView === 'route' && !this.routeAnimationPlayed && shell?.classList.contains('is-map-awake');
+
+            this.seaRouteLayoutKey = nextLayout.key;
+            this.renderSeaRouteStageLayout();
+            this.syncSeaAtlasMapStageCopy();
+
+            if (this.routeAnimationPlayed) {
+                this.syncSeaRouteLineState();
+            } else if (shouldReplayRoute) {
+                this.playSeaRouteAnimation();
+            } else {
+                this.syncSeaRouteLineState();
+            }
+        }
+
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        });
     }
 
     /**
@@ -7142,6 +8535,9 @@ class DetailPage {
         shell.style.removeProperty('width');
         shell.style.removeProperty('height');
         shell.style.removeProperty('--sea-atlas-shell-shift-x');
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        });
     }
 
     /**
@@ -7184,6 +8580,9 @@ class DetailPage {
         shell.style.width = `${Math.round(size.width)}px`;
         shell.style.height = `${Math.round(size.height)}px`;
         shell.style.setProperty('--sea-atlas-shell-shift-x', `${Math.round(size.shiftX || 0)}px`);
+        this.scheduleSeaAtlasMapSync({
+            invalidateSize: true
+        });
     }
 
     /**
@@ -7272,6 +8671,9 @@ class DetailPage {
             window.removeEventListener('pointerup', stopResize);
             window.removeEventListener('pointercancel', stopResize);
             this.safeSaveSeaAtlasSize(finalSize);
+            this.scheduleSeaAtlasMapSync({
+                invalidateSize: true
+            });
         };
 
         const syncDesktopState = () => {
@@ -7288,6 +8690,9 @@ class DetailPage {
             shell.style.removeProperty('width');
             shell.style.removeProperty('height');
             shell.style.removeProperty('--sea-atlas-shell-shift-x');
+            this.scheduleSeaAtlasMapSync({
+                invalidateSize: true
+            });
         };
 
         handles.forEach((handle) => {
@@ -7340,6 +8745,10 @@ class DetailPage {
             const saved = this.safeReadSeaAtlasSize();
             if (saved) {
                 this.applySeaAtlasSize(shell, this.clampSeaAtlasSize(shell, saved.width, saved.height, saved.shiftX || 0));
+            } else {
+                this.scheduleSeaAtlasMapSync({
+                    invalidateSize: true
+                });
             }
         };
 
@@ -7374,7 +8783,6 @@ class DetailPage {
      * @returns {Object|null} - 对应评论对象或空值
      */
     getReviewById(reviewId) {
-        this.ensureReviewDataReady();
         return this.reviewData.find((review) => review.id === reviewId) || null;
     }
 
@@ -7536,7 +8944,7 @@ class DetailPage {
 
     /**
      * applyPackageCardSelectionState() - 根据当前阅读语境决定是否保留套餐卡的旧版高亮。
-     * 评论态由上方焦点舱接管当前套餐提示，因此这里仅保留选中数据，不再把旧卡片继续点亮。
+     * focus-only 稳定态由上方焦点舱接管当前套餐提示，进入阶段保留旧高亮，稳定后再收起。
      * @param {string|null} packageId - 当前选中的套餐 ID
      * @returns {void} - 无返回值，直接同步套餐卡 class
      */
@@ -7546,7 +8954,9 @@ class DetailPage {
         }
 
         const targetId = packageId || this.selectedPackageId || '';
-        const shouldHighlightCard = Boolean(targetId) && (this.activeBookingGuideKey || 'overview') !== 'reviews';
+        const isFocusOnlyStable = this.bookingSticky?.classList.contains('is-focus-only-context') || false;
+        const focusContextPhase = this.bookingSticky?.dataset.focusContextPhase || '';
+        const shouldHighlightCard = Boolean(targetId) && (!isFocusOnlyStable || focusContextPhase === 'entering');
         this.itineraryList.querySelectorAll('.package-card').forEach((card) => {
             const isCurrent = shouldHighlightCard && card.dataset.packageId === targetId;
             card.classList.toggle('is-active', isCurrent);
@@ -8090,29 +9500,24 @@ class DetailPage {
         }).join('');
 
         this.activeReviewLinkedPackageId = null;
+        const shouldReplayReviewsSectionReveal = this.getReviewsRevealTargets().some((target) => (
+            target?.classList.contains('is-visible')
+        ));
+        this.clearPendingReviewsReveal();
+        this.spotReviewsHeading?.classList.remove('is-visible');
+        this.reviewsStage?.classList.remove('is-visible');
+        this.reviewsSection.classList.remove('is-visible');
         this.syncReviewExpandButtons();
-        const shouldReplayReviewsSectionReveal = (
-            !this.hasRenderedReviews
-            && this.reviewsSection.classList.contains('is-visible')
-        );
-
+        this.clearReviewCardShellReveal();
+        this.clearReviewCardContentReveal();
         this.resetReviewGalleryPhotoReveal();
-
-        if (shouldReplayReviewsSectionReveal) {
-            this.reviewsSection.classList.remove('is-visible');
-        }
-
         this.setupReviewGalleryPhotoReveal();
 
-        if (shouldReplayReviewsSectionReveal) {
-            window.requestAnimationFrame(() => {
-                if (!this.reviewsSection?.isConnected) {
-                    return;
-                }
-
-                this.reviewsSection.classList.add('is-visible');
-                this.revealReviewGalleryPhotos();
-            });
+        if (
+            shouldReplayReviewsSectionReveal
+            && this.getReviewsRevealTargets().some((target) => this.isReviewsRevealTargetInView(target))
+        ) {
+            this.markReviewsVisible();
         }
 
         this.measureDetailScrollMetrics();
@@ -8232,6 +9637,388 @@ class DetailPage {
     }
 
     /**
+     * getReviewCards() - 收集评论区里当前渲染出的评论卡
+     * @returns {HTMLElement[]} - 评论卡节点列表
+     */
+    getReviewCards() {
+        if (!this.reviewsSection) {
+            return [];
+        }
+
+        return Array.from(
+            this.reviewsSection.querySelectorAll('.review-card')
+        );
+    }
+
+    /**
+     * clearPendingReviewsReveal() - 清理评论区外层 reveal 的 raf 与定时器，避免旧时序残留。
+     * @returns {void}
+     */
+    clearPendingReviewsReveal() {
+        if (this.reviewsRevealCommitRafId) {
+            window.cancelAnimationFrame(this.reviewsRevealCommitRafId);
+            this.reviewsRevealCommitRafId = 0;
+        }
+
+        this.reviewsRevealTimers.forEach((timerId) => {
+            window.clearTimeout(timerId);
+        });
+        this.reviewsRevealTimers = [];
+    }
+
+    /**
+     * queueReviewsRevealTimer() - 注册评论区外层 reveal 使用的定时器，方便统一回收。
+     * @param {Function} callback - 定时器触发时执行的逻辑
+     * @param {number} delay - 延迟毫秒数
+     * @returns {number} - 定时器 ID
+     */
+    queueReviewsRevealTimer(callback, delay = 0) {
+        const timerId = window.setTimeout(() => {
+            this.reviewsRevealTimers = this.reviewsRevealTimers
+                .filter((activeTimerId) => activeTimerId !== timerId);
+            callback();
+        }, delay);
+
+        this.reviewsRevealTimers.push(timerId);
+        return timerId;
+    }
+
+    /**
+     * clearReviewCardShellReveal() - 清理评论卡壳体 reveal 的 raf，并重置壳体显现状态
+     * @returns {void}
+     */
+    clearReviewCardShellReveal() {
+        if (this.reviewCardShellRevealRafId) {
+            window.cancelAnimationFrame(this.reviewCardShellRevealRafId);
+            this.reviewCardShellRevealRafId = 0;
+        }
+
+        this.getReviewCards().forEach((card) => {
+            card.classList.remove('is-shell-visible');
+            card.style.removeProperty('--review-card-shell-delay');
+        });
+    }
+
+    /**
+     * markReviewCardShellVisible(card, staggerIndex) - 将评论卡壳体切换到已显现状态，并给同批次卡片轻微错峰
+     * @param {HTMLElement|null} card - 当前评论卡节点
+     * @param {number} staggerIndex - 当前批次中的序号
+     * @returns {boolean} - 是否成功切到显现态
+     */
+    markReviewCardShellVisible(card, staggerIndex = 0) {
+        if (
+            !card
+            || !card.isConnected
+            || card.classList.contains('is-hidden')
+            || card.classList.contains('is-shell-visible')
+        ) {
+            return false;
+        }
+
+        const safeIndex = Math.max(0, Math.min(staggerIndex, 3));
+        card.style.setProperty('--review-card-shell-delay', `${safeIndex * 80}ms`);
+        card.classList.add('is-shell-visible');
+        return true;
+    }
+
+    /**
+     * scheduleReviewCardShellReveal() - 为当前进入视口带的评论卡壳体安排 reveal，避免动画在视口外提前播完
+     * @returns {void}
+     */
+    scheduleReviewCardShellReveal() {
+        if (!this.reviewsSection?.classList.contains('is-visible')) {
+            return;
+        }
+
+        if (this.reviewCardShellRevealRafId) {
+            window.cancelAnimationFrame(this.reviewCardShellRevealRafId);
+            this.reviewCardShellRevealRafId = 0;
+        }
+
+        this.reviewCardShellRevealRafId = window.requestAnimationFrame(() => {
+            let visibleBatchIndex = 0;
+
+            this.getReviewCards().forEach((card) => {
+                if (
+                    card.isConnected
+                    && !card.classList.contains('is-hidden')
+                    && !card.classList.contains('is-shell-visible')
+                    && this.isReviewCardInView(card)
+                ) {
+                    if (this.markReviewCardShellVisible(card, visibleBatchIndex)) {
+                        visibleBatchIndex += 1;
+                    }
+                }
+            });
+
+            this.reviewCardShellRevealRafId = 0;
+        });
+    }
+
+    /**
+     * clearReviewCardContentReveal() - 清理评论卡内部内容 reveal 的 raf、定时器和监听，并重置 copy 显现状态
+     * @returns {void}
+     */
+    clearReviewCardContentReveal() {
+        if (this.reviewCardContentRevealRafId) {
+            window.cancelAnimationFrame(this.reviewCardContentRevealRafId);
+            this.reviewCardContentRevealRafId = 0;
+        }
+
+        this.reviewCardContentRevealTimers.forEach((timerId) => {
+            window.clearTimeout(timerId);
+        });
+        this.reviewCardContentRevealTimers = [];
+
+        this.reviewCardContentRevealCleanup.forEach((cleanup) => {
+            cleanup?.();
+        });
+        this.reviewCardContentRevealCleanup.clear();
+
+        this.getReviewCards().forEach((card) => {
+            card.classList.remove('is-copy-visible');
+            delete card.dataset.reviewContentRevealState;
+        });
+    }
+
+    /**
+     * queueReviewCardContentRevealTimer(callback, delay) - 注册评论卡内容 reveal 使用的定时器，方便统一回收
+     * @param {Function} callback - 定时器触发时执行的逻辑
+     * @param {number} delay - 延迟毫秒数
+     * @returns {number} - 定时器 ID
+     */
+    queueReviewCardContentRevealTimer(callback, delay = 0) {
+        const timerId = window.setTimeout(() => {
+            this.reviewCardContentRevealTimers = this.reviewCardContentRevealTimers
+                .filter((activeTimerId) => activeTimerId !== timerId);
+            callback();
+        }, delay);
+
+        this.reviewCardContentRevealTimers.push(timerId);
+        return timerId;
+    }
+
+    /**
+     * isReviewCardInView(card) - 判断评论卡是否已经进入当前视口带
+     * @param {HTMLElement|null} card - 待检查的评论卡
+     * @returns {boolean} - 当前评论卡是否已进入用户可见区域
+     */
+    isReviewCardInView(card) {
+        if (!card) {
+            return false;
+        }
+
+        const rect = card.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top < viewportHeight * 0.92 && rect.bottom > viewportHeight * 0.12;
+    }
+
+    /**
+     * parseCssTimeToMs(value) - 将 CSS transition 时间解析为毫秒，仅取首个时间片段
+     * @param {string} value - CSS 时间字符串
+     * @returns {number} - 毫秒值
+     */
+    parseCssTimeToMs(value) {
+        const firstSegment = String(value || '')
+            .split(',')[0]
+            ?.trim() || '';
+
+        if (firstSegment.endsWith('ms')) {
+            return Number.parseFloat(firstSegment) || 0;
+        }
+
+        if (firstSegment.endsWith('s')) {
+            return (Number.parseFloat(firstSegment) || 0) * 1000;
+        }
+
+        return 0;
+    }
+
+    /**
+     * getReviewCardTransitionDelayMs(card) - 读取评论卡 reveal 的 transition delay，用于事件丢失时的兜底等待
+     * @param {HTMLElement|null} card - 当前评论卡节点
+     * @returns {number} - 毫秒值
+     */
+    getReviewCardTransitionDelayMs(card) {
+        if (!card) {
+            return 0;
+        }
+
+        return this.parseCssTimeToMs(window.getComputedStyle(card).transitionDelay);
+    }
+
+    /**
+     * isReviewCardShellSettled(card) - 判断评论卡壳体是否已经基本显现完成
+     * @param {HTMLElement|null} card - 当前评论卡节点
+     * @returns {boolean} - 是否已接近稳定态
+     */
+    isReviewCardShellSettled(card) {
+        if (!card) {
+            return false;
+        }
+
+        const opacity = Number.parseFloat(window.getComputedStyle(card).opacity);
+        return Number.isFinite(opacity) && opacity >= 0.96;
+    }
+
+    /**
+     * markReviewCardCopyVisible(card) - 将评论卡内部文字切换到已显现状态
+     * @param {HTMLElement|null} card - 当前评论卡节点
+     * @returns {void}
+     */
+    markReviewCardCopyVisible(card) {
+        if (!card || !card.isConnected || card.classList.contains('is-hidden')) {
+            return;
+        }
+
+        card.classList.add('is-copy-visible');
+        card.dataset.reviewContentRevealState = 'revealed';
+
+        const cleanup = this.reviewCardContentRevealCleanup.get(card);
+        if (cleanup) {
+            cleanup();
+            this.reviewCardContentRevealCleanup.delete(card);
+        }
+    }
+
+    /**
+     * scheduleSingleReviewCardContentReveal(card) - 等评论卡壳体稳定后，再按“图片先、文字后”的节奏播放内部 reveal
+     * @param {HTMLElement|null} card - 当前评论卡节点
+     * @returns {void}
+     */
+    scheduleSingleReviewCardContentReveal(card) {
+        if (!card || !card.isConnected || card.classList.contains('is-hidden')) {
+            return;
+        }
+
+        const readyGalleries = Array.from(
+            card.querySelectorAll('.review-gallery[data-photo-reveal-ready="true"]')
+        );
+        const hasPhotoButtons = Boolean(card.querySelector('.review-photo-button'));
+        const needsPhotoReveal = readyGalleries.some((gallery) => (
+            Boolean(gallery.querySelector('.review-photo-button:not(.is-photo-visible)'))
+        ));
+        const needsCopyReveal = !card.classList.contains('is-copy-visible');
+
+        if (!needsPhotoReveal && !needsCopyReveal) {
+            card.dataset.reviewContentRevealState = 'revealed';
+            return;
+        }
+
+        if (!readyGalleries.length && hasPhotoButtons) {
+            return;
+        }
+
+        if (!this.isReviewCardInView(card) && needsCopyReveal) {
+            return;
+        }
+
+        if (card.dataset.reviewContentRevealState === 'scheduled') {
+            return;
+        }
+
+        const revealCardContent = () => {
+            if (!card.isConnected) {
+                return;
+            }
+
+            readyGalleries.forEach((gallery) => {
+                this.markReviewGalleryPhotosVisible(gallery);
+            });
+
+            if (!needsCopyReveal || card.classList.contains('is-copy-visible')) {
+                card.dataset.reviewContentRevealState = 'revealed';
+                return;
+            }
+
+            card.dataset.reviewContentRevealState = 'copy-pending';
+            this.queueReviewCardContentRevealTimer(() => {
+                this.markReviewCardCopyVisible(card);
+            }, 120);
+        };
+
+        const existingCleanup = this.reviewCardContentRevealCleanup.get(card);
+        if (existingCleanup) {
+            existingCleanup();
+            this.reviewCardContentRevealCleanup.delete(card);
+        }
+
+        if (this.isReviewCardShellSettled(card)) {
+            revealCardContent();
+            return;
+        }
+
+        card.dataset.reviewContentRevealState = 'scheduled';
+
+        let hasSettled = false;
+        let fallbackTimer = 0;
+
+        const cleanup = () => {
+            card.removeEventListener('transitionend', onTransitionEnd);
+            if (fallbackTimer) {
+                window.clearTimeout(fallbackTimer);
+                this.reviewCardContentRevealTimers = this.reviewCardContentRevealTimers
+                    .filter((timerId) => timerId !== fallbackTimer);
+                fallbackTimer = 0;
+            }
+        };
+
+        const finish = () => {
+            if (hasSettled) {
+                return;
+            }
+
+            hasSettled = true;
+            cleanup();
+            this.reviewCardContentRevealCleanup.delete(card);
+            revealCardContent();
+        };
+
+        const onTransitionEnd = (event) => {
+            if (event.target !== card || event.propertyName !== 'opacity') {
+                return;
+            }
+
+            finish();
+        };
+
+        card.addEventListener('transitionend', onTransitionEnd);
+        fallbackTimer = this.queueReviewCardContentRevealTimer(() => {
+            finish();
+        }, this.getReviewCardTransitionDelayMs(card) + 420);
+        this.reviewCardContentRevealCleanup.set(card, cleanup);
+    }
+
+    /**
+     * scheduleReviewCardContentReveal() - 为当前已进入视口带的评论卡安排内部内容 reveal
+     * @returns {void}
+     */
+    scheduleReviewCardContentReveal() {
+        if (!this.reviewsSection?.classList.contains('is-visible')) {
+            return;
+        }
+
+        if (this.reviewCardContentRevealRafId) {
+            window.cancelAnimationFrame(this.reviewCardContentRevealRafId);
+            this.reviewCardContentRevealRafId = 0;
+        }
+
+        this.reviewCardContentRevealRafId = window.requestAnimationFrame(() => {
+            this.getReviewCards().forEach((card) => {
+                if (
+                    card.isConnected
+                    && !card.classList.contains('is-hidden')
+                    && this.isReviewCardInView(card)
+                ) {
+                    this.scheduleSingleReviewCardContentReveal(card);
+                }
+            });
+
+            this.reviewCardContentRevealRafId = 0;
+        });
+    }
+
+    /**
      * getReviewPhotoButtons() - 收集评论卡里需要跟随显现节奏的照片按钮
      * @returns {HTMLElement[]} - 评论图库按钮列表
      */
@@ -8260,6 +10047,33 @@ class DetailPage {
     }
 
     /**
+     * flagReviewGalleryReady(gallery) - 标记评论图库已经满足播放条件，等待对应评论卡接续 reveal
+     * @param {HTMLElement|null} gallery - 目标图库节点
+     * @returns {boolean} - 本次是否首次标记为 ready
+     */
+    flagReviewGalleryReady(gallery) {
+        if (!gallery || !gallery.isConnected || gallery.dataset.photoRevealReady === 'true') {
+            return false;
+        }
+
+        gallery.dataset.photoRevealReady = 'true';
+        return true;
+    }
+
+    /**
+     * resetReviewGalleryReadyFlag(gallery) - 清空评论图库的 ready 标记
+     * @param {HTMLElement|null} gallery - 目标图库节点
+     * @returns {void}
+     */
+    resetReviewGalleryReadyFlag(gallery) {
+        if (!gallery) {
+            return;
+        }
+
+        delete gallery.dataset.photoRevealReady;
+    }
+
+    /**
      * resetReviewGalleryPhotoReveal() - 重置评论图片区照片的显现状态，确保后续能重新触发动画
      * @returns {void}
      */
@@ -8270,6 +10084,10 @@ class DetailPage {
             window.cancelAnimationFrame(this.reviewGalleryPhotoRevealRafId);
             this.reviewGalleryPhotoRevealRafId = 0;
         }
+
+        this.getReviewPhotoGalleries().forEach((gallery) => {
+            this.resetReviewGalleryReadyFlag(gallery);
+        });
 
         this.getReviewPhotoButtons().forEach((button) => {
             button.classList.remove('is-photo-visible');
@@ -8332,12 +10150,18 @@ class DetailPage {
 
         this.reviewGalleryPhotoRevealRafId = window.requestAnimationFrame(() => {
             this.reviewGalleryPhotoRevealRafId = window.requestAnimationFrame(() => {
+                const readyGalleries = [];
                 galleries.forEach((gallery) => {
                     if (gallery.isConnected && this.isReviewGalleryInView(gallery)) {
-                        this.markReviewGalleryPhotosVisible(gallery);
+                        if (this.flagReviewGalleryReady(gallery)) {
+                            readyGalleries.push(gallery);
+                        }
                         this.reviewGalleryPhotoObserver?.unobserve(gallery);
                     }
                 });
+                if (readyGalleries.length) {
+                    this.scheduleReviewCardContentReveal();
+                }
                 this.reviewGalleryPhotoRevealRafId = 0;
             });
         });
@@ -8357,7 +10181,10 @@ class DetailPage {
 
         if (!('IntersectionObserver' in window)) {
             if (this.reviewsSection?.classList.contains('is-visible')) {
-                galleries.forEach((gallery) => this.markReviewGalleryPhotosVisible(gallery));
+                galleries.forEach((gallery) => {
+                    this.flagReviewGalleryReady(gallery);
+                });
+                this.scheduleReviewCardContentReveal();
             }
             return;
         }
@@ -8371,7 +10198,11 @@ class DetailPage {
                     return;
                 }
 
-                this.markReviewGalleryPhotosVisible(entry.target);
+                if (this.flagReviewGalleryReady(entry.target)) {
+                    this.scheduleSingleReviewCardContentReveal(
+                        entry.target.closest('.review-card')
+                    );
+                }
                 this.reviewGalleryPhotoObserver?.unobserve(entry.target);
             });
         }, {
@@ -8391,10 +10222,22 @@ class DetailPage {
      * @returns {void} - 无返回值，直接更新评论区 class
      */
     markReviewsVisible() {
-        this.spotReviewsHeading?.classList.add('is-visible');
-        this.reviewsStage?.classList.add('is-visible');
-        this.reviewsSection?.classList.add('is-visible');
-        this.revealReviewGalleryPhotos();
+        this.clearPendingReviewsReveal();
+        this.reviewsRevealCommitRafId = window.requestAnimationFrame(() => {
+            this.reviewsRevealCommitRafId = window.requestAnimationFrame(() => {
+                this.spotReviewsHeading?.classList.add('is-visible');
+                this.queueReviewsRevealTimer(() => {
+                    this.reviewsStage?.classList.add('is-visible');
+                }, 120);
+                this.queueReviewsRevealTimer(() => {
+                    this.reviewsSection?.classList.add('is-visible');
+                    this.scheduleReviewCardShellReveal();
+                    this.revealReviewGalleryPhotos();
+                    this.scheduleReviewCardContentReveal();
+                }, 240);
+                this.reviewsRevealCommitRafId = 0;
+            });
+        });
     }
 
     /**
@@ -8455,18 +10298,19 @@ class DetailPage {
      * @returns {void} - 无返回值，直接更新评论区显现状态
      */
     resetReviewsReveal() {
+        this.clearPendingReviewsReveal();
         this.spotReviewsHeading?.classList.remove('is-visible');
         this.reviewsStage?.classList.remove('is-visible');
         this.reviewsSection?.classList.remove('is-visible');
+        this.clearReviewCardShellReveal();
+        this.clearReviewCardContentReveal();
         this.resetReviewGalleryPhotoReveal();
 
         this.setupReviewsReveal();
 
         if (this.getReviewsRevealTargets().some((target) => this.isReviewsRevealTargetInView(target))) {
-            window.requestAnimationFrame(() => {
-                this.markReviewsVisible();
-                this.reviewsRevealObserver?.disconnect();
-            });
+            this.markReviewsVisible();
+            this.reviewsRevealObserver?.disconnect();
         }
     }
 
@@ -8687,7 +10531,7 @@ class DetailPage {
         return [
             {
                 value: '',
-                label: '先不写'
+                label: '先留白'
             },
             {
                 value: '1',
@@ -8723,6 +10567,59 @@ class DetailPage {
         return `${normalizedValue} 人同行`;
     }
 
+    getPackageModalMiniWindowLabel(windowKey) {
+        switch (windowKey) {
+            case 'dawn':
+                return '清晨';
+            case 'arrival':
+                return '午后';
+            case 'afterglow':
+                return '黄昏';
+            default:
+                return '待定';
+        }
+    }
+
+    formatPackageModalMiniPeopleLabel(value) {
+        const normalizedValue = this.normalizePackageModalPeopleValue(value);
+        if (!normalizedValue) {
+            return '待回声';
+        }
+
+        if (normalizedValue === '1') {
+            return '1人';
+        }
+
+        if (normalizedValue === '2') {
+            return '2人';
+        }
+
+        if (normalizedValue === '3-5') {
+            return '3-5人';
+        }
+
+        if (normalizedValue === '6+') {
+            return '6人以上';
+        }
+
+        const exactMatch = normalizedValue.match(/^(\d+)$/);
+        if (exactMatch) {
+            return `${exactMatch[1]}人`;
+        }
+
+        const rangeMatch = normalizedValue.match(/^(\d+)\s*-\s*(\d+)$/);
+        if (rangeMatch) {
+            return `${rangeMatch[1]}-${rangeMatch[2]}人`;
+        }
+
+        const plusMatch = normalizedValue.match(/^(\d+)\+$/);
+        if (plusMatch) {
+            return `${plusMatch[1]}人以上`;
+        }
+
+        return '待回声';
+    }
+
     isPackageModalCustomPeopleValue(value) {
         const normalizedValue = this.normalizePackageModalPeopleValue(value);
         if (!normalizedValue) {
@@ -8731,6 +10628,41 @@ class DetailPage {
 
         return !this.getPackageModalPeopleOptions()
             .some((option) => option.value && option.value === normalizedValue);
+    }
+
+    resolvePackageModalPeopleEstimateCount(value) {
+        const PEOPLE_ESTIMATE_CAP = 12;
+        const normalizedValue = this.normalizePackageModalPeopleValue(value);
+        if (!normalizedValue) {
+            return null;
+        }
+
+        const exactMatch = normalizedValue.match(/^(\d+)$/);
+        if (exactMatch) {
+            const count = Number.parseInt(exactMatch[1], 10);
+            return Number.isFinite(count) && count > 0 ? Math.min(count, PEOPLE_ESTIMATE_CAP) : null;
+        }
+
+        const rangeMatch = normalizedValue.match(/^(\d+)\s*-\s*(\d+)$/);
+        if (rangeMatch) {
+            const start = Number.parseInt(rangeMatch[1], 10);
+            const end = Number.parseInt(rangeMatch[2], 10);
+            if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0 || end < start) {
+                return null;
+            }
+
+            return Math.min(PEOPLE_ESTIMATE_CAP, Math.max(1, Math.round((start + end) / 2)));
+        }
+
+        const plusMatch = normalizedValue.match(/^(\d+)\+$/);
+        if (plusMatch) {
+            const count = Number.parseInt(plusMatch[1], 10);
+            return Number.isFinite(count) && count > 0
+                ? Math.min(PEOPLE_ESTIMATE_CAP, count + 1)
+                : null;
+        }
+
+        return null;
     }
 
     getPackageModalDurationOptions(pkg) {
@@ -8770,6 +10702,7 @@ class DetailPage {
                 ? existingDraft.windowKey
                 : defaultWindowKey,
             peopleValue: this.normalizePackageModalPeopleValue(existingDraft.peopleValue),
+            focusField: this.normalizePackageModalEditorFocusField(existingDraft.focusField),
             isEditorOpen: Boolean(existingDraft.isEditorOpen),
             isCustomDurationOpen: Boolean(existingDraft.isCustomDurationOpen),
             isCustomPeopleOpen: Boolean(existingDraft.isCustomPeopleOpen)
@@ -8799,12 +10732,17 @@ class DetailPage {
                 : currentDraft.days,
             windowKey: allowedWindowKeys.has(nextDraft.windowKey) ? nextDraft.windowKey : currentDraft.windowKey,
             peopleValue: this.normalizePackageModalPeopleValue(nextDraft.peopleValue) || '',
+            focusField: this.normalizePackageModalEditorFocusField(nextDraft.focusField),
             isEditorOpen: Boolean(nextDraft.isEditorOpen),
             isCustomDurationOpen: Boolean(nextDraft.isCustomDurationOpen),
             isCustomPeopleOpen: Boolean(nextDraft.isCustomPeopleOpen)
         });
 
         return this.bookingModalDrafts.get(pkg.id);
+    }
+
+    normalizePackageModalEditorFocusField(field) {
+        return ['duration', 'window', 'people'].includes(field) ? field : '';
     }
 
     getPackageModalCustomDurationInput(packageId) {
@@ -8845,6 +10783,352 @@ class DetailPage {
         input.select();
     }
 
+    getPackageModalEditorFieldElement(packageId, fieldKey) {
+        if (!this.bookingModal) {
+            return null;
+        }
+
+        const normalizedField = this.normalizePackageModalEditorFocusField(fieldKey);
+        if (!normalizedField) {
+            return null;
+        }
+
+        return Array.from(this.bookingModal.querySelectorAll('[data-package-editor-fragment]'))
+            .find((element) => (
+                element.dataset.packageEditorFragment === normalizedField &&
+                element.closest('[data-package-price-editor]')?.dataset.packagePriceEditor === String(packageId)
+            )) || null;
+    }
+
+    focusPackageModalEditorField(packageId, fieldKey) {
+        const normalizedField = this.normalizePackageModalEditorFocusField(fieldKey);
+        const fieldElement = this.getPackageModalEditorFieldElement(packageId, normalizedField);
+        if (!fieldElement) {
+            return;
+        }
+
+        window.clearTimeout(this.packageModalEditorFocusTimer);
+
+        this.bookingModal
+            ?.querySelectorAll('.package-modal-option-group.is-editor-focus-target')
+            .forEach((element) => element.classList.remove('is-editor-focus-target'));
+
+        fieldElement.classList.add('is-editor-focus-target');
+        fieldElement.setAttribute('tabindex', '-1');
+        fieldElement.focus({ preventScroll: true });
+        fieldElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+        });
+
+        this.packageModalEditorFocusTimer = window.setTimeout(() => {
+            fieldElement.classList.remove('is-editor-focus-target');
+        }, 1500);
+    }
+
+    getPackageModalEditorDomParts(packageId) {
+        if (!this.bookingModal) {
+            return null;
+        }
+
+        const packageKey = String(packageId || this.selectedPackageId || '');
+        if (!packageKey) {
+            return null;
+        }
+
+        const modalContent = this.bookingModal.querySelector('.booking-modal-content');
+        const signal = this.bookingModal.querySelector('.package-modal-signal');
+        const price = this.bookingModal.querySelector('.package-modal-price');
+        const toggle = this.bookingModal.querySelector(`[data-package-price-editor-toggle="${packageKey}"]`);
+        const editor = this.bookingModal.querySelector(`[data-package-price-editor="${packageKey}"]`);
+
+        if (!modalContent || !signal || !price || !toggle || !editor) {
+            return null;
+        }
+
+        return {
+            modalContent,
+            signal,
+            price,
+            toggle,
+            editor,
+            aside: signal.querySelector('.package-modal-signal-aside')
+        };
+    }
+
+    cancelPackageModalEditorStateMotion() {
+        if (!Array.isArray(this.packageModalEditorStateMotion) || !this.packageModalEditorStateMotion.length) {
+            this.packageModalEditorStateMotion = [];
+            return;
+        }
+
+        this.packageModalEditorStateMotion.forEach((animation) => {
+            if (animation && typeof animation.cancel === 'function') {
+                animation.cancel();
+            }
+        });
+        this.packageModalEditorStateMotion = [];
+    }
+
+    syncPackageModalEditorMotionClasses(domParts, motionState = '') {
+        if (!domParts) {
+            return;
+        }
+
+        const isOpening = motionState === 'opening';
+        const isClosing = motionState === 'closing';
+
+        [domParts.signal, domParts.price, domParts.editor].forEach((element) => {
+            if (!element) {
+                return;
+            }
+
+            element.classList.toggle('is-editor-opening', isOpening);
+            element.classList.toggle('is-editor-closing', isClosing);
+        });
+
+        domParts.signal?.classList.toggle('is-closing', isClosing);
+        domParts.price?.classList.toggle('is-closing', isClosing);
+
+        if (isOpening) {
+            this.syncPackageModalPriceToggleState(domParts.toggle, 'opening');
+            return;
+        }
+
+        if (isClosing) {
+            this.syncPackageModalPriceToggleState(domParts.toggle, 'closing');
+            return;
+        }
+
+        const isOpen = domParts.editor?.classList.contains('is-open');
+        this.syncPackageModalPriceToggleState(domParts.toggle, isOpen ? 'open' : 'closed');
+    }
+
+    syncPackageModalPriceToggleState(toggleButton, state = 'closed') {
+        if (!toggleButton) {
+            return;
+        }
+
+        const normalizedState = ['closed', 'opening', 'open', 'closing'].includes(state)
+            ? state
+            : 'closed';
+        const isOpenLike = normalizedState === 'open' || normalizedState === 'opening';
+        const rail = toggleButton.querySelector('[data-package-price-toggle-rail]');
+
+        toggleButton.dataset.packagePriceToggleState = normalizedState;
+        toggleButton.setAttribute('aria-expanded', String(isOpenLike));
+        toggleButton.setAttribute(
+            'aria-label',
+            isOpenLike ? '收住这一下，关闭节奏调整面板' : '改一改节奏，打开节奏调整面板'
+        );
+
+        if (rail) {
+            rail.dataset.packagePriceToggleRailState = normalizedState;
+        }
+    }
+
+    syncPackageModalEditorDomState(packageId, isEditorOpen) {
+        const domParts = this.getPackageModalEditorDomParts(packageId);
+        if (!domParts) {
+            return false;
+        }
+
+        const {
+            modalContent,
+            signal,
+            price,
+            toggle,
+            editor
+        } = domParts;
+        const editorState = isEditorOpen ? 'open' : 'closed';
+        const layoutState = isEditorOpen ? 'expanded' : 'compact';
+
+        this.syncPackageModalEditorMotionClasses(domParts);
+
+        signal.classList.toggle('is-editor-open', Boolean(isEditorOpen));
+        signal.classList.toggle('is-editor-closed', !isEditorOpen);
+        signal.dataset.packageSignalState = layoutState;
+
+        price.classList.toggle('is-editor-open', Boolean(isEditorOpen));
+        price.classList.toggle('is-editor-closed', !isEditorOpen);
+        price.dataset.packagePriceEditorState = editorState;
+        price.dataset.packagePriceLayout = layoutState;
+        price.querySelector('[data-package-price-layout-frame]')?.setAttribute('data-package-price-layout-frame', layoutState);
+
+        this.syncPackageModalPriceToggleState(toggle, isEditorOpen ? 'open' : 'closed');
+
+        editor.classList.toggle('is-open', Boolean(isEditorOpen));
+        editor.classList.toggle('is-closed', !isEditorOpen);
+        editor.setAttribute('aria-hidden', String(!isEditorOpen));
+        editor.dataset.packagePriceEditorState = editorState;
+
+        modalContent.dataset.packagePriceEditorState = editorState;
+        modalContent.classList.toggle('has-package-price-editor-open', Boolean(isEditorOpen));
+
+        return true;
+    }
+
+    runPackageModalEditorOpenMotion(packageId) {
+        const domParts = this.getPackageModalEditorDomParts(packageId);
+        if (!domParts) {
+            return;
+        }
+
+        this.cancelPackageModalEditorStateMotion();
+        if (this.packageModalPriceOpenTimer) {
+            window.clearTimeout(this.packageModalPriceOpenTimer);
+            this.packageModalPriceOpenTimer = 0;
+        }
+
+        const {
+            signal,
+            price,
+            editor,
+            aside
+        } = domParts;
+        const motion = [];
+
+        this.syncPackageModalEditorMotionClasses(domParts, 'opening');
+
+        if (signal?.animate) {
+            motion.push(signal.animate([
+                { opacity: 0.96, transform: 'translate3d(0, 6px, 0)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+            ], {
+                duration: 440,
+                easing: 'cubic-bezier(0.18, 0.82, 0.22, 1)',
+                fill: 'both'
+            }));
+        }
+
+        if (price?.animate) {
+            motion.push(price.animate([
+                { opacity: 0.97, transform: 'translate3d(0, 4px, 0)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+            ], {
+                duration: 420,
+                easing: 'cubic-bezier(0.18, 0.82, 0.22, 1)',
+                fill: 'both'
+            }));
+        }
+
+        if (editor?.animate) {
+            motion.push(editor.animate([
+                { opacity: 0.82, transform: 'translate3d(0, 10px, 0)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+            ], {
+                duration: 420,
+                delay: 18,
+                easing: 'cubic-bezier(0.18, 0.8, 0.22, 1)',
+                fill: 'both'
+            }));
+        }
+
+        const asideBlocks = aside
+            ? Array.from(aside.querySelectorAll('.package-modal-extra-fragment'))
+            : [];
+        asideBlocks.forEach((block, index) => {
+            if (!block?.animate) {
+                return;
+            }
+
+            motion.push(block.animate([
+                { opacity: 0.9, transform: 'translate3d(0, 8px, 0)', filter: 'blur(1px)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0)', filter: 'blur(0px)' }
+            ], {
+                duration: 360,
+                delay: 52 + (index * 34),
+                easing: 'cubic-bezier(0.18, 0.8, 0.22, 1)',
+                fill: 'both'
+            }));
+        });
+
+        this.packageModalEditorStateMotion = motion;
+        this.packageModalPriceOpenTimer = window.setTimeout(() => {
+            this.syncPackageModalEditorMotionClasses(domParts);
+            this.packageModalEditorStateMotion = [];
+            this.packageModalPriceOpenTimer = 0;
+        }, 620);
+    }
+
+    closePackageModalEditorWithMotion(packageId) {
+        const domParts = this.getPackageModalEditorDomParts(packageId);
+        if (!domParts) {
+            const currentState = this.getPackageModalViewState(packageId);
+            this.updatePackageModalDraft(packageId, {
+                isEditorOpen: false,
+                focusField: currentState?.focusField || ''
+            });
+            this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
+            return;
+        }
+
+        if (this.packageModalEditorTransitioning) {
+            return;
+        }
+
+        const currentState = this.getPackageModalViewState(packageId);
+        const focusField = currentState?.focusField || '';
+        this.packageModalEditorTransitioning = true;
+        this.cancelPackageModalEditorStateMotion();
+
+        if (this.packageModalEditorCloseTimer) {
+            window.clearTimeout(this.packageModalEditorCloseTimer);
+            this.packageModalEditorCloseTimer = 0;
+        }
+
+        this.syncPackageModalEditorMotionClasses(domParts, 'closing');
+        const {
+            editor,
+            aside
+        } = domParts;
+        const closeMotion = [];
+
+        if (editor?.animate) {
+            closeMotion.push(editor.animate([
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+                { opacity: 0.8, transform: 'translate3d(0, 6px, 0)' }
+            ], {
+                duration: 300,
+                easing: 'cubic-bezier(0.22, 0.76, 0.2, 1)',
+                fill: 'both'
+            }));
+        }
+
+        const asideBlocks = aside
+            ? Array.from(aside.querySelectorAll('.package-modal-extra-fragment'))
+            : [];
+        asideBlocks.forEach((block, index) => {
+            if (!block?.animate) {
+                return;
+            }
+            closeMotion.push(block.animate([
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+                { opacity: 0.86, transform: 'translate3d(0, 5px, 0)' }
+            ], {
+                duration: 240,
+                delay: index * 18,
+                easing: 'cubic-bezier(0.3, 0.72, 0.26, 1)',
+                fill: 'both'
+            }));
+        });
+
+        this.packageModalEditorStateMotion = closeMotion;
+
+        this.packageModalEditorCloseTimer = window.setTimeout(() => {
+            this.updatePackageModalDraft(packageId, {
+                isEditorOpen: false,
+                focusField
+            });
+            this.syncPackageModalEditorDomState(packageId, false);
+            this.syncPackageModalEditorMotionClasses(domParts);
+            this.cancelPackageModalEditorStateMotion();
+            this.packageModalEditorTransitioning = false;
+            this.packageModalEditorCloseTimer = 0;
+        }, 300);
+    }
+
     applyPackageModalCustomDuration(packageId, rawValue = null) {
         const pkg = this.getPackageById(packageId);
         if (!pkg) {
@@ -8868,6 +11152,7 @@ class DetailPage {
         this.updatePackageModalDraft(pkg.id, {
             days: nextDays,
             isEditorOpen: true,
+            focusField: 'duration',
             isCustomDurationOpen: !hasPresetMatch
         });
         this.renderBookingModalMarkup(pkg.id, { preserveBodyScroll: true });
@@ -8901,6 +11186,7 @@ class DetailPage {
         this.updatePackageModalDraft(pkg.id, {
             peopleValue: nextPeopleValue,
             isEditorOpen: true,
+            focusField: 'people',
             isCustomPeopleOpen: !hasPresetMatch
         });
         this.renderBookingModalMarkup(pkg.id, { preserveBodyScroll: true });
@@ -8912,7 +11198,7 @@ class DetailPage {
         }
     }
 
-    estimatePackageModalPrice(pkg, selectedDays) {
+    estimatePackageModalPrice(pkg, selectedDays, selectedPeopleValue = '') {
         const basePrice = parsePriceValue(pkg?.price);
         const baseDuration = this.parsePackageDurationLabel(pkg?.duration);
         if (!Number.isFinite(basePrice)) {
@@ -8928,9 +11214,28 @@ class DetailPage {
             480,
             Math.round(longStayStep * 0.72 / 100) * 100
         );
-        const nextValue = deltaDays >= 0
+        let nextValue = deltaDays >= 0
             ? basePrice + (deltaDays * longStayStep)
             : basePrice + (deltaDays * shortStayStep);
+
+        const peopleCount = this.resolvePackageModalPeopleEstimateCount(selectedPeopleValue);
+        if (Number.isFinite(peopleCount) && peopleCount > 0) {
+            const durationWeight = Math.max(0.85, selectedDays / Math.max(baseDuration.days, 1));
+            if (peopleCount === 1) {
+                const soloAddon = Math.max(
+                    220,
+                    Math.round((basePrice * 0.045) / 100) * 100
+                );
+                nextValue += soloAddon * durationWeight;
+            } else {
+                const extraPeople = peopleCount - 1;
+                const crewStep = Math.max(
+                    260,
+                    Math.round(((basePrice / Math.max(baseDuration.days, 1)) * 0.26) / 100) * 100
+                );
+                nextValue += extraPeople * crewStep * durationWeight;
+            }
+        }
 
         return Math.max(1600, Math.round(nextValue / 100) * 100);
     }
@@ -8959,19 +11264,20 @@ class DetailPage {
         const selectedPeopleLabel = this.formatPackageModalPeopleLabel(selectedPeopleValue);
         const customPeopleInputValue = /^\d+$/.test(selectedPeopleValue) ? selectedPeopleValue : '';
         const durationLabel = `${selectedDays}天${selectedNights}晚`;
-        const estimatedPriceValue = this.estimatePackageModalPrice(pkg, selectedDays);
+        const estimatedPriceValue = this.estimatePackageModalPrice(pkg, selectedDays, selectedPeopleValue);
         const priceLabel = Number.isFinite(estimatedPriceValue) ? formatPriceValue(estimatedPriceValue) : pkg.price;
         const isCustomDurationSelected = !durationOptions.some((option) => option.days === selectedDays);
         const isCustomDurationOpen = Boolean(draft.isCustomDurationOpen) || isCustomDurationSelected;
         const isCustomPeopleSelected = this.isPackageModalCustomPeopleValue(selectedPeopleValue);
         const isCustomPeopleOpen = Boolean(draft.isCustomPeopleOpen) || isCustomPeopleSelected;
         const editorState = Boolean(draft.isEditorOpen) ? 'open' : 'closed';
+        const focusField = this.normalizePackageModalEditorFocusField(draft.focusField);
         const durationTone = selectedDays === baseDuration.days ? 'base' : 'shifted';
         const windowTone = selectedWindow.key === defaultWindowKey ? 'base' : 'shifted';
         const peopleTone = selectedPeopleLabel
             ? (isCustomPeopleSelected ? 'custom' : 'set')
             : 'empty';
-        const summarySentence = `停留 ${durationLabel} · ${selectedWindow.label} · ${selectedPeopleLabel || '同行待写'}`;
+        const summarySentence = `这一程先停留 ${durationLabel}，${selectedWindow.label} 入海，${selectedPeopleLabel || '同行待回声'}。`;
         const isCustomized =
             selectedDays !== baseDuration.days ||
             selectedWindow.key !== defaultWindowKey ||
@@ -8995,9 +11301,10 @@ class DetailPage {
             peopleValue: selectedPeopleValue,
             peopleLabel: selectedPeopleLabel,
             customPeopleInputValue,
+            focusField,
             peopleHint: selectedPeopleLabel
                 ? `会先按 ${selectedPeopleLabel} 的同行节奏写进这一程，后面还可以继续调整。`
-                : '如果同行节奏已经确定，也可以在这里先写进这一程。',
+                : '同行可以先留白，等海流更清晰再慢慢写进这一程。',
             isCustomPeopleSelected,
             isCustomPeopleOpen,
             durationTone,
@@ -9041,18 +11348,518 @@ class DetailPage {
             nextModalContent.classList.toggle('has-package-price-customized', Boolean(modalState?.isCustomized));
         }
 
-        if (animatePriceEditor === 'open') {
-            const pricePanel = this.bookingModalBody.querySelector('.package-modal-price.is-editor-open');
-            if (pricePanel) {
-                window.clearTimeout(this.packageModalPriceOpenTimer);
-                window.requestAnimationFrame(() => {
-                    pricePanel.classList.add('is-opening');
-                });
-                this.packageModalPriceOpenTimer = window.setTimeout(() => {
-                    pricePanel.classList.remove('is-opening');
-                }, 920);
+        if (animatePriceEditor === 'open' && modalState?.isEditorOpen) {
+            window.requestAnimationFrame(() => {
+                this.runPackageModalEditorOpenMotion(pkg.id);
+            });
+        }
+    }
+
+    /**
+     * getBookingMatchConfirmationState() - 读取当前能力匹配二次确认状态。
+     * @returns {Object|null}
+     */
+    getBookingMatchConfirmationState() {
+        return this.bookingMatchConfirmState && typeof this.bookingMatchConfirmState === 'object'
+            ? this.bookingMatchConfirmState
+            : null;
+    }
+
+    /**
+     * isBookingMatchConfirmationVisible() - 判断匹配确认层是否处于可见或退场中状态。
+     * @param {'modal'|'sidebar'|''} [source=''] - 可选来源过滤
+     * @returns {boolean}
+     */
+    isBookingMatchConfirmationVisible(source = '') {
+        const state = this.getBookingMatchConfirmationState();
+        if (!state) {
+            return false;
+        }
+
+        if (source && state.source !== source) {
+            return false;
+        }
+
+        return state.phase === 'open' || state.phase === 'closing';
+    }
+
+    /**
+     * buildBookingMatchConfirmationCopy() - 为当前匹配确认层生成统一文案。
+     * @param {string} label - 当前标签文案
+     * @returns {{ title: string, copy: string, confirm: string, cancel: string }}
+     */
+    buildBookingMatchConfirmationCopy(label) {
+        const safeLabel = label || '这类海';
+        return {
+            title: 'Match Echo',
+            copy: `要回到首页，再对照“${safeLabel}”这一类海吗？会带你进入「适合自己的海」，继续慢慢排开更接近此刻节奏的蓝。`,
+            confirm: '去对照看看',
+            cancel: '先留在这里'
+        };
+    }
+
+    /**
+     * createBookingMatchConfirmMarkup() - 生成套餐弹层里的匹配确认舱。
+     * @param {string} packageId - 当前套餐 ID
+     * @returns {string}
+     */
+    createBookingMatchConfirmMarkup(packageId) {
+        const state = this.getBookingMatchConfirmationState();
+        if (!state || state.source !== 'modal' || state.packageId !== packageId) {
+            return '';
+        }
+
+        const copy = this.buildBookingMatchConfirmationCopy(state.label);
+        const phaseClass = state.phase === 'closing' ? ' is-closing' : ' is-active';
+        return `
+            <section class="booking-match-confirm${phaseClass}" data-booking-match-confirm-source="modal" aria-live="polite">
+                <p class="booking-match-confirm-heading">${escapeHtml(copy.title)}</p>
+                <p class="booking-match-confirm-copy">${escapeHtml(copy.copy)}</p>
+                <div class="booking-match-confirm-actions">
+                    <button
+                        type="button"
+                        class="booking-match-confirm-secondary"
+                        data-booking-match-confirm-action="cancel"
+                    >
+                        ${escapeHtml(copy.cancel)}
+                    </button>
+                    <button
+                        type="button"
+                        class="booking-match-confirm-primary"
+                        data-booking-match-confirm-action="confirm"
+                    >
+                        ${escapeHtml(copy.confirm)}
+                    </button>
+                </div>
+            </section>
+        `;
+    }
+
+    /**
+     * findBookingMatchTrigger() - 根据来源和 matchKey 找回最合适的触发标签。
+     * @param {'modal'|'sidebar'} source - 来源语境
+     * @param {string} matchKey - 匹配键
+     * @returns {HTMLElement|null}
+     */
+    findBookingMatchTrigger(source, matchKey) {
+        const containers = source === 'modal'
+            ? [this.bookingModal]
+            : [this.packageMatchTags];
+
+        for (const container of containers) {
+            if (!container) {
+                continue;
+            }
+
+            const trigger = Array.from(container.querySelectorAll('.booking-match-link[data-match-key]'))
+                .find((element) => element.dataset.matchKey === matchKey);
+            if (trigger instanceof HTMLElement) {
+                return trigger;
             }
         }
+
+        return null;
+    }
+
+    /**
+     * restoreBookingMatchTriggerFocus() - 在确认层关闭后把焦点送回原来的标签。
+     * @param {Object|null} state - 关闭前的确认状态
+     * @returns {void}
+     */
+    restoreBookingMatchTriggerFocus(state) {
+        if (!state) {
+            return;
+        }
+
+        const trigger = this.findBookingMatchTrigger(state.source, state.matchKey);
+        trigger?.focus?.();
+    }
+
+    /**
+     * focusBookingMatchConfirmationPrimary() - 把焦点送到当前确认层的主按钮。
+     * @param {'modal'|'sidebar'} source - 当前确认层来源
+     * @returns {void}
+     */
+    focusBookingMatchConfirmationPrimary(source) {
+        if (this.bookingMatchConfirmFocusRaf) {
+            window.cancelAnimationFrame(this.bookingMatchConfirmFocusRaf);
+            this.bookingMatchConfirmFocusRaf = 0;
+        }
+
+        this.bookingMatchConfirmFocusRaf = window.requestAnimationFrame(() => {
+            this.bookingMatchConfirmFocusRaf = 0;
+            const primaryButton = source === 'modal'
+                ? this.bookingModal?.querySelector('.booking-match-confirm-primary')
+                : this.bookingMatchFloatingRoot?.querySelector('[data-booking-match-confirm-action="confirm"]');
+            primaryButton?.focus?.();
+        });
+    }
+
+    /**
+     * clearBookingMatchConfirmationTimers() - 清理确认层开关与导航延时。
+     * @returns {void}
+     */
+    clearBookingMatchConfirmationTimers() {
+        if (this.bookingMatchConfirmCloseTimer) {
+            window.clearTimeout(this.bookingMatchConfirmCloseTimer);
+            this.bookingMatchConfirmCloseTimer = 0;
+        }
+
+        if (this.bookingMatchNavigationTimer) {
+            window.clearTimeout(this.bookingMatchNavigationTimer);
+            this.bookingMatchNavigationTimer = 0;
+        }
+
+        if (this.bookingMatchConfirmFocusRaf) {
+            window.cancelAnimationFrame(this.bookingMatchConfirmFocusRaf);
+            this.bookingMatchConfirmFocusRaf = 0;
+        }
+    }
+
+    /**
+     * clearBookingMatchConfirmationImmediately() - 立即清空确认层状态，不播放关闭动画。
+     * @param {{ restoreFocus?: boolean, state?: Object|null, rerenderModal?: boolean }} [options={}] - 清理选项
+     * @returns {void}
+     */
+    clearBookingMatchConfirmationImmediately(options = {}) {
+        const {
+            restoreFocus = false,
+            state = this.getBookingMatchConfirmationState(),
+            rerenderModal = false
+        } = options;
+        this.clearBookingMatchConfirmationTimers();
+
+        if (!state) {
+            if (this.bookingMatchFloatingRoot) {
+                this.bookingMatchFloatingRoot.innerHTML = '';
+                this.bookingMatchFloatingRoot.setAttribute('aria-hidden', 'true');
+            }
+            return;
+        }
+        this.bookingMatchConfirmState = null;
+
+        if (this.bookingMatchFloatingRoot) {
+            this.bookingMatchFloatingRoot.innerHTML = '';
+            this.bookingMatchFloatingRoot.setAttribute('aria-hidden', 'true');
+        }
+
+        if (
+            rerenderModal &&
+            state.source === 'modal' &&
+            this.bookingModal?.classList.contains('active') &&
+            !this.bookingModal.classList.contains('is-navigating-away')
+        ) {
+            this.renderBookingModalMarkup(state.packageId || this.selectedPackageId, {
+                preserveBodyScroll: true
+            });
+        }
+
+        if (restoreFocus) {
+            window.requestAnimationFrame(() => {
+                this.restoreBookingMatchTriggerFocus(state);
+            });
+        }
+    }
+
+    /**
+     * buildBookingMatchFloatingConfirmMarkup() - 生成右侧标签贴边确认浮片。
+     * @param {Object} state - 当前确认状态
+     * @returns {string}
+     */
+    buildBookingMatchFloatingConfirmMarkup(state) {
+        const copy = this.buildBookingMatchConfirmationCopy(state.label);
+        const phaseClass = state.phase === 'closing'
+            ? ' is-closing'
+            : (state.phase === 'open' ? ' is-active' : '');
+        return `
+            <section
+                class="booking-match-floating-confirm${phaseClass}"
+                data-placement="${escapeHtml(state.placement || 'bottom')}"
+                role="dialog"
+                aria-live="polite"
+            >
+                <p class="booking-match-floating-title">${escapeHtml(copy.title)}</p>
+                <p>${escapeHtml(copy.copy)}</p>
+                <div class="booking-match-floating-actions">
+                    <button type="button" data-booking-match-confirm-action="cancel">
+                        ${escapeHtml(copy.cancel)}
+                    </button>
+                    <button type="button" data-booking-match-confirm-action="confirm">
+                        ${escapeHtml(copy.confirm)}
+                    </button>
+                </div>
+            </section>
+        `;
+    }
+
+    /**
+     * renderBookingMatchFloatingConfirm() - 把侧栏贴边确认浮片挂到页面高层。
+     * @returns {void}
+     */
+    renderBookingMatchFloatingConfirm() {
+        const state = this.getBookingMatchConfirmationState();
+        if (!this.bookingMatchFloatingRoot || !state || state.source !== 'sidebar') {
+            return;
+        }
+
+        const root = this.bookingMatchFloatingRoot;
+        root.innerHTML = this.buildBookingMatchFloatingConfirmMarkup(state);
+        root.setAttribute('aria-hidden', 'false');
+
+        const panel = root.querySelector('.booking-match-floating-confirm');
+        if (!(panel instanceof HTMLElement)) {
+            return;
+        }
+
+        const trigger = this.findBookingMatchTrigger('sidebar', state.matchKey);
+        const rect = trigger?.getBoundingClientRect?.() || state.anchorRect;
+        const viewportPadding = 16;
+        const offset = 16;
+        const panelRect = panel.getBoundingClientRect();
+        const nextPlacement = rect && (rect.bottom + offset + panelRect.height > (window.innerHeight - viewportPadding))
+            ? 'top'
+            : 'bottom';
+        const left = rect
+            ? Math.max(
+                viewportPadding,
+                Math.min(
+                    rect.left + ((rect.width - panelRect.width) / 2),
+                    window.innerWidth - panelRect.width - viewportPadding
+                )
+            )
+            : (window.innerWidth - panelRect.width - viewportPadding);
+        const top = rect
+            ? (nextPlacement === 'top'
+                ? Math.max(viewportPadding, rect.top - panelRect.height - offset)
+                : Math.min(window.innerHeight - panelRect.height - viewportPadding, rect.bottom + offset))
+            : viewportPadding;
+
+        panel.dataset.placement = nextPlacement;
+        panel.style.left = `${left}px`;
+        panel.style.top = `${top}px`;
+    }
+
+    /**
+     * playBookingMatchConfirmationClosingMotion() - 在现有确认层 DOM 上触发关闭动画，避免重渲染瞬切。
+     * @param {{ source: 'modal'|'sidebar' }} state - 当前确认状态
+     * @returns {boolean}
+     */
+    playBookingMatchConfirmationClosingMotion(state) {
+        const panel = state?.source === 'modal'
+            ? this.bookingModal?.querySelector('.booking-match-confirm[data-booking-match-confirm-source="modal"]')
+            : this.bookingMatchFloatingRoot?.querySelector('.booking-match-floating-confirm');
+
+        if (!(panel instanceof HTMLElement)) {
+            return false;
+        }
+
+        panel.classList.remove('is-active');
+        panel.classList.add('is-closing');
+        panel.setAttribute('aria-hidden', 'true');
+        return true;
+    }
+
+    /**
+     * openBookingMatchConfirmation() - 打开能力匹配标签的二次确认。
+     * @param {string} matchKey - 首页匹配键
+     * @param {{ source: 'modal'|'sidebar', triggerElement?: HTMLElement|null, label?: string, packageId?: string }} options - 打开配置
+     * @returns {void}
+     */
+    openBookingMatchConfirmation(matchKey, options = {}) {
+        if (!matchKey) {
+            return;
+        }
+
+        const source = options.source === 'modal' ? 'modal' : 'sidebar';
+        const label = (options.label || options.triggerElement?.textContent || '').trim() || '这类海';
+        const packageId = source === 'modal'
+            ? (options.packageId || this.selectedPackageId || this.getActiveBookingModalPackageId())
+            : '';
+
+        this.clearBookingMatchConfirmationImmediately({ restoreFocus: false });
+
+        this.bookingMatchConfirmState = {
+            source,
+            phase: 'open',
+            matchKey,
+            url: buildHomeDiveMatchUrl(matchKey),
+            label,
+            packageId,
+            anchorRect: source === 'sidebar' ? options.triggerElement?.getBoundingClientRect?.() || null : null
+        };
+
+        if (source === 'modal') {
+            this.renderBookingModalMarkup(packageId, {
+                preserveBodyScroll: true
+            });
+            this.focusBookingMatchConfirmationPrimary('modal');
+            return;
+        }
+
+        this.renderBookingMatchFloatingConfirm();
+        window.requestAnimationFrame(() => {
+            this.renderBookingMatchFloatingConfirm();
+            this.focusBookingMatchConfirmationPrimary('sidebar');
+        });
+    }
+
+    /**
+     * closeBookingMatchConfirmation() - 关闭当前能力匹配确认层。
+     * @param {{ immediate?: boolean, restoreFocus?: boolean, source?: 'modal'|'sidebar'|'' }} [options={}] - 关闭选项
+     * @returns {void}
+     */
+    closeBookingMatchConfirmation(options = {}) {
+        const {
+            immediate = false,
+            restoreFocus = true,
+            source = ''
+        } = options;
+        const state = this.getBookingMatchConfirmationState();
+        if (!state || (source && state.source !== source)) {
+            return;
+        }
+
+        if (immediate) {
+            this.clearBookingMatchConfirmationImmediately({
+                restoreFocus,
+                state
+            });
+            return;
+        }
+
+        this.clearBookingMatchConfirmationTimers();
+        const closingState = { ...state, phase: 'closing' };
+        this.bookingMatchConfirmState = closingState;
+        const isClosingMotionPlaying = this.playBookingMatchConfirmationClosingMotion(closingState);
+
+        if (!isClosingMotionPlaying) {
+            if (closingState.source === 'modal') {
+                this.renderBookingModalMarkup(closingState.packageId || this.selectedPackageId, {
+                    preserveBodyScroll: true
+                });
+            } else {
+                this.renderBookingMatchFloatingConfirm();
+            }
+        }
+
+        this.bookingMatchConfirmCloseTimer = window.setTimeout(() => {
+            this.clearBookingMatchConfirmationImmediately({
+                restoreFocus,
+                state: closingState,
+                rerenderModal: closingState.source === 'modal'
+            });
+        }, BOOKING_MATCH_CONFIRM_CLOSE_DURATION);
+    }
+
+    /**
+     * handleBookingMatchConfirmationAction() - 响应确认层里的继续/取消动作。
+     * @param {'confirm'|'cancel'} action - 用户动作
+     * @returns {void}
+     */
+    handleBookingMatchConfirmationAction(action) {
+        const state = this.getBookingMatchConfirmationState();
+        if (!state) {
+            return;
+        }
+
+        if (action !== 'confirm') {
+            this.closeBookingMatchConfirmation({
+                restoreFocus: true
+            });
+            return;
+        }
+
+        const targetUrl = state.url;
+        this.clearBookingMatchConfirmationImmediately({
+            restoreFocus: false,
+            state
+        });
+
+        if (state.source === 'modal' && this.bookingModal?.classList.contains('active')) {
+            this.startBookingModalNavigateAway(targetUrl);
+            return;
+        }
+
+        navigateWithDepth(targetUrl);
+    }
+
+    /**
+     * resetBookingModalNavigateAwayState() - 清理套餐弹层外跳中的过渡状态。
+     * @returns {void}
+     */
+    resetBookingModalNavigateAwayState() {
+        this.bookingModalNavigationAway = false;
+        this.clearBookingModalSourceRevealTimer();
+        this.clearBookingFocusPanelReturnMotion();
+
+        if (this.bookingMatchNavigationTimer) {
+            window.clearTimeout(this.bookingMatchNavigationTimer);
+            this.bookingMatchNavigationTimer = 0;
+        }
+
+        this.bookingModal?.classList.remove('is-navigating-away', 'is-returning-to-focus-panel');
+    }
+
+    /**
+     * startBookingModalNavigateAway() - 在跳出 detail 前先把套餐弹层轻轻收住。
+     * @param {string} targetUrl - 即将跳转的目标地址
+     * @returns {void}
+     */
+    startBookingModalNavigateAway(targetUrl) {
+        if (!targetUrl) {
+            return;
+        }
+
+        if (!this.bookingModal || !this.bookingModal.classList.contains('active')) {
+            navigateWithDepth(targetUrl);
+            return;
+        }
+
+        this.clearBookingMatchConfirmationTimers();
+        this.resetBookingModalNavigateAwayState();
+        this.clearBookingModalMorph();
+        this.bookingModalNavigationAway = true;
+        this.bookingModal.classList.remove('is-closing');
+        this.bookingModal.classList.add('is-navigating-away', 'active');
+        this.bookingModal.setAttribute('aria-hidden', 'false');
+        this.syncOverlayLock();
+
+        this.bookingMatchNavigationTimer = window.setTimeout(() => {
+            this.bookingMatchNavigationTimer = 0;
+            navigateWithDepth(targetUrl);
+        }, 260);
+    }
+
+    /**
+     * teardownBookingModalForPageExit() - 在跨页切走前清理套餐弹层和匹配确认层残留。
+     * @returns {void}
+     */
+    teardownBookingModalForPageExit() {
+        this.clearBookingMatchConfirmationImmediately({
+            restoreFocus: false
+        });
+        this.resetBookingModalNavigateAwayState();
+
+        if (this.bookingModalCloseTimer) {
+            window.clearTimeout(this.bookingModalCloseTimer);
+            this.bookingModalCloseTimer = 0;
+        }
+        this.clearBookingModalSourceRevealTimer();
+        if (this.packageModalEditorCloseTimer) {
+            window.clearTimeout(this.packageModalEditorCloseTimer);
+            this.packageModalEditorCloseTimer = 0;
+        }
+
+        this.packageModalEditorTransitioning = false;
+        this.cancelPackageModalEditorStateMotion();
+        this.clearBookingModalMorph();
+
+        if (this.bookingModal) {
+            this.bookingModal.classList.remove('active', 'is-closing', 'is-navigating-away');
+            this.bookingModal.setAttribute('aria-hidden', 'true');
+        }
+
+        this.syncOverlayLock();
     }
 
     /**
@@ -9079,28 +11886,48 @@ class DetailPage {
         const priceEditorState = modalState?.editorState || 'closed';
         const priceCustomState = modalState?.isCustomized ? 'customized' : 'default';
         const priceLayoutState = modalState?.isEditorOpen ? 'expanded' : 'compact';
+        const priceToggleState = modalState?.isEditorOpen ? 'open' : 'closed';
+        const priceToggleAriaLabel = modalState?.isEditorOpen
+            ? '收住这一下，关闭节奏调整面板'
+            : '改一改节奏，打开节奏调整面板';
         const sanitizedPackageId = String(pkg.id || 'package').replace(/[^a-zA-Z0-9_-]/g, '');
         const priceEditorId = `packageModalPriceEditor-${sanitizedPackageId || 'current'}`;
+        const priceSummaryFootnote = focusCopy || '';
         const priceSummaryItems = [
             {
                 key: 'duration',
                 label: '停留',
-                value: modalState?.durationLabel || pkg.duration,
+                miniValue: modalState?.durationLabel || pkg.duration,
+                summaryValue: modalState?.durationLabel || pkg.duration,
+                routeValue: modalState?.durationLabel || pkg.duration,
+                sentenceValue: `停留 ${modalState?.durationLabel || pkg.duration}`,
                 tone: modalState?.durationTone || 'base'
             },
             {
                 key: 'window',
                 label: '时段',
-                value: modalState?.windowLabel || '时段待定',
+                miniValue: this.getPackageModalMiniWindowLabel(modalState?.windowKey),
+                summaryValue: modalState?.windowLabel || '时段待定',
+                routeValue: modalState?.windowLabel || '时段待定',
+                sentenceValue: `${modalState?.windowLabel || '时段待定'}入海`,
                 tone: modalState?.windowTone || 'base'
             },
             {
                 key: 'people',
                 label: '同行',
-                value: modalState?.peopleLabel || '先不写',
+                miniValue: this.formatPackageModalMiniPeopleLabel(modalState?.peopleValue),
+                summaryValue: modalState?.peopleLabel || '同行待回声',
+                routeValue: modalState?.peopleLabel || '待回声',
+                sentenceValue: modalState?.peopleLabel ? `同行 ${modalState.peopleLabel}` : '同行待回声',
                 tone: modalState?.peopleTone || 'empty'
             }
         ];
+        const summarySentence = `这一程先${priceSummaryItems.map((item) => item.sentenceValue).join('，')}。`;
+        const routeEchoRouteLabel = [pkg?.group, pkg?.name].filter(Boolean).join(' · ') || '当前这片海';
+        const routeEchoNote = modalState?.windowHint || focusCopy || '这程先安静收住，下面再继续把细节往下排。';
+        const routeEchoTail = modalState?.peopleLabel
+            ? `这一程先按 ${modalState.peopleLabel} 的同行节奏留存。`
+            : '同行待回声也没关系，先把停留和入海时段稳稳收住。';
 
         let layoutOrder = 0;
         const nextLayoutOrder = () => layoutOrder++;
@@ -9134,7 +11961,10 @@ class DetailPage {
                             ${rhythmTags.map((tag) => createPackagePlateMarkup(escapeHtml(tag), 'rhythm')).join('')}
                         </div>
 
-                        <div class="package-modal-signal">
+                        <div
+                            class="package-modal-signal ${modalState?.isEditorOpen ? 'is-editor-open' : 'is-editor-closed'}"
+                            data-package-signal-state="${escapeHtml(priceLayoutState)}"
+                        >
                             <section
                                 class="package-modal-price ${modalState?.isEditorOpen ? 'is-editor-open' : 'is-editor-closed'} ${modalState?.isCustomized ? 'is-customized' : 'is-pristine'}"
                                 data-package-price-editor-state="${escapeHtml(priceEditorState)}"
@@ -9154,23 +11984,63 @@ class DetailPage {
                                                 class="package-modal-price-toggle package-modal-extra-fragment"
                                                 style="--package-modal-extra-order: 1"
                                                 data-package-price-editor-toggle="${escapeHtml(pkg.id)}"
+                                                data-package-price-toggle-state="${escapeHtml(priceToggleState)}"
                                                 aria-expanded="${String(Boolean(modalState?.isEditorOpen))}"
+                                                aria-label="${escapeHtml(priceToggleAriaLabel)}"
                                                 aria-controls="${escapeHtml(priceEditorId)}"
                                             >
-                                                ${modalState?.isEditorOpen ? '先收住这一下' : '改一改节奏'}
+                                                <span class="package-modal-price-toggle-shell">
+                                                    <span
+                                                        class="package-modal-price-toggle-label"
+                                                        data-package-price-toggle-label="closed"
+                                                        aria-hidden="true"
+                                                    >改一改节奏</span>
+                                                    <span
+                                                        class="package-modal-price-toggle-label"
+                                                        data-package-price-toggle-label="open"
+                                                        aria-hidden="true"
+                                                    >先收住这一下</span>
+                                                    <span
+                                                        class="package-modal-price-toggle-rail"
+                                                        data-package-price-toggle-rail
+                                                        data-package-price-toggle-rail-state="${escapeHtml(priceToggleState)}"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                </span>
                                             </button>
+                                        </div>
+
+                                        <div
+                                            class="package-modal-price-mini-summary package-modal-extra-fragment"
+                                            style="--package-modal-extra-order: 2"
+                                            data-package-price-fragment="mini-summary"
+                                        >
+                                            ${priceSummaryItems.map((item) => `
+                                                <button
+                                                    type="button"
+                                                    class="package-modal-price-mini-chip is-${escapeHtml(item.tone)}"
+                                                    data-package-editor-focus="${escapeHtml(item.key)}"
+                                                    data-package-id="${escapeHtml(pkg.id)}"
+                                                    data-package-mini-summary-item="${escapeHtml(item.key)}"
+                                                    data-summary-tone="${escapeHtml(item.tone)}"
+                                                    aria-label="调整${escapeHtml(item.label)}，当前为${escapeHtml(item.miniValue)}"
+                                                >
+                                                    <span class="package-modal-price-mini-label">${escapeHtml(item.label)}</span>
+                                                    <strong class="package-modal-price-mini-value">${escapeHtml(item.miniValue)}</strong>
+                                                </button>
+                                            `).join('')}
                                         </div>
 
                                         <div
                                             id="${escapeHtml(priceEditorId)}"
                                             class="package-modal-price-editor package-modal-extra-fragment package-modal-editor-layer ${modalState?.isEditorOpen ? 'is-open' : 'is-closed'}"
-                                            style="--package-modal-extra-order: 2"
+                                            style="--package-modal-extra-order: 3"
                                             aria-hidden="${String(!modalState?.isEditorOpen)}"
                                             data-package-price-editor-state="${escapeHtml(priceEditorState)}"
                                             data-package-price-editor="${escapeHtml(pkg.id)}"
                                         >
                                             <div class="package-modal-price-editor-track" data-package-price-editor-track>
-                                                <div class="package-modal-option-group package-modal-editor-fragment" style="--package-modal-editor-order: 0" data-package-editor-fragment="duration">
+                                                <div class="package-modal-option-group package-modal-editor-fragment ${modalState?.focusField === 'duration' ? 'is-focus-target' : ''}" style="--package-modal-editor-order: 0" data-package-editor-fragment="duration">
                                         <span class="package-modal-option-label">停留天数</span>
                                         <div class="package-modal-option-list">
                                             ${durationOptions.map((option) => `
@@ -9226,7 +12096,7 @@ class DetailPage {
                                         ` : ''}
                                     </div>
 
-                                    <div class="package-modal-option-group package-modal-editor-fragment" style="--package-modal-editor-order: 1" data-package-editor-fragment="window">
+                                    <div class="package-modal-option-group package-modal-editor-fragment ${modalState?.focusField === 'window' ? 'is-focus-target' : ''}" style="--package-modal-editor-order: 1" data-package-editor-fragment="window">
                                         <span class="package-modal-option-label">入海时段</span>
                                         <div class="package-modal-option-list">
                                             ${windowOptions.map((option) => `
@@ -9243,7 +12113,7 @@ class DetailPage {
                                         </div>
                                     </div>
 
-                                    <div class="package-modal-option-group package-modal-editor-fragment" style="--package-modal-editor-order: 2" data-package-editor-fragment="people">
+                                    <div class="package-modal-option-group package-modal-editor-fragment ${modalState?.focusField === 'people' ? 'is-focus-target' : ''}" style="--package-modal-editor-order: 2" data-package-editor-fragment="people">
                                         <span class="package-modal-option-label">同行人数</span>
                                         <div class="package-modal-option-list">
                                             ${peopleOptions.map((option) => `
@@ -9306,53 +12176,88 @@ class DetailPage {
                                         ${escapeHtml(modalState?.windowHint || '确认之后，也还能继续把这片海的节奏慢慢往下调。')}
                                     </p>
                                 </div>
-                                </div>
-                                </div>
-                                    <aside
-                                        class="package-modal-price-summary package-modal-extra-fragment"
-                                        style="--package-modal-extra-order: 3"
-                                        data-package-price-column="summary"
-                                        data-package-price-summary-state="${escapeHtml(priceCustomState)}"
-                                        data-package-price-editor-state="${escapeHtml(priceEditorState)}"
-                                        aria-live="polite"
-                                    >
-                                        <p class="package-modal-price-summary-kicker" data-package-summary-fragment="kicker">当前收束</p>
-                                        <ul class="package-modal-price-summary-list" data-package-summary-fragment="list">
-                                            ${priceSummaryItems.map((item) => `
-                                                <li
-                                                    class="package-modal-price-summary-item is-${escapeHtml(item.tone)}"
-                                                    data-package-summary-item="${escapeHtml(item.key)}"
-                                                    data-summary-tone="${escapeHtml(item.tone)}"
-                                                >
-                                                    <span class="package-modal-price-summary-label">${escapeHtml(item.label)}</span>
-                                                    <strong class="package-modal-price-summary-value">${escapeHtml(item.value)}</strong>
-                                                </li>
-                                            `).join('')}
-                                        </ul>
-                                        <p class="package-modal-price-summary-note" data-package-summary-fragment="note">
-                                            ${escapeHtml(modalState?.summarySentence || '')}
-                                        </p>
-                                    </aside>
-                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                             </section>
 
-                            <section class="package-modal-summary-block package-modal-journey">
-                                <span class="package-modal-summary-label package-modal-journey-label">进入方式</span>
-                                <p class="package-modal-journey-primary">${escapeHtml(pkg.diveSummary)}</p>
-                                <p class="package-modal-journey-secondary">${escapeHtml(cadenceStayCopy)}</p>
-                            </section>
+                            <div class="package-modal-signal-aside" data-package-signal-column="aside">
+                                <aside
+                                    class="package-modal-price-summary package-modal-extra-fragment"
+                                    style="--package-modal-extra-order: 0"
+                                    data-package-price-column="summary"
+                                    data-package-price-summary-state="${escapeHtml(priceCustomState)}"
+                                    data-package-price-editor-state="${escapeHtml(priceEditorState)}"
+                                    aria-live="polite"
+                                >
+                                    <p class="package-modal-price-summary-kicker" data-package-summary-fragment="kicker">当前收束</p>
+                                    <ul class="package-modal-price-summary-list" data-package-summary-fragment="list">
+                                        ${priceSummaryItems.map((item) => `
+                                            <li
+                                                class="package-modal-price-summary-item is-${escapeHtml(item.tone)}"
+                                                data-package-summary-item="${escapeHtml(item.key)}"
+                                                data-summary-tone="${escapeHtml(item.tone)}"
+                                            >
+                                                <span class="package-modal-price-summary-label">${escapeHtml(item.label)}</span>
+                                                <strong class="package-modal-price-summary-value">${escapeHtml(item.summaryValue)}</strong>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                    <p class="package-modal-price-summary-note" data-package-summary-fragment="note">
+                                        ${escapeHtml(summarySentence)}
+                                    </p>
+                                    ${priceSummaryFootnote ? `
+                                        <div class="package-modal-price-summary-footnote" data-package-summary-fragment="footnote">
+                                            <span class="package-modal-slip-meta">潮汐注记</span>
+                                            <p class="package-modal-slip-text">${escapeHtml(priceSummaryFootnote)}</p>
+                                        </div>
+                                    ` : ''}
+                                </aside>
+
+                                <section
+                                    class="package-modal-summary-block package-modal-route-echo package-modal-extra-fragment"
+                                    style="--package-modal-extra-order: 1"
+                                    data-package-route-echo-state="${escapeHtml(priceCustomState)}"
+                                    aria-live="polite"
+                                >
+                                    <span class="package-modal-summary-label package-modal-route-echo-label">Route Echo</span>
+                                    <p class="package-modal-route-echo-route">${escapeHtml(routeEchoRouteLabel)}</p>
+                                    <p class="package-modal-route-echo-note">${escapeHtml(routeEchoNote)}</p>
+                                    <div class="package-modal-route-echo-chips">
+                                        ${priceSummaryItems.map((item) => `
+                                            <span
+                                                class="package-modal-route-echo-chip is-${escapeHtml(item.tone)}"
+                                                data-package-route-echo-chip="${escapeHtml(item.key)}"
+                                                data-summary-tone="${escapeHtml(item.tone)}"
+                                            >
+                                                <span class="package-modal-route-echo-chip-label">${escapeHtml(item.label)}</span>
+                                                <strong class="package-modal-route-echo-chip-value">${escapeHtml(item.routeValue)}</strong>
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                    <div class="package-modal-route-echo-tail">
+                                        <span class="package-modal-slip-meta">回响尾流</span>
+                                        <p class="package-modal-slip-text">${escapeHtml(routeEchoTail)}</p>
+                                    </div>
+                                </section>
+
+                                <section class="package-modal-summary-block package-modal-journey package-modal-extra-fragment" style="--package-modal-extra-order: 2">
+                                    <span class="package-modal-summary-label package-modal-journey-label">进入方式</span>
+                                    <p class="package-modal-journey-primary">${escapeHtml(pkg.diveSummary)}</p>
+                                    <div class="package-modal-journey-secondary">
+                                        <span class="package-modal-slip-meta">停驻余韵</span>
+                                        <p class="package-modal-slip-text" title="${escapeHtml(cadenceStayCopy)}">${escapeHtml(cadenceStayCopy)}</p>
+                                    </div>
+                                </section>
+                            </div>
                         </div>
-
-                        <section class="package-modal-summary-block package-modal-current">
-                            <span class="package-modal-summary-label package-modal-current-label">当前海流</span>
-                            <p class="package-modal-current-copy">${escapeHtml(focusCopy)}</p>
-                        </section>
                     </div>
                 </header>
 
                 <div class="package-modal-match package-modal-motion" style="--package-modal-enter-order: ${matchOrder}">
                     ${matchTags.map((tag) => createBookingMatchChipMarkup(tag)).join('')}
                 </div>
+                ${this.createBookingMatchConfirmMarkup(pkg.id)}
 
                 <div class="package-modal-body">
                     <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${highlightsOrder}">
@@ -9574,10 +12479,200 @@ class DetailPage {
     }
 
     /**
+     * cacheBookingModalSourceSnapshot() - 缓存弹层打开来源的几何快照，供关闭时兜底回收。
+     * @param {string} packageId - 套餐 ID
+     * @param {Object|null} sourceState - 打开时捕获到的来源状态
+     * @returns {void}
+     */
+    cacheBookingModalSourceSnapshot(packageId, sourceState = null) {
+        const persistSnapshot = (rect, isFullyVisible = false) => {
+            this.activeBookingSourceSnapshot = {
+                packageId,
+                rect: {
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                },
+                isFullyVisible: Boolean(isFullyVisible)
+            };
+        };
+        const sourceRect = sourceState?.rect;
+        if (
+            sourceRect &&
+            Number.isFinite(sourceRect.top) &&
+            Number.isFinite(sourceRect.left) &&
+            Number.isFinite(sourceRect.width) &&
+            Number.isFinite(sourceRect.height) &&
+            sourceRect.width >= 24 &&
+            sourceRect.height >= 24
+        ) {
+            persistSnapshot(sourceRect, sourceState?.isFullyVisible);
+            return;
+        }
+
+        const fallbackTarget = this.getMorphTargetFromElement(
+            sourceState?.sourceElement || this.getPackageSourceCard(packageId)
+        );
+        const fallbackRect = fallbackTarget?.sourceRect;
+        if (
+            fallbackRect &&
+            Number.isFinite(fallbackRect.top) &&
+            Number.isFinite(fallbackRect.left) &&
+            Number.isFinite(fallbackRect.width) &&
+            Number.isFinite(fallbackRect.height) &&
+            fallbackRect.width >= 24 &&
+            fallbackRect.height >= 24
+        ) {
+            persistSnapshot(fallbackRect, fallbackTarget?.sourceVisibility?.isFullyVisible);
+            return;
+        }
+
+        this.activeBookingSourceSnapshot = null;
+    }
+
+    /**
+     * getActiveBookingModalPackageId() - 读取当前弹层里的套餐 ID。
+     * @returns {string} - 当前弹层套餐 ID
+     */
+    getActiveBookingModalPackageId() {
+        const modalPackageId = this.bookingModal
+            ?.querySelector('.package-modal[data-package-id]')
+            ?.dataset
+            ?.packageId;
+        return modalPackageId || this.selectedPackageId || this.activeBookingFocusPackageId || '';
+    }
+
+    /**
+     * getSnapshotRectForPackage() - 把缓存快照转换成可用于关闭回收动画的安全矩形。
+     * @param {string} packageId - 当前弹层套餐 ID
+     * @returns {Object|null} - 安全矩形或空值
+     */
+    getSnapshotRectForPackage(packageId) {
+        const snapshot = this.activeBookingSourceSnapshot;
+        if (!snapshot || !snapshot.rect) {
+            return null;
+        }
+
+        if (packageId && snapshot.packageId && snapshot.packageId !== packageId) {
+            return null;
+        }
+
+        const { top, left, width, height } = snapshot.rect;
+        if (
+            !Number.isFinite(top) ||
+            !Number.isFinite(left) ||
+            !Number.isFinite(width) ||
+            !Number.isFinite(height) ||
+            width < 24 ||
+            height < 24
+        ) {
+            return null;
+        }
+
+        return { top, left, width, height };
+    }
+
+    /**
+     * getMorphTargetFromElement() - 从目标元素提取可用于 morph 回收的矩形信息。
+     * @param {HTMLElement|null} element - 目标元素
+     * @returns {{ sourceRect: Object, sourceElement: HTMLElement, sourceVisibility: Object }|null}
+     */
+    getMorphTargetFromElement(element) {
+        if (!(element instanceof HTMLElement)) {
+            return null;
+        }
+
+        const visibility = this.getElementVisibleState(element);
+        if (!visibility) {
+            return null;
+        }
+
+        const sourceRect = visibility.isFullyVisible ? visibility.rect : visibility.visibleRect;
+        if (!sourceRect || sourceRect.width < 24 || sourceRect.height < 24) {
+            return null;
+        }
+
+        return {
+            sourceRect,
+            sourceElement: element,
+            sourceVisibility: visibility
+        };
+    }
+
+    /**
+     * resolveBookingModalCloseMorphTarget() - 关闭弹层时优先回收到当前套餐语境，再回退到快照。
+     * @param {string} packageId - 当前弹层套餐 ID
+     * @returns {{ sourceRect: Object, sourceElement: HTMLElement|null, sourceVisibility: Object|null }|null}
+     */
+    resolveBookingModalCloseMorphTarget(packageId) {
+        const focusOnlyContext = (
+            this.bookingSticky?.classList.contains('is-focus-only-context') ||
+            this.bookingStickyFocusContextState === 'entering' ||
+            this.bookingStickyFocusContextState === 'focus'
+        );
+
+        if (focusOnlyContext) {
+            const focusPanelTarget = this.getMorphTargetFromElement(this.bookingFocusPanel);
+            if (focusPanelTarget) {
+                return focusPanelTarget;
+            }
+        } else {
+            const listCardTarget = this.getMorphTargetFromElement(this.getPackageCardById(packageId));
+            if (listCardTarget) {
+                return listCardTarget;
+            }
+        }
+
+        const snapshotRect = this.getSnapshotRectForPackage(packageId);
+        if (!snapshotRect) {
+            return null;
+        }
+
+        return {
+            sourceRect: snapshotRect,
+            sourceElement: null,
+            sourceVisibility: this.activeBookingSourceSnapshot
+                ? { isFullyVisible: Boolean(this.activeBookingSourceSnapshot.isFullyVisible) }
+                : null
+        };
+    }
+
+    /**
+     * clearBookingModalSourceRevealTimer() - 清理套餐弹层关闭时的来源回显定时器。
+     * @returns {void}
+     */
+    clearBookingModalSourceRevealTimer() {
+        if (this.bookingModalSourceRevealTimer) {
+            window.clearTimeout(this.bookingModalSourceRevealTimer);
+            this.bookingModalSourceRevealTimer = 0;
+        }
+    }
+
+    /**
+     * releaseBookingModalSourceVisualState() - 提前释放来源卡片的压暗态，但保留共享元素引用。
+     * @param {HTMLElement|null} [sourceElement=this.activeBookingSourceCard] - 要恢复显示的来源节点
+     * @returns {void}
+     */
+    releaseBookingModalSourceVisualState(sourceElement = this.activeBookingSourceCard) {
+        sourceElement?.classList.remove('is-originating');
+    }
+
+    /**
      * clearBookingModalMorph() - 清理套餐卡到弹层的共享元素过渡状态
+     * @param {{ preserveSourceSnapshot?: boolean, preserveFocusReturnMotion?: boolean }} [options={}] - 是否保留打开时缓存的来源快照、是否保留焦点舱回场动画
      * @returns {void} - 无返回值，直接移除 ghost 和临时 class
      */
-    clearBookingModalMorph() {
+    clearBookingModalMorph(options = {}) {
+        const {
+            preserveSourceSnapshot = false,
+            preserveFocusReturnMotion = false
+        } = options;
+        this.clearBookingModalSourceRevealTimer();
+        if (!preserveFocusReturnMotion) {
+            this.clearBookingFocusPanelReturnMotion();
+        }
+
         if (this.bookingModalMorphRevealTimer) {
             window.clearTimeout(this.bookingModalMorphRevealTimer);
             this.bookingModalMorphRevealTimer = 0;
@@ -9596,6 +12691,10 @@ class DetailPage {
         if (this.activeBookingSourceCard) {
             this.activeBookingSourceCard.classList.remove('is-originating');
             this.activeBookingSourceCard = null;
+        }
+
+        if (!preserveSourceSnapshot) {
+            this.activeBookingSourceSnapshot = null;
         }
 
         const modalContent = this.bookingModal?.querySelector('.booking-modal-content');
@@ -9632,7 +12731,7 @@ class DetailPage {
             return;
         }
 
-        this.clearBookingModalMorph();
+        this.clearBookingModalMorph({ preserveSourceSnapshot: true });
         this.activeBookingSourceCard = originCard || null;
         this.activeBookingSourceCard?.classList.add('is-originating');
         modalContent.classList.add('is-morphing');
@@ -9683,21 +12782,32 @@ class DetailPage {
      * @returns {void} - 无返回值，直接切换页面锁定 class
      */
     syncOverlayLock() {
+        const hasActiveBookingModal = Boolean(
+            this.bookingModal &&
+            this.bookingModal.classList.contains('active') &&
+            !this.bookingModalNavigationAway
+        );
+        const hasClosingBookingModal = Boolean(
+            this.bookingModal &&
+            this.bookingModal.classList.contains('is-closing')
+        );
         const hasActiveOverlay = Boolean(
-            (this.bookingModal && this.bookingModal.classList.contains('active')) ||
+            hasActiveBookingModal ||
+            hasClosingBookingModal ||
             (this.bookingConfirmFeedback && this.bookingConfirmFeedback.classList.contains('active')) ||
             (this.reviewDetailModal && this.reviewDetailModal.classList.contains('active')) ||
-            (this.reviewLightbox && this.reviewLightbox.classList.contains('active'))
+            (this.reviewLightbox && this.reviewLightbox.classList.contains('active')) ||
+            this.seaAtlasFullscreenOpen
         );
         const hasBookingModalOpen = Boolean(
-            this.bookingModal &&
-            (this.bookingModal.classList.contains('active') || this.bookingModal.classList.contains('is-closing'))
+            hasActiveBookingModal || hasClosingBookingModal
         );
+        const hasBookingModalListContext = Boolean(hasActiveBookingModal);
 
         document.documentElement.classList.toggle('has-overlay-lock', hasActiveOverlay);
         document.body.classList.toggle('has-overlay-lock', hasActiveOverlay);
         document.body.classList.toggle('has-booking-modal-open', hasBookingModalOpen);
-        this.itineraryList?.classList.toggle('is-modal-open', hasBookingModalOpen);
+        this.itineraryList?.classList.toggle('is-modal-open', hasBookingModalListContext);
         // 同时锁 html 和 body，是为了兼容不同浏览器对滚动容器的处理，
         // 避免弹层打开后背景还能继续偷偷滚动。
     }
@@ -9711,10 +12821,21 @@ class DetailPage {
             return;
         }
 
+        this.clearBookingMatchConfirmationImmediately({
+            restoreFocus: false
+        });
+        this.resetBookingModalNavigateAwayState();
+
         if (this.bookingModalCloseTimer) {
             window.clearTimeout(this.bookingModalCloseTimer);
             this.bookingModalCloseTimer = 0;
         }
+        if (this.packageModalEditorCloseTimer) {
+            window.clearTimeout(this.packageModalEditorCloseTimer);
+            this.packageModalEditorCloseTimer = 0;
+        }
+        this.packageModalEditorTransitioning = false;
+        this.cancelPackageModalEditorStateMotion();
 
         if (!this.bookingModal.classList.contains('active') && !this.bookingModal.classList.contains('is-closing')) {
             this.bookingModal.setAttribute('aria-hidden', 'true');
@@ -9723,19 +12844,112 @@ class DetailPage {
         }
 
         const modalContent = this.bookingModal.querySelector('.booking-modal-content');
-        const sourceCard = this.activeBookingSourceCard;
+        const packageId = this.getActiveBookingModalPackageId();
+        const isFocusOnlyContext = Boolean(
+            this.bookingSticky?.classList.contains('is-focus-only-context') ||
+            this.bookingStickyFocusContextState === 'entering' ||
+            this.bookingStickyFocusContextState === 'focus'
+        );
+        const focusPanelPackageId = this.bookingFocusPanel?.dataset?.packageId
+            || this.activeBookingFocusPackageId
+            || this.selectedPackageId
+            || '';
+        const canHandoffToFocusPanel = Boolean(
+            modalContent &&
+            window.innerWidth >= 920 &&
+            this.bookingModal.classList.contains('active') &&
+            this.bookingFocusPanel &&
+            isFocusOnlyContext &&
+            focusPanelPackageId === packageId
+        );
+
+        if (canHandoffToFocusPanel) {
+            const focusPanelTarget = this.getMorphTargetFromElement(this.bookingFocusPanel);
+            const focusPanelRect = focusPanelTarget?.sourceRect || this.bookingFocusPanel.getBoundingClientRect();
+            const modalRect = modalContent.getBoundingClientRect();
+            const canAnimateTowardFocusPanel = Boolean(
+                focusPanelRect &&
+                focusPanelRect.width >= 40 &&
+                focusPanelRect.height >= 40 &&
+                modalRect.width >= 120 &&
+                modalRect.height >= 120
+            );
+
+            if (this.activeBookingSourceCard && this.activeBookingSourceCard !== this.bookingFocusPanel) {
+                this.activeBookingSourceCard.classList.remove('is-originating');
+            }
+
+            this.activeBookingSourceCard = this.bookingFocusPanel;
+            this.activeBookingSourceCard.classList.add('is-originating');
+
+            this.bookingModal.classList.remove('active');
+            this.bookingModal.classList.add('is-closing', 'is-returning-to-focus-panel');
+
+            modalContent.classList.add('is-morphing');
+            modalContent.style.transition = 'none';
+            modalContent.style.transformOrigin = canAnimateTowardFocusPanel ? 'top left' : 'center center';
+            modalContent.style.transform = 'translate3d(0, 0, 0) scale(1, 1)';
+            modalContent.style.opacity = '1';
+            modalContent.style.filter = 'blur(0px)';
+
+            window.requestAnimationFrame(() => {
+                if (canAnimateTowardFocusPanel) {
+                    const handoffX = focusPanelRect.left - modalRect.left;
+                    const handoffY = focusPanelRect.top - modalRect.top;
+                    const handoffScaleX = focusPanelRect.width / modalRect.width;
+                    const handoffScaleY = focusPanelRect.height / modalRect.height;
+                    modalContent.style.transition =
+                        'transform 260ms cubic-bezier(0.18, 0.84, 0.2, 1), opacity 220ms ease, filter 220ms ease';
+                    modalContent.style.transform = `translate3d(${handoffX}px, ${handoffY}px, 0) scale(${handoffScaleX}, ${handoffScaleY})`;
+                    modalContent.style.opacity = '0.16';
+                    modalContent.style.filter = 'blur(8px)';
+                    return;
+                }
+
+                modalContent.style.transition =
+                    'transform 240ms cubic-bezier(0.22, 0.78, 0.3, 1), opacity 200ms ease, filter 200ms ease';
+                modalContent.style.transform = 'translate3d(0, 14px, 0) scale(0.986)';
+                modalContent.style.opacity = '0';
+                modalContent.style.filter = 'blur(10px)';
+            });
+
+            this.clearBookingModalSourceRevealTimer();
+            this.bookingModalSourceRevealTimer = window.setTimeout(() => {
+                this.releaseBookingModalSourceVisualState(this.bookingFocusPanel);
+                this.startBookingFocusPanelReturnMotion();
+                this.bookingModalSourceRevealTimer = 0;
+            }, canAnimateTowardFocusPanel ? 96 : 72);
+
+            this.bookingModalCloseTimer = window.setTimeout(() => {
+                if (!this.bookingModal) {
+                    return;
+                }
+
+                this.releaseBookingModalSourceVisualState(this.bookingFocusPanel);
+                this.bookingModal.setAttribute('aria-hidden', 'true');
+                this.bookingModal.classList.remove('is-closing', 'is-returning-to-focus-panel');
+                this.clearBookingModalMorph({
+                    preserveFocusReturnMotion: true
+                });
+                this.bookingModalCloseTimer = 0;
+                this.syncOverlayLock();
+            }, canAnimateTowardFocusPanel ? 260 : 220);
+
+            this.syncOverlayLock();
+            return;
+        }
+
+        const morphTarget = this.resolveBookingModalCloseMorphTarget(packageId);
         const canReverseMorph = Boolean(
             modalContent &&
-            sourceCard &&
+            morphTarget?.sourceRect &&
             window.innerWidth >= 920 &&
             this.bookingModal.classList.contains('active')
         );
 
         if (canReverseMorph) {
-            const sourceVisibility = this.getElementVisibleState(sourceCard);
-            const sourceRect = sourceVisibility?.isFullyVisible
-                ? sourceVisibility.rect
-                : sourceVisibility?.visibleRect;
+            const sourceRect = morphTarget.sourceRect;
+            const sourceVisibility = morphTarget.sourceVisibility || null;
             const targetRect = modalContent.getBoundingClientRect();
 
             if (
@@ -9749,9 +12963,18 @@ class DetailPage {
                 const invertY = sourceRect.top - targetRect.top;
                 const invertScaleX = sourceRect.width / targetRect.width;
                 const invertScaleY = sourceRect.height / targetRect.height;
+                const targetElement = morphTarget.sourceElement || null;
+                const sourceElement = targetElement;
+
+                if (this.activeBookingSourceCard && this.activeBookingSourceCard !== sourceElement) {
+                    this.activeBookingSourceCard.classList.remove('is-originating');
+                }
+                this.activeBookingSourceCard = sourceElement;
+                this.activeBookingSourceCard?.classList.add('is-originating');
 
                 this.bookingModal.classList.remove('active');
                 this.bookingModal.classList.add('is-closing');
+                this.bookingModal.classList.remove('is-returning-to-focus-panel');
 
                 modalContent.classList.add('is-morphing');
                 modalContent.style.transition = 'none';
@@ -9762,20 +12985,26 @@ class DetailPage {
 
                 window.requestAnimationFrame(() => {
                     modalContent.style.transition =
-                        'transform 720ms cubic-bezier(0.22, 0.78, 0.2, 1), opacity 360ms ease, filter 360ms ease';
+                        'transform 760ms cubic-bezier(0.18, 0.84, 0.18, 1), opacity 420ms ease, filter 420ms ease';
                     modalContent.style.transform = `translate3d(${invertX}px, ${invertY}px, 0) scale(${invertScaleX}, ${invertScaleY})`;
                     modalContent.style.opacity = sourceVisibility?.isFullyVisible ? '0.12' : '0.18';
                     modalContent.style.filter = sourceVisibility?.isFullyVisible ? 'blur(10px)' : 'blur(7px)';
                 });
+
+                this.clearBookingModalSourceRevealTimer();
+                this.bookingModalSourceRevealTimer = window.setTimeout(() => {
+                    this.releaseBookingModalSourceVisualState(sourceElement);
+                    this.bookingModalSourceRevealTimer = 0;
+                }, 140);
 
                 this.bookingModalCloseTimer = window.setTimeout(() => {
                     if (!this.bookingModal) {
                         return;
                     }
 
-                    this.activeBookingSourceCard?.classList.remove('is-originating');
+                    this.releaseBookingModalSourceVisualState();
                     this.bookingModal.setAttribute('aria-hidden', 'true');
-                    this.bookingModal.classList.remove('is-closing');
+                    this.bookingModal.classList.remove('is-closing', 'is-returning-to-focus-panel');
                     this.clearBookingModalMorph();
                     this.bookingModalCloseTimer = 0;
                     this.syncOverlayLock();
@@ -9790,13 +13019,14 @@ class DetailPage {
 
         this.bookingModal.classList.remove('active');
         this.bookingModal.classList.add('is-closing');
+        this.bookingModal.classList.remove('is-returning-to-focus-panel');
 
         this.bookingModalCloseTimer = window.setTimeout(() => {
             if (!this.bookingModal) {
                 return;
             }
 
-            this.bookingModal.classList.remove('is-closing');
+            this.bookingModal.classList.remove('is-closing', 'is-returning-to-focus-panel');
             this.bookingModal.setAttribute('aria-hidden', 'true');
             this.bookingModalCloseTimer = 0;
             this.syncOverlayLock();
@@ -10725,10 +13955,41 @@ class DetailPage {
             this.mapContainer.addEventListener('click', (event) => {
                 const tabButton = event.target.closest('.sea-atlas-tab');
                 if (!tabButton) {
+                    const resetViewButton = event.target.closest('[data-sea-atlas-reset-view]');
+                    if (resetViewButton) {
+                        event.preventDefault();
+                        this.resetSeaAtlasViewport(resetViewButton.dataset.seaAtlasTarget || 'inline');
+                        return;
+                    }
+
+                    const openMapButton = event.target.closest('[data-sea-atlas-open-fullscreen]');
+                    if (!openMapButton) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    this.openSeaAtlasFullscreen();
                     return;
                 }
 
                 this.setSeaAtlasView(tabButton.dataset.seaView);
+            });
+        }
+
+        if (this.seaAtlasFullscreen) {
+            this.seaAtlasFullscreen.addEventListener('click', (event) => {
+                const closeButton = event.target.closest('[data-sea-atlas-close-fullscreen]');
+                if (closeButton) {
+                    event.preventDefault();
+                    this.closeSeaAtlasFullscreen();
+                    return;
+                }
+
+                const resetButton = event.target.closest('[data-sea-atlas-reset-view][data-sea-atlas-target="fullscreen"]');
+                if (resetButton) {
+                    event.preventDefault();
+                    this.resetSeaAtlasViewport('fullscreen');
+                }
             });
         }
 
@@ -10848,7 +14109,12 @@ class DetailPage {
                     return;
                 }
 
-                navigateWithDepth(buildHomeDiveMatchUrl(matchKey));
+                event.preventDefault();
+                this.openBookingMatchConfirmation(matchKey, {
+                    source: 'sidebar',
+                    triggerElement: matchLink,
+                    label: matchLink.textContent
+                });
             });
         }
 
@@ -10893,6 +14159,13 @@ class DetailPage {
                     return;
                 }
 
+                const matchConfirmAction = event.target.closest('[data-booking-match-confirm-action]');
+                if (matchConfirmAction) {
+                    event.preventDefault();
+                    this.handleBookingMatchConfirmationAction(matchConfirmAction.dataset.bookingMatchConfirmAction);
+                    return;
+                }
+
                 const matchLink = event.target.closest('.booking-match-link[data-match-key]');
                 if (matchLink) {
                     const matchKey = matchLink.dataset.matchKey;
@@ -10900,7 +14173,13 @@ class DetailPage {
                         return;
                     }
 
-                    navigateWithDepth(buildHomeDiveMatchUrl(matchKey));
+                    event.preventDefault();
+                    this.openBookingMatchConfirmation(matchKey, {
+                        source: 'modal',
+                        triggerElement: matchLink,
+                        label: matchLink.textContent,
+                        packageId: this.getActiveBookingModalPackageId()
+                    });
                     return;
                 }
 
@@ -10913,12 +14192,55 @@ class DetailPage {
 
                     const currentState = this.getPackageModalViewState(packageId);
                     const nextEditorOpen = !currentState?.isEditorOpen;
+                    if (nextEditorOpen) {
+                        this.updatePackageModalDraft(packageId, {
+                            isEditorOpen: true,
+                            focusField: currentState?.focusField || ''
+                        });
+                        if (this.syncPackageModalEditorDomState(packageId, true)) {
+                            this.runPackageModalEditorOpenMotion(packageId);
+                        } else {
+                            this.renderBookingModalMarkup(packageId, {
+                                preserveBodyScroll: true,
+                                animatePriceEditor: 'open'
+                            });
+                        }
+                    } else {
+                        this.closePackageModalEditorWithMotion(packageId);
+                    }
+                    return;
+                }
+
+                const editorFocusChip = event.target.closest('[data-package-editor-focus][data-package-id]');
+                if (editorFocusChip) {
+                    const packageId = editorFocusChip.dataset.packageId;
+                    const focusField = this.normalizePackageModalEditorFocusField(editorFocusChip.dataset.packageEditorFocus);
+                    if (!packageId || !focusField) {
+                        return;
+                    }
+
+                    const currentState = this.getPackageModalViewState(packageId);
                     this.updatePackageModalDraft(packageId, {
-                        isEditorOpen: nextEditorOpen
+                        isEditorOpen: true,
+                        focusField
                     });
-                    this.renderBookingModalMarkup(packageId, {
-                        preserveBodyScroll: true,
-                        animatePriceEditor: nextEditorOpen ? 'open' : ''
+                    if (currentState?.isEditorOpen && this.syncPackageModalEditorDomState(packageId, true)) {
+                        window.requestAnimationFrame(() => {
+                            this.focusPackageModalEditorField(packageId, focusField);
+                        });
+                        return;
+                    }
+
+                    if (this.syncPackageModalEditorDomState(packageId, true)) {
+                        this.runPackageModalEditorOpenMotion(packageId);
+                    } else {
+                        this.renderBookingModalMarkup(packageId, {
+                            preserveBodyScroll: true,
+                            animatePriceEditor: 'open'
+                        });
+                    }
+                    window.requestAnimationFrame(() => {
+                        this.focusPackageModalEditorField(packageId, focusField);
                     });
                     return;
                 }
@@ -10932,6 +14254,7 @@ class DetailPage {
 
                     this.updatePackageModalDraft(packageId, {
                         isEditorOpen: true,
+                        focusField: 'duration',
                         isCustomDurationOpen: true
                     });
                     this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
@@ -10952,6 +14275,7 @@ class DetailPage {
                     this.updatePackageModalDraft(packageId, {
                         days: nextDays,
                         isEditorOpen: true,
+                        focusField: 'duration',
                         isCustomDurationOpen: false
                     });
                     this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
@@ -10979,7 +14303,8 @@ class DetailPage {
 
                     this.updatePackageModalDraft(packageId, {
                         windowKey,
-                        isEditorOpen: true
+                        isEditorOpen: true,
+                        focusField: 'window'
                     });
                     this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
                     return;
@@ -10996,6 +14321,7 @@ class DetailPage {
                     this.updatePackageModalDraft(packageId, {
                         peopleValue,
                         isEditorOpen: true,
+                        focusField: 'people',
                         isCustomPeopleOpen: false
                     });
                     this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
@@ -11011,6 +14337,7 @@ class DetailPage {
 
                     this.updatePackageModalDraft(packageId, {
                         isEditorOpen: true,
+                        focusField: 'people',
                         isCustomPeopleOpen: true
                     });
                     this.renderBookingModalMarkup(packageId, { preserveBodyScroll: true });
@@ -11087,13 +14414,56 @@ class DetailPage {
             });
         }
 
+        if (this.bookingMatchFloatingRoot) {
+            this.bookingMatchFloatingRoot.addEventListener('click', (event) => {
+                const actionButton = event.target.closest('[data-booking-match-confirm-action]');
+                if (!actionButton) {
+                    return;
+                }
+
+                event.preventDefault();
+                this.handleBookingMatchConfirmationAction(actionButton.dataset.bookingMatchConfirmAction);
+            });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!this.isBookingMatchConfirmationVisible('sidebar')) {
+                return;
+            }
+
+            if (this.bookingMatchFloatingRoot?.contains(event.target)) {
+                return;
+            }
+
+            if (event.target.closest('.booking-match-link[data-match-key]')) {
+                return;
+            }
+
+            this.closeBookingMatchConfirmation({
+                restoreFocus: false,
+                source: 'sidebar'
+            });
+        });
+
         window.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape') {
                 return;
             }
 
+            if (this.seaAtlasFullscreenOpen) {
+                this.closeSeaAtlasFullscreen();
+                return;
+            }
+
             if (this.reviewLightbox && this.reviewLightbox.classList.contains('active')) {
                 this.closeReviewLightbox();
+                return;
+            }
+
+            if (this.isBookingMatchConfirmationVisible()) {
+                this.closeBookingMatchConfirmation({
+                    restoreFocus: true
+                });
                 return;
             }
 
@@ -11124,7 +14494,34 @@ class DetailPage {
             });
         };
 
+        let seaRouteLayoutSyncFrame = 0;
+        const requestSeaRouteLayoutSync = () => {
+            if (seaRouteLayoutSyncFrame) {
+                return;
+            }
+
+            seaRouteLayoutSyncFrame = window.requestAnimationFrame(() => {
+                seaRouteLayoutSyncFrame = 0;
+                this.syncSeaRouteLayoutOnResize();
+            });
+        };
+
         window.addEventListener('resize', requestReviewExpandSync);
+        window.addEventListener('resize', requestSeaRouteLayoutSync);
+        window.addEventListener('resize', () => {
+            this.closeBookingMatchConfirmation({
+                immediate: true,
+                restoreFocus: false,
+                source: 'sidebar'
+            });
+        });
+        window.addEventListener('scroll', () => {
+            this.closeBookingMatchConfirmation({
+                immediate: true,
+                restoreFocus: false,
+                source: 'sidebar'
+            });
+        }, { passive: true });
         if (document.fonts?.ready) {
             document.fonts.ready.then(() => {
                 requestReviewExpandSync();
@@ -11146,19 +14543,31 @@ class DetailPage {
             return;
         }
 
+        this.clearBookingMatchConfirmationImmediately({
+            restoreFocus: false
+        });
+        this.resetBookingModalNavigateAwayState();
         const sourceState = this.capturePackageSourceState(packageId, sourceCard);
         this.clearBookingModalMorph();
+        this.cacheBookingModalSourceSnapshot(packageId, sourceState);
 
         if (this.bookingModalCloseTimer) {
             window.clearTimeout(this.bookingModalCloseTimer);
             this.bookingModalCloseTimer = 0;
         }
+        if (this.packageModalEditorCloseTimer) {
+            window.clearTimeout(this.packageModalEditorCloseTimer);
+            this.packageModalEditorCloseTimer = 0;
+        }
+        this.packageModalEditorTransitioning = false;
+        this.cancelPackageModalEditorStateMotion();
 
         this.selectedPackageId = pkg.id;
         this.syncPackageCardSelection(pkg.id);
         const currentModalState = this.getPackageModalViewState(pkg.id);
         this.updatePackageModalDraft(pkg.id, {
             isEditorOpen: false,
+            focusField: '',
             isCustomDurationOpen: Boolean(currentModalState?.isCustomDurationSelected)
         });
         this.renderBookingModalMarkup(pkg.id);
@@ -11270,7 +14679,11 @@ class DetailPage {
         this.syncBookingCopyDepthState();
         this.syncBookingStickyScrollWithReading();
         this.syncPackageSelectionFromCurrentReview();
+        this.scheduleIntroCardShellReveal();
+        this.scheduleIntroCardContentReveal();
+        this.scheduleReviewCardShellReveal();
         this.revealReviewGalleryPhotos();
+        this.scheduleReviewCardContentReveal();
 
         if (!this.seaGuide || !this.seaGuideEntries.length) {
             return;
@@ -11409,6 +14822,7 @@ class DetailPage {
         });
 
         window.addEventListener('pagehide', () => {
+            this.teardownBookingModalForPageExit();
             this.setBookingStickyFocusContextPhase('');
 
             if (this.inDocumentDetailSwapTimer) {
@@ -11690,7 +15104,10 @@ class DetailPage {
  */
 document.addEventListener('DOMContentLoaded', function () {
     setupStageDebugToggle();
-    new DetailPage();
+    const detailPage = new DetailPage();
+    if (isStageDebugModeEnabled) {
+        window.__yanqiDetailPage = detailPage;
+    }
 });
 
 

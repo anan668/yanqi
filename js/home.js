@@ -689,10 +689,9 @@ function clamp(value, min, max) {
 
 /**
  * resolveHomePerformanceProfile() - 根据设备能力和交互方式，给首页选择合适的性能档位
- * @returns {{mode:string,reducedMotion:boolean,coarsePointer:boolean,compactViewport:boolean,lowMemory:boolean,lowConcurrency:boolean,lowEnd:boolean,lite:boolean}}
+ * @returns {{mode:string,coarsePointer:boolean,compactViewport:boolean,lowMemory:boolean,lowConcurrency:boolean,lowEnd:boolean,lite:boolean}}
  */
 function resolveHomePerformanceProfile() {
-    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
     const anyCoarsePointer = window.matchMedia?.('(any-pointer: coarse)')?.matches || false;
     const anyFinePointer = window.matchMedia?.('(any-pointer: fine)')?.matches
         || window.matchMedia?.('(pointer: fine)')?.matches
@@ -705,11 +704,10 @@ function resolveHomePerformanceProfile() {
     const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory <= 4;
     const lowConcurrency = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4;
     const lowEnd = lowMemory || lowConcurrency;
-    const lite = reducedMotion || lowEnd || (coarsePointer && compactViewport);
+    const lite = lowEnd || (coarsePointer && compactViewport);
 
     return {
         mode: lite ? 'lite' : (coarsePointer || compactViewport ? 'balanced' : 'full'),
-        reducedMotion,
         coarsePointer,
         compactViewport,
         lowMemory,
@@ -1944,7 +1942,7 @@ class BambooScroll {
         // 否则用户会直接看到“始终静止”。这里只在纯粗指针设备上停用自动滑动。
         this.enableAutoStep = !this.performanceProfile.coarsePointer;
         this.enableInertia = !(this.performanceProfile.lite || this.performanceProfile.coarsePointer);
-        this.enableHoverTracking = !(this.performanceProfile.coarsePointer || this.performanceProfile.reducedMotion);
+        this.enableHoverTracking = !this.performanceProfile.coarsePointer;
         this.dragThreshold = this.performanceProfile.lite ? 10 : 8;
 
         this.totalCards = divingSpotsData.length;
@@ -2486,6 +2484,8 @@ class BambooScroll {
         if (!this.enableInertia) {
             this.trackVelocity = 0;
             this.inertia.active = false;
+            this.inertia.boostTime = 0;
+            this.inertia.boostAccel = 0;
             return;
         }
 
@@ -2494,14 +2494,15 @@ class BambooScroll {
         if (Math.abs(clamped) < 40) {
             this.trackVelocity = 0;
             this.inertia.active = false;
+            this.inertia.boostTime = 0;
+            this.inertia.boostAccel = 0;
             return;
         }
 
         this.inertia.active = true;
-        this.inertia.boostTime = 0.12;
-        this.inertia.boostAccel = Math.sign(clamped) * 2200;
-
-        this.trackVelocity = clamped * 1.08;
+        this.inertia.boostTime = 0;
+        this.inertia.boostAccel = 0;
+        this.trackVelocity = clamped;
         this.injectShake(Math.abs(this.trackVelocity) * 1.1);
         this.ensureFrameLoop();
     }
@@ -2785,8 +2786,10 @@ class BambooScroll {
      */
     updateTrackMotion(dt) {
         const previous = this.trackPosition;
+        let shouldDeriveVelocityFromDelta = false;
 
         if (this.autoStep) {
+            shouldDeriveVelocityFromDelta = true;
             this.autoStep.elapsed += dt;
             const progress = Math.min(this.autoStep.elapsed / this.autoStep.duration, 1);
             const eased = this.easeStepWithBrake(progress);
@@ -2805,11 +2808,6 @@ class BambooScroll {
                 this.schedulePendingManualStep();
             }
         } else if (this.inertia.active && !this.isDragging) {
-            if (this.inertia.boostTime > 0) {
-                this.trackVelocity += this.inertia.boostAccel * dt;
-                this.inertia.boostTime -= dt;
-            }
-
             this.trackPosition += this.trackVelocity * dt;
             this.trackVelocity *= Math.pow(0.94, dt * 60);
 
@@ -2825,10 +2823,11 @@ class BambooScroll {
         }
 
         if (this.trackPosition !== previous) {
+            const trackDelta = this.trackPosition - previous;
             this.recenterTrack();
-            const delta = this.trackPosition - previous;
-            if (dt > 0) {
-                this.trackVelocity = delta / dt;
+            // Use the pre-wrap delta so crossing the loop seam does not turn into a huge velocity spike.
+            if (shouldDeriveVelocityFromDelta && dt > 0) {
+                this.trackVelocity = trackDelta / dt;
             }
             this.updateTrackPosition();
             this.trackPositionDirty = false;
@@ -3316,6 +3315,7 @@ class CuratedWatersStage {
      * init() - 启动档案墙的渲染、事件绑定和预加载
      */
     init() {
+        this.section.classList.remove('is-stage-hydrated');
         this.attachEvents();
         this.setupReveal();
         this.scheduleInitialHydration();
@@ -3364,8 +3364,10 @@ class CuratedWatersStage {
             return;
         }
 
+        this.section.classList.add('is-stage-hydrated');
         this.initialHydrationComplete = true;
         this.initialHydrationStep = 3;
+        homeViewportCoordinator.requestMeasure();
         this.scheduleInitialPreload(this.currentIndex);
     }
 
@@ -5746,7 +5748,3 @@ function setupHeroAnimationPause() {
 
     observer.observe(hero);
 }
-
-
-
-

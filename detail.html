@@ -8,11 +8,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>盐憩 - 行程详情</title>
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/page-transition.css">
     <link rel="stylesheet" href="css/depth-gauge.css">
     <link rel="stylesheet" href="css/detail.css">
+    <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+    <script src="js/yanqi-spot-catalog.js"></script>
+    <script src="js/yanqi-spot-map-catalog.js"></script>
+    <style>
+        html[data-detail-hero-bootstrap="pending"] #spotName,
+        html[data-detail-hero-bootstrap="pending"] #spotTagline,
+        html[data-detail-hero-bootstrap="pending"] #difficultyTag,
+        html[data-detail-hero-bootstrap="pending"] #depthTag,
+        html[data-detail-hero-bootstrap="pending"] #seasonTag {
+            visibility: hidden;
+        }
+
+        html[data-detail-sidebar-bootstrap="pending"] #priceAmount,
+        html[data-detail-sidebar-bootstrap="pending"] #bookingFocusTitle,
+        html[data-detail-sidebar-bootstrap="pending"] #bookingFocusPrice {
+            visibility: hidden;
+        }
+    </style>
+    <script>
+        (function bootstrapDetailFirstPaint() {
+            const detailHeroMetaById = Object.freeze({
+                1: { difficulty: '需要流潜经验', depth: '5-40m', priceFrom: '¥3,980' },
+                2: { difficulty: '适合已有外海经验', depth: '8-35m', priceFrom: '¥4,280' },
+                3: { difficulty: '适合深潜与结构观察', depth: '18-40m', priceFrom: '¥5,680' },
+                4: { difficulty: '适合慢慢进入', depth: '6-32m', priceFrom: '¥3,480' },
+                5: { difficulty: '适合恢复状态', depth: '5-24m', priceFrom: '¥2,980' },
+                6: { difficulty: '适合长线观察', depth: '6-30m', priceFrom: '¥3,680' },
+                7: { difficulty: '需要洋流适应', depth: '8-34m', priceFrom: '¥3,880' },
+                8: { difficulty: '适合通道与蓝水经验', depth: '10-32m', priceFrom: '¥4,180' },
+                9: { difficulty: '入门友好', depth: '3-18m', priceFrom: '¥3,580' },
+                10: { difficulty: '适合初次船宿', depth: '8-30m', priceFrom: '¥6,880' },
+                11: { difficulty: '适合沉船初体验', depth: '5-30m', priceFrom: '¥4,980' },
+                12: { difficulty: '适合轻船潜入门', depth: '5-25m', priceFrom: '¥3,980' },
+                13: { difficulty: '适合 OW / AOW 轻船潜', depth: '5-28m', priceFrom: '¥3,680' },
+                14: { difficulty: 'OW / AOW 友好', depth: '6-30m', priceFrom: '¥3,680' }
+            });
+
+            const getSpotId = () => {
+                const params = new URLSearchParams(window.location.search);
+                const spotId = Number.parseInt(params.get('id'), 10);
+                return Number.isFinite(spotId) && spotId > 0 ? spotId : 1;
+            };
+
+            const spotId = getSpotId();
+            const catalogSpot = window.YanqiSpotCatalog?.getById?.(spotId) || window.YanqiSpotCatalog?.getById?.(1);
+            const heroMeta = detailHeroMetaById[spotId] || detailHeroMetaById[1];
+            const bootstrapPayload = Object.freeze({
+                id: spotId,
+                name: catalogSpot?.name || '诗巴丹',
+                tagline: catalogSpot?.tagline || '让海狼风暴把呼吸拉长',
+                image: catalogSpot?.image || 'assets/images/sipadan.jpg',
+                season: catalogSpot?.season || '3月-10月',
+                difficulty: heroMeta.difficulty,
+                depth: heroMeta.depth,
+                priceFrom: heroMeta.priceFrom,
+                bookingFocusTitle: `温柔下潜 · ${(catalogSpot?.name || '这片海')}的第一眼蓝`
+            });
+
+            const setTag = (elementId, label, value) => {
+                const element = document.getElementById(elementId);
+                if (!element) {
+                    return;
+                }
+
+                element.textContent = '';
+                const strong = document.createElement('strong');
+                strong.textContent = label;
+                element.appendChild(strong);
+                element.append(` ${value}`);
+            };
+
+            window.__YANQI_DETAIL_BOOTSTRAP__ = bootstrapPayload;
+            document.title = `盐憩 - ${bootstrapPayload.name}`;
+            document.documentElement.dataset.detailHeroBootstrap = 'pending';
+            document.documentElement.dataset.detailSidebarBootstrap = 'pending';
+
+            window.__applyYanqiDetailBootstrap = function applyYanqiDetailBootstrap(section = 'all') {
+                const payload = window.__YANQI_DETAIL_BOOTSTRAP__;
+                if (!payload) {
+                    return;
+                }
+
+                if (section === 'hero' || section === 'all') {
+                    const spotName = document.getElementById('spotName');
+                    const spotTagline = document.getElementById('spotTagline');
+                    const heroImage = document.querySelector('.hero-image');
+
+                    if (spotName) {
+                        spotName.textContent = payload.name;
+                    }
+                    if (spotTagline) {
+                        spotTagline.textContent = payload.tagline;
+                    }
+                    setTag('difficultyTag', '进入节奏', payload.difficulty);
+                    setTag('depthTag', '深度', payload.depth);
+                    setTag('seasonTag', '最佳季节', payload.season);
+
+                    if (heroImage) {
+                        heroImage.src = payload.image;
+                        heroImage.alt = `${payload.name}潜点风景`;
+                    }
+
+                    document.documentElement.dataset.detailHeroBootstrap = 'ready';
+                }
+
+                if (section === 'sidebar' || section === 'all') {
+                    const priceAmount = document.getElementById('priceAmount');
+                    const bookingFocusTitle = document.getElementById('bookingFocusTitle');
+                    const bookingFocusPrice = document.getElementById('bookingFocusPrice');
+
+                    if (priceAmount) {
+                        priceAmount.textContent = payload.priceFrom;
+                    }
+                    if (bookingFocusTitle) {
+                        bookingFocusTitle.textContent = payload.bookingFocusTitle;
+                    }
+                    if (bookingFocusPrice) {
+                        bookingFocusPrice.textContent = payload.priceFrom;
+                    }
+
+                    document.documentElement.dataset.detailSidebarBootstrap = 'ready';
+                }
+            };
+        })();
+    </script>
 </head>
 <body class="detail-page">
     <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
@@ -60,7 +186,7 @@
         <section class="detail-hero" id="detailHero">
             <div class="hero-image-wrapper">
                 <div class="hero-image-motion">
-                    <img src="assets/images/diving-spot.jpg" alt="潜点风景" class="hero-image" loading="eager" fetchpriority="high" decoding="async">
+                    <img alt="潜点风景" class="hero-image" loading="eager" fetchpriority="high" decoding="async">
                 </div>
                 <div class="hero-atmosphere-layer" aria-hidden="true"></div>
                 <div class="hero-overlay"></div>
@@ -82,6 +208,9 @@
                     </span>
                 </div>
             </div>
+            <script>
+                window.__applyYanqiDetailBootstrap?.('hero');
+            </script>
         </section>
 
         <!-- 内容主体：
@@ -131,7 +260,11 @@
                     <!-- 海域定位台：
                          不直接写死静态图片，而交给 JS 按当前潜点生成对应的地图 / 海图内容。 -->
                     <section class="detail-reading-section detail-reading-section-map" data-detail-reading-section="map" aria-labelledby="spotMapSection">
-                        <h2 id="spotMapSection">潜点位置</h2>
+                        <div class="spot-map-head">
+                            <p class="spot-map-kicker">Sea Descent</p>
+                            <h2 id="spotMapSection">潜点位置</h2>
+                            <p class="spot-map-lead">从海域档案再往下一层，这里开始读这片海真实的位置、靠近方式，以及它的水下结构会怎样慢慢排开。</p>
+                        </div>
                         <div class="map-container" id="mapContainer">
                             <!-- 海域定位台由脚本动态生成 -->
                         </div>
@@ -222,6 +355,9 @@
                         <div class="booking-note" id="bookingNote">
                             <p>先打开套餐详情，再决定是否预订。盐憩更在意你是否适合这一次下潜，而不是让你仓促下单。</p>
                         </div>
+                        <script>
+                            window.__applyYanqiDetailBootstrap?.('sidebar');
+                        </script>
                     </div>
                 </aside>
             </div>
@@ -414,6 +550,37 @@
         </div>
     </div>
 
+    <div id="bookingMatchFloatingRoot" class="booking-match-floating-root" aria-hidden="true"></div>
+
+    <div class="sea-atlas-fullscreen" data-sea-atlas-fullscreen aria-hidden="true">
+        <div class="sea-atlas-fullscreen-backdrop" data-sea-atlas-close-fullscreen></div>
+        <div class="sea-atlas-fullscreen-panel" role="dialog" aria-modal="true" aria-labelledby="seaAtlasFullscreenTitle">
+            <div class="sea-atlas-fullscreen-head">
+                <div class="sea-atlas-fullscreen-copy">
+                    <p class="sea-atlas-fullscreen-kicker">Sea Atlas</p>
+                    <h3 class="sea-atlas-fullscreen-title" id="seaAtlasFullscreenTitle" data-sea-atlas-fullscreen-title>潜点位置</h3>
+                    <p class="sea-atlas-fullscreen-meta" data-sea-atlas-fullscreen-meta>真实海域、出发点与靠近路线会在这里完整展开。</p>
+                </div>
+                <div class="sea-atlas-fullscreen-actions">
+                    <button
+                        type="button"
+                        class="sea-atlas-reset-view"
+                        data-sea-atlas-reset-view
+                        data-sea-atlas-target="fullscreen"
+                    >
+                        恢复初始位置
+                    </button>
+                    <button type="button" class="sea-atlas-fullscreen-close" data-sea-atlas-close-fullscreen aria-label="关闭全屏海图">
+                        关闭
+                    </button>
+                </div>
+            </div>
+            <div class="sea-atlas-fullscreen-map-shell">
+                <div class="sea-atlas-fullscreen-map-slot" data-sea-atlas-fullscreen-slot></div>
+            </div>
+        </div>
+    </div>
+
     <!-- 评论详情弹层：
          评论卡片先只展示摘要，真正的长内容、照片和评分细节都会放到这里。 -->
     <div id="reviewDetailModal" class="review-detail-modal" aria-hidden="true">
@@ -428,7 +595,7 @@
     <div id="reviewLightbox" class="review-lightbox" aria-hidden="true">
         <button class="review-lightbox-close" type="button" aria-label="关闭图片">&times;</button>
         <div class="review-lightbox-shell">
-            <img id="reviewLightboxImage" src="" alt="" class="review-lightbox-image" decoding="async">
+            <img id="reviewLightboxImage" alt="" class="review-lightbox-image" decoding="async">
             <p id="reviewLightboxCaption" class="review-lightbox-caption"></p>
         </div>
     </div>
@@ -463,10 +630,10 @@
     <script src="js/depth-manager.js"></script>
     <script src="js/ocean-scroll.js"></script>
     <script src="js/price-config.js"></script>
-    <script src="js/yanqi-spot-catalog.js"></script>
     <script src="js/yanqi-trip-store.js"></script>
     <script src="js/text-layout-adapter.js"></script>
     <script src="js/avatar-return.js"></script>
+    <script src="assets/vendor/leaflet/leaflet.js"></script>
     <script src="js/detail.js"></script>
 </body>
 </html>
