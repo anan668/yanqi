@@ -1584,6 +1584,28 @@ function writeDetailPackageModalDraftBuckets(buckets) {
     }
 }
 
+function countDetailPackageModalDraftEntries(buckets) {
+    if (!buckets || typeof buckets !== 'object' || Array.isArray(buckets)) {
+        return 0;
+    }
+
+    return Object.values(buckets).reduce((count, spotDrafts) => {
+        if (!spotDrafts || typeof spotDrafts !== 'object' || Array.isArray(spotDrafts)) {
+            return count;
+        }
+
+        return count + Object.keys(spotDrafts).length;
+    }, 0);
+}
+
+function clearDetailPackageModalDraftBuckets() {
+    try {
+        sessionStorage.removeItem(DETAIL_PACKAGE_MODAL_DRAFTS_STORAGE_KEY);
+    } catch (error) {
+        // sessionStorage 不可用时静默降级，保持页面可继续演示。
+    }
+}
+
 // 详情页主类：统一管理当前潜点的数据渲染、交互事件、弹窗、评论和地图三态视图。
 class DetailPage {
     /**
@@ -1617,6 +1639,7 @@ class DetailPage {
         this.relatedSection = document.getElementById('relatedSpots');
         this.relatedGrid = document.getElementById('relatedGrid');
         this.itineraryList = document.getElementById('itineraryList');
+        this.itineraryListMeasureRaf = 0;
         this.packageMatchTags = document.getElementById('packageMatchTags');
         this.bookingNote = document.getElementById('bookingNote');
         this.reviewsFilters = document.getElementById('reviewsFilters');
@@ -1666,6 +1689,9 @@ class DetailPage {
         this.bookingFocusSummary = document.getElementById('bookingFocusSummary');
         this.bookingFocusEchoSlot = document.getElementById('bookingFocusEchoSlot');
         this.bookingFocusAction = document.getElementById('bookingFocusAction');
+        this.detailDebugEchoResetButton = document.getElementById('detailDebugEchoReset');
+        this.detailDebugEchoResetState = this.detailDebugEchoResetButton?.querySelector('[data-detail-debug-echo-reset-state]') || null;
+        this.detailDebugEchoResetFeedbackTimer = 0;
         this.reviewDetailModal = document.getElementById('reviewDetailModal');
         this.reviewDetailBody = document.getElementById('reviewDetailBody');
         this.reviewLightbox = document.getElementById('reviewLightbox');
@@ -2835,6 +2861,7 @@ class DetailPage {
         this.resetBookingCopyReveal();
         this.resetIntroReveal();
         this.resetReviewsReveal();
+        this.syncDetailDebugEchoResetButtonState();
     }
 
     /**
@@ -8081,6 +8108,7 @@ class DetailPage {
         this.setupPackagePriceObserver();
         this.syncPackageCardSelection();
         this.syncAllPackageCardEchoStates();
+        this.scheduleItineraryListMeasuredHeightSync();
 
         if (this.bookingNote && !this.bookingNote.classList.contains('is-success')) {
             this.bookingNote.innerHTML = `
@@ -8129,6 +8157,7 @@ class DetailPage {
             card.classList.toggle('is-active', isCurrent);
             card.setAttribute('aria-current', isCurrent ? 'true' : 'false');
         });
+        this.scheduleItineraryListMeasuredHeightSync();
     }
 
     /**
@@ -8143,6 +8172,39 @@ class DetailPage {
 
         return Array.from(this.itineraryList.querySelectorAll('.package-card'))
             .find((card) => card.dataset.packageId === packageId) || null;
+    }
+
+    /**
+     * syncItineraryListMeasuredHeight() - 用当前套餐列表的真实高度更新 CSS 变量，避免 booking-note 在长列表里提前插入。
+     * @returns {void}
+     */
+    syncItineraryListMeasuredHeight() {
+        if (!this.itineraryList) {
+            return;
+        }
+
+        const measuredHeight = Math.ceil(this.itineraryList.scrollHeight || 0);
+        const safeHeight = Math.max(measuredHeight + 32, 480);
+        this.itineraryList.style.setProperty('--booking-itinerary-list-open-height', `${safeHeight}px`);
+    }
+
+    /**
+     * scheduleItineraryListMeasuredHeightSync() - 把套餐列表高度测量推到下一帧，避免同一帧内多次重复读取布局。
+     * @returns {void}
+     */
+    scheduleItineraryListMeasuredHeightSync() {
+        if (!this.itineraryList) {
+            return;
+        }
+
+        if (this.itineraryListMeasureRaf) {
+            window.cancelAnimationFrame(this.itineraryListMeasureRaf);
+        }
+
+        this.itineraryListMeasureRaf = window.requestAnimationFrame(() => {
+            this.itineraryListMeasureRaf = 0;
+            this.syncItineraryListMeasuredHeight();
+        });
     }
 
     /**
@@ -8228,10 +8290,12 @@ class DetailPage {
 
         if (echoState?.status) {
             card.dataset.packageCardEchoStatus = echoState.status;
+            this.scheduleItineraryListMeasuredHeightSync();
             return;
         }
 
         delete card.dataset.packageCardEchoStatus;
+        this.scheduleItineraryListMeasuredHeightSync();
     }
 
     /**
@@ -8273,6 +8337,9 @@ class DetailPage {
             : this.getPackageById(packageOrId || currentFocusPackageId);
 
         if (!pkg || (currentFocusPackageId && pkg.id !== currentFocusPackageId)) {
+            this.bookingFocusEchoSlot.innerHTML = '';
+            this.bookingFocusPanel.classList.remove('has-booking-focus-echo');
+            delete this.bookingFocusPanel.dataset.bookingFocusEchoStatus;
             return;
         }
 
@@ -8286,6 +8353,137 @@ class DetailPage {
         }
 
         delete this.bookingFocusPanel.dataset.bookingFocusEchoStatus;
+    }
+
+    /**
+     * hasDetailPackageEchoDrafts() - 判断当前 tab 里是否还留有可清理的 detail 回声草稿。
+     * @returns {boolean}
+     */
+    hasDetailPackageEchoDrafts() {
+        const hasInMemoryDrafts = Array.from(this.bookingModalDrafts.values())
+            .some((draft) => Boolean(draft?.hasEditorOpened));
+        if (hasInMemoryDrafts) {
+            return true;
+        }
+
+        return countDetailPackageModalDraftEntries(readDetailPackageModalDraftBuckets()) > 0;
+    }
+
+    /**
+     * clearDetailDebugEchoResetFeedbackTimer() - 清理调试态回声清除按钮的反馈计时器。
+     * @returns {void}
+     */
+    clearDetailDebugEchoResetFeedbackTimer() {
+        if (!this.detailDebugEchoResetFeedbackTimer) {
+            return;
+        }
+
+        window.clearTimeout(this.detailDebugEchoResetFeedbackTimer);
+        this.detailDebugEchoResetFeedbackTimer = 0;
+    }
+
+    /**
+     * syncDetailDebugEchoResetButtonState() - 根据调试态与当前草稿残留情况同步按钮显隐和可用态。
+     * @param {{ preserveFeedback?: boolean }} [options={}]
+     * @returns {void}
+     */
+    syncDetailDebugEchoResetButtonState(options = {}) {
+        if (!this.detailDebugEchoResetButton) {
+            return;
+        }
+
+        const { preserveFeedback = false } = options;
+        const shouldShow = Boolean(isStageDebugModeEnabled);
+
+        this.detailDebugEchoResetButton.hidden = !shouldShow;
+        if (!shouldShow) {
+            return;
+        }
+
+        if (preserveFeedback && this.detailDebugEchoResetFeedbackTimer) {
+            return;
+        }
+
+        const hasDrafts = this.hasDetailPackageEchoDrafts();
+        this.detailDebugEchoResetButton.disabled = !hasDrafts;
+        this.detailDebugEchoResetButton.classList.remove('is-feedback');
+        this.detailDebugEchoResetButton.setAttribute(
+            'title',
+            hasDrafts ? '清除当前 tab 里的回声草稿' : '当前没有可清理的回声草稿'
+        );
+        this.detailDebugEchoResetButton.setAttribute(
+            'aria-label',
+            hasDrafts ? '清除当前 tab 里的回声草稿' : '当前没有可清理的回声草稿'
+        );
+
+        if (this.detailDebugEchoResetState) {
+            this.detailDebugEchoResetState.textContent = hasDrafts ? '一键清除' : '无残留';
+        }
+    }
+
+    /**
+     * flashDetailDebugEchoResetFeedback() - 在调试态回声清理按钮上短暂显示“已清除”反馈。
+     * @param {string} [text='已清除'] - 反馈文案
+     * @returns {void}
+     */
+    flashDetailDebugEchoResetFeedback(text = '已清除') {
+        if (!this.detailDebugEchoResetButton) {
+            return;
+        }
+
+        this.clearDetailDebugEchoResetFeedbackTimer();
+        this.detailDebugEchoResetButton.hidden = !isStageDebugModeEnabled;
+        this.detailDebugEchoResetButton.disabled = true;
+        this.detailDebugEchoResetButton.classList.add('is-feedback');
+        this.detailDebugEchoResetButton.setAttribute('title', '回声草稿已清除');
+        this.detailDebugEchoResetButton.setAttribute('aria-label', '回声草稿已清除');
+        if (this.detailDebugEchoResetState) {
+            this.detailDebugEchoResetState.textContent = text;
+        }
+
+        this.detailDebugEchoResetFeedbackTimer = window.setTimeout(() => {
+            this.detailDebugEchoResetFeedbackTimer = 0;
+            this.syncDetailDebugEchoResetButtonState();
+        }, 1400);
+    }
+
+    /**
+     * clearDetailPackageEchoDrafts() - 清掉当前 tab 里的 detail 回声草稿，并立即把当前页面收回到默认态。
+     * @returns {void}
+     */
+    clearDetailPackageEchoDrafts() {
+        if (!this.hasDetailPackageEchoDrafts()) {
+            this.syncDetailDebugEchoResetButtonState();
+            return;
+        }
+
+        clearDetailPackageModalDraftBuckets();
+        this.bookingModalDrafts = new Map();
+
+        if (this.packageModalPriceOpenTimer) {
+            window.clearTimeout(this.packageModalPriceOpenTimer);
+            this.packageModalPriceOpenTimer = 0;
+        }
+        if (this.packageModalEditorCloseTimer) {
+            window.clearTimeout(this.packageModalEditorCloseTimer);
+            this.packageModalEditorCloseTimer = 0;
+        }
+        this.packageModalEditorTransitioning = false;
+        this.cancelPackageModalEditorStateMotion();
+
+        this.syncAllPackageCardEchoStates();
+        this.syncBookingFocusEchoState(
+            this.bookingFocusPanel?.dataset.packageId || this.activeBookingFocusPackageId || this.selectedPackageId || ''
+        );
+
+        const activeModalPackageId = this.getActiveBookingModalPackageId();
+        if (this.bookingModal?.classList.contains('active') && activeModalPackageId) {
+            this.renderBookingModalMarkup(activeModalPackageId, {
+                preserveBodyScroll: true
+            });
+        }
+
+        this.flashDetailDebugEchoResetFeedback();
     }
 
     /**
@@ -10067,6 +10265,9 @@ class DetailPage {
         }
 
         writeDetailPackageModalDraftBuckets(persistedBuckets);
+        this.syncDetailDebugEchoResetButtonState({
+            preserveFeedback: true
+        });
     }
 
     getPackageModalDraft(packageOrId) {
@@ -13269,6 +13470,16 @@ class DetailPage {
      * @returns {void} - 无返回值，直接注册事件监听
      */
     setupEventListeners() {
+        if (this.detailDebugEchoResetButton) {
+            this.detailDebugEchoResetButton.addEventListener('click', () => {
+                if (this.detailDebugEchoResetButton.disabled) {
+                    return;
+                }
+
+                this.clearDetailPackageEchoDrafts();
+            });
+        }
+
         if (this.mapContainer) {
             this.mapContainer.addEventListener('click', (event) => {
                 const tabButton = event.target.closest('.sea-atlas-tab');
@@ -13827,6 +14038,7 @@ class DetailPage {
         window.addEventListener('resize', requestReviewExpandSync);
         window.addEventListener('resize', requestSeaRouteLayoutSync);
         window.addEventListener('resize', () => {
+            this.scheduleItineraryListMeasuredHeightSync();
             this.closeBookingMatchConfirmation({
                 immediate: true,
                 restoreFocus: false,
