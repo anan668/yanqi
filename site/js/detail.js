@@ -1474,6 +1474,7 @@ function createBookingMatchChipMarkup(tag) {
 }
 
 const DETAIL_SWAP_STORAGE_KEY = 'yanqi_detail_swap_transition';
+const DETAIL_PACKAGE_MODAL_DRAFTS_STORAGE_KEY = 'yanqi_detail_package_modal_drafts';
 const DETAIL_SWAP_MAX_AGE_MS = 12000;
 const DETAIL_SWAP_DURATION_MS = 760;
 const DETAIL_SWAP_NAVIGATE_DELAY_MS = 460;
@@ -1548,6 +1549,39 @@ function markDetailSwapForwardConsumed(state) {
         forwardConsumed: true,
         direction: normalizeDetailSwapDirection(state.direction)
     }));
+}
+
+function readDetailPackageModalDraftBuckets() {
+    try {
+        const raw = sessionStorage.getItem(DETAIL_PACKAGE_MODAL_DRAFTS_STORAGE_KEY);
+        if (!raw) {
+            return {};
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            sessionStorage.removeItem(DETAIL_PACKAGE_MODAL_DRAFTS_STORAGE_KEY);
+            return {};
+        }
+
+        return parsed;
+    } catch (error) {
+        sessionStorage.removeItem(DETAIL_PACKAGE_MODAL_DRAFTS_STORAGE_KEY);
+        return {};
+    }
+}
+
+function writeDetailPackageModalDraftBuckets(buckets) {
+    try {
+        if (!buckets || typeof buckets !== 'object' || Array.isArray(buckets) || !Object.keys(buckets).length) {
+            sessionStorage.removeItem(DETAIL_PACKAGE_MODAL_DRAFTS_STORAGE_KEY);
+            return;
+        }
+
+        sessionStorage.setItem(DETAIL_PACKAGE_MODAL_DRAFTS_STORAGE_KEY, JSON.stringify(buckets));
+    } catch (error) {
+        // sessionStorage 写入失败时静默回退，不打断 detail 正常浏览。
+    }
 }
 
 // 详情页主类：统一管理当前潜点的数据渲染、交互事件、弹窗、评论和地图三态视图。
@@ -2745,6 +2779,7 @@ class DetailPage {
         this.applyHeroEnvironmentProfile();
 
         this.packageData = this.buildPackageData();
+        this.hydrateBookingModalDraftsForCurrentSpot();
         this.bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
         this.selectedPackageId = this.selectedPackageId
             || this.getLatestBookedPackageIdForCurrentSpot()
@@ -8016,6 +8051,7 @@ class DetailPage {
                     <div class="package-card-focus">
                         <span class="package-card-section-label">当前海流</span>
                         <p class="package-card-focus-copy">${focusCopy}</p>
+                        <div class="package-card-echo-slot" data-package-card-echo-slot></div>
                     </div>
 
                     <div class="package-card-footer">
@@ -8041,6 +8077,7 @@ class DetailPage {
         this.setupPackageCardTitleReveal();
         this.setupPackagePriceObserver();
         this.syncPackageCardSelection();
+        this.syncAllPackageCardEchoStates();
 
         if (this.bookingNote && !this.bookingNote.classList.contains('is-success')) {
             this.bookingNote.innerHTML = `
@@ -8103,6 +8140,105 @@ class DetailPage {
 
         return Array.from(this.itineraryList.querySelectorAll('.package-card'))
             .find((card) => card.dataset.packageId === packageId) || null;
+    }
+
+    /**
+     * getPackageCardEchoState() - 从当前套餐 draft 派生外卡片的“刚刚看过/调整过”回声提示。
+     * @param {string|Object} packageOrId - 套餐对象或套餐 ID
+     * @returns {{ status: 'viewed'|'adjusted', label: string, summary: string }|null}
+     */
+    getPackageCardEchoState(packageOrId) {
+        const pkg = typeof packageOrId === 'object'
+            ? packageOrId
+            : this.getPackageById(packageOrId);
+        if (!pkg) {
+            return null;
+        }
+
+        const draft = this.getPackageModalDraft(pkg);
+        if (!draft?.hasEditorOpened) {
+            return null;
+        }
+
+        const modalState = this.getPackageModalViewState(pkg);
+        if (!modalState) {
+            return null;
+        }
+
+        return {
+            status: modalState.isCustomized ? 'adjusted' : 'viewed',
+            label: modalState.isCustomized ? '刚刚调整过这程' : '刚刚看过这程',
+            summary: [
+                modalState.durationLabel,
+                modalState.windowLabel,
+                modalState.peopleLabel || '同行待回声'
+            ].filter(Boolean).join(' / ')
+        };
+    }
+
+    /**
+     * createPackageCardEchoMarkup() - 生成 active 套餐卡底部的回声提示块。
+     * @param {string|Object} packageOrId - 套餐对象或套餐 ID
+     * @returns {string} - 回声提示 HTML；若无回声则返回空字符串
+     */
+    createPackageCardEchoMarkup(packageOrId) {
+        const echoState = this.getPackageCardEchoState(packageOrId);
+        if (!echoState) {
+            return '';
+        }
+
+        return `
+            <div class="package-card-echo" data-package-card-echo-status="${echoState.status}">
+                <span class="package-card-echo-label">${escapeHtml(echoState.label)}</span>
+                <p class="package-card-echo-summary">${escapeHtml(echoState.summary)}</p>
+            </div>
+        `;
+    }
+
+    /**
+     * syncPackageCardEchoState() - 仅同步单张套餐卡的回声区，避免整组卡片重渲染。
+     * @param {string|Object} packageOrId - 套餐对象或套餐 ID
+     * @returns {void}
+     */
+    syncPackageCardEchoState(packageOrId) {
+        const pkg = typeof packageOrId === 'object'
+            ? packageOrId
+            : this.getPackageById(packageOrId);
+        if (!pkg) {
+            return;
+        }
+
+        const card = this.getPackageCardById(pkg.id);
+        if (!card) {
+            return;
+        }
+
+        const echoState = this.getPackageCardEchoState(pkg);
+        const focus = card.querySelector('.package-card-focus');
+        const slot = card.querySelector('[data-package-card-echo-slot]');
+
+        if (slot) {
+            slot.innerHTML = echoState ? this.createPackageCardEchoMarkup(pkg) : '';
+        }
+
+        focus?.classList.toggle('has-package-card-echo', Boolean(echoState));
+
+        if (echoState?.status) {
+            card.dataset.packageCardEchoStatus = echoState.status;
+            return;
+        }
+
+        delete card.dataset.packageCardEchoStatus;
+    }
+
+    /**
+     * syncAllPackageCardEchoStates() - 套餐列表渲染后批量把回声提示补进每张卡片。
+     * @returns {void}
+     */
+    syncAllPackageCardEchoStates() {
+        this.getPackageFlowPackages().forEach((pkg) => {
+            this.syncPackageCardEchoState(pkg);
+        });
     }
 
     /**
@@ -9809,6 +9945,73 @@ class DetailPage {
         }));
     }
 
+    hydrateBookingModalDraftsForCurrentSpot() {
+        const spotKey = String(this.spotId || '');
+        const persistedBuckets = readDetailPackageModalDraftBuckets();
+        const persistedSpotDrafts = persistedBuckets?.[spotKey];
+
+        this.bookingModalDrafts = new Map();
+
+        if (!persistedSpotDrafts || typeof persistedSpotDrafts !== 'object' || Array.isArray(persistedSpotDrafts)) {
+            return;
+        }
+
+        Object.entries(persistedSpotDrafts).forEach(([packageId, persistedDraft]) => {
+            if (!this.getPackageById(packageId) || !persistedDraft || typeof persistedDraft !== 'object') {
+                return;
+            }
+
+            this.updatePackageModalDraft(packageId, {
+                days: persistedDraft.days,
+                windowKey: persistedDraft.windowKey,
+                peopleValue: persistedDraft.peopleValue,
+                hasEditorOpened: Boolean(persistedDraft.hasEditorOpened),
+                isEditorOpen: false,
+                focusField: '',
+                isCustomDurationOpen: false,
+                isCustomPeopleOpen: false
+            }, {
+                persist: false,
+                syncEcho: false
+            });
+        });
+    }
+
+    /**
+     * persistBookingModalDraftsForCurrentSpot() - 把当前海域里有兴趣回声的套餐 draft 写入 sessionStorage。
+     * @returns {void}
+     */
+    persistBookingModalDraftsForCurrentSpot() {
+        const spotKey = String(this.spotId || '');
+        if (!spotKey) {
+            return;
+        }
+
+        const persistedBuckets = readDetailPackageModalDraftBuckets();
+        const nextSpotDrafts = {};
+
+        this.bookingModalDrafts.forEach((draft, packageId) => {
+            if (!draft?.hasEditorOpened || !this.getPackageById(packageId)) {
+                return;
+            }
+
+            nextSpotDrafts[packageId] = {
+                days: Number.isFinite(Number(draft.days)) ? Number(draft.days) : undefined,
+                windowKey: draft.windowKey || '',
+                peopleValue: this.normalizePackageModalPeopleValue(draft.peopleValue),
+                hasEditorOpened: true
+            };
+        });
+
+        if (Object.keys(nextSpotDrafts).length) {
+            persistedBuckets[spotKey] = nextSpotDrafts;
+        } else {
+            delete persistedBuckets[spotKey];
+        }
+
+        writeDetailPackageModalDraftBuckets(persistedBuckets);
+    }
+
     getPackageModalDraft(packageOrId) {
         const pkg = typeof packageOrId === 'object'
             ? packageOrId
@@ -9830,6 +10033,7 @@ class DetailPage {
                 : defaultWindowKey,
             peopleValue: this.normalizePackageModalPeopleValue(existingDraft.peopleValue),
             focusField: this.normalizePackageModalEditorFocusField(existingDraft.focusField),
+            hasEditorOpened: Boolean(existingDraft.hasEditorOpened || existingDraft.isEditorOpen),
             isEditorOpen: Boolean(existingDraft.isEditorOpen),
             isCustomDurationOpen: Boolean(existingDraft.isCustomDurationOpen),
             isCustomPeopleOpen: Boolean(existingDraft.isCustomPeopleOpen)
@@ -9839,12 +10043,16 @@ class DetailPage {
         return normalizedDraft;
     }
 
-    updatePackageModalDraft(packageId, patch = {}) {
+    updatePackageModalDraft(packageId, patch = {}, options = {}) {
         const pkg = this.getPackageById(packageId);
         if (!pkg) {
             return null;
         }
 
+        const {
+            persist = true,
+            syncEcho = true
+        } = options;
         const currentDraft = this.getPackageModalDraft(pkg);
         const durationClampMaxDays = this.getPackageModalDurationClampMaxDays(pkg);
         const allowedWindowKeys = new Set(this.getPackageModalWindowOptions(pkg).map((option) => option.key));
@@ -9860,10 +10068,18 @@ class DetailPage {
             windowKey: allowedWindowKeys.has(nextDraft.windowKey) ? nextDraft.windowKey : currentDraft.windowKey,
             peopleValue: this.normalizePackageModalPeopleValue(nextDraft.peopleValue) || '',
             focusField: this.normalizePackageModalEditorFocusField(nextDraft.focusField),
+            hasEditorOpened: Boolean(nextDraft.hasEditorOpened || nextDraft.isEditorOpen || currentDraft.hasEditorOpened),
             isEditorOpen: Boolean(nextDraft.isEditorOpen),
             isCustomDurationOpen: Boolean(nextDraft.isCustomDurationOpen),
             isCustomPeopleOpen: Boolean(nextDraft.isCustomPeopleOpen)
         });
+
+        if (persist) {
+            this.persistBookingModalDraftsForCurrentSpot();
+        }
+        if (syncEcho) {
+            this.syncPackageCardEchoState(pkg.id);
+        }
 
         return this.bookingModalDrafts.get(pkg.id);
     }
