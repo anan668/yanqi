@@ -1664,6 +1664,7 @@ class DetailPage {
         this.bookingFocusMeta = document.getElementById('bookingFocusMeta');
         this.bookingFocusPrice = document.getElementById('bookingFocusPrice');
         this.bookingFocusSummary = document.getElementById('bookingFocusSummary');
+        this.bookingFocusEchoSlot = document.getElementById('bookingFocusEchoSlot');
         this.bookingFocusAction = document.getElementById('bookingFocusAction');
         this.reviewDetailModal = document.getElementById('reviewDetailModal');
         this.reviewDetailBody = document.getElementById('reviewDetailBody');
@@ -4143,6 +4144,8 @@ class DetailPage {
         this.bookingFocusMeta.innerHTML = this.buildBookingFocusMetaMarkup(pkg, { isBooked });
         this.updateBookingFocusPrice(pkg.price, { animate: animatePrice });
         this.bookingFocusSummary.textContent = this.getBookingFocusSummary(pkg, contextKey, { isBooked });
+        this.bookingFocusPanel.dataset.packageId = pkg.id;
+        this.syncBookingFocusEchoState(pkg);
         this.syncBookingStickyFocusContext(isFocusOnlyContext, packageId);
         this.bookingSticky?.classList.toggle('has-booked-focus-package', isBooked);
         this.bookingFocusPanel.classList.toggle('is-booked', isBooked);
@@ -8232,6 +8235,60 @@ class DetailPage {
     }
 
     /**
+     * createBookingFocusEchoMarkup() - 生成焦点舱内部的“刚刚看过/调整过”轻量回声块。
+     * @param {string|Object} packageOrId - 套餐对象或套餐 ID
+     * @returns {string} - 焦点舱回声 HTML；若无回声则返回空字符串
+     */
+    createBookingFocusEchoMarkup(packageOrId) {
+        const echoState = this.getPackageCardEchoState(packageOrId);
+        if (!echoState) {
+            return '';
+        }
+
+        return `
+            <div class="booking-focus-echo" data-booking-focus-echo-status="${echoState.status}">
+                <span class="booking-focus-echo-label">${escapeHtml(echoState.label)}</span>
+                <p class="booking-focus-echo-summary">${escapeHtml(echoState.summary)}</p>
+            </div>
+        `;
+    }
+
+    /**
+     * syncBookingFocusEchoState() - 把当前焦点舱对应套餐的回声提示同步到 booking-focus-panel。
+     * @param {string|Object} [packageOrId=this.activeBookingFocusPackageId || this.selectedPackageId] - 套餐对象或套餐 ID
+     * @returns {void}
+     */
+    syncBookingFocusEchoState(packageOrId = this.activeBookingFocusPackageId || this.selectedPackageId) {
+        if (!this.bookingFocusPanel || !this.bookingFocusEchoSlot) {
+            return;
+        }
+
+        const currentFocusPackageId =
+            this.bookingFocusPanel.dataset.packageId ||
+            this.activeBookingFocusPackageId ||
+            this.selectedPackageId ||
+            '';
+        const pkg = typeof packageOrId === 'object'
+            ? packageOrId
+            : this.getPackageById(packageOrId || currentFocusPackageId);
+
+        if (!pkg || (currentFocusPackageId && pkg.id !== currentFocusPackageId)) {
+            return;
+        }
+
+        const echoState = this.getPackageCardEchoState(pkg);
+        this.bookingFocusEchoSlot.innerHTML = echoState ? this.createBookingFocusEchoMarkup(pkg) : '';
+        this.bookingFocusPanel.classList.toggle('has-booking-focus-echo', Boolean(echoState));
+
+        if (echoState?.status) {
+            this.bookingFocusPanel.dataset.bookingFocusEchoStatus = echoState.status;
+            return;
+        }
+
+        delete this.bookingFocusPanel.dataset.bookingFocusEchoStatus;
+    }
+
+    /**
      * syncAllPackageCardEchoStates() - 套餐列表渲染后批量把回声提示补进每张卡片。
      * @returns {void}
      */
@@ -10079,6 +10136,7 @@ class DetailPage {
         }
         if (syncEcho) {
             this.syncPackageCardEchoState(pkg.id);
+            this.syncBookingFocusEchoState(pkg.id);
         }
 
         return this.bookingModalDrafts.get(pkg.id);
