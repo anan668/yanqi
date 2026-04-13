@@ -189,7 +189,7 @@
 - 海图底图不是简单截图，而是项目内按海域打包的离线海图资源。
 - `js/yanqi-spot-map-catalog.js` 用来整理每片海域的地图信息。
 - `assets/maps/packs/index.json` 用来管理离线海图包的索引数据。
-- `scripts/generate-sea-atlas-tiles.py` 会根据海域范围和陆地数据直接生成每片海域的离线海图包。
+- `tools/maps/generate-sea-atlas-tiles.py` 会根据海域范围和陆地数据直接生成每片海域的离线海图包。
 
 这一部分让我练到了“网页展示”和“资源生成脚本”结合的写法，而不只是停留在静态页面层面。
 
@@ -205,25 +205,26 @@
 
 ```text
 盐憩/
-├─ assets/                      静态素材
-│  ├─ images/                   图片资源
-│  ├─ maps/                     海图资源与离线海图包
-│  └─ vendor/                   第三方库
-├─ css/                         样式文件
-├─ js/                          交互脚本
-├─ scripts/                     资源处理脚本
-├─ pretext-main/                文本布局相关依赖
-├─ index.html                   门厅页
-├─ home.html                    首页
-├─ trip.html                    行程页
-├─ detail.html                  详情页
-├─ contact.html                 联系页
-├─ terms.html                   用户协议页
-├─ privacy.html                 隐私政策页
-├─ QUICKSTART.md                快速启动说明
-├─ YANQI_PRESENTATION.md        项目展示提纲
-├─ YANQI_5MIN_SPEECH.md         五分钟讲稿
-├─ YANQI_HANDOFF.md             续接说明
+├─ site/                        站点运行本体
+│  ├─ assets/                   静态素材
+│  ├─ css/                      样式文件
+│  ├─ js/                       交互脚本
+│  ├─ pretext-main/             文本布局相关依赖
+│  ├─ index.html                门厅页
+│  ├─ home.html                 首页
+│  ├─ trip.html                 行程页
+│  ├─ detail.html               详情页
+│  ├─ contact.html              联系页
+│  ├─ terms.html                用户协议页
+│  └─ privacy.html              隐私政策页
+├─ docs/                        展示与续接文档
+├─ tools/
+│  ├─ qa/                       烟雾测试与图片压缩
+│  ├─ maps/                     海图生成与源数据
+│  └─ text-layout/              pretext 构建辅助脚本
+├─ _workspace/                  本地归档与临时内容
+├─ AGENTS.md                    仓库协作规则
+├─ .gitignore                   本地忽略规则
 └─ README.md                    项目主说明
 ```
 
@@ -231,62 +232,62 @@
 
 ### 页面文件
 
-- `index.html`：登录和注册入口。
-- `home.html`：首页主内容。
-- `trip.html`：行程控制台和已收进行程。
-- `detail.html`：海域详情、套餐、评论和地图。
+- `site/index.html`：登录和注册入口。
+- `site/home.html`：首页主内容。
+- `site/trip.html`：行程控制台和已收进行程。
+- `site/detail.html`：海域详情、套餐、评论和地图。
 
 ### 样式文件
 
-- `css/global.css`：全站公共变量和基础样式。
-- `css/login.css`：门厅页样式。
-- `css/home.css`：首页样式。
-- `css/trip.css`：行程页样式。
-- `css/detail.css`：详情页样式。
-- `css/depth-gauge.css`：深度计样式。
-- `css/page-transition.css`：跨页过渡样式。
-- `css/info-pages.css`：联系页、协议页、隐私页通用样式。
+- `site/css/global.css`：全站公共变量和基础样式。
+- `site/css/login.css`：门厅页样式。
+- `site/css/home.css`：首页样式。
+- `site/css/trip.css`：行程页样式。
+- `site/css/detail.css`：详情页样式。
+- `site/css/depth-gauge.css`：深度计样式。
+- `site/css/page-transition.css`：跨页过渡样式。
+- `site/css/info-pages.css`：联系页、协议页、隐私页通用样式。
 
 ### 脚本文件
 
-- `js/auth.js`：登录、注册和表单反馈。
-- `js/depth-manager.js`：深度计和跨页海层过渡总控。
-- `js/home.js`：首页模块交互。
-- `js/trip.js`：行程页主控逻辑。
-- `js/detail.js`：详情页主控逻辑。
-- `js/yanqi-trip-store.js`：行程与套餐共享存储。
-- `js/yanqi-spot-map-catalog.js`：海图目录数据。
-- `js/info-pages.js`：信息页交互。
-- `js/ocean-scroll.js`：滚动工具。
+- `site/js/auth.js`：登录、注册和表单反馈。
+- `site/js/depth-manager.js`：深度计和跨页海层过渡总控。
+- `site/js/home.js`：首页模块交互。
+- `site/js/trip.js`：行程页主控逻辑。
+- `site/js/detail.js`：详情页主控逻辑。
+- `site/js/yanqi-trip-store.js`：行程与套餐共享存储。
+- `site/js/yanqi-spot-map-catalog.js`：海图目录数据。
+- `site/js/info-pages.js`：信息页交互。
+- `site/js/ocean-scroll.js`：滚动工具。
 
 ### 地图相关资源
 
-- `assets/vendor/leaflet/`：地图依赖文件。
-- `assets/maps/packs/`：按海域输出的离线海图包。
-- `assets/maps/packs/index.json`：海图包索引。
-- `scripts/generate-sea-atlas-tiles.py`：离线海图包生成脚本。
+- `site/assets/vendor/leaflet/`：地图依赖文件。
+- `site/assets/maps/packs/`：按海域输出的离线海图包。
+- `site/assets/maps/packs/index.json`：海图包索引。
+- `tools/maps/generate-sea-atlas-tiles.py`：离线海图包生成脚本。
 
 ## 我建议怎样体验这个项目
 
 如果只是想快速感受项目，我建议按这个顺序体验：
 
-1. 先打开 `index.html`，进入门厅。
-2. 再进入 `home.html`，先看首页氛围和模块切换。
-3. 从首页进入一个 `detail.html`，看看一片具体海域是怎么展开的。
-4. 在详情页确认一个套餐，再进入 `trip.html` 看状态是否接得住。
-5. 最后再去 `contact.html` 看信息页是不是也保持了同样的气质。
+1. 先打开 `site/index.html`，进入门厅。
+2. 再进入 `site/home.html`，先看首页氛围和模块切换。
+3. 从首页进入一个 `site/detail.html`，看看一片具体海域是怎么展开的。
+4. 在详情页确认一个套餐，再进入 `site/trip.html` 看状态是否接得住。
+5. 最后再去 `site/contact.html` 看信息页是不是也保持了同样的气质。
 
 ## 我建议怎样看代码
 
 如果想看主线，我会建议按下面这个顺序读：
 
-1. `home.html`、`css/home.css`、`js/home.js`
-2. `js/depth-manager.js`
-3. `trip.html`、`css/trip.css`、`js/trip.js`
-4. `js/yanqi-trip-store.js`
-5. `detail.html`、`css/detail.css`、`js/detail.js`
-6. `js/yanqi-spot-map-catalog.js`
-7. `scripts/generate-sea-atlas-tiles.py`
+1. `site/home.html`、`site/css/home.css`、`site/js/home.js`
+2. `site/js/depth-manager.js`
+3. `site/trip.html`、`site/css/trip.css`、`site/js/trip.js`
+4. `site/js/yanqi-trip-store.js`
+5. `site/detail.html`、`site/css/detail.css`、`site/js/detail.js`
+6. `site/js/yanqi-spot-map-catalog.js`
+7. `tools/maps/generate-sea-atlas-tiles.py`
 
 这样看会比较容易先抓住页面主线，再理解状态、地图和资源生成这些更深一层的内容。
 
@@ -296,7 +297,7 @@
 
 ### 直接打开
 
-双击 `index.html` 就可以先看到基本页面效果。
+双击 `site/index.html` 就可以先看到基本页面效果。
 
 ### 使用本地静态服务
 
@@ -310,12 +311,12 @@ python -m http.server 8000
 然后在浏览器打开：
 
 ```text
-http://localhost:8000
+http://localhost:8000/site/
 ```
 
 ### 使用编辑器实时预览
 
-如果平时在编辑器里开发，也可以直接使用实时预览方式打开 `index.html`。
+如果平时在编辑器里开发，也可以直接使用实时预览方式打开 `site/index.html`。
 
 ## 当前还有哪些不足
 

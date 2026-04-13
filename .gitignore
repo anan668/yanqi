@@ -1,1 +1,10 @@
-artifacts/
+/_workspace/
+/tools/qa/node_modules/
+/tools/qa/playwright-browser/
+/tools/qa/playwright-report/
+/tools/qa/test-results/
+/tools/qa/.cache/
+/tools/qa/*.log
+/tools/qa/tmp-*
+/tools/maps/source/**/*.zip
+/tools/maps/source/**/*.geojson
