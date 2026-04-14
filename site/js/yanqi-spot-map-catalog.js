@@ -18,12 +18,114 @@
         return `assets/maps/packs/${key}.pack.js`;
     }
 
+    const SEA_ATLAS_CONTEXT_LABELS = deepFreeze({
+        sipadan: [
+            { name: 'Malaysia', kind: 'country', coords: [4.53, 118.56], priority: 1 },
+            { name: 'Sabah', kind: 'region', coords: [4.41, 118.52], priority: 2 },
+            { name: 'Semporna', kind: 'region', coords: [4.48, 118.61], priority: 3 },
+            { name: 'Celebes Sea', kind: 'sea', coords: [4.20, 118.79], priority: 4 },
+            { name: 'Borneo', kind: 'region', coords: [4.59, 118.74], priority: 5 }
+        ],
+        palau: [
+            { name: 'Palau', kind: 'country', coords: [7.36, 134.33], priority: 1 },
+            { name: 'Koror', kind: 'region', coords: [7.34, 134.47], priority: 2 },
+            { name: 'Babeldaob', kind: 'region', coords: [7.41, 134.36], priority: 3 },
+            { name: 'Rock Islands', kind: 'region', coords: [7.28, 134.38], priority: 4 },
+            { name: 'Philippine Sea', kind: 'sea', coords: [7.12, 134.53], priority: 5 }
+        ],
+        'blue-hole': [
+            { name: 'Belize', kind: 'country', coords: [17.80, -87.92], priority: 1 },
+            { name: 'San Pedro', kind: 'region', coords: [17.93, -87.96], priority: 2 },
+            { name: 'Ambergris Caye', kind: 'region', coords: [18.01, -87.91], priority: 3 },
+            { name: 'Lighthouse Reef', kind: 'region', coords: [17.55, -87.76], priority: 4 },
+            { name: 'Caribbean Sea', kind: 'sea', coords: [17.47, -87.58], priority: 5 }
+        ],
+        timor: [
+            { name: 'Timor-Leste', kind: 'country', coords: [-8.48, 125.56], priority: 1 },
+            { name: 'Dili', kind: 'region', coords: [-8.56, 125.57], priority: 2 },
+            { name: 'Atauro', kind: 'region', coords: [-8.26, 125.57], priority: 3 },
+            { name: 'Wetar Strait', kind: 'sea', coords: [-8.31, 125.69], priority: 4 },
+            { name: 'Ombai Strait', kind: 'sea', coords: [-8.57, 125.70], priority: 5 }
+        ],
+        pohnpei: [
+            { name: 'Micronesia', kind: 'country', coords: [6.96, 158.20], priority: 1 },
+            { name: 'Kolonia', kind: 'region', coords: [6.96, 158.21], priority: 2 },
+            { name: 'Pohnpei', kind: 'region', coords: [6.88, 158.26], priority: 3 },
+            { name: 'Pohnpei Lagoon', kind: 'sea', coords: [6.89, 158.33], priority: 4 },
+            { name: 'Pacific Ocean', kind: 'sea', coords: [6.84, 158.36], priority: 5 }
+        ],
+        bunaken: [
+            { name: 'Indonesia', kind: 'country', coords: [1.49, 124.86], priority: 1 },
+            { name: 'Manado', kind: 'region', coords: [1.50, 124.84], priority: 2 },
+            { name: 'North Sulawesi', kind: 'region', coords: [1.61, 124.88], priority: 3 },
+            { name: 'Bunaken', kind: 'region', coords: [1.62, 124.75], priority: 4 },
+            { name: 'Celebes Sea', kind: 'sea', coords: [1.55, 124.68], priority: 5 }
+        ],
+        komodo: [
+            { name: 'Indonesia', kind: 'country', coords: [-8.51, 119.86], priority: 1 },
+            { name: 'Labuan Bajo', kind: 'region', coords: [-8.50, 119.88], priority: 2 },
+            { name: 'Komodo', kind: 'region', coords: [-8.55, 119.55], priority: 3 },
+            { name: 'Rinca', kind: 'region', coords: [-8.63, 119.72], priority: 4 },
+            { name: 'Flores Sea', kind: 'sea', coords: [-8.67, 119.69], priority: 5 }
+        ],
+        tuamotu: [
+            { name: 'French Polynesia', kind: 'country', coords: [-14.95, -147.68], priority: 1 },
+            { name: 'Tuamotu Archipelago', kind: 'region', coords: [-14.92, -147.59], priority: 2 },
+            { name: 'Rangiroa', kind: 'region', coords: [-14.97, -147.62], priority: 3 },
+            { name: 'Avatoru', kind: 'region', coords: [-14.96, -147.64], priority: 4 },
+            { name: 'South Pacific', kind: 'sea', coords: [-15.02, -147.70], priority: 5 }
+        ],
+        mabul: [
+            { name: 'Malaysia', kind: 'country', coords: [4.52, 118.56], priority: 1 },
+            { name: 'Sabah', kind: 'region', coords: [4.43, 118.53], priority: 2 },
+            { name: 'Semporna', kind: 'region', coords: [4.48, 118.61], priority: 3 },
+            { name: 'Celebes Sea', kind: 'sea', coords: [4.29, 118.79], priority: 4 },
+            { name: 'Borneo', kind: 'region', coords: [4.58, 118.74], priority: 5 }
+        ],
+        'maldives-liveaboard': [
+            { name: 'Maldives', kind: 'country', coords: [4.34, 72.76], priority: 1 },
+            { name: 'Male', kind: 'region', coords: [4.18, 73.51], priority: 2 },
+            { name: 'North Male Atoll', kind: 'region', coords: [4.32, 73.47], priority: 3 },
+            { name: 'Ari Atoll', kind: 'region', coords: [4.03, 72.86], priority: 4 },
+            { name: 'Indian Ocean', kind: 'sea', coords: [4.74, 72.66], priority: 5 }
+        ],
+        coron: [
+            { name: 'Philippines', kind: 'country', coords: [12.05, 120.19], priority: 1 },
+            { name: 'Busuanga', kind: 'region', coords: [12.05, 120.20], priority: 2 },
+            { name: 'Palawan', kind: 'region', coords: [12.04, 120.07], priority: 3 },
+            { name: 'Coron Bay', kind: 'sea', coords: [11.97, 120.11], priority: 4 },
+            { name: 'Calamian Islands', kind: 'region', coords: [12.03, 120.25], priority: 5 }
+        ],
+        bohol: [
+            { name: 'Philippines', kind: 'country', coords: [9.58, 123.79], priority: 1 },
+            { name: 'Panglao', kind: 'region', coords: [9.55, 123.77], priority: 2 },
+            { name: 'Bohol', kind: 'region', coords: [9.59, 123.80], priority: 3 },
+            { name: 'Balicasag', kind: 'region', coords: [9.52, 123.69], priority: 4 },
+            { name: 'Bohol Sea', kind: 'sea', coords: [9.49, 123.64], priority: 5 }
+        ],
+        racha: [
+            { name: 'Thailand', kind: 'country', coords: [7.84, 98.29], priority: 1 },
+            { name: 'Phuket', kind: 'region', coords: [7.83, 98.34], priority: 2 },
+            { name: 'Racha Yai', kind: 'region', coords: [7.61, 98.38], priority: 3 },
+            { name: 'Racha Noi', kind: 'region', coords: [7.55, 98.36], priority: 4 },
+            { name: 'Andaman Sea', kind: 'sea', coords: [7.59, 98.29], priority: 5 }
+        ],
+        redang: [
+            { name: 'Malaysia', kind: 'country', coords: [5.57, 102.95], priority: 1 },
+            { name: 'Terengganu', kind: 'region', coords: [5.56, 102.97], priority: 2 },
+            { name: 'Merang', kind: 'region', coords: [5.55, 102.96], priority: 3 },
+            { name: 'Redang Island', kind: 'region', coords: [5.78, 103.02], priority: 4 },
+            { name: 'South China Sea', kind: 'sea', coords: [5.70, 103.11], priority: 5 }
+        ]
+    });
+
     function enrichMapRecord(item) {
         const zoom = Number(item?.zoom) || 9;
         const hasBounds = Array.isArray(item?.mapBounds) && item.mapBounds.length === 2;
 
         return {
             ...item,
+            contextLabels: (SEA_ATLAS_CONTEXT_LABELS[item.key] || []).map((label) => ({ ...label })),
             offlineTilePack: buildOfflineTilePack(item.key),
             offlineTilePackFormat: 'script',
             offlineMinZoom: Math.max(4, zoom - 4),

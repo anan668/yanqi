@@ -3574,6 +3574,8 @@ class DetailPage {
             this.setBookingStickyFocusContextMotionState('settling');
             this.setBookingStickyFocusContextPhase('');
             this.applyBookingStickyFocusOnlyState(true);
+            this.bookingSticky.scrollTop = 0;
+            this.bookingStickyScrollTargetTop = 0;
             this.bookingStickyFocusContextState = 'focus';
             this.applyPackageCardSelectionState(targetPackageId);
 
@@ -3750,13 +3752,9 @@ class DetailPage {
         this.clearBookingStickyFocusContextTransition();
         this.bookingStickyFocusContextState = 'leaving';
         this.measureBookingStickyFocusContextShift();
-        const maxScrollTop = this.getBookingStickyMaxScrollTop();
-        const restoreTop = Math.max(0, Math.min(this.bookingStickyListContextScrollTop || 0, maxScrollTop));
-        this.bookingStickyScrollTargetTop = restoreTop;
         this.setBookingStickyFocusContextMotionState('leaving-prep');
         this.setBookingStickyFocusContextPhase('leaving');
         this.applyBookingStickyFocusOnlyState(false);
-        this.bookingSticky.scrollTop = restoreTop;
         this.applyPackageCardSelectionState(packageId);
 
         this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
@@ -3766,6 +3764,10 @@ class DetailPage {
                     return;
                 }
 
+                const maxScrollTop = this.getBookingStickyMaxScrollTop();
+                const restoreTop = Math.max(0, Math.min(this.bookingStickyListContextScrollTop || 0, maxScrollTop));
+                this.bookingStickyScrollTargetTop = restoreTop;
+                this.bookingSticky.scrollTop = restoreTop;
                 this.setBookingStickyFocusContextMotionState('leaving');
                 this.armBookingStickyFocusContextFallback('leaving');
             });

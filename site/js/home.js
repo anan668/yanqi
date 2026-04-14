@@ -1872,6 +1872,19 @@ const DIVE_MATCH_PROFILE_PRESET_ORDER = Object.freeze({
     'showcase-current': 2
 });
 
+const DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS = 220;
+const DIVE_MATCH_PROFILE_PRESET_SWAP_DURATION_MS = 1460;
+const DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS = 180;
+const DIVE_MATCH_PROFILE_PANEL_SWAP_DURATION_MS = 1240;
+const DIVE_MATCH_PROFILE_PANEL_TRACK_OUT_DURATION_MS = 760;
+const DIVE_MATCH_PROFILE_PANEL_TRACK_IN_DURATION_MS = 980;
+const DIVE_MATCH_PROFILE_PANEL_ITEM_OUT_DURATION_MS = 640;
+const DIVE_MATCH_PROFILE_PANEL_ITEM_IN_DURATION_MS = 900;
+const DIVE_MATCH_PROFILE_PRESET_TRACK_OUT_DURATION_MS = 780;
+const DIVE_MATCH_PROFILE_PRESET_TRACK_IN_DURATION_MS = 1040;
+const DIVE_MATCH_PROFILE_PRESET_ITEM_OUT_DURATION_MS = 680;
+const DIVE_MATCH_PROFILE_PRESET_ITEM_IN_DURATION_MS = 980;
+
 // 统一导航入口：所有需要跨页面保持深度过渡的跳转都先走这里。
 /**
  * navigateWithDepth(url) - 带深度切换效果地跳转到目标页面
@@ -3982,6 +3995,20 @@ class DiveMatchStage {
         this.liveSummary = document.getElementById('diveMatchLiveSummary');
         this.profile = getActiveHomeDiverProfile();
         this.profilePanel = null;
+        this.profileCopy = null;
+        this.profileReason = null;
+        this.profilePresetRail = null;
+        this.profilePresetTransitionTimer = 0;
+        this.profilePresetTransitionRafId = 0;
+        this.profilePresetTransitionRafId2 = 0;
+        this.profilePresetFocusRafId = 0;
+        this.profilePresetFocusAuraNode = null;
+            this.profilePresetRailResizeObserver = null;
+        this.profilePresetSwapInTimer = 0;
+        this.profilePanelSlotTransitions = {
+            copy: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 },
+            reason: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 }
+        };
         this.activeKey = getDiveMatchKeyFromLocation() || resolveDefaultDiveMatchKey() || readStoredDiveMatchKey() || DIVE_MATCH_DEFAULT_KEY;
         this.switchTimer = 0;
         this.focusTimer = 0;
@@ -4088,7 +4115,11 @@ class DiveMatchStage {
             });
     }
 
-    renderProfilePanel() {
+    shouldReduceProfilePresetMotion() {
+        return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+    }
+
+    ensureProfilePanelShell() {
         if (!this.stage || !sharedDiverProfile) {
             return;
         }
@@ -4097,47 +4128,644 @@ class DiveMatchStage {
             this.profilePanel = document.createElement('section');
             this.profilePanel.className = 'dive-match-profile-panel';
             this.profilePanel.id = 'diveMatchProfilePanel';
+            this.profileCopy = document.createElement('div');
+            this.profileCopy.className = 'dive-match-profile-copy';
+            this.profileReason = document.createElement('div');
+            this.profileReason.className = 'dive-match-profile-reason';
+            this.profilePresetRail = document.createElement('div');
+            this.profilePresetRail.className = 'dive-match-profile-presets';
+            this.profilePresetRail.setAttribute('role', 'group');
+            this.profilePresetRail.setAttribute('aria-label', '切换潜水者档案预设');
+            this.ensureProfilePresetFocusAuraNode();
+            this.profilePanel.append(this.profileCopy, this.profileReason, this.profilePresetRail);
             this.stage.insertBefore(this.profilePanel, this.filters);
+
+            if ('ResizeObserver' in window) {
+                this.profilePresetRailResizeObserver = new ResizeObserver(() => {
+                    this.syncProfilePresetFocusAura(this.getActiveProfilePresetButton(), {
+                        immediate: !this.profilePresetRail?.classList.contains('is-transitioning')
+                    });
+                });
+                this.profilePresetRailResizeObserver.observe(this.profilePresetRail);
+            }
+        }
+    }
+
+    syncProfilePanelMotionState() {
+        if (!this.profilePanel) {
+            return;
         }
 
+        const hasMotion = [this.profileCopy, this.profileReason, this.profilePresetRail]
+            .some((node) => node?.classList.contains('is-transitioning'));
+
+        this.profilePanel.classList.toggle('is-content-transitioning', hasMotion);
+    }
+
+    cancelNodeAnimations(node) {
+        if (!node?.getAnimations) {
+            return;
+        }
+
+        node.getAnimations({ subtree: true }).forEach((animation) => {
+            animation.cancel();
+        });
+    }
+
+    animateNode(node, keyframes, options) {
+        if (!node?.animate) {
+            return null;
+        }
+
+        return node.animate(keyframes, {
+            fill: 'both',
+            ...options
+        });
+    }
+
+    playProfilePanelTrackAnimations(currentTrack, nextTrack) {
+        if (this.shouldReduceProfilePresetMotion()) {
+            return;
+        }
+
+        this.cancelNodeAnimations(currentTrack);
+        this.cancelNodeAnimations(nextTrack);
+        void currentTrack.offsetWidth;
+        void nextTrack.offsetWidth;
+
+        this.animateNode(currentTrack, [
+            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' },
+            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 18px, 0)' }
+        ], {
+            duration: DIVE_MATCH_PROFILE_PANEL_TRACK_OUT_DURATION_MS,
+            easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+        });
+
+        Array.from(currentTrack.children).forEach((node, index) => {
+            this.animateNode(node, [
+                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' },
+                { opacity: 0, filter: 'blur(10px)', transform: 'translate3d(0, 14px, 0)' }
+            ], {
+                duration: DIVE_MATCH_PROFILE_PANEL_ITEM_OUT_DURATION_MS,
+                delay: index * 32,
+                easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+            });
+        });
+
+        this.animateNode(nextTrack, [
+            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 22px, 0)' },
+            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' }
+        ], {
+            duration: DIVE_MATCH_PROFILE_PANEL_TRACK_IN_DURATION_MS,
+            delay: DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS,
+            easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
+        });
+
+        Array.from(nextTrack.children).forEach((node, index) => {
+            this.animateNode(node, [
+                { opacity: 0, filter: 'blur(10px)', transform: 'translate3d(0, 18px, 0)' },
+                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' }
+            ], {
+                duration: DIVE_MATCH_PROFILE_PANEL_ITEM_IN_DURATION_MS,
+                delay: DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS + 140 + index * 42,
+                easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
+            });
+        });
+    }
+
+    playProfilePresetTrackAnimations(currentTrack, nextTrack) {
+        if (this.shouldReduceProfilePresetMotion()) {
+            return;
+        }
+
+        this.cancelNodeAnimations(currentTrack);
+        this.cancelNodeAnimations(nextTrack);
+        void currentTrack.offsetWidth;
+        void nextTrack.offsetWidth;
+
+        this.animateNode(currentTrack, [
+            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' },
+            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 16px, 0)' }
+        ], {
+            duration: DIVE_MATCH_PROFILE_PRESET_TRACK_OUT_DURATION_MS,
+            easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+        });
+
+        Array.from(currentTrack.querySelectorAll('.dive-match-profile-preset')).forEach((node, index) => {
+            this.animateNode(node, [
+                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0) scale(1)' },
+                { opacity: 0, filter: 'blur(12px)', transform: 'translate3d(0, 16px, 0) scale(0.978)' }
+            ], {
+                duration: DIVE_MATCH_PROFILE_PRESET_ITEM_OUT_DURATION_MS,
+                delay: index * 52,
+                easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+            });
+        });
+
+        this.animateNode(nextTrack, [
+            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 20px, 0)' },
+            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' }
+        ], {
+            duration: DIVE_MATCH_PROFILE_PRESET_TRACK_IN_DURATION_MS,
+            delay: DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS,
+            easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
+        });
+
+        Array.from(nextTrack.querySelectorAll('.dive-match-profile-preset')).forEach((node, index) => {
+            this.animateNode(node, [
+                { opacity: 0, filter: 'blur(12px)', transform: 'translate3d(0, 22px, 0) scale(0.968)' },
+                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0) scale(1)' }
+            ], {
+                duration: DIVE_MATCH_PROFILE_PRESET_ITEM_IN_DURATION_MS,
+                delay: DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS + 140 + index * 78,
+                easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
+            });
+        });
+    }
+
+    buildProfileCopyMarkup(descriptor) {
+        return `
+            <p class="dive-match-profile-kicker">Diver Profile</p>
+            <h3 class="dive-match-profile-title">${descriptor.title}</h3>
+            <p class="dive-match-profile-summary">${descriptor.summary}</p>
+            <div class="dive-match-profile-chips">
+                ${descriptor.chips.map((chip) => `<span class="dive-match-profile-chip">${chip}</span>`).join('')}
+            </div>
+        `;
+    }
+
+    buildProfileCopySignature(descriptor) {
+        return [
+            descriptor.title,
+            descriptor.summary,
+            ...(descriptor.chips || [])
+        ].join('::');
+    }
+
+    buildProfileReasonMarkup(activeMatch, recommendation) {
+        return `
+            <p class="dive-match-profile-reason-kicker">Why This Water</p>
+            <p class="dive-match-profile-reason-title">当前默认落在「${activeMatch.label}」这一层</p>
+            <p class="dive-match-profile-reason-copy">先推 ${recommendation.name}，因为${recommendation.reason}</p>
+        `;
+    }
+
+    buildProfileReasonSignature(activeMatch, recommendation) {
+        return [
+            activeMatch?.key || '',
+            activeMatch?.label || '',
+            recommendation?.name || '',
+            recommendation?.reason || ''
+        ].join('::');
+    }
+
+    createProfilePanelTrack(trackClass, markup, signature, options = {}) {
+        const { current = false, stateClass = '' } = options;
+        const track = document.createElement('div');
+        track.className = `dive-match-profile-panel-track ${trackClass}`;
+        track.dataset.panelSignature = signature;
+        if (stateClass) {
+            track.classList.add(stateClass);
+        }
+        if (current) {
+            track.classList.add('is-current');
+        }
+        track.innerHTML = markup;
+        return track;
+    }
+
+    getProfilePanelSlotTransitionState(slotKey) {
+        if (!this.profilePanelSlotTransitions[slotKey]) {
+            this.profilePanelSlotTransitions[slotKey] = { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 };
+        }
+        return this.profilePanelSlotTransitions[slotKey];
+    }
+
+    cancelPendingProfilePanelSlotTransition(slotNode, slotKey) {
+        const state = this.getProfilePanelSlotTransitionState(slotKey);
+
+        if (state.timer) {
+            clearTimeout(state.timer);
+            state.timer = 0;
+        }
+
+        if (state.swapInTimer) {
+            clearTimeout(state.swapInTimer);
+            state.swapInTimer = 0;
+        }
+
+        if (state.rafId) {
+            cancelAnimationFrame(state.rafId);
+            state.rafId = 0;
+        }
+
+        if (state.rafId2) {
+            cancelAnimationFrame(state.rafId2);
+            state.rafId2 = 0;
+        }
+
+        if (!slotNode) {
+            return null;
+        }
+
+        const tracks = Array.from(slotNode.querySelectorAll('.dive-match-profile-panel-track'));
+        const currentTrack = tracks.find((track) => track.classList.contains('is-current')) || tracks[tracks.length - 1] || null;
+        tracks.forEach((track) => {
+            if (track !== currentTrack) {
+                track.remove();
+            }
+        });
+
+        if (currentTrack) {
+            this.cancelNodeAnimations(currentTrack);
+            currentTrack.classList.remove('is-preparing', 'is-swapping-in', 'is-swapping-out');
+            currentTrack.classList.add('is-current');
+            currentTrack.removeAttribute('aria-hidden');
+        }
+
+        slotNode.classList.remove('is-transitioning');
+        this.syncProfilePanelMotionState();
+        return currentTrack;
+    }
+
+    finalizeProfilePanelSlotTransition(slotNode, slotKey, activeTrack) {
+        if (!slotNode) {
+            return;
+        }
+
+        const state = this.getProfilePanelSlotTransitionState(slotKey);
+        const survivingTrack = activeTrack?.isConnected
+            ? activeTrack
+            : slotNode.querySelector('.dive-match-profile-panel-track.is-current')
+                || slotNode.querySelector('.dive-match-profile-panel-track');
+
+        slotNode.querySelectorAll('.dive-match-profile-panel-track').forEach((track) => {
+            if (track !== survivingTrack) {
+                track.remove();
+            }
+        });
+
+        if (survivingTrack) {
+            this.cancelNodeAnimations(survivingTrack);
+            survivingTrack.classList.remove('is-preparing', 'is-swapping-in', 'is-swapping-out');
+            survivingTrack.classList.add('is-current');
+            survivingTrack.removeAttribute('aria-hidden');
+        }
+
+        slotNode.classList.remove('is-transitioning');
+        state.timer = 0;
+        this.syncProfilePanelMotionState();
+    }
+
+    transitionProfilePanelSlot(slotNode, slotKey, trackClass, markup, signature, options = {}) {
+        if (!slotNode) {
+            return;
+        }
+
+        const { immediate = false } = options;
+        const state = this.getProfilePanelSlotTransitionState(slotKey);
+        const currentTrack = this.cancelPendingProfilePanelSlotTransition(slotNode, slotKey);
+
+        if (currentTrack?.dataset.panelSignature === signature) {
+            slotNode.replaceChildren(currentTrack);
+            return;
+        }
+
+        const nextTrack = this.createProfilePanelTrack(trackClass, markup, signature);
+        if (immediate || this.shouldReduceProfilePresetMotion() || !currentTrack) {
+            nextTrack.classList.add('is-current');
+            slotNode.replaceChildren(nextTrack);
+            this.syncProfilePanelMotionState();
+            return;
+        }
+
+        currentTrack.classList.remove('is-current');
+        currentTrack.classList.add('is-swapping-out');
+        currentTrack.setAttribute('aria-hidden', 'true');
+        nextTrack.classList.add('is-preparing');
+        slotNode.classList.add('is-transitioning');
+        slotNode.appendChild(nextTrack);
+        this.playProfilePanelTrackAnimations(currentTrack, nextTrack);
+        this.syncProfilePanelMotionState();
+
+        state.swapInTimer = window.setTimeout(() => {
+            state.swapInTimer = 0;
+            state.rafId = requestAnimationFrame(() => {
+                state.rafId = 0;
+                state.rafId2 = requestAnimationFrame(() => {
+                    state.rafId2 = 0;
+                    if (!nextTrack.isConnected) {
+                        return;
+                    }
+
+                    nextTrack.classList.remove('is-preparing');
+                    nextTrack.classList.add('is-current', 'is-swapping-in');
+                });
+            });
+        }, DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS);
+
+        state.timer = window.setTimeout(() => {
+            this.finalizeProfilePanelSlotTransition(slotNode, slotKey, nextTrack);
+        }, DIVE_MATCH_PROFILE_PANEL_SWAP_DURATION_MS);
+    }
+
+    renderProfileCopy(descriptor, options = {}) {
+        if (!this.profileCopy) {
+            return;
+        }
+
+        this.transitionProfilePanelSlot(
+            this.profileCopy,
+            'copy',
+            'dive-match-profile-copy-track',
+            this.buildProfileCopyMarkup(descriptor),
+            this.buildProfileCopySignature(descriptor),
+            options
+        );
+    }
+
+    renderProfileReason(activeMatch, recommendation, options = {}) {
+        if (!this.profileReason) {
+            return;
+        }
+
+        this.transitionProfilePanelSlot(
+            this.profileReason,
+            'reason',
+            'dive-match-profile-reason-track',
+            this.buildProfileReasonMarkup(activeMatch, recommendation),
+            this.buildProfileReasonSignature(activeMatch, recommendation),
+            options
+        );
+    }
+
+    getProfilePresetSignature(presetVariants) {
+        return presetVariants.map((preset) => [
+            preset.key,
+            preset.label,
+            preset.badge,
+            preset.targetLabel,
+            preset.copy,
+            preset.isCurrentProfile ? 'current' : 'rest',
+            preset.isAligned ? 'aligned' : 'loose'
+        ].join('::')).join('||');
+    }
+
+    createProfilePresetTrack(presetVariants, options = {}) {
+        const { signature = this.getProfilePresetSignature(presetVariants), stateClass = '', current = false } = options;
+        const track = document.createElement('div');
+        track.className = 'dive-match-profile-presets-track';
+        track.dataset.presetSignature = signature;
+        if (stateClass) {
+            track.classList.add(stateClass);
+        }
+        if (current) {
+            track.classList.add('is-current');
+        }
+        track.innerHTML = presetVariants.map((preset, index) => `
+            <button
+                type="button"
+                class="dive-match-profile-preset${preset.isCurrentProfile ? ' is-active' : ''}${preset.isAligned ? ' is-aligned' : ''}"
+                data-profile-preset="${preset.key}"
+                aria-pressed="${preset.isCurrentProfile ? 'true' : 'false'}"
+                title="${preset.copy}"
+                style="--preset-order: ${index};"
+            >
+                <span class="dive-match-profile-preset-meta">
+                    <span class="dive-match-profile-preset-badge">${preset.badge}</span>
+                    <span class="dive-match-profile-preset-target">${preset.targetLabel}</span>
+                </span>
+                <span class="dive-match-profile-preset-label">${preset.label}</span>
+                <span class="dive-match-profile-preset-copy">${preset.copy}</span>
+            </button>
+        `).join('');
+        return track;
+    }
+
+    ensureProfilePresetFocusAuraNode() {
+        if (!this.profilePresetRail) {
+            return null;
+        }
+
+        if (!this.profilePresetFocusAuraNode || !this.profilePresetFocusAuraNode.isConnected) {
+            this.profilePresetFocusAuraNode = document.createElement('span');
+            this.profilePresetFocusAuraNode.className = 'dive-match-profile-presets-focus-aura';
+            this.profilePresetFocusAuraNode.setAttribute('aria-hidden', 'true');
+        }
+
+        if (this.profilePresetRail.firstElementChild !== this.profilePresetFocusAuraNode) {
+            this.profilePresetRail.prepend(this.profilePresetFocusAuraNode);
+        }
+
+        return this.profilePresetFocusAuraNode;
+    }
+
+    getActiveProfilePresetButton(track = null) {
+        const targetTrack = track?.isConnected
+            ? track
+            : this.profilePresetRail?.querySelector('.dive-match-profile-presets-track.is-current')
+                || this.profilePresetRail?.querySelector('.dive-match-profile-presets-track');
+
+        if (!targetTrack) {
+            return null;
+        }
+
+        return targetTrack.querySelector('.dive-match-profile-preset.is-active')
+            || targetTrack.querySelector('.dive-match-profile-preset');
+    }
+
+    syncProfilePresetFocusAura(button, options = {}) {
+        if (!this.profilePresetRail) {
+            return;
+        }
+
+        const { immediate = false } = options;
+        if (this.profilePresetFocusRafId) {
+            cancelAnimationFrame(this.profilePresetFocusRafId);
+            this.profilePresetFocusRafId = 0;
+        }
+
+        const focusAura = this.ensureProfilePresetFocusAuraNode();
+        if (!focusAura) {
+            return;
+        }
+
+        if (immediate) {
+            this.profilePresetRail.classList.add('is-focus-static');
+        } else {
+            this.profilePresetRail.classList.remove('is-focus-static');
+        }
+
+        if (!button?.isConnected) {
+            focusAura.style.opacity = '0';
+        } else {
+            const railRect = this.profilePresetRail.getBoundingClientRect();
+            const buttonRect = button.getBoundingClientRect();
+            focusAura.style.transform = `translate3d(${buttonRect.left - railRect.left}px, ${buttonRect.top - railRect.top}px, 0)`;
+            focusAura.style.width = `${buttonRect.width}px`;
+            focusAura.style.height = `${buttonRect.height}px`;
+            focusAura.style.opacity = '0.78';
+        }
+
+        if (immediate) {
+            this.profilePresetFocusRafId = requestAnimationFrame(() => {
+                this.profilePresetFocusRafId = 0;
+                this.profilePresetRail?.classList.remove('is-focus-static');
+            });
+        }
+    }
+
+    cancelPendingProfilePresetTransition() {
+        if (this.profilePresetTransitionTimer) {
+            clearTimeout(this.profilePresetTransitionTimer);
+            this.profilePresetTransitionTimer = 0;
+        }
+
+        if (this.profilePresetSwapInTimer) {
+            clearTimeout(this.profilePresetSwapInTimer);
+            this.profilePresetSwapInTimer = 0;
+        }
+
+        if (this.profilePresetTransitionRafId) {
+            cancelAnimationFrame(this.profilePresetTransitionRafId);
+            this.profilePresetTransitionRafId = 0;
+        }
+
+        if (this.profilePresetTransitionRafId2) {
+            cancelAnimationFrame(this.profilePresetTransitionRafId2);
+            this.profilePresetTransitionRafId2 = 0;
+        }
+
+        if (this.profilePresetFocusRafId) {
+            cancelAnimationFrame(this.profilePresetFocusRafId);
+            this.profilePresetFocusRafId = 0;
+        }
+
+        if (!this.profilePresetRail) {
+            return null;
+        }
+
+        const tracks = Array.from(this.profilePresetRail.querySelectorAll('.dive-match-profile-presets-track'));
+        const currentTrack = tracks.find((track) => track.classList.contains('is-current')) || tracks[tracks.length - 1] || null;
+        tracks.forEach((track) => {
+            if (track !== currentTrack) {
+                track.remove();
+            }
+        });
+
+        if (currentTrack) {
+            this.cancelNodeAnimations(currentTrack);
+            currentTrack.classList.remove('is-preparing', 'is-swapping-in', 'is-swapping-out');
+            currentTrack.classList.add('is-current');
+            currentTrack.removeAttribute('aria-hidden');
+        }
+
+        this.profilePresetRail.classList.remove('is-transitioning');
+        this.syncProfilePanelMotionState();
+        this.syncProfilePresetFocusAura(this.getActiveProfilePresetButton(currentTrack), { immediate: true });
+        return currentTrack;
+    }
+
+    finalizeProfilePresetTransition(activeTrack) {
+        if (!this.profilePresetRail) {
+            return;
+        }
+
+        const survivingTrack = activeTrack?.isConnected
+            ? activeTrack
+            : this.profilePresetRail.querySelector('.dive-match-profile-presets-track.is-current')
+                || this.profilePresetRail.querySelector('.dive-match-profile-presets-track');
+
+        this.profilePresetRail.querySelectorAll('.dive-match-profile-presets-track').forEach((track) => {
+            if (track !== survivingTrack) {
+                track.remove();
+            }
+        });
+
+        if (survivingTrack) {
+            this.cancelNodeAnimations(survivingTrack);
+            survivingTrack.classList.remove('is-preparing', 'is-swapping-in', 'is-swapping-out');
+            survivingTrack.classList.add('is-current');
+            survivingTrack.removeAttribute('aria-hidden');
+        }
+
+        this.profilePresetRail.classList.remove('is-transitioning');
+        this.profilePresetTransitionTimer = 0;
+        this.syncProfilePanelMotionState();
+        this.syncProfilePresetFocusAura(this.getActiveProfilePresetButton(survivingTrack), { immediate: true });
+    }
+
+    transitionProfilePresets(presetVariants, options = {}) {
+        if (!this.profilePresetRail) {
+            return;
+        }
+
+        const { immediate = false } = options;
+        const signature = this.getProfilePresetSignature(presetVariants);
+        const currentTrack = this.cancelPendingProfilePresetTransition();
+
+        if (currentTrack?.dataset.presetSignature === signature) {
+            this.profilePresetRail.replaceChildren(currentTrack);
+            this.syncProfilePanelMotionState();
+            this.syncProfilePresetFocusAura(this.getActiveProfilePresetButton(currentTrack), { immediate: true });
+            return;
+        }
+
+        const nextTrack = this.createProfilePresetTrack(presetVariants, { signature });
+        if (immediate || this.shouldReduceProfilePresetMotion() || !currentTrack) {
+            nextTrack.classList.add('is-current');
+            this.profilePresetRail.replaceChildren(nextTrack);
+            this.syncProfilePanelMotionState();
+            this.syncProfilePresetFocusAura(this.getActiveProfilePresetButton(nextTrack), { immediate: true });
+            return;
+        }
+
+        this.syncProfilePresetFocusAura(this.getActiveProfilePresetButton(currentTrack), { immediate: true });
+        currentTrack.classList.remove('is-current');
+        currentTrack.classList.add('is-swapping-out');
+        currentTrack.setAttribute('aria-hidden', 'true');
+        nextTrack.classList.add('is-preparing');
+        this.profilePresetRail.classList.add('is-transitioning');
+        this.profilePresetRail.appendChild(nextTrack);
+        this.playProfilePresetTrackAnimations(currentTrack, nextTrack);
+        this.syncProfilePanelMotionState();
+
+        this.profilePresetSwapInTimer = window.setTimeout(() => {
+            this.profilePresetSwapInTimer = 0;
+            this.profilePresetTransitionRafId = requestAnimationFrame(() => {
+                this.profilePresetTransitionRafId = 0;
+                this.profilePresetTransitionRafId2 = requestAnimationFrame(() => {
+                    this.profilePresetTransitionRafId2 = 0;
+                    if (!nextTrack.isConnected) {
+                        return;
+                    }
+
+                    nextTrack.classList.remove('is-preparing');
+                    nextTrack.classList.add('is-current', 'is-swapping-in');
+                    this.syncProfilePresetFocusAura(this.getActiveProfilePresetButton(nextTrack));
+                });
+            });
+        }, DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS);
+
+        this.profilePresetTransitionTimer = window.setTimeout(() => {
+            this.finalizeProfilePresetTransition(nextTrack);
+        }, DIVE_MATCH_PROFILE_PRESET_SWAP_DURATION_MS);
+    }
+
+    renderProfilePanel(options = {}) {
+        if (!this.stage || !sharedDiverProfile) {
+            return;
+        }
+
+        const { immediate = false } = options;
+        this.ensureProfilePanelShell();
         const descriptor = this.getProfileDescriptor();
         const activeMatch = getDiveMatchEntry(this.activeKey);
         const recommendation = this.buildProfileRecommendation(activeMatch);
         const presetVariants = this.getProfilePresetVariants(activeMatch);
-
-        this.profilePanel.innerHTML = `
-            <div class="dive-match-profile-copy">
-                <p class="dive-match-profile-kicker">Diver Profile</p>
-                <h3 class="dive-match-profile-title">${descriptor.title}</h3>
-                <p class="dive-match-profile-summary">${descriptor.summary}</p>
-                <div class="dive-match-profile-chips">
-                    ${descriptor.chips.map((chip) => `<span class="dive-match-profile-chip">${chip}</span>`).join('')}
-                </div>
-            </div>
-            <div class="dive-match-profile-reason">
-                <p class="dive-match-profile-reason-kicker">Why This Water</p>
-                <p class="dive-match-profile-reason-title">当前默认落在「${activeMatch.label}」这一层</p>
-                <p class="dive-match-profile-reason-copy">先推 ${recommendation.name}，因为${recommendation.reason}</p>
-            </div>
-            <div class="dive-match-profile-presets" role="group" aria-label="切换潜水者档案预设">
-                ${presetVariants.map((preset) => `
-                    <button
-                        type="button"
-                        class="dive-match-profile-preset${preset.isCurrentProfile ? ' is-active' : ''}${preset.isAligned ? ' is-aligned' : ''}"
-                        data-profile-preset="${preset.key}"
-                        aria-pressed="${preset.isCurrentProfile ? 'true' : 'false'}"
-                        title="${preset.copy}"
-                    >
-                        <span class="dive-match-profile-preset-meta">
-                            <span class="dive-match-profile-preset-badge">${preset.badge}</span>
-                            <span class="dive-match-profile-preset-target">${preset.targetLabel}</span>
-                        </span>
-                        <span class="dive-match-profile-preset-label">${preset.label}</span>
-                        <span class="dive-match-profile-preset-copy">${preset.copy}</span>
-                    </button>
-                `).join('')}
-            </div>
-        `;
+        this.renderProfileCopy(descriptor, { immediate });
+        this.renderProfileReason(activeMatch, recommendation, { immediate });
+        this.transitionProfilePresets(presetVariants, { immediate });
     }
 
     /**
@@ -4145,7 +4773,7 @@ class DiveMatchStage {
      * @returns {void} - 无返回值，直接启动潜水匹配模块
      */
     init() {
-        this.renderProfilePanel();
+        this.renderProfilePanel({ immediate: true });
         this.renderFilters();
         this.attachEvents();
         this.setupReveal();
@@ -4315,15 +4943,18 @@ class DiveMatchStage {
         return surface;
     }
 
-    hydrateInitialMatchCards(surface, match) {
+    hydrateMatchSurfaceCards(surface, match, options = {}) {
+        const { markInitialReady = false } = options;
         const grid = surface?.querySelector('.dive-match-card-grid');
         if (!grid) {
-            this.initialSurfaceReady = true;
+            if (markInitialReady) {
+                this.initialSurfaceReady = true;
+            }
             homeViewportCoordinator.requestMeasure();
             return;
         }
 
-        const cards = match.cards.map((card, index) => this.createMatchCardMarkup(card, index)).filter(Boolean);
+        const cards = Array.isArray(match?.cards) ? [...match.cards] : [];
         const batchSize = 2;
         const appendBatch = () => {
             this.initialCardHydrationRafId = 0;
@@ -4331,7 +4962,15 @@ class DiveMatchStage {
                 return;
             }
 
-            grid.insertAdjacentHTML('beforeend', cards.splice(0, batchSize).join(''));
+            const batchMarkup = cards
+                .splice(0, batchSize)
+                .map((card, index) => this.createMatchCardMarkup(card, grid.children.length + index))
+                .filter(Boolean)
+                .join('');
+
+            if (batchMarkup) {
+                grid.insertAdjacentHTML('beforeend', batchMarkup);
+            }
             homeViewportCoordinator.requestMeasure();
 
             if (cards.length) {
@@ -4339,7 +4978,9 @@ class DiveMatchStage {
                 return;
             }
 
-            this.initialSurfaceReady = true;
+            if (markInitialReady) {
+                this.initialSurfaceReady = true;
+            }
         };
 
         this.initialCardHydrationRafId = requestAnimationFrame(appendBatch);
@@ -4359,7 +5000,7 @@ class DiveMatchStage {
 
             surface.classList.add('is-active', 'is-resting');
         });
-        this.hydrateInitialMatchCards(surface, match);
+        this.hydrateMatchSurfaceCards(surface, match, { markInitialReady: true });
     }
 
     /**
@@ -4373,6 +5014,14 @@ class DiveMatchStage {
         const { immediate = false, syncDepth = true } = options;
         const nextMatch = getDiveMatchEntry(nextKey);
         const currentMatch = getDiveMatchEntry(this.activeKey);
+        this.activeKey = nextMatch.key;
+        this.renderProfilePanel({ immediate });
+        storeDiveMatchKey(this.activeKey);
+        this.syncActiveFilter();
+        if (syncDepth) {
+            this.syncDepth();
+        }
+
         const currentSurface = this.display.querySelector('.dive-match-surface.is-active')
             || this.display.querySelector('.dive-match-surface');
         const goingDeeper = nextMatch.depth < currentMatch.depth;
@@ -4380,7 +5029,9 @@ class DiveMatchStage {
         const leaveClass = goingDeeper ? 'to-deeper' : 'to-shallower';
         // 这里用深浅方向而不是左右方向，
         // 是因为潜水匹配的切换更像“往更深一层 / 回到更浅一层”。
-        const nextSurface = this.createMatchSurface(nextMatch, enterClass);
+        const nextSurface = immediate
+            ? this.createMatchSurface(nextMatch, enterClass)
+            : this.createMatchSurfaceSkeleton(nextMatch, enterClass);
         this.syncRitualState(nextMatch, currentMatch, { immediate });
 
         if (this.switchTimer) {
@@ -4418,12 +5069,8 @@ class DiveMatchStage {
             }, 760);
         }
 
-        this.activeKey = nextMatch.key;
-        this.renderProfilePanel();
-        storeDiveMatchKey(this.activeKey);
-        this.syncActiveFilter();
-        if (syncDepth) {
-            this.syncDepth();
+        if (!immediate) {
+            this.hydrateMatchSurfaceCards(nextSurface, nextMatch);
         }
 
         if (!immediate) {
@@ -4550,10 +5197,12 @@ class DiveMatchStage {
 
             this.profile = sharedDiverProfile.saveProfile(preset.profile);
             const nextKey = sharedDiverProfile.getRecommendedMatchKey(this.profile);
-            this.renderProfilePanel();
-            if (DIVE_MATCH_MAP.has(nextKey)) {
+            if (DIVE_MATCH_MAP.has(nextKey) && nextKey !== this.activeKey) {
                 this.renderActiveMatch(nextKey);
+                return;
             }
+
+            this.renderProfilePanel();
         });
 
         this.display.addEventListener('click', (event) => {

@@ -5119,6 +5119,11 @@ body.has-overlay-lock {
     --booking-copy-stick-top: 0px;
     --booking-copy-stick-height: 0px;
     --booking-sticky-stack-gap: 18px;
+    --booking-focus-panel-stick-top: calc(
+        var(--booking-copy-stick-top, 0px) +
+        var(--booking-copy-stick-height, 0px) +
+        var(--booking-sticky-stack-gap, 18px)
+    );
     --booking-sticky-focus-context-duration: 300ms;
     --booking-sticky-focus-context-easing: cubic-bezier(0.22, 0.72, 0.2, 1);
     --booking-sticky-focus-shift: 0px;
@@ -5262,6 +5267,7 @@ body.has-overlay-lock {
 }
 
 .booking-sticky.is-focus-only-context {
+    --booking-focus-panel-stick-top: 0px;
     max-height: none;
     overflow: visible;
     scrollbar-width: none;
@@ -5301,10 +5307,12 @@ body.has-overlay-lock {
 }
 
 .booking-sticky[data-focus-context-motion="entering"] {
+    --booking-focus-panel-stick-top: 0px;
     --booking-sticky-focus-motion-translate-y: calc(var(--booking-sticky-focus-shift, 0px) * -1);
 }
 
 .booking-sticky[data-focus-context-motion="leaving-prep"] {
+    --booking-focus-panel-stick-top: 0px;
     --booking-sticky-focus-motion-translate-y: calc(var(--booking-sticky-focus-shift, 0px) * -1);
 }
 
@@ -5344,6 +5352,31 @@ body.has-overlay-lock {
 .booking-sticky[data-focus-context-motion="leaving"] .price-badge,
 .booking-sticky[data-focus-context-motion="leaving"] .booking-match,
 .booking-sticky[data-focus-context-motion="leaving"] .booking-note {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.booking-sticky[data-focus-context-motion="entering"] .booking-copy,
+.booking-sticky[data-focus-context-motion="settling"] .booking-copy,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-copy,
+.booking-sticky.is-focus-only-context .booking-copy {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, -16px, 0) scale(0.986);
+}
+
+.booking-sticky.is-focus-only-context .booking-copy {
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-color: transparent;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0);
+}
+
+.booking-sticky[data-focus-context-motion="leaving"] .booking-copy {
     opacity: 1;
     pointer-events: auto;
     transform: translate3d(0, 0, 0) scale(1);
@@ -5845,11 +5878,7 @@ body.has-overlay-lock {
     position: sticky;
     contain: layout paint style;
     isolation: isolate;
-    top: calc(
-        var(--booking-copy-stick-top, 0px) +
-        var(--booking-copy-stick-height, 0px) +
-        var(--booking-sticky-stack-gap, 18px)
-    );
+    top: var(--booking-focus-panel-stick-top, 0px);
     z-index: 4;
     isolation: isolate;
     display: grid;
@@ -5861,7 +5890,7 @@ body.has-overlay-lock {
         radial-gradient(circle at 18% 18%, rgba(136, 210, 233, 0.18), transparent 34%),
         linear-gradient(165deg, rgba(17, 54, 79, 0.96), rgba(8, 34, 52, 0.94) 58%, rgba(10, 45, 66, 0.92) 100%);
     border: 1px solid rgba(164, 213, 232, 0.2);
-    max-height: 520px;
+    max-height: none;
     opacity: 1;
     box-shadow:
         0 18px 36px rgba(4, 20, 34, 0.22),
@@ -5914,13 +5943,13 @@ body.has-overlay-lock {
 
 .booking-sticky[data-focus-context-phase="entering"] .booking-focus-panel,
 .booking-sticky[data-focus-context-phase="leaving"] .booking-focus-panel {
-    max-height: 520px;
+    max-height: none;
     margin-bottom: var(--booking-sticky-stack-gap, 18px);
     padding-top: 16px;
     padding-bottom: 16px;
     border-width: 1px;
     opacity: 1;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .booking-sticky[data-focus-context-motion="entering"] .booking-focus-panel,

@@ -7,10 +7,14 @@ import json
 import math
 import shutil
 import subprocess
+from functools import lru_cache
 from pathlib import Path
 
-import requests
-from PIL import Image, ImageDraw
+try:
+    import requests
+except ImportError:  # pragma: no cover - optional when local geojson is already present
+    requests = None
+from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +33,33 @@ SEA_ATLAS_TILE_BOUNDS_LON_EXPANSION = 4.0
 SEA_ATLAS_TILE_BUFFER_COLUMNS = 2
 SEA_ATLAS_TILE_BUFFER_ROWS = 2
 SEA_ATLAS_PACK_FORMAT = "script"
+SEA_ATLAS_LABEL_TILE_MARGIN = 240
+SEA_ATLAS_LABEL_COLLISION_PADDING = 18
+SEA_ATLAS_LABEL_KIND_ORDER = {
+    "country": 0,
+    "region": 1,
+    "sea": 2,
+}
+SEA_ATLAS_FONT_PATHS = {
+    "serif": [
+        Path("C:/Windows/Fonts/georgia.ttf"),
+        Path("C:/Windows/Fonts/times.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"),
+        Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf"),
+    ],
+    "serif_bold": [
+        Path("C:/Windows/Fonts/georgiab.ttf"),
+        Path("C:/Windows/Fonts/timesbd.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"),
+        Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Bold.ttf"),
+    ],
+    "serif_italic": [
+        Path("C:/Windows/Fonts/georgiai.ttf"),
+        Path("C:/Windows/Fonts/timesi.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf"),
+        Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Italic.ttf"),
+    ],
+}
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -114,6 +145,197 @@ def lagoon_fill_for_ring(ring: list[tuple[float, float]]) -> tuple[int, int, int
     return (*softened, 228)
 
 
+@lru_cache(maxsize=None)
+def load_label_font(size: int, variant: str = "serif"):
+    candidates = SEA_ATLAS_FONT_PATHS.get(variant, []) + SEA_ATLAS_FONT_PATHS["serif"]
+    for font_path in candidates:
+        if font_path.exists():
+            return ImageFont.truetype(str(font_path), size=max(12, int(size)))
+    return ImageFont.load_default()
+
+
+def get_label_visibility_limit(z: int) -> int:
+    if z <= 4:
+        return 2
+    if z <= 5:
+        return 3
+    if z <= 6:
+        return 4
+    return 99
+
+
+def get_context_label_style(kind: str, z: int) -> dict:
+    safe_kind = str(kind or "region").strip().lower()
+
+    if safe_kind == "country":
+        size = 38 if z >= 8 else 34 if z >= 6 else 28 if z >= 5 else 24
+        return {
+            "font": load_label_font(size, "serif_bold"),
+            "fill": (240, 248, 252, 214),
+            "stroke": (6, 24, 37, 140),
+            "stroke_width": 2,
+            "shadow": (2, 14, 24, 108),
+            "shadow_offset": (0, 2),
+        }
+
+    if safe_kind == "sea":
+        size = 28 if z >= 8 else 26 if z >= 6 else 24 if z >= 5 else 20
+        return {
+            "font": load_label_font(size, "serif_italic"),
+            "fill": (202, 231, 240, 168),
+            "stroke": (5, 20, 31, 110),
+            "stroke_width": 1,
+            "shadow": (2, 14, 24, 82),
+            "shadow_offset": (0, 2),
+        }
+
+    size = 30 if z >= 8 else 28 if z >= 6 else 24 if z >= 5 else 20
+    return {
+        "font": load_label_font(size, "serif"),
+        "fill": (222, 241, 248, 188),
+        "stroke": (5, 22, 34, 118),
+        "stroke_width": 1,
+        "shadow": (2, 14, 24, 90),
+        "shadow_offset": (0, 2),
+    }
+
+
+def boxes_intersect(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> bool:
+    return not (a[2] <= b[0] or a[0] >= b[2] or a[3] <= b[1] or a[1] >= b[3])
+
+
+def measure_centered_text_bbox(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    font,
+    center: tuple[float, float],
+    stroke_width: int = 0,
+) -> tuple[float, float, float, float]:
+    if hasattr(draw, "textbbox"):
+        return draw.textbbox(
+            center,
+            text,
+            font=font,
+            anchor="mm",
+            stroke_width=stroke_width,
+        )
+
+    width, height = draw.textsize(text, font=font)
+    padded_width = width + (stroke_width * 2)
+    padded_height = height + (stroke_width * 2)
+    px, py = center
+    half_width = padded_width / 2
+    half_height = padded_height / 2
+    return (
+        px - half_width,
+        py - half_height,
+        px + half_width,
+        py + half_height,
+    )
+
+
+def build_context_label_layout(draw: ImageDraw.ImageDraw, labels: list[dict], z: int, x: int, y: int) -> list[dict]:
+    if not labels:
+        return []
+
+    west = tile_x_to_lon(x, z)
+    east = tile_x_to_lon(x + 1, z)
+    north = tile_y_to_lat(y, z)
+    south = tile_y_to_lat(y + 1, z)
+    # Allow chart labels to spill across neighboring tiles so country names do
+    # not get cut off at pack seams in the default viewport mosaic.
+    pad_ratio = max(0.14, (SEA_ATLAS_LABEL_TILE_MARGIN / TILE_SIZE) + 0.04)
+    lon_pad = (east - west) * pad_ratio
+    lat_pad = (north - south) * pad_ratio
+    visibility_limit = get_label_visibility_limit(z)
+    candidates = []
+
+    for label in labels:
+        coords = label.get("coords") or []
+        if len(coords) != 2:
+            continue
+
+        lat = float(coords[0])
+        lon = float(coords[1])
+        if lon < west - lon_pad or lon > east + lon_pad or lat < south - lat_pad or lat > north + lat_pad:
+            continue
+
+        priority = int(label.get("priority") or 99)
+        if priority > visibility_limit:
+            continue
+
+        kind = str(label.get("kind") or "region").strip().lower()
+        style = get_context_label_style(kind, z)
+        px, py = project_lon_lat(lon, lat, z, x, y)
+        text = str(label.get("name") or "").strip()
+        if not text:
+            continue
+
+        bbox = measure_centered_text_bbox(
+            draw,
+            text,
+            style["font"],
+            (px, py),
+            style["stroke_width"],
+        )
+        if (
+            bbox[0] < -SEA_ATLAS_LABEL_TILE_MARGIN
+            or bbox[1] < -SEA_ATLAS_LABEL_TILE_MARGIN
+            or bbox[2] > TILE_SIZE + SEA_ATLAS_LABEL_TILE_MARGIN
+            or bbox[3] > TILE_SIZE + SEA_ATLAS_LABEL_TILE_MARGIN
+        ):
+            continue
+
+        candidates.append({
+            "priority": priority,
+            "kind_order": SEA_ATLAS_LABEL_KIND_ORDER.get(kind, 9),
+            "text": text,
+            "point": (px, py),
+            "bbox": bbox,
+            "style": style,
+        })
+
+    accepted = []
+    collision_boxes: list[tuple[float, float, float, float]] = []
+    for candidate in sorted(candidates, key=lambda item: (item["priority"], item["kind_order"], item["text"])):
+        bbox = candidate["bbox"]
+        expanded_box = (
+            bbox[0] - SEA_ATLAS_LABEL_COLLISION_PADDING,
+            bbox[1] - SEA_ATLAS_LABEL_COLLISION_PADDING,
+            bbox[2] + SEA_ATLAS_LABEL_COLLISION_PADDING,
+            bbox[3] + SEA_ATLAS_LABEL_COLLISION_PADDING,
+        )
+        if any(boxes_intersect(expanded_box, existing) for existing in collision_boxes):
+            continue
+        collision_boxes.append(expanded_box)
+        accepted.append(candidate)
+
+    return accepted
+
+
+def draw_context_labels(draw: ImageDraw.ImageDraw, labels: list[dict], z: int, x: int, y: int) -> None:
+    for label in build_context_label_layout(draw, labels, z, x, y):
+        px, py = label["point"]
+        style = label["style"]
+        shadow_offset_x, shadow_offset_y = style["shadow_offset"]
+        draw.text(
+            (px + shadow_offset_x, py + shadow_offset_y),
+            label["text"],
+            font=style["font"],
+            fill=style["shadow"],
+            anchor="mm",
+        )
+        draw.text(
+            (px, py),
+            label["text"],
+            font=style["font"],
+            fill=style["fill"],
+            anchor="mm",
+            stroke_width=style["stroke_width"],
+            stroke_fill=style["stroke"],
+        )
+
+
 def expand_bounds(
     bounds: list[list[float]],
     lat_factor: float = SEA_ATLAS_TILE_BOUNDS_LAT_EXPANSION,
@@ -173,6 +395,11 @@ process.stdout.write(JSON.stringify(sandbox.window.YanqiSpotMapCatalog.list));
 def ensure_land_geojson() -> None:
     if LAND_GEOJSON_PATH.exists():
         return
+
+    if requests is None:
+        raise RuntimeError(
+            "requests is required to download ne_10m_land.geojson when the local source file is missing"
+        )
 
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     response = requests.get(LAND_GEOJSON_URL, timeout=60)
@@ -278,7 +505,7 @@ def draw_graticule(draw: ImageDraw.ImageDraw, z: int, x: int, y: int) -> None:
         lat += step
 
 
-def render_tile_bytes(polygons: list[dict], z: int, x: int, y: int) -> bytes:
+def render_tile_bytes(polygons: list[dict], context_labels: list[dict], z: int, x: int, y: int) -> bytes:
     image = Image.new("RGBA", (TILE_SIZE, TILE_SIZE))
     draw = ImageDraw.Draw(image, "RGBA")
     draw_ocean(draw, z, x, y)
@@ -314,6 +541,8 @@ def render_tile_bytes(polygons: list[dict], z: int, x: int, y: int) -> bytes:
                 continue
             draw.polygon(hole_points, fill=lagoon_fill_for_ring(hole))
             draw.line(hole_points, fill=(194, 229, 238, 28), width=1)
+
+    draw_context_labels(draw, context_labels, z, x, y)
 
     output = io.BytesIO()
     image.save(output, format="WEBP", quality=86, method=6)
@@ -370,6 +599,7 @@ def generate_packs() -> None:
     for spot in spots:
         key = spot["key"]
         zoom = int(spot["zoom"])
+        context_labels = spot.get("contextLabels") or []
         bounds = expand_bounds(
             spot["mapBounds"],
             SEA_ATLAS_TILE_BOUNDS_LAT_EXPANSION,
@@ -394,7 +624,7 @@ def generate_packs() -> None:
             x_start, x_end, y_start, y_end = tile_range_for_bounds(bounds, z)
             for x in range(x_start, x_end + 1):
                 for y in range(y_start, y_end + 1):
-                    tile_bytes = render_tile_bytes(polygons, z, x, y)
+                    tile_bytes = render_tile_bytes(polygons, context_labels, z, x, y)
                     tile_payload[f"{z}/{x}/{y}.webp"] = base64.b64encode(tile_bytes).decode("ascii")
                     tile_count += 1
 
