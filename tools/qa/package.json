@@ -4,7 +4,9 @@
   "scripts": {
     "optimize:images": "node optimize-images.cjs",
     "perf:detail": "node detail-perf-smoke.cjs",
-    "perf:pages": "node pages-perf-smoke.cjs"
+    "perf:pages": "node pages-perf-smoke.cjs",
+    "qa:atlas:mosaic": "node sea-atlas-first-view-mosaic.cjs",
+    "qa:atlas:build-report": "node sea-atlas-build-report.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

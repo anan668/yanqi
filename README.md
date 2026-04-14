@@ -1,343 +1,696 @@
-﻿# 盐憩
-
-> 一个以潜水旅游为主题的前端网页项目。我想把它做得不像普通旅游网站，而像一次慢慢下潜的过程。
-
-## 项目简介
-
-“盐憩”是我完成的一个前端网页项目，主题是潜水旅游。
-
-一开始我并不想把它做成常见的旅游信息页或者预订页，因为那样虽然功能上能成立，但很容易失去品牌气质。所以我给这个项目定下来的方向是：让用户在浏览网页的时候，像在同一片海里慢慢进入不同深度，而不是在几张普通页面之间来回切换。
-
-整个项目以前端展示和交互设计为主，重点放在页面气质、空间层级、滚动节奏、跨页过渡和状态联动上。现在还没有接真实后端，所以登录、行程草稿、已收进行程、留言草稿这些内容，主要是通过浏览器本地存储来保存和恢复。
-
-## 我为什么想做这个项目
-
-我想借这个项目练习的不只是“把页面写出来”，而是尝试把一个主题真正做成有完整世界观的网站。
-
-潜水本身就有很强的画面感和层次感，所以我觉得它很适合拿来做网页叙事。比起直接展示价格、按钮和卡片，我更想把“海面”“下潜”“停驻”“继续往更深处走”这些感觉放进页面结构、文案和动效里。也正因为这个出发点，盐憩最后更像一个有品牌气质的前端作品，而不是一套通用模板。
-
-## 项目定位
-
-- 品牌名是“盐憩”。
-- 主题是潜水旅游，但重点不是卖货感，而是海洋叙事感。
-- 页面气质希望保持深海、安静、舒缓、克制和沉浸。
-- 视觉上尽量围绕深海蓝、海盐白、低饱和青蓝、玻璃感、雾感、柔和模糊和微发光来统一。
-- 交互上不把页面切换当成普通跳转，而是当成海层变化的一部分。
-
-## 页面层级与体验路线
-
-这个项目的页面关系不是简单的导航关系，而是“海层关系”。
-
-- `index.html`：进入盐憩之前的门厅，更像下水前的一层静水。
-- `home.html`：首页，是海面的第一层，负责让用户先看海、先被海吸引。
-- `trip.html`：行程页，是更深一层的规划空间，用来把这次下潜慢慢收进行程。
-- `detail.html`：详情页，是进入一片具体海域之后的阅读和确认空间。
-- `contact.html`、`terms.html`、`privacy.html`：更安静的信息页，用来补完整体体验，而不是简单塞说明文字。
-
-对应到浏览体验里，我希望它们形成下面这条路线：
-
-- 从 `index.html` 到 `home.html`，像从岸上进入海面。
-- 从 `home.html` 到 `trip.html`，像继续往下潜。
-- 从 `trip.html` 回到 `home.html`，像缓慢上浮。
-- 从一个 `detail.html` 切换到另一个 `detail.html`，像在相邻海域之间平移和潜游。
-
-## 这个项目目前做了什么
-
-- 做了登录门厅、首页、行程页、详情页以及联系页、用户协议页、隐私政策页这一整套页面。
-- 做了统一的深度计和跨页过渡逻辑，让整站在视觉和空间感上能连起来。
-- 做了首页的热门潜点、精选海域、潜水匹配、海图导览和品牌叙事模块。
-- 做了行程页的控制台交互，可以选择海域、日期和同行人数，并实时联动摘要区。
-- 做了详情页的海域介绍、套餐切换、评论展示、相关推荐和海图定位台。
-- 做了详情页与行程页之间的状态同步，让用户确认套餐后可以在行程页继续整理。
-- 做了联系页的本地留言草稿和暂存回看，方便演示前端状态保存的效果。
-- 做了离线海图资源，详情页里的海图不只是占位，而是有实际底图和路线信息的。
-
-## 核心页面说明
-
-### 门厅页
-
-`index.html` 负责项目入口。这里不是普通的登录框页面，而是先把“进入盐憩”这件事做成一层有情绪的门厅。
-
-这一页主要处理了这些内容：
-
-- 登录和注册的前端切换。
-- 输入框反馈、表单校验和记住状态。
-- 页面气氛建立，包括玻璃感、模糊层和进入前的停顿感。
-
-对应脚本主要是 `js/auth.js`，样式主要在 `css/login.css`。
-
-### 首页
-
-`home.html` 是整站的第一层主场景。首页不是为了直接筛条件，而是为了先让用户进入“看海”的状态。
-
-这一页目前包含的重点模块有：
-
-- 首屏视觉区。
-- 热门潜点内容区。
-- 精选海域展台。
-- 潜水匹配推荐区。
-- 海图导览入口。
-- 品牌故事和页脚收束。
-
-对应脚本主要是 `js/home.js`，样式主要在 `css/home.css`。
-
-### 行程页
-
-`trip.html` 更像一个安静的行程控制台。它不是普通表单页，而是把“去哪片海、什么时候出发、和谁一起去”整理成有层次的交互过程。
-
-这一页主要处理了这些内容：
-
-- 海域、日期、人数的逐步选择。
-- 浮层面板和日历面板交互。
-- 摘要区联动和反馈文案更新。
-- 已收进行程的海域卡片展示。
-- 出发前准备内容的切换阅读。
-
-对应脚本主要是 `js/trip.js`，样式主要在 `css/trip.css`。
-
-### 详情页
-
-`detail.html` 是我花时间最多的一页，因为它承担的是“真正进入一片海域”的体验。
-
-这一页目前做了：
-
-- 海域首屏介绍和氛围区。
-- 套餐与价格展示。
-- 评论和图片内容。
-- 相关推荐切换。
-- 海图定位台与路线阅读。
-- 套餐确认后的反馈层。
-- 详情页之间的相关推荐跳转。
-
-对应脚本主要是 `js/detail.js`，样式主要在 `css/detail.css`。
-
-### 信息页
-
-`contact.html`、`terms.html`、`privacy.html` 这一组页面虽然更安静，但我没有把它们做成普通白底说明页，而是尽量保持和主站同一套海洋语言。
-
-这一组页面目前主要负责：
-
-- 联系方式展示。
-- 留言表单和本地草稿。
-- 用户协议和隐私政策阅读。
-- 页面内平滑定位和导航高亮。
-
-对应脚本主要是 `js/info-pages.js`，样式主要在 `css/info-pages.css`。
-
-## 这个项目里我觉得最难做的部分
-
-我觉得最难做的部分，不是某一个按钮或者某一张卡片，而是“怎么让整个网站看起来像在同一片海里继续移动”。
-
-如果只是把页面做出来，其实不会特别难；真正变复杂的是，当我要求：
-
-- `home.html -> trip.html` 要像继续下潜；
-- `trip.html -> home.html` 要像缓慢上浮；
-- `detail.html -> detail.html` 要像在相邻海域之间潜游；
-- 页面滚动时还要让深度感继续成立；
-- 用户从详情页确认内容再回到行程页时，状态不能断掉；
-
-这些要求放到一起之后，问题就不再只是“做一个动效”这么简单了。
-
-我最后主要是通过下面几部分一起把这个问题收住：
-
-- `js/depth-manager.js`：负责整站深度计、跨页过渡和页面层级逻辑。
-- `js/home.js`：负责首页各模块的滚动、入场和内容切换。
-- `js/trip.js`：负责行程台、摘要联动和已收进行程的交互。
-- `js/detail.js`：负责详情页海域内容、套餐、评论、地图和相关推荐。
-- `js/yanqi-trip-store.js`：负责详情页和行程页之间共享的数据读写。
-
-这部分是我改动最多、调试时间最长的地方，也是我觉得这个项目最能体现“不是普通网页”的地方。
-
-## 这个项目运用了什么知识
-
-### 页面结构与语义化
-
-- 用 `HTML` 组织多页面结构，把门厅、首页、行程页、详情页和信息页分成不同层次。
-- 用更清楚的区块划分去承载首屏、控制台、评论、地图、推荐等内容。
-- 通过 `data-*` 属性把结构和交互连接起来，减少把逻辑全部写死在脚本里的情况。
-
-### 样式与视觉表达
-
-- 使用 `CSS` 完成页面布局、响应式适配和视觉统一。
-- 使用 `Grid`、`Flex`、`clamp()`、渐变、模糊、玻璃感和阴影去组织页面层次。
-- 用统一变量和样式结构去控制颜色、间距、圆角、光感和页面节奏。
-- 通过过渡、位移、透明度和滤镜，把页面气氛做得更像“下潜中的海层变化”。
-
-### 原生交互开发
-
-- 使用原生 `JavaScript` 完成 DOM 操作、事件绑定和模块组织。
-- 把首页、行程页、详情页里的复杂交互收成类和功能模块，而不是全部平铺在一起。
-- 用 `requestAnimationFrame` 去控制需要跟随滚动和视图刷新的动画节奏。
-- 用 `URLSearchParams`、`CustomEvent`、`Map`、`Set` 等基础能力处理参数、状态和事件通信。
-
-### 状态管理与本地存储
-
-- 用 `localStorage` 保存登录信息、行程草稿、已收进行程和留言草稿。
-- 用 `sessionStorage` 保存跨页返回时的滚动目标和页面进入状态。
-- 把共享逻辑单独收进 `js/yanqi-trip-store.js`，避免多页面各写一套存储代码。
-- 在没有真实后端的前提下，让页面之间仍然能保持相对连续的体验。
-
-### 滚动与观察能力
-
-- 用 `IntersectionObserver` 处理模块入场、视口激活和滚动触发。
-- 用 `ResizeObserver` 处理布局变化后的尺寸同步。
-- 用滚动联动去配合深度计、导航高亮和页面导览状态。
-
-### 地图与资源处理
-
-- 详情页的海图部分用了 `Leaflet` 地图库来承载地图舞台。
-- 海图底图不是简单截图，而是项目内按海域打包的离线海图资源。
-- `js/yanqi-spot-map-catalog.js` 用来整理每片海域的地图信息。
-- `assets/maps/packs/index.json` 用来管理离线海图包的索引数据。
-- `tools/maps/generate-sea-atlas-tiles.py` 会根据海域范围和陆地数据直接生成每片海域的离线海图包。
-
-这一部分让我练到了“网页展示”和“资源生成脚本”结合的写法，而不只是停留在静态页面层面。
-
-## 项目亮点
-
-- 整个网站不是按普通旅游站思路去做，而是围绕“海层变化”来组织体验。
-- 页面切换、滚动和导览之间有统一的空间逻辑，不是彼此分开的零碎动效。
-- 行程页和详情页之间有比较完整的状态联动，用户操作不会在跳页后直接断掉。
-- 详情页不只是信息堆叠，还加入了套餐、评论、相关推荐和离线海图这些内容。
-- 文案、颜色、留白和交互节奏基本都围绕同一套品牌气质去统一。
-
+# 盐憩 · YANQI
+
+<div align="center">
+  <p><strong>一个把潜水旅游做成海层叙事的多页面前端项目</strong></p>
+  <p>让用户像在同一片海里慢慢下潜、停驻、再继续向更深处移动，而不是在几张普通网页之间普通跳转。</p>
+
+  <p>
+    <img src="https://img.shields.io/badge/HTML-Multi--Page-0F3B4D?style=for-the-badge&logo=html5&logoColor=white" alt="HTML Multi-Page" />
+    <img src="https://img.shields.io/badge/CSS-Glass%20%26%20Fog-1E5F74?style=for-the-badge&logo=css3&logoColor=white" alt="CSS Glass and Fog" />
+    <img src="https://img.shields.io/badge/JavaScript-Vanilla%20Interaction-2C7A7B?style=for-the-badge&logo=javascript&logoColor=white" alt="Vanilla JavaScript" />
+    <img src="https://img.shields.io/badge/Leaflet-Sea%20Atlas-184E63?style=for-the-badge&logo=leaflet&logoColor=white" alt="Leaflet Sea Atlas" />
+    <img src="https://img.shields.io/badge/Python-Offline%20Map%20Generator-2D5F73?style=for-the-badge&logo=python&logoColor=white" alt="Python Offline Map Generator" />
+    <img src="https://img.shields.io/badge/Storage-localStorage%20%26%20sessionStorage-0B2433?style=for-the-badge" alt="Storage" />
+  </p>
+
+  <p>
+    <a href="#overview">项目总览</a> ·
+    <a href="#experience">页面层级</a> ·
+    <a href="#architecture">主题框架</a> ·
+    <a href="#sea-atlas">地图系统</a> ·
+    <a href="#depth-gauge">深度计系统</a> ·
+    <a href="#run">运行方式</a> ·
+    <a href="#structure">目录结构</a>
+  </p>
+</div>
+
+> 盐憩不是普通旅游信息站，也不是工具型预订平台。  
+> 它更像一个带有品牌气质、海洋叙事感、空间层级感和慢节奏浏览体验的网页项目。
+
+<a id="overview"></a>
+## 项目总览
+
+盐憩的核心目标，不是把潜水信息“排成列表”，而是把“进入海、理解海、收进行程”这件事做成一个连续体验。
+
+这个仓库当前已经完成了门厅页、首页、行程页、详情页和信息页，也完成了跨页深度切换、行程本地状态续接、详情页套餐确认闭环，以及离线 Sea Atlas 地图系统。
+
+| 维度 | 说明 |
+| --- | --- |
+| 品牌名 | 盐憩 |
+| 网站主题 | 潜水旅游 |
+| 项目定位 | 以前端展示与交互叙事为主，不走电商站、后台站、工具站路线 |
+| 关键词 | 深海、安静、高级、舒缓、沉浸、有呼吸感 |
+| 视觉语言 | 深海蓝、海盐白、低饱和青蓝、玻璃感、雾感、柔和模糊、微发光 |
+| 当前形态 | 多页面静态站点，状态以 `localStorage` / `sessionStorage` 为主 |
+| 技术重心 | 叙事型 UI、跨页过渡、深度计系统、离线海图、原生交互组织 |
+
+### 这个项目已经做了什么
+
+- 完成 `index.html`、`home.html`、`trip.html`、`detail.html`、`contact.html`、`terms.html`、`privacy.html` 的整站页面。
+- 把跨页跳转做成“下潜 / 上浮 / 潜游”三类海层变化，而不是普通 fade。
+- 做了整站深度计，让页面层级、滚动和弹层都能联动到同一套深度语言。
+- 做了详情页 Sea Atlas 海图，不是截图占位，而是本地生成、按海域打包、运行时按需加载的离线海图。
+- 做了详情页和行程页之间的共享行程存储，让套餐确认后可以继续在行程页整理。
+- 做了首页推荐、潜水匹配、海图导览、相关推荐、联系表单草稿等完整前端交互。
+- 做了地图构建报告、首屏拼图校验、页面性能烟雾测试和图片优化脚本。
+
+### 为什么它不是普通旅游网站
+
+- 页面关系按“海层深浅”来设计，不按“导航栏目”来设计。
+- 组件优先服从品牌语境，而不是先套标准 UI。
+- 行程页不是普通表单页，而是更深一层、更安静的规划空间。
+- 详情页不是信息堆叠页，而是进入一片具体海域后的阅读、确认和停驻空间。
+- 地图不是外部在线地图嵌入，而是项目自己的离线海图舞台。
+
+<a id="experience"></a>
+## 页面层级与海层关系
+
+```mermaid
+flowchart LR
+    A["index.html<br/>门厅 / 静水层"] --> B["home.html<br/>海面第一层"]
+    B --> C["trip.html<br/>继续下潜的规划空间"]
+    B --> D["detail.html<br/>进入具体海域"]
+    C --> B
+    D --> C
+    D --> D
+    B --> E["contact / terms / privacy<br/>安静信息页"]
+```
+
+### 页面职责
+
+- `index.html`：进入盐憩之前的门厅，负责建立进入感和静水感。
+- `home.html`：海面的第一层，先让用户看海、被海吸引，再慢慢进入内容。
+- `trip.html`：更深一层的规划空间，负责把一片海收进行程。
+- `detail.html`：真正进入某片海域后的阅读与确认空间。
+- 信息页：维持同一世界观下的安静说明层，而不是单独拎出来的普通文档页。
+
+### 跳转语义
+
+- `index -> home`：像从岸上进入海面。
+- `home -> trip`：像继续下潜。
+- `trip -> home`：像缓慢上浮。
+- `detail -> detail`：像在相邻海域之间平移潜游。
+
+<a id="architecture"></a>
+## 主题框架 / Theme Framework
+
+盐憩不是“几张页面 + 几个模块”的堆叠，而是一个由品牌层、空间层、内容层、状态层共同组成的前端框架。
+
+| 层级 | 作用 | 关键文件 |
+| --- | --- | --- |
+| 品牌层 | 统一颜色、雾感、玻璃感、留白、文案气质和品牌链接 | [`site/css/global.css`](site/css/global.css), [`site/js/yanqi-brand-config.js`](site/js/yanqi-brand-config.js) |
+| 空间层 | 定义页面深浅、滚动深度、跨页潜浮、遮罩层和深度计显示 | [`site/js/depth-manager.js`](site/js/depth-manager.js), [`site/css/depth-gauge.css`](site/css/depth-gauge.css), [`site/css/page-transition.css`](site/css/page-transition.css) |
+| 内容层 | 管理潜点目录、海图目录、详情页数据、评论内容和品牌配置 | [`site/js/yanqi-spot-catalog.js`](site/js/yanqi-spot-catalog.js), [`site/js/yanqi-spot-map-catalog.js`](site/js/yanqi-spot-map-catalog.js), [`site/js/detail-spot-data-manifest.js`](site/js/detail-spot-data-manifest.js), [`site/js/detail-spot-data/`](site/js/detail-spot-data/) |
+| 状态层 | 处理行程草稿、确认套餐、跨页返回目标、深度续接和临时弹层状态 | [`site/js/yanqi-trip-store.js`](site/js/yanqi-trip-store.js), [`site/js/trip.js`](site/js/trip.js), [`site/js/detail.js`](site/js/detail.js) |
+| 布局层 | 通过 `pretext` 预测多行文本高度，减少卡片和文案区跳动 | [`site/js/text-layout-adapter.js`](site/js/text-layout-adapter.js), [`site/pretext-main/`](site/pretext-main/) |
+
+### 主题框架的实现思路
+
+1. 先把品牌气质抽成基础底盘  
+   颜色、阴影、雾感、模糊、按钮基线、导航基线都从全局样式层统一控制。
+
+2. 再把页面关系做成空间语言  
+   首页、行程页、详情页不是平级导航页，而是有深浅关系的海层。
+
+3. 再把内容模块变成世界观内的组件  
+   搜索、推荐、地图、浮层、页脚都要服从“盐憩”的海洋叙事，而不是套用普通组件范式。
+
+4. 最后才补状态与数据闭环  
+   让套餐确认、行程草稿、跨页返回、地图加载这些行为保持连续。
+
+## 核心技术栈
+
+| 类别 | 使用内容 | 在项目中的作用 |
+| --- | --- | --- |
+| 页面结构 | `HTML` 多页面结构、语义化区块、`data-*` | 组织门厅、首页、行程、详情与信息页 |
+| 视觉表达 | `CSS`、`Grid`、`Flex`、`clamp()`、渐变、模糊、玻璃感 | 建立深海、静谧、雾感和空间层次 |
+| 交互开发 | 原生 `JavaScript`、事件委托、`Map`、`Set`、`URLSearchParams` | 管理页面逻辑、切换、筛选、状态与导航 |
+| 动画节奏 | `requestAnimationFrame`、CSS 变量、关键帧动画 | 实现滚动深浅变化和跨页潜浮体验 |
+| 观察能力 | `IntersectionObserver`、`ResizeObserver` | 管理模块入场、懒加载、尺寸同步、地图触发 |
+| 状态存储 | `localStorage`、`sessionStorage` | 保存行程草稿、确认套餐、深度状态和临时 UI 状态 |
+| 地图系统 | `Leaflet` + 自定义离线 `TileLayer` | 详情页 Sea Atlas 内联地图与全屏地图 |
+| 地图生成 | `Python`、`Pillow`、Natural Earth GeoJSON | 把海域范围渲染成项目内离线海图包 |
+| 质量校验 | `Node.js`、`Playwright`、`sharp` | 做页面烟雾测试、地图构建报告、拼图验证和图片优化 |
+| 文本布局 | `pretext` | 预测多行文本高度，减少动态内容跳动 |
+
+<a id="sea-atlas"></a>
+## Sea Atlas 地图系统
+
+这次 README 的重点之一，就是把地图系统讲清楚。
+
+盐憩里的地图不是直接调用在线公开底图，也不是在设计稿里截一张图贴上去。它是一套项目内自建的离线海图系统：
+
+- 每片海域在 [`site/js/yanqi-spot-map-catalog.js`](site/js/yanqi-spot-map-catalog.js) 里有自己的 `mapCenter`、`mapBounds`、`zoom`、航线控制点、港口坐标和上下文标签。
+- [`tools/maps/generate-sea-atlas-tiles.py`](tools/maps/generate-sea-atlas-tiles.py) 会根据这些范围，结合本地 Natural Earth GeoJSON 数据，生成离线瓦片。
+- 这些瓦片不会散成一堆图片文件，而是被打成按海域拆分的 `.pack.js` 脚本包，并登记进 [`site/assets/maps/packs/index.json`](site/assets/maps/packs/index.json)。
+- 详情页在真正滚动到海图区之前，不会提前请求 Leaflet 和地图 pack；等海图区进入视口后，才会按需加载。
+- 运行时通过自定义 `TileLayer` 把 Base64 WebP 瓦片还原成 `data:` URL，再交给 Leaflet 渲染。
+
+### 地图制作原理
+
+```mermaid
+flowchart TD
+    A["spot map catalog<br/>中心点 / 边界 / 航线 / 标签"] --> B["Python generator<br/>generate-sea-atlas-tiles.py"]
+    C["Natural Earth GeoJSON<br/>land / countries / admin1 / places"] --> B
+    B --> D["渲染 1024px WebP 离线瓦片"]
+    D --> E["按海域打包为 .pack.js"]
+    E --> F["写入 packs/index.json"]
+    F --> G["detail.js 按需注入 pack 脚本"]
+    G --> H["Leaflet 自定义 TileLayer"]
+    H --> I["内联 Sea Atlas / 全屏 Sea Atlas"]
+```
+
+### 地图的具体生成流程
+
+1. 在海域目录里定义数据  
+   `yanqi-spot-map-catalog.js` 负责给每片海域补齐离线地图所需字段，例如包路径、缩放区间、标签与初始视图模式。
+
+2. 读取本地地理数据源  
+   生成器优先读取 `tools/maps/source/natural-earth/` 下的 GeoJSON：
+   - `ne_10m_land.geojson`
+   - `ne_10m_admin_0_countries.geojson`
+   - `ne_10m_admin_1_states_provinces.geojson`
+   - `ne_10m_populated_places.geojson`
+
+3. 扩展海域边界，留出安全缓冲  
+   脚本会在原始 `mapBounds` 之外再做经纬度扩展，并额外按瓦片行列加 buffer，避免海图舞台刚好卡死在边缘。
+
+4. 把经纬度换算成 Web Mercator 瓦片坐标  
+   生成器内部有 `lon_to_tile_x()`、`lat_to_tile_y()`、`project_lon_lat()` 等函数，把地理坐标映射到瓦片像素坐标。
+
+5. 使用 Pillow 绘制底图  
+   每个瓦片都会先画海色渐变和经纬网，再叠加陆地、多级边界和上下文标签。海图里“海”的气质不是靠外部主题包，而是在生成阶段直接画出来。
+
+6. 输出为高密度离线瓦片  
+   当前脚本固定使用 `1024px` 瓦片尺寸，并在运行时保持 `zoomOffset: -2`，这样细节密度更高，视觉更稳。
+
+7. 按海域写成脚本包  
+   不是把瓦片散在目录里，而是把一片海域的所有瓦片写进一个 `.pack.js`，运行时注入一次脚本就能挂到全局 registry。
+
+### 地图运行时原理
+
+- `detail.js` 先懒加载 `Leaflet`，避免详情页首屏就背上地图体积。
+- 再通过 `loadSeaAtlasTilePackArchive()` 注入当前海域的 pack 脚本。
+- pack 脚本把数据写到 `window.__YANQI_SEA_ATLAS_PACKS__`。
+- 自定义 `TileLayer` 在 `createTile()` 里按 `z/x/y.webp` 找到 Base64 数据，转成 `data:image/webp;base64,...` 提供给 Leaflet。
+- 航线本身不是烘焙进底图，而是叠加在地图舞台上的 SVG 路线层，这样路线能保留动势和光感，也更容易在内联 / 全屏之间复用。
+
+<details>
+<summary><strong>查看地图相关关键代码片段</strong></summary>
+
+生成器如何把瓦片打进单个海域包：
+
+```python
+for z in range(storage_min_zoom, storage_max_zoom + 1):
+    x_start, x_end, y_start, y_end = tile_range_for_bounds(bounds, z)
+    for x in range(x_start, x_end + 1):
+        for y in range(y_start, y_end + 1):
+            tile_bytes = render_tile_bytes(prepared, prepared["context_labels"], spot, z, x, y)
+            tile_payload[f"{z}/{x}/{y}.webp"] = base64.b64encode(tile_bytes).decode("ascii")
+
+pack_script = (
+    "(function registerSeaAtlasPack(global) {\n"
+    "    const registry = global.__YANQI_SEA_ATLAS_PACKS__ = global.__YANQI_SEA_ATLAS_PACKS__ || Object.create(null);\n"
+    f"    registry[{json.dumps(key)}] = {json.dumps(pack_record, ensure_ascii=False, separators=(',', ':'))};\n"
+    "})(window);\n"
+)
+```
+
+详情页如何按需加载 pack：
+
+```js
+async function loadSeaAtlasTilePackArchive(packPath, packFormat = 'script') {
+    const registryKey = getSeaAtlasPackRegistryKey(packPath);
+    const registry = getSeaAtlasPackRegistry();
+    if (registry[registryKey]) {
+        return buildSeaAtlasScriptPackArchive(packPath, registry[registryKey]);
+    }
+
+    await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = packPath;
+        script.async = true;
+        script.setAttribute('data-sea-atlas-pack', packPath);
+        script.addEventListener('load', resolve, { once: true });
+        script.addEventListener('error', reject, { once: true });
+        document.head.appendChild(script);
+    });
+
+    return buildSeaAtlasScriptPackArchive(packPath, registry[registryKey]);
+}
+```
+
+Leaflet 自定义离线瓦片层：
+
+```js
+SeaAtlasPackedTileLayerClass = window.L.TileLayer.extend({
+    initialize(packPath, packFormat, options = {}) {
+        this._seaAtlasPackPath = packPath;
+        this._seaAtlasPackFormat = packFormat || 'script';
+        window.L.TileLayer.prototype.initialize.call(this, '', options);
+    },
+
+    createTile(coords, done) {
+        resolveSeaAtlasPackedTileUrl(this._seaAtlasPackPath, this._seaAtlasPackFormat, coords)
+            .then((tileUrl) => {
+                tile.src = tileUrl || SEA_ATLAS_EMPTY_TILE_DATA_URI;
+                done(null, tile);
+            })
+            .catch((error) => done(error, tile));
+        return tile;
+    }
+});
+```
+
+</details>
+
+### 地图相关文件
+
+- [`site/js/yanqi-spot-map-catalog.js`](site/js/yanqi-spot-map-catalog.js)：海域地图目录，定义每片海的视图边界、航线和离线 pack 信息。
+- [`site/assets/maps/packs/`](site/assets/maps/packs/)：离线海图包输出目录。
+- [`site/assets/maps/README.md`](site/assets/maps/README.md)：地图资源的简要说明。
+- [`tools/maps/generate-sea-atlas-tiles.py`](tools/maps/generate-sea-atlas-tiles.py)：离线海图生成脚本。
+- [`tools/maps/source/natural-earth/`](tools/maps/source/natural-earth/)：本地地理数据源。
+- [`tools/qa/sea-atlas-build-report.cjs`](tools/qa/sea-atlas-build-report.cjs)：生成地图构建报告。
+- [`tools/qa/sea-atlas-first-view-mosaic.cjs`](tools/qa/sea-atlas-first-view-mosaic.cjs)：把首屏视角拼成 QA 拼图。
+
+### 为什么用这套方案
+
+- 可以保持视觉风格统一，不受第三方在线底图风格限制。
+- 可以离线展示海域关系，不依赖外部 tile 服务。
+- 可以把底图、路线、说明卡、全屏舞台收成同一个体验系统。
+- 方便后续继续把更多海域扩进去，而不是每次手工截图。
+
+<a id="depth-gauge"></a>
+## 深度计系统
+
+深度计不是装饰，它是整站空间语言的一部分。
+
+它负责把“你现在在盐憩的哪一层海里”这件事可视化，同时把跨页切换、页面滚动、弹层打开与关闭这些行为都翻译成连续的深浅变化。
+
+### 深度计解决了什么问题
+
+- 让首页、行程页、详情页拥有明确的海层深浅关系。
+- 让滚动不是简单地往下刷，而是“继续下潜”。
+- 让 `home -> trip`、`trip -> home`、`detail -> detail` 的跳转拥有不同语义。
+- 让弹层打开时不是单独叠一层，而是“进入更深一层”。
+- 让浏览器前进 / 后退时，深度和遮罩也能跟着恢复，而不是突然断掉。
+
+### 深度计的核心机制
+
+1. 先定义页面基准深度  
+   `depth-manager.js` 用 `PAGE_DEPTH_MAP` 给每个页面定一个基础深度。
+
+2. 再定义页面内部的滚动停靠点  
+   首页使用 `HOME_SECTION_DEPTH_STOPS`，行程页和详情页使用 `PAGE_SCROLL_DEPTH_STOP_MAP`。
+
+3. 用动画把“当前深度”连续地写到 UI 上  
+   逻辑深度会被渲染成深度计刻度带位置、当前深度数字、遮罩强度和页面过渡变量。
+
+4. 用 `sessionStorage` 续接跨页状态  
+   跳页前写入当前深度、目标页、视觉方向和过渡参数；目标页加载或 `pageshow` 时再接回来。
+
+5. 用观察器感知浮层和页面状态  
+   详情页的套餐弹层、评论浮层、灯箱等打开时，会通过页面状态规则再往更深一层轻推。
+
+6. 详情页还做了“逻辑深度 -> 显示潜深”的二次映射  
+   所以详情页深度计不是死板显示 `-54` 这类页面逻辑值，而是映射成更接近真实潜深读数的显示。
+
+### 深度计的实现路径
+
+```mermaid
+flowchart TD
+    A["页面身份 / 滚动位置 / 弹层状态"] --> B["DepthManager 计算 targetDepth"]
+    B --> C["requestAnimationFrame 平滑过渡 currentDepth"]
+    C --> D["更新深度计刻度、当前读数、遮罩浓度"]
+    D --> E["写入 CSS 变量与页面 class"]
+    E --> F["跨页离场 / 入场 / pageshow 恢复"]
+```
+
+<details>
+<summary><strong>查看深度计相关关键代码片段</strong></summary>
+
+页面基础深度：
+
+```js
+const PAGE_DEPTH_MAP = Object.freeze({
+    login: 0,
+    contact: -4,
+    terms: -4,
+    privacy: -4,
+    home: -12,
+    trip: -42,
+    detail: -54
+});
+```
+
+首页滚动停靠点：
+
+```js
+const HOME_SECTION_DEPTH_STOPS = Object.freeze([
+    { selector: '#hero-home', depth: PAGE_DEPTH_MAP.home },
+    { selector: '#featured-destinations', depth: -20 },
+    { selector: '#dive-match', depth: -28 },
+    { selector: '#why-yanqi', depth: -36 },
+    { selector: '.footer', depth: -42 }
+]);
+```
+
+行程页 / 详情页滚动停靠点：
+
+```js
+const PAGE_SCROLL_DEPTH_STOP_MAP = Object.freeze({
+    trip: [
+        { selector: '#trip-top', depth: PAGE_DEPTH_MAP.trip },
+        { selector: '#plannerDeskControl', depth: -45 },
+        { selector: '#plannerSummary', depth: -48 },
+        { selector: '#trip-layer', depth: -52 },
+        { selector: '#trip-prep', depth: -56 },
+        { selector: '#tripFooter', depth: MIN_DEPTH }
+    ],
+    detail: [
+        { selector: '#detailHero', depth: PAGE_DEPTH_MAP.detail },
+        { selector: '#spotOverview', depth: -56 },
+        { selector: '#spotMapSection', depth: -57.5 },
+        { selector: '#spotReviews', depth: -58.8 },
+        { selector: '#relatedSpots', depth: -59.4 },
+        { selector: '#detailFooter', depth: MIN_DEPTH }
+    ]
+});
+```
+
+跨页导航时如何接管站内跳转：
+
+```js
+navigateTo(rawUrl, options = {}) {
+    // 计算 fromPage / toPage / visualDirection / toDepth
+    // 写入 sessionStorage
+    // 添加离场 class
+    // 到时机后跳转到目标页面
+}
+```
+
+</details>
+
+### 深度计样式层做了什么
+
+[`site/css/depth-gauge.css`](site/css/depth-gauge.css) 负责把逻辑深度变成可视化仪表：
+
+- 两侧固定深度计，让“海层语言”始终存在，而不是只属于某个 section。
+- 刻度带通过 `--depth-gauge-step-size`、`--depth-gauge-tape-offset`、`--depth-gauge-shift` 等变量滑动。
+- 当前深度数字会根据深度和页面状态调整透明度、发光和位移。
+
+[`site/css/page-transition.css`](site/css/page-transition.css) 则负责：
+
+- 海洋遮罩层
+- 潜浮式出入场动画
+- 登录门厅到首页的特殊蓝层与气泡动画
+- 页面整体平移、缩放、透明度和海水浓度变化
+
+## 状态管理与体验续接
+
+盐憩虽然还没有接真实后端，但页面之间并不是断开的。
+
+### 这里用了哪些状态能力
+
+- `localStorage`
+  - 保存登录相关演示状态
+  - 保存行程草稿与已确认套餐
+  - 保存舞台尺寸、调试开关等本地偏好
+
+- `sessionStorage`
+  - 保存当前深度与跨页导航状态
+  - 保存详情页之间切换的过渡方向
+  - 保存弹层编辑草稿、回首页的滚动目标等短生命周期状态
+
+### 关键文件
+
+- [`site/js/yanqi-trip-store.js`](site/js/yanqi-trip-store.js)：统一行程页与详情页的共享存储。
+- [`site/js/trip.js`](site/js/trip.js)：把海域、日期、人数、摘要和已收进行程联动起来。
+- [`site/js/detail.js`](site/js/detail.js)：负责套餐确认、相关推荐切换、地图舞台和确认反馈层。
+
+## 这个项目运用了哪些知识
+
+如果把盐憩当成一个前端练习项目来看，它练到的不是单点 API，而是一整套前端能力如何围绕同一个主题协同。
+
+### 1. 页面结构与语义化
+
+- 用多页面结构承接不同海层。
+- 用明确的 section 和 `data-*` 把结构、样式和逻辑解耦。
+- 把门厅、首页、行程页、详情页、信息页做出清晰职责边界。
+
+### 2. 样式系统与视觉表达
+
+- 用统一变量控制颜色、玻璃感、圆角、留白和阴影。
+- 用模糊、渐变、叠层光感和半透明面组织深海气质。
+- 用页面级样式文件保持每一层海的气质差异。
+
+### 3. 原生交互开发
+
+- 原生 `JavaScript` 完成复杂页面交互，而不是依赖重型框架。
+- 用类、工具函数、共享配置与数据目录组织脚本。
+- 用事件委托管理按钮、卡片、弹层、标签切换和地图舞台行为。
+
+### 4. 观察器与动画
+
+- `IntersectionObserver`：模块入场、图片 / 地图懒加载、相关推荐和评论区域触发。
+- `ResizeObserver`：同步布局变化，避免地图和深度计错位。
+- `requestAnimationFrame`：深度动画、价格动效、舞台变化等需要逐帧平滑处理的部分。
+
+### 5. 本地状态与跨页连续性
+
+- `localStorage` 负责较长生命周期的状态。
+- `sessionStorage` 负责当前浏览链路中的临时状态。
+- 没有后端时，仍然尽量保证“用户刚刚做过的事”能被下一个页面接住。
+
+### 6. 地图与离线资源工程
+
+- 学到了 `Leaflet` 的地图舞台组织方式。
+- 学到了 Web Mercator 瓦片坐标转换的基本原理。
+- 学到了如何用 `Python + Pillow + GeoJSON` 自己生成离线地图资源。
+- 学到了如何把资源包从“生成阶段”接到“前端运行时”。
+
+### 7. 文本布局预测
+
+- [`site/js/text-layout-adapter.js`](site/js/text-layout-adapter.js) 封装了 `pretext` 的布局预测能力。
+- 目的是提前估算多行文本高度，减少相关推荐、卡片标题等动态内容因为字数不同产生的跳动。
+- 这让页面在“安静”“缓慢”的气质上更稳，不会因为布局忽高忽低而破坏呼吸感。
+
+<a id="structure"></a>
 ## 目录结构
 
 ```text
 盐憩/
-├─ site/                        站点运行本体
-│  ├─ assets/                   静态素材
-│  ├─ css/                      样式文件
-│  ├─ js/                       交互脚本
-│  ├─ pretext-main/             文本布局相关依赖
-│  ├─ index.html                门厅页
-│  ├─ home.html                 首页
-│  ├─ trip.html                 行程页
-│  ├─ detail.html               详情页
-│  ├─ contact.html              联系页
-│  ├─ terms.html                用户协议页
-│  └─ privacy.html              隐私政策页
-├─ docs/                        展示与续接文档
+├─ site/
+│  ├─ assets/
+│  │  ├─ images/                   页面图片与海域素材
+│  │  ├─ maps/
+│  │  │  ├─ packs/                 离线 Sea Atlas pack 与索引
+│  │  │  └─ README.md              地图资源简要说明
+│  │  └─ vendor/leaflet/           Leaflet 依赖
+│  ├─ css/
+│  │  ├─ global.css                全站视觉底盘
+│  │  ├─ depth-gauge.css           深度计样式
+│  │  ├─ page-transition.css       潜浮式跨页过渡
+│  │  ├─ home.css                  首页样式
+│  │  ├─ trip.css                  行程页样式
+│  │  ├─ detail.css                详情页样式
+│  │  ├─ login.css                 门厅页样式
+│  │  └─ info-pages.css            信息页样式
+│  ├─ js/
+│  │  ├─ depth-manager.js          整站深度与跨页总控
+│  │  ├─ home.js                   首页交互
+│  │  ├─ trip.js                   行程页交互
+│  │  ├─ detail.js                 详情页交互与 Sea Atlas 运行时
+│  │  ├─ yanqi-trip-store.js       行程共享存储
+│  │  ├─ yanqi-brand-config.js     品牌链接与兜底图生成
+│  │  ├─ yanqi-spot-map-catalog.js 海域地图目录
+│  │  ├─ detail-spot-data/         每片海域的详情数据
+│  │  └─ text-layout-adapter.js    pretext 文本布局适配器
+│  ├─ pretext-main/                文本布局预测依赖
+│  ├─ index.html                   门厅页
+│  ├─ home.html                    首页
+│  ├─ trip.html                    行程页
+│  ├─ detail.html                  详情页
+│  ├─ contact.html                 联系页
+│  ├─ terms.html                   用户协议页
+│  └─ privacy.html                 隐私政策页
+├─ docs/
+│  ├─ QUICKSTART.md                快速启动
+│  ├─ YANQI_PRESENTATION.md        展示提纲
+│  ├─ YANQI_5MIN_SPEECH.md         五分钟讲解稿
+│  └─ YANQI_HANDOFF.md             续接说明
 ├─ tools/
-│  ├─ qa/                       烟雾测试与图片压缩
-│  ├─ maps/                     海图生成与源数据
-│  └─ text-layout/              pretext 构建辅助脚本
-├─ _workspace/                  本地归档与临时内容
-├─ AGENTS.md                    仓库协作规则
-├─ .gitignore                   本地忽略规则
-└─ README.md                    项目主说明
+│  ├─ maps/
+│  │  ├─ source/natural-earth/     本地地图 GeoJSON 数据
+│  │  └─ generate-sea-atlas-tiles.py
+│  ├─ qa/
+│  │  ├─ detail-perf-smoke.cjs
+│  │  ├─ pages-perf-smoke.cjs
+│  │  ├─ sea-atlas-build-report.cjs
+│  │  ├─ sea-atlas-first-view-mosaic.cjs
+│  │  └─ optimize-images.cjs
+│  └─ text-layout/
+│     └─ build-local-pretext.cjs   本地 pretext 构建脚本
+├─ AGENTS.md
+└─ README.md
 ```
 
-## 关键文件说明
-
-### 页面文件
-
-- `site/index.html`：登录和注册入口。
-- `site/home.html`：首页主内容。
-- `site/trip.html`：行程控制台和已收进行程。
-- `site/detail.html`：海域详情、套餐、评论和地图。
-
-### 样式文件
-
-- `site/css/global.css`：全站公共变量和基础样式。
-- `site/css/login.css`：门厅页样式。
-- `site/css/home.css`：首页样式。
-- `site/css/trip.css`：行程页样式。
-- `site/css/detail.css`：详情页样式。
-- `site/css/depth-gauge.css`：深度计样式。
-- `site/css/page-transition.css`：跨页过渡样式。
-- `site/css/info-pages.css`：联系页、协议页、隐私页通用样式。
-
-### 脚本文件
-
-- `site/js/auth.js`：登录、注册和表单反馈。
-- `site/js/depth-manager.js`：深度计和跨页海层过渡总控。
-- `site/js/home.js`：首页模块交互。
-- `site/js/trip.js`：行程页主控逻辑。
-- `site/js/detail.js`：详情页主控逻辑。
-- `site/js/yanqi-trip-store.js`：行程与套餐共享存储。
-- `site/js/yanqi-spot-map-catalog.js`：海图目录数据。
-- `site/js/info-pages.js`：信息页交互。
-- `site/js/ocean-scroll.js`：滚动工具。
-
-### 地图相关资源
-
-- `site/assets/vendor/leaflet/`：地图依赖文件。
-- `site/assets/maps/packs/`：按海域输出的离线海图包。
-- `site/assets/maps/packs/index.json`：海图包索引。
-- `tools/maps/generate-sea-atlas-tiles.py`：离线海图包生成脚本。
-
-## 我建议怎样体验这个项目
-
-如果只是想快速感受项目，我建议按这个顺序体验：
-
-1. 先打开 `site/index.html`，进入门厅。
-2. 再进入 `site/home.html`，先看首页氛围和模块切换。
-3. 从首页进入一个 `site/detail.html`，看看一片具体海域是怎么展开的。
-4. 在详情页确认一个套餐，再进入 `site/trip.html` 看状态是否接得住。
-5. 最后再去 `site/contact.html` 看信息页是不是也保持了同样的气质。
-
-## 我建议怎样看代码
-
-如果想看主线，我会建议按下面这个顺序读：
-
-1. `site/home.html`、`site/css/home.css`、`site/js/home.js`
-2. `site/js/depth-manager.js`
-3. `site/trip.html`、`site/css/trip.css`、`site/js/trip.js`
-4. `site/js/yanqi-trip-store.js`
-5. `site/detail.html`、`site/css/detail.css`、`site/js/detail.js`
-6. `site/js/yanqi-spot-map-catalog.js`
-7. `tools/maps/generate-sea-atlas-tiles.py`
-
-这样看会比较容易先抓住页面主线，再理解状态、地图和资源生成这些更深一层的内容。
-
+<a id="run"></a>
 ## 运行方式
 
-这是一个纯前端项目，可以直接打开页面，也可以用本地静态服务运行。
+### 1. 直接浏览
 
-### 直接打开
+双击 [`site/index.html`](site/index.html) 可以先看基础页面效果。
 
-双击 `site/index.html` 就可以先看到基本页面效果。
+### 2. 推荐方式：本地静态服务
 
-### 使用本地静态服务
-
-更推荐用本地静态服务运行，因为资源路径、地图资源和脚本加载会更稳定。
+更推荐用本地静态服务运行，因为脚本路径、地图 pack、懒加载资源和跨页行为会更稳定。
 
 ```bash
 cd C:\Users\桉桉\Desktop\盐憩
 python -m http.server 8000
 ```
 
-然后在浏览器打开：
+浏览器打开：
 
 ```text
 http://localhost:8000/site/
 ```
 
-### 使用编辑器实时预览
+### 3. VS Code / Live Server
 
-如果平时在编辑器里开发，也可以直接使用实时预览方式打开 `site/index.html`。
+直接对 [`site/index.html`](site/index.html) 使用 Live Server 也可以。
 
-## 当前还有哪些不足
+## 地图重建与 QA
 
-- 目前还没有接真实后端，所以账号、留言和行程内容都属于前端演示状态。
-- 一些交互虽然已经能完成体验闭环，但还可以继续抽象和精简。
-- 详情页脚本体量比较大，后续还可以进一步拆分。
-- 地图和离线资源已经做出来了，但后续还可以继续补更丰富的海域数据。
-- 移动端细节已经处理了一部分，但还有继续打磨的空间。
+### 生成离线 Sea Atlas
 
-## 后续如果继续完善
+前置依赖：
 
-如果我后面继续做这个项目，我会优先补下面这些方向：
+```bash
+pip install pillow requests
+```
 
-- 接入真实后端接口和数据读写。
-- 完善账号系统和更真实的用户状态。
-- 继续细化移动端阅读体验和交互节奏。
-- 继续丰富海域数据、海图内容和推荐逻辑。
-- 把部分复杂脚本再拆得更清楚一些，提高后续维护性。
+生成所有海域地图：
 
-## 最后总结
+```bash
+python tools/maps/generate-sea-atlas-tiles.py --all --workers auto
+```
 
-对我来说，盐憩不是单纯练页面布局的作业，而是一次比较完整的前端项目练习。
+只重建某一片海域：
 
-我在这个项目里练到的不只是 `HTML`、`CSS` 和 `JavaScript` 的基础写法，更重要的是：怎么把一个主题做成完整体验，怎么让多个页面有统一语言，怎么让状态在跳页之后还能接上，以及怎么把视觉表达、交互设计和代码结构尽量放到同一个方向上。
+```bash
+python tools/maps/generate-sea-atlas-tiles.py --spot mabul
+python tools/maps/generate-sea-atlas-tiles.py --spot sipadan
+```
+
+### 地图 QA 与构建报告
+
+```bash
+cd tools/qa
+npm install
+```
+
+生成首屏拼图，检查海图首屏覆盖是否合理：
+
+```bash
+npm run qa:atlas:mosaic -- --spot mabul
+```
+
+生成地图构建报告，记录 pack 变化、输出体积和生成耗时：
+
+```bash
+npm run qa:atlas:build-report -- --run -- --spot mabul
+```
+
+运行详情页性能烟雾测试：
+
+```bash
+npm run perf:detail
+```
+
+运行页面性能烟雾测试：
+
+```bash
+npm run perf:pages
+```
+
+### 文本布局依赖重建
+
+如果需要重建本地 `pretext` 产物：
+
+```bash
+node tools/text-layout/build-local-pretext.cjs
+```
+
+## 建议的体验顺序
+
+1. 打开 [`site/index.html`](site/index.html)，先进入门厅。
+2. 进入 [`site/home.html`](site/home.html)，感受首页的海面层级、推荐和潜水匹配。
+3. 从首页进入 [`site/detail.html`](site/detail.html)，看海域阅读、套餐、评论和 Sea Atlas。
+4. 在详情页确认一个套餐，再进入 [`site/trip.html`](site/trip.html) 看状态是否被接住。
+5. 最后查看 [`site/contact.html`](site/contact.html) 与信息页，确认项目气质是否一致。
+
+<a id="reading"></a>
+## 建议的读码顺序
+
+如果想快速抓住项目主线，建议按这个顺序看：
+
+1. [`site/js/depth-manager.js`](site/js/depth-manager.js)  
+   先理解整站空间逻辑，知道海层是怎么成立的。
+
+2. [`site/css/page-transition.css`](site/css/page-transition.css) + [`site/css/depth-gauge.css`](site/css/depth-gauge.css)  
+   再看视觉层如何把深度逻辑转成遮罩、刻度和潜浮动效。
+
+3. [`site/js/home.js`](site/js/home.js) + [`site/css/home.css`](site/css/home.css)  
+   看首页如何负责“海面的第一层”。
+
+4. [`site/js/trip.js`](site/js/trip.js) + [`site/js/yanqi-trip-store.js`](site/js/yanqi-trip-store.js)  
+   看行程页如何接住详情页确认过来的内容。
+
+5. [`site/js/detail.js`](site/js/detail.js) + [`site/css/detail.css`](site/css/detail.css)  
+   看详情页如何把阅读、套餐、评论、地图和确认反馈收成一套完整体验。
+
+6. [`site/js/yanqi-spot-map-catalog.js`](site/js/yanqi-spot-map-catalog.js) + [`tools/maps/generate-sea-atlas-tiles.py`](tools/maps/generate-sea-atlas-tiles.py)  
+   最后再看地图目录和离线海图生成，理解它为什么不是普通嵌入地图。
+
+7. [`site/js/text-layout-adapter.js`](site/js/text-layout-adapter.js)  
+   如果想继续往细处看，再理解文本布局为什么会更稳。
+
+## 相关文档
+
+- [`docs/QUICKSTART.md`](docs/QUICKSTART.md)：最短启动路径。
+- [`docs/YANQI_PRESENTATION.md`](docs/YANQI_PRESENTATION.md)：项目展示提纲。
+- [`docs/YANQI_5MIN_SPEECH.md`](docs/YANQI_5MIN_SPEECH.md)：五分钟讲解版本。
+- [`docs/YANQI_HANDOFF.md`](docs/YANQI_HANDOFF.md)：后续接手或继续开发时的续接说明。
+
+## 当前状态与后续方向
+
+### 当前状态
+
+- 已经形成完整的多页面前端体验闭环。
+- 深度计、跨页过渡、行程共享状态和 Sea Atlas 已经接成主线。
+- 项目重点在“体验和结构已成立”，不是“功能型平台已完工”。
+
+### 后续可继续完善的方向
+
+- 接入真实后端，让账号、留言、行程和套餐确认真正持久化。
+- 继续扩充更多海域数据、离线海图和路线信息。
+- 拆分详情页里更大的脚本模块，进一步提高可维护性。
+- 继续细化移动端节奏、触控细节和地图舞台适配。
+
+## 致谢
+
+- [Leaflet](https://leafletjs.com/)：详情页地图舞台基础能力。
+- [Natural Earth](https://www.naturalearthdata.com/)：离线海图生成所使用的地理数据源。
+- `pretext`：用于多行文本布局预测的本地依赖。
+
+---
+
+如果把盐憩看作一次完整的前端练习，它练到的不只是 `HTML / CSS / JavaScript` 的基础写法，更重要的是：
+
+- 如何把一个主题做成完整世界观；
+- 如何让多个页面拥有同一种海层语言；
+- 如何让状态、地图、动效和文案朝同一个方向工作；
+- 如何在没有后端的前提下，仍然把浏览体验接成连续的一段海。

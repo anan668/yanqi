@@ -1,0 +1,195 @@
+{
+  "generatedAt": "2026-04-14T15:08:01.795Z",
+  "label": "incremental-mabul",
+  "runGenerator": false,
+  "generatorRun": null,
+  "packDiff": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "indexSummary": {
+    "exists": true,
+    "spotCount": 14,
+    "totalTiles": 2134,
+    "totalPackBytesFromIndex": 19571982,
+    "version": "2026-04-14",
+    "packFormat": "script",
+    "tileSize": 1024,
+    "zoomOffset": -2,
+    "spots": [
+      {
+        "key": "sipadan",
+        "tileCount": 192,
+        "packSizeBytes": 2056998,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "palau",
+        "tileCount": 119,
+        "packSizeBytes": 679625,
+        "offlineMinZoom": 5,
+        "offlineMaxZoom": 11
+      },
+      {
+        "key": "blue-hole",
+        "tileCount": 118,
+        "packSizeBytes": 1804165,
+        "offlineMinZoom": 4,
+        "offlineMaxZoom": 10
+      },
+      {
+        "key": "timor",
+        "tileCount": 104,
+        "packSizeBytes": 1412542,
+        "offlineMinZoom": 5,
+        "offlineMaxZoom": 11
+      },
+      {
+        "key": "pohnpei",
+        "tileCount": 149,
+        "packSizeBytes": 537675,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "bunaken",
+        "tileCount": 166,
+        "packSizeBytes": 1290042,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "komodo",
+        "tileCount": 119,
+        "packSizeBytes": 1687697,
+        "offlineMinZoom": 5,
+        "offlineMaxZoom": 11
+      },
+      {
+        "key": "tuamotu",
+        "tileCount": 151,
+        "packSizeBytes": 600054,
+        "offlineMinZoom": 7,
+        "offlineMaxZoom": 13
+      },
+      {
+        "key": "mabul",
+        "tileCount": 170,
+        "packSizeBytes": 2123877,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "maldives-liveaboard",
+        "tileCount": 206,
+        "packSizeBytes": 1279575,
+        "offlineMinZoom": 4,
+        "offlineMaxZoom": 10
+      },
+      {
+        "key": "coron",
+        "tileCount": 157,
+        "packSizeBytes": 1894517,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "bohol",
+        "tileCount": 197,
+        "packSizeBytes": 2052570,
+        "offlineMinZoom": 7,
+        "offlineMaxZoom": 13
+      },
+      {
+        "key": "racha",
+        "tileCount": 136,
+        "packSizeBytes": 1229880,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "redang",
+        "tileCount": 150,
+        "packSizeBytes": 922765,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      }
+    ],
+    "topTileSpots": [
+      {
+        "key": "maldives-liveaboard",
+        "tileCount": 206,
+        "packSizeBytes": 1279575,
+        "offlineMinZoom": 4,
+        "offlineMaxZoom": 10
+      },
+      {
+        "key": "bohol",
+        "tileCount": 197,
+        "packSizeBytes": 2052570,
+        "offlineMinZoom": 7,
+        "offlineMaxZoom": 13
+      },
+      {
+        "key": "sipadan",
+        "tileCount": 192,
+        "packSizeBytes": 2056998,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "mabul",
+        "tileCount": 170,
+        "packSizeBytes": 2123877,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "bunaken",
+        "tileCount": 166,
+        "packSizeBytes": 1290042,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      }
+    ],
+    "topSizeSpots": [
+      {
+        "key": "mabul",
+        "tileCount": 170,
+        "packSizeBytes": 2123877,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "sipadan",
+        "tileCount": 192,
+        "packSizeBytes": 2056998,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "bohol",
+        "tileCount": 197,
+        "packSizeBytes": 2052570,
+        "offlineMinZoom": 7,
+        "offlineMaxZoom": 13
+      },
+      {
+        "key": "coron",
+        "tileCount": 157,
+        "packSizeBytes": 1894517,
+        "offlineMinZoom": 6,
+        "offlineMaxZoom": 12
+      },
+      {
+        "key": "blue-hole",
+        "tileCount": 118,
+        "packSizeBytes": 1804165,
+        "offlineMinZoom": 4,
+        "offlineMaxZoom": 10
+      }
+    ]
+  }
+}

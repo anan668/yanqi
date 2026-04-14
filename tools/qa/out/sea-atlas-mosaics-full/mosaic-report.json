@@ -1,0 +1,263 @@
+{
+  "generatedAt": "2026-04-14T15:17:45.272Z",
+  "outDir": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full",
+  "width": 1600,
+  "height": 900,
+  "latExpand": 0.5,
+  "lonExpand": 0.5,
+  "zoom": "auto",
+  "spots": [
+    {
+      "key": "mabul",
+      "name": "马布岛",
+      "tileZoom": 8,
+      "range": {
+        "minX": 212,
+        "maxX": 212,
+        "minY": 124,
+        "maxY": 125
+      },
+      "widthTiles": 1,
+      "heightTiles": 2,
+      "presentTiles": 2,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          4.1582,
+          118.4949
+        ],
+        [
+          4.5529,
+          118.7349
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          3.9608499999999998,
+          118.3749
+        ],
+        [
+          4.75025,
+          118.85489999999999
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full\\mosaic-mabul.png"
+    },
+    {
+      "key": "sipadan",
+      "name": "诗巴丹",
+      "tileZoom": 8,
+      "range": {
+        "minX": 212,
+        "maxX": 212,
+        "minY": 124,
+        "maxY": 125
+      },
+      "widthTiles": 1,
+      "heightTiles": 2,
+      "presentTiles": 2,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          4.0301,
+          118.5002
+        ],
+        [
+          4.5529,
+          118.7396
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          3.7687,
+          118.38050000000001
+        ],
+        [
+          4.8143,
+          118.85929999999999
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full\\mosaic-sipadan.png"
+    },
+    {
+      "key": "redang",
+      "name": "热浪岛",
+      "tileZoom": 8,
+      "range": {
+        "minX": 201,
+        "maxX": 201,
+        "minY": 123,
+        "maxY": 124
+      },
+      "widthTiles": 1,
+      "heightTiles": 2,
+      "presentTiles": 2,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          5.5034,
+          102.8961
+        ],
+        [
+          5.8457,
+          103.1279
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          5.33225,
+          102.78020000000001
+        ],
+        [
+          6.01685,
+          103.2438
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full\\mosaic-redang.png"
+    },
+    {
+      "key": "racha",
+      "name": "皇帝岛",
+      "tileZoom": 8,
+      "range": {
+        "minX": 197,
+        "maxX": 198,
+        "minY": 122,
+        "maxY": 122
+      },
+      "widthTiles": 2,
+      "heightTiles": 1,
+      "presentTiles": 2,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          7.5428,
+          98.2672
+        ],
+        [
+          7.8654,
+          98.4306
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          7.381499999999999,
+          98.1855
+        ],
+        [
+          8.0267,
+          98.5123
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full\\mosaic-racha.png"
+    },
+    {
+      "key": "bohol",
+      "name": "薄荷岛",
+      "tileZoom": 9,
+      "range": {
+        "minX": 431,
+        "maxX": 432,
+        "minY": 242,
+        "maxY": 242
+      },
+      "widthTiles": 2,
+      "heightTiles": 1,
+      "presentTiles": 2,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          9.4632,
+          123.6315
+        ],
+        [
+          9.6022,
+          123.8264
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          9.3937,
+          123.53405000000001
+        ],
+        [
+          9.6717,
+          123.92385000000002
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full\\mosaic-bohol.png"
+    },
+    {
+      "key": "coron",
+      "name": "科隆",
+      "tileZoom": 8,
+      "range": {
+        "minX": 213,
+        "maxX": 213,
+        "minY": 119,
+        "maxY": 119
+      },
+      "widthTiles": 1,
+      "heightTiles": 1,
+      "presentTiles": 1,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          11.8797,
+          119.9838
+        ],
+        [
+          12.0839,
+          120.2835
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          11.7776,
+          119.83395
+        ],
+        [
+          12.186,
+          120.43335
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full\\mosaic-coron.png"
+    },
+    {
+      "key": "komodo",
+      "name": "科莫多",
+      "tileZoom": 7,
+      "range": {
+        "minX": 106,
+        "maxX": 106,
+        "minY": 66,
+        "maxY": 67
+      },
+      "widthTiles": 1,
+      "heightTiles": 2,
+      "presentTiles": 2,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          -8.7598,
+          119.4414
+        ],
+        [
+          -8.4022,
+          119.9536
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          -8.938600000000001,
+          119.18530000000001
+        ],
+        [
+          -8.223400000000002,
+          120.2097
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-full\\mosaic-komodo.png"
+    }
+  ]
+}

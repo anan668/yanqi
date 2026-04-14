@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-04-14T15:12:08.476Z",
+  "outDir": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-current",
+  "width": 1600,
+  "height": 900,
+  "latExpand": 0.5,
+  "lonExpand": 0.5,
+  "zoom": "auto",
+  "spots": [
+    {
+      "key": "mabul",
+      "name": "马布岛",
+      "tileZoom": 8,
+      "range": {
+        "minX": 212,
+        "maxX": 212,
+        "minY": 124,
+        "maxY": 125
+      },
+      "widthTiles": 1,
+      "heightTiles": 2,
+      "presentTiles": 2,
+      "missingTiles": 0,
+      "sourceBounds": [
+        [
+          4.1582,
+          118.4949
+        ],
+        [
+          4.5529,
+          118.7349
+        ]
+      ],
+      "firstViewBounds": [
+        [
+          3.9608499999999998,
+          118.3749
+        ],
+        [
+          4.75025,
+          118.85489999999999
+        ]
+      ],
+      "outputFile": "C:\\Users\\桉桉\\Desktop\\盐憩\\tools\\qa\\out\\sea-atlas-mosaics-current\\mosaic-mabul.png"
+    }
+  ]
+}

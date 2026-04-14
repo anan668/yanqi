@@ -1,9 +1,10 @@
 {
-  "version": "2026-04-12",
+  "version": "2026-04-14",
   "generator": "tools/maps/generate-sea-atlas-tiles.py",
   "packFormat": "script",
   "tileSize": 1024,
   "zoomOffset": -2,
+  "generatedAt": "2026-04-14T15:32:38Z",
   "spots": [
     {
       "key": "sipadan",
@@ -26,7 +27,8 @@
         ]
       ],
       "tileCount": 192,
-      "packSizeBytes": 2056998
+      "buildSeconds": 117.386,
+      "packSizeBytes": 2284661
     },
     {
       "key": "palau",
@@ -49,7 +51,8 @@
         ]
       ],
       "tileCount": 119,
-      "packSizeBytes": 679625
+      "buildSeconds": 59.841,
+      "packSizeBytes": 727923
     },
     {
       "key": "blue-hole",
@@ -72,7 +75,8 @@
         ]
       ],
       "tileCount": 118,
-      "packSizeBytes": 1804165
+      "buildSeconds": 46.769,
+      "packSizeBytes": 2668499
     },
     {
       "key": "timor",
@@ -95,7 +99,8 @@
         ]
       ],
       "tileCount": 104,
-      "packSizeBytes": 1412542
+      "buildSeconds": 46.306,
+      "packSizeBytes": 1713656
     },
     {
       "key": "pohnpei",
@@ -118,7 +123,8 @@
         ]
       ],
       "tileCount": 149,
-      "packSizeBytes": 537675
+      "buildSeconds": 74.748,
+      "packSizeBytes": 610057
     },
     {
       "key": "bunaken",
@@ -141,7 +147,8 @@
         ]
       ],
       "tileCount": 166,
-      "packSizeBytes": 1290042
+      "buildSeconds": 88.993,
+      "packSizeBytes": 1424416
     },
     {
       "key": "komodo",
@@ -164,7 +171,8 @@
         ]
       ],
       "tileCount": 119,
-      "packSizeBytes": 1687697
+      "buildSeconds": 78.906,
+      "packSizeBytes": 1888567
     },
     {
       "key": "tuamotu",
@@ -187,7 +195,8 @@
         ]
       ],
       "tileCount": 151,
-      "packSizeBytes": 600054
+      "buildSeconds": 63.234,
+      "packSizeBytes": 638868
     },
     {
       "key": "mabul",
@@ -210,7 +219,8 @@
         ]
       ],
       "tileCount": 170,
-      "packSizeBytes": 1929915
+      "buildSeconds": 105.92,
+      "packSizeBytes": 2165133
     },
     {
       "key": "maldives-liveaboard",
@@ -233,7 +243,8 @@
         ]
       ],
       "tileCount": 206,
-      "packSizeBytes": 1279575
+      "buildSeconds": 98.935,
+      "packSizeBytes": 1547173
     },
     {
       "key": "coron",
@@ -256,7 +267,8 @@
         ]
       ],
       "tileCount": 157,
-      "packSizeBytes": 1894517
+      "buildSeconds": 99.4,
+      "packSizeBytes": 2132317
     },
     {
       "key": "bohol",
@@ -279,7 +291,8 @@
         ]
       ],
       "tileCount": 197,
-      "packSizeBytes": 2052570
+      "buildSeconds": 119.245,
+      "packSizeBytes": 2422937
     },
     {
       "key": "racha",
@@ -302,7 +315,8 @@
         ]
       ],
       "tileCount": 136,
-      "packSizeBytes": 1229880
+      "buildSeconds": 57.011,
+      "packSizeBytes": 1653730
     },
     {
       "key": "redang",
@@ -325,7 +339,8 @@
         ]
       ],
       "tileCount": 150,
-      "packSizeBytes": 922765
+      "buildSeconds": 96.399,
+      "packSizeBytes": 1419775
     }
   ]
 }
