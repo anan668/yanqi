@@ -4381,6 +4381,10 @@ body[data-home-performance='lite'] .bamboo-card-content {
     backdrop-filter: blur(18px) saturate(124%);
     -webkit-backdrop-filter: blur(18px) saturate(124%);
     isolation: isolate;
+    transition:
+        box-shadow 0.72s cubic-bezier(0.18, 0.84, 0.22, 1),
+        border-color 0.72s ease,
+        background 0.72s ease;
 }
 
 /* 给舞台表面一层很淡的海流扫光 */
@@ -4394,8 +4398,15 @@ body[data-home-performance='lite'] .bamboo-card-content {
         linear-gradient(120deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 34%);
     pointer-events: none;
     z-index: 0;
+    transform: translate3d(0, 0, 0) scaleX(1);
+    transform-origin: center center;
+    transition:
+        opacity 0.62s ease,
+        transform 0.82s cubic-bezier(0.18, 0.84, 0.22, 1);
+    will-change: opacity, transform;
 }
 
+.dive-match-stage > .dive-match-profile-panel,
 .dive-match-stage > .dive-match-rail,
 .dive-match-stage > .dive-match-display {
     opacity: 0;
@@ -4405,6 +4416,13 @@ body[data-home-performance='lite'] .bamboo-card-content {
         opacity 0.64s ease,
         filter 0.74s ease,
         transform 0.74s cubic-bezier(0.18, 0.84, 0.22, 1);
+}
+
+.dive-match.is-stage-visible .dive-match-stage > .dive-match-profile-panel {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    transition-delay: 30ms;
 }
 
 .dive-match.is-stage-visible .dive-match-stage > .dive-match-rail {
@@ -4419,6 +4437,182 @@ body[data-home-performance='lite'] .bamboo-card-content {
     filter: blur(0);
     transform: translate3d(0, 0, 0);
     transition-delay: 140ms;
+}
+
+.dive-match-profile-panel {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.9fr) minmax(0, 1.15fr);
+    gap: 18px;
+    padding: 20px 22px;
+    border-radius: 28px;
+    border: 1px solid rgba(231, 244, 251, 0.12);
+    background:
+        radial-gradient(circle at 16% 18%, rgba(213, 237, 248, 0.12), rgba(213, 237, 248, 0) 24%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+        rgba(7, 30, 46, 0.56);
+    box-shadow:
+        0 22px 44px rgba(3, 14, 23, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px) saturate(122%);
+    -webkit-backdrop-filter: blur(18px) saturate(122%);
+}
+
+.dive-match-profile-copy,
+.dive-match-profile-reason,
+.dive-match-profile-presets {
+    min-width: 0;
+}
+
+.dive-match-profile-kicker,
+.dive-match-profile-reason-kicker {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(196, 225, 240, 0.66);
+}
+
+.dive-match-profile-title,
+.dive-match-profile-reason-title {
+    margin: 0;
+    color: rgba(244, 249, 252, 0.96);
+    font-size: 1.55rem;
+    line-height: 1.28;
+}
+
+.dive-match-profile-summary,
+.dive-match-profile-reason-copy {
+    margin: 12px 0 0;
+    color: rgba(220, 236, 244, 0.84);
+    font-size: 0.98rem;
+    line-height: 1.78;
+}
+
+.dive-match-profile-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.dive-match-profile-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(220, 238, 247, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(238, 247, 251, 0.9);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+}
+
+.dive-match-profile-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 10px;
+}
+
+.dive-match-profile-preset {
+    appearance: none;
+    -webkit-appearance: none;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+    min-height: 100%;
+    border: 1px solid rgba(228, 243, 249, 0.1);
+    border-radius: 20px;
+    padding: 14px 14px 15px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+        rgba(8, 32, 48, 0.48);
+    color: rgba(224, 239, 246, 0.9);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition:
+        transform 260ms ease,
+        border-color 260ms ease,
+        background 260ms ease,
+        box-shadow 260ms ease;
+}
+
+.dive-match-profile-preset:hover,
+.dive-match-profile-preset:focus-visible {
+    transform: translate3d(0, -2px, 0);
+    border-color: rgba(224, 241, 248, 0.18);
+    box-shadow: 0 16px 28px rgba(2, 14, 23, 0.16);
+}
+
+.dive-match-profile-preset:focus-visible {
+    outline: none;
+}
+
+.dive-match-profile-preset.is-aligned {
+    border-color: rgba(175, 224, 242, 0.22);
+    background:
+        linear-gradient(180deg, rgba(194, 230, 245, 0.14), rgba(194, 230, 245, 0.04)),
+        rgba(8, 34, 50, 0.56);
+}
+
+.dive-match-profile-preset.is-active {
+    border-color: rgba(194, 230, 245, 0.32);
+    background:
+        linear-gradient(180deg, rgba(205, 233, 246, 0.2), rgba(205, 233, 246, 0.05)),
+        rgba(10, 39, 58, 0.62);
+    box-shadow:
+        0 18px 32px rgba(2, 14, 23, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.dive-match-profile-preset-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.dive-match-profile-preset-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(210, 232, 242, 0.1);
+    color: rgba(235, 246, 251, 0.82);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.dive-match-profile-preset-target {
+    color: rgba(189, 217, 230, 0.76);
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+}
+
+.dive-match-profile-preset.is-aligned .dive-match-profile-preset-badge,
+.dive-match-profile-preset.is-active .dive-match-profile-preset-badge {
+    background: rgba(213, 236, 245, 0.16);
+    color: rgba(244, 250, 252, 0.92);
+}
+
+.dive-match-profile-preset-label {
+    display: block;
+    color: rgba(246, 251, 253, 0.96);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.dive-match-profile-preset-copy {
+    display: block;
+    margin-top: 2px;
+    color: rgba(208, 228, 238, 0.76);
+    font-size: 0.82rem;
+    line-height: 1.65;
 }
 
 /* 上方分类入口做成漂浮玻璃铭牌带，而不是普通 pills。 */
@@ -4698,7 +4892,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .dive-match-focus-head,
 .dive-match-focus-audience,
 .dive-match-focus-guidance,
-.dive-match-focus-note {
+.dive-match-focus-note,
+.dive-match-focus-personal {
     position: relative;
     z-index: 1;
     opacity: 0;
@@ -4716,6 +4911,29 @@ body[data-home-performance='lite'] .bamboo-card-content {
     transition:
         opacity 0.42s ease,
         transform 0.52s cubic-bezier(0.18, 0.84, 0.22, 1);
+}
+
+.dive-match-focus-personal {
+    margin-top: 18px;
+    padding: 16px 18px 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(222, 239, 247, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dive-match-focus-personal-label {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: rgba(192, 222, 237, 0.72);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.dive-match-focus-personal-copy {
+    margin: 0;
+    color: rgba(231, 243, 249, 0.88);
+    line-height: 1.76;
 }
 
 .dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-group,
@@ -5448,16 +5666,26 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match.is-transitioning .dive-match-stage::before {
-    opacity: 0.96;
-    transform: translate3d(calc(var(--dive-match-depth-ratio, 0) * 16%), 0, 0);
+    opacity: calc(0.82 + var(--dive-match-depth-ratio, 0) * 0.14);
+    transform: translate3d(0, 0, 0) scaleX(calc(1.03 + var(--dive-match-depth-ratio, 0) * 0.08));
 }
 
 .dive-match.is-switching-deeper .dive-match-stage {
-    transform: translate3d(0, 8px, 0) scale(0.996);
+    transform: translate3d(0, calc(var(--home-layer-progress, 0) * -14px), 0);
+    box-shadow:
+        0 42px 94px rgba(4, 16, 26, 0.34),
+        0 0 44px rgba(130, 194, 223, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .dive-match.is-switching-shallower .dive-match-stage {
-    transform: translate3d(0, -8px, 0) scale(1.004);
+    transform: translate3d(0, calc(var(--home-layer-progress, 0) * -14px), 0);
+    box-shadow:
+        0 36px 82px rgba(4, 16, 26, 0.3),
+        0 0 28px rgba(130, 194, 223, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .dive-match-rail {

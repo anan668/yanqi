@@ -422,6 +422,28 @@
 
                                 <div class="confirmed-bookings-list" id="confirmedBookingsList"></div>
                             </section>
+
+                            <section class="sea-brief-stage" id="seaBriefStage" aria-labelledby="seaBriefTitle">
+                                <div class="sea-brief-head">
+                                    <div class="sea-brief-copy">
+                                        <p class="sea-brief-kicker">Sea Brief</p>
+                                        <h2 class="sea-brief-title" id="seaBriefTitle">这一潜的桌面回执</h2>
+                                        <p class="sea-brief-intro">当一套安排真正被收进行程以后，这里会把海域、窗口、适配判断和准备节奏一起写成一张更完整的回执。</p>
+                                    </div>
+                                </div>
+                                <div class="sea-brief-empty" id="seaBriefEmpty">还没有哪一套安排被写成回执。等你在详情页确认套餐以后，它会慢慢停在这里。</div>
+                                <article class="sea-brief-card" id="seaBriefCard" hidden>
+                                    <div class="sea-brief-card-head">
+                                        <div>
+                                            <p class="sea-brief-card-kicker" id="seaBriefSpot">当前海域</p>
+                                            <h3 class="sea-brief-card-title" id="seaBriefPackage">套餐待定</h3>
+                                        </div>
+                                        <div class="sea-brief-card-badges" id="seaBriefBadges"></div>
+                                    </div>
+                                    <div class="sea-brief-grid" id="seaBriefGrid"></div>
+                                    <div class="sea-brief-prep" id="seaBriefPrep"></div>
+                                </article>
+                            </section>
                         </div>
                     </section>
                 </div>
@@ -484,6 +506,12 @@
                         <p class="prep-card-kicker">Weather Window</p>
                         <h3 class="prep-card-title">天气与窗口</h3>
                         <p class="prep-card-summary">盐憩会持续看风浪、能见度与洋流变化，帮你确认是按原计划出发，还是换到更稳的一段潮汐。</p>
+                    </button>
+
+                    <button type="button" class="prep-card" data-prep-card="body" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">
+                        <p class="prep-card-kicker">Body & State</p>
+                        <h3 class="prep-card-title">身体与状态</h3>
+                        <p class="prep-card-summary">在证书和装备之外，盐憩也会先确认你此刻的体力、耳压状态和是否需要把第一潜收作回水确认。</p>
                     </button>
                 </div>
 
@@ -685,6 +713,35 @@
                     </div>
                 </div>
             </template>
+
+            <template id="prep-template-body">
+                <div class="prep-detail-block">
+                    <h4>潜前最该先照看的身体信号</h4>
+                    <div class="prep-detail-list">
+                        <article class="prep-detail-item">
+                            <h5>耳压与鼻腔状态</h5>
+                            <p>如果最近有感冒、鼻塞或睡眠不足，第一潜更适合收得轻一点，不把压力留到入水后才处理。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>近期体力与恢复</h5>
+                            <p>连续飞行、转船和多天行程会改变你对海流和上下船节奏的承载。盐憩会先帮你把恢复窗留出来。</p>
+                        </article>
+                        <article class="prep-detail-item">
+                            <h5>第一潜是否需要回水</h5>
+                            <p>如果距离上次下潜较久，或这次海况明显更强，先用一潜把浮力、耳压和呼吸重新对齐，会比直接冲进主窗口更稳。</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="prep-detail-block">
+                    <h4>上船前的身体节奏</h4>
+                    <div class="prep-rhythm-list">
+                        <span>前一晚把补水和睡眠排稳</span>
+                        <span>出海前确认耳压、药物与晕船预案</span>
+                        <span>第一潜前把呼吸、入水动作和回水判断慢慢收齐</span>
+                    </div>
+                </div>
+            </template>
         </section>
 
         <footer class="footer" id="tripFooter">
@@ -733,10 +790,10 @@
                         <h3 class="footer-companion-title" id="footerCompanionTitle">继续向海而行</h3>
                         <p class="footer-companion-copy">在更多日常里，继续看海。</p>
                         <div class="footer-social-list">
-                            <a href="https://www.xiaohongshu.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往小红书官网"><span class="footer-social-mark">○</span><span>小红书</span></a>
-                            <a href="https://www.douyin.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往抖音官网"><span class="footer-social-mark">○</span><span>抖音</span></a>
-                            <a href="https://weibo.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往微博官网"><span class="footer-social-mark">○</span><span>微博</span></a>
-                            <a href="https://weixin.qq.com/" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="前往微信官网"><span class="footer-social-mark">○</span><span>微信公众号</span></a>
+                            <a href="contact.html#contactMethodsSection" class="footer-social-link" data-brand-link="xiaohongshu"><span class="footer-social-mark">○</span><span>小红书</span></a>
+                            <a href="contact.html#contactMethodsSection" class="footer-social-link" data-brand-link="wechat"><span class="footer-social-mark">○</span><span>微信 / 公众号</span></a>
+                            <a href="contact.html#contactMethodsSection" class="footer-social-link" data-brand-link="weibo"><span class="footer-social-mark">○</span><span>微博</span></a>
+                            <a href="contact.html#contactMethodsSection" class="footer-social-link" data-brand-link="contact"><span class="footer-social-mark">○</span><span>联络水域</span></a>
                         </div>
                     </aside>
                 </div>
@@ -856,6 +913,11 @@
                 <span>六</span>
                 <span>日</span>
             </div>
+            <div class="planner-calendar-legend" id="plannerCalendarLegend" aria-label="海况窗口说明">
+                <span class="planner-calendar-legend-item is-recommended">推荐窗口</span>
+                <span class="planner-calendar-legend-item is-available">可行窗口</span>
+                <span class="planner-calendar-legend-item is-caution">谨慎窗口</span>
+            </div>
             <!-- 日期格子由脚本动态生成：
                  这样可以同时标记“今天 / 推荐窗口 / 当前选中日期”，
                  也便于切月时做轻量动画。 -->
@@ -863,6 +925,10 @@
         </div>
     </div>
 
+    <script src="js/yanqi-brand-config.js"></script>
+    <script src="js/yanqi-diver-profile.js"></script>
+    <script src="js/yanqi-spot-window-config.js"></script>
+    <script src="js/yanqi-showcase-state.js"></script>
     <script src="js/ocean-scroll.js"></script>
     <script src="js/depth-manager.js"></script>
     <script src="js/yanqi-trip-store.js"></script>

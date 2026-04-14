@@ -14,6 +14,24 @@
 */
 
 // 准备系统配置：集中定义三张准备卡片的标题、摘要和模板映射，供下方准备系统统一读取。
+const sharedDiverProfile = window.YanqiDiverProfile || null;
+const sharedSpotWindowConfig = window.YanqiSpotWindowConfig || null;
+const TRIP_SPOT_ID_MAP = Object.freeze({
+    sipadan: 1,
+    palau: 2,
+    'blue-hole': 3,
+    bohol: 4,
+    'maldives-north-atoll': 5,
+    bunaken: 6,
+    komodo: 7,
+    tuamotu: 8,
+    mabul: 9,
+    'maldives-liveaboard': 10,
+    coron: 11,
+    'racha-island': 13,
+    'redang-island': 14
+});
+
 const PREP_CONTENT = Object.freeze({
     gear: {
         kicker: 'Equipment & Rhythm',
@@ -32,11 +50,42 @@ const PREP_CONTENT = Object.freeze({
         title: '\u5929\u6c14\u4e0e\u7a97\u53e3',
         summary: '\u76d0\u61a9\u4f1a\u6301\u7eed\u770b\u98ce\u6d6a\u3001\u80fd\u89c1\u5ea6\u4e0e\u6d0b\u6d41\u53d8\u5316\uff0c\u5e2e\u4f60\u786e\u8ba4\u662f\u6309\u539f\u8ba1\u5212\u51fa\u53d1\uff0c\u8fd8\u662f\u6362\u5230\u66f4\u7a33\u7684\u4e00\u6bb5\u6f6e\u6c50\u3002',
         templateId: 'prep-template-weather'
+    },
+    body: {
+        kicker: 'Body & State',
+        title: '身体与状态',
+        summary: '在证书、装备和天气之外，也要先看身体是否已经准备好进入这一潜。盐憩会把恢复、耳压与第一潜节奏一起收进判断里。',
+        templateId: 'prep-template-body'
     }
 });
 
 const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HOME_ENTRY_DEPTH_STORAGE_KEY = 'YANQI_HOME_ENTRY_DEPTH';
+
+function resolveTripSpotId(value) {
+    const rawValue = String(value || '').trim();
+    if (!rawValue) {
+        return 0;
+    }
+
+    if (/^\d+$/.test(rawValue)) {
+        return Number.parseInt(rawValue, 10);
+    }
+
+    return TRIP_SPOT_ID_MAP[rawValue] || 0;
+}
+
+function getTripDiverProfile() {
+    return sharedDiverProfile?.getProfile?.() || null;
+}
+
+function getTripWindowConfigBySpotId(spotId) {
+    return sharedSpotWindowConfig?.getBySpotId?.(spotId) || null;
+}
+
+function getTripWindowLabelByStatus(status) {
+    return sharedSpotWindowConfig?.getStatusLabel?.(status) || '可行窗口';
+}
 
 /**
  * storePendingHomeScrollTarget(targetSelector) - 记录跨页回首页后需要自动对齐的 section
@@ -2032,23 +2081,31 @@ function setupPlannerSummary() {
      */
     function syncDateFieldDisplay() {
         const hasValue = Boolean(dateInput.value);
+        const plannerSpotId = resolveTripSpotId(getActiveBooking()?.spotKey || spotInput.value);
+        const dateStatus = hasValue && plannerSpotId
+            ? sharedSpotWindowConfig?.getDateStatus?.(plannerSpotId, dateInput.value)
+            : '';
         dateValue.textContent = hasValue
             ? formatPlannerDate(dateInput.value)
             : COPY.date.emptyLabel;
         dateHint.textContent = hasValue
-            ? COPY.date.filledHint
+            ? `${COPY.date.filledHint} · ${getTripWindowLabelByStatus(dateStatus)}`
             : COPY.date.emptyHint;
         dateField.classList.toggle('is-active', hasValue);
     }
 
     /**
-     * isRecommendedPlannerDate(date) - 判断某一天是否属于推荐出发窗口
+     * getPlannerDateStatus(date) - 结合当前海域判断某一天属于哪种窗口
      * @param {Date} date - 待判断的日期对象
-     * @returns {boolean} - 是否属于推荐窗口
+     * @returns {'recommended'|'available'|'caution'} - 当前窗口状态
      */
-    function isRecommendedPlannerDate(date) {
-        const day = date.getDate();
-        return (day >= 8 && day <= 12) || (day >= 18 && day <= 22);
+    function getPlannerDateStatus(date) {
+        const plannerSpotId = resolveTripSpotId(getActiveBooking()?.spotKey || spotInput.value);
+        if (!plannerSpotId || !sharedSpotWindowConfig) {
+            return 'available';
+        }
+
+        return sharedSpotWindowConfig.getDateStatus(plannerSpotId, date);
     }
 
     /**
@@ -2283,8 +2340,16 @@ function setupPlannerSummary() {
                     button.classList.add('is-today');
                 }
 
-                if (!isOutside && isRecommendedPlannerDate(cellDate)) {
-                    button.classList.add('is-recommended');
+                if (!isOutside) {
+                    const status = getPlannerDateStatus(cellDate);
+                    button.dataset.windowStatus = status;
+                    if (status === 'recommended') {
+                        button.classList.add('is-recommended');
+                    } else if (status === 'caution') {
+                        button.classList.add('is-caution');
+                    } else {
+                        button.classList.add('is-available');
+                    }
                 }
 
                 calendarGrid.appendChild(button);
@@ -2677,6 +2742,12 @@ function setupPlannerSummary() {
         if (options.refreshCards !== false) {
             renderConfirmedBookings();
         }
+
+        window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated', {
+            detail: {
+                entryId: nextBooking.entryId
+            }
+        }));
 
         return nextBooking;
     }
@@ -3422,6 +3493,11 @@ class PrepSystem {
         }
 
         this.bindEvents();
+        window.addEventListener('yanqi:confirmed-bookings-updated', () => {
+            if (this.activeKey) {
+                this.open(this.activeKey);
+            }
+        });
         this.open(this.cards[0].dataset.prepCard);
     }
 
@@ -3506,6 +3582,11 @@ class PrepSystem {
             this.content.appendChild(template.content.cloneNode(true));
         }
 
+        const dynamicMarkup = buildDynamicPrepPanelMarkup(key);
+        if (dynamicMarkup) {
+            this.content.insertAdjacentHTML('beforeend', dynamicMarkup);
+        }
+
         const detailBlocks = Array.from(this.content.querySelectorAll('.prep-detail-block'));
 
         requestAnimationFrame(() => {
@@ -3551,6 +3632,97 @@ function escapeHtml(value) {
  */
 function getTripStore() {
     return window.YanqiTripStore || null;
+}
+
+function getActiveConfirmedBooking(bookings = []) {
+    const store = getTripStore();
+    const safeBookings = Array.isArray(bookings) ? bookings : [];
+    const activeEntryId = String(store?.getActiveBookingId?.() || '').trim();
+    return safeBookings.find((booking) => String(booking?.entryId || '').trim() === activeEntryId)
+        || safeBookings[0]
+        || null;
+}
+
+function buildSeaBriefPrepMarkup(booking, profile, windowConfig) {
+    const prepLabels = {
+        'check-dive': '把第一潜收作 check dive',
+        'current-briefing': '出海前再读一遍流区 brief',
+        'equipment-review': '出发前复核耳压、电脑表和基础装备',
+        'rest-window': '在两潜之间留更从容的恢复窗',
+        'gentle-window': '优先选择更稳的入海窗口'
+    };
+    const prepFlags = Array.isArray(booking?.prepFlags) ? booking.prepFlags : [];
+    const prepItems = prepFlags.length
+        ? prepFlags.map((flag) => prepLabels[flag] || flag)
+        : ['这一次暂时不需要额外的准备标记。'];
+    const recentState = profile?.recentDiveState || '';
+    const bodyStateCopy = recentState && recentState !== 'recent'
+        ? (windowConfig?.reentryNote || '如果近期没有稳定下潜记录，第一潜更适合先收作回水确认。')
+        : '当前状态更适合把注意力留给节奏、光线和进入海的方式。';
+
+    return `
+        <div class="sea-brief-prep-block">
+            <p class="sea-brief-prep-label">准备清单</p>
+            <div class="sea-brief-prep-list">
+                ${prepItems.map((item) => `<span class="sea-brief-prep-chip">${escapeHtml(item)}</span>`).join('')}
+            </div>
+        </div>
+        <div class="sea-brief-prep-block">
+            <p class="sea-brief-prep-label">身体与状态</p>
+            <p class="sea-brief-prep-copy">${escapeHtml(bodyStateCopy)}</p>
+        </div>
+    `;
+}
+
+function renderSeaBrief(bookings = []) {
+    const empty = document.getElementById('seaBriefEmpty');
+    const card = document.getElementById('seaBriefCard');
+    const spotNode = document.getElementById('seaBriefSpot');
+    const packageNode = document.getElementById('seaBriefPackage');
+    const badgesNode = document.getElementById('seaBriefBadges');
+    const gridNode = document.getElementById('seaBriefGrid');
+    const prepNode = document.getElementById('seaBriefPrep');
+
+    if (!empty || !card || !spotNode || !packageNode || !badgesNode || !gridNode || !prepNode) {
+        return;
+    }
+
+    const activeBooking = getActiveConfirmedBooking(bookings);
+    if (!activeBooking) {
+        empty.hidden = false;
+        card.hidden = true;
+        return;
+    }
+
+    const profile = getTripDiverProfile();
+    const windowConfig = getTripWindowConfigBySpotId(resolveTripSpotId(activeBooking.spotKey));
+    const gridItems = [
+        ['海域', activeBooking.spotName || '当前海域'],
+        ['套餐', activeBooking.packageTitle || '当前套餐'],
+        ['停留', activeBooking.packageDuration || '停留待定'],
+        ['入海时段', activeBooking.windowLabel || windowConfig?.dayWindows?.[0]?.label || '窗口待定'],
+        ['同行人数', activeBooking.selectedPeopleLabel || '同行待定'],
+        ['适配结论', activeBooking.fitLabel || '待判断'],
+        ['check dive', activeBooking.prepFlags?.includes('check-dive') ? '建议先做' : '可按当前节奏进入'],
+        ['当前窗口', windowConfig ? `${(windowConfig.recommendedMonths || []).join(' / ')} 月更稳` : '窗口待确认']
+    ];
+
+    empty.hidden = true;
+    card.hidden = false;
+    spotNode.textContent = activeBooking.spotName || '当前海域';
+    packageNode.textContent = activeBooking.packageTitle || '当前套餐';
+    badgesNode.innerHTML = [
+        activeBooking.packageTier,
+        activeBooking.fitLabel,
+        activeBooking.windowLabel
+    ].filter(Boolean).map((item) => `<span class="sea-brief-badge">${escapeHtml(item)}</span>`).join('');
+    gridNode.innerHTML = gridItems.map(([label, value]) => `
+        <div class="sea-brief-item">
+            <span class="sea-brief-item-label">${escapeHtml(label)}</span>
+            <strong class="sea-brief-item-value">${escapeHtml(value)}</strong>
+        </div>
+    `).join('');
+    prepNode.innerHTML = buildSeaBriefPrepMarkup(activeBooking, profile, windowConfig);
 }
 
 let confirmedBookingsTextLayoutController = null;
@@ -3738,6 +3910,66 @@ function setupTripReveal() {
     observeTripRevealElements([prepHead], { baseDelay: 20, stepDelay: 0 });
     observeTripRevealElements(prepCards, { baseDelay: 70, stepDelay: 96 });
     observeTripRevealElements([prepPanel], { baseDelay: 110, stepDelay: 0 });
+}
+
+function buildDynamicPrepPanelMarkup(key) {
+    const store = getTripStore();
+    const bookings = store?.getConfirmedBookings?.() || [];
+    const activeBooking = getActiveConfirmedBooking(bookings);
+    if (!activeBooking) {
+        return '';
+    }
+
+    const profile = getTripDiverProfile();
+    const profileTitle = sharedDiverProfile?.describeProfile?.(profile)?.title || '当前潜水者档案';
+    const spotId = resolveTripSpotId(activeBooking.spotKey);
+    const windowConfig = getTripWindowConfigBySpotId(spotId);
+    const certLabel = sharedDiverProfile?.getFieldLabel?.('certificationLevel', profile?.certificationLevel) || '当前证书';
+    const recentLabel = sharedDiverProfile?.getFieldLabel?.('recentDiveState', profile?.recentDiveState) || '近期状态';
+    const comfortLabel = sharedDiverProfile?.getFieldLabel?.('currentComfort', profile?.currentComfort) || '海况偏好';
+    const recommendedMonths = (windowConfig?.recommendedMonths || []).length
+        ? `${windowConfig.recommendedMonths.join(' / ')} 月`
+        : '待确认';
+    const prepFlags = Array.isArray(activeBooking.prepFlags) ? activeBooking.prepFlags : [];
+
+    if (key === 'gear') {
+        return `
+            <div class="prep-detail-block prep-detail-dynamic">
+                <h4>这一套安排会额外照看的装备提醒</h4>
+                <p>${escapeHtml(activeBooking.fitLabel || '当前安排')} · ${escapeHtml(activeBooking.windowLabel || '当前窗口')}。${escapeHtml(prepFlags.includes('equipment-review') ? '建议出发前再做一次基础装备复核。' : '基础装备按正常节奏排稳即可。')}</p>
+            </div>
+        `;
+    }
+
+    if (key === 'certification') {
+        return `
+            <div class="prep-detail-block prep-detail-dynamic">
+                <h4>与你当前档案对应的证书判断</h4>
+                <p>${escapeHtml(profileTitle)} · ${escapeHtml(certLabel)} · ${escapeHtml(recentLabel)}。这一次会更偏向「${escapeHtml(activeBooking.fitLabel || '适合')}」的安排判断。</p>
+            </div>
+        `;
+    }
+
+    if (key === 'weather') {
+        return `
+            <div class="prep-detail-block prep-detail-dynamic">
+                <h4>当前海况窗口回看</h4>
+                <p>${escapeHtml(activeBooking.spotName || '当前海域')}更稳的月份通常落在 ${escapeHtml(recommendedMonths)}，这一次已经先收作「${escapeHtml(activeBooking.windowLabel || '窗口待定')}」。</p>
+                ${windowConfig?.advancedNote ? `<p class="prep-detail-inline-note">${escapeHtml(windowConfig.advancedNote)}</p>` : ''}
+            </div>
+        `;
+    }
+
+    if (key === 'body') {
+        return `
+            <div class="prep-detail-block prep-detail-dynamic">
+                <h4>身体与状态联动判断</h4>
+                <p>${escapeHtml(recentLabel)} · ${escapeHtml(comfortLabel)}。${escapeHtml(windowConfig?.reentryNote || '如果近期状态不够稳定，第一潜更适合先做回水确认。')}</p>
+            </div>
+        `;
+    }
+
+    return '';
 }
 
 let confirmedBookingsEntranceObserver = null;
@@ -4202,6 +4434,7 @@ function buildConfirmedBookingCardMarkup(booking) {
     const safeStay = getConfirmedBookingStayLabel(booking);
     const packageTags = Array.isArray(booking.packageTags) ? booking.packageTags.filter(Boolean).slice(0, 3) : [];
     const priceView = getConfirmedBookingPriceView(booking);
+    const metaSignals = [booking.fitLabel, booking.windowLabel].filter(Boolean);
 
     return `
         <article class="confirmed-booking-card${isActive ? ' is-active' : ''}" data-booking-id="${escapeHtml(booking.bookingId)}" data-booking-entry-id="${escapeHtml(entryId)}">
@@ -4223,6 +4456,11 @@ function buildConfirmedBookingCardMarkup(booking) {
                     ${priceView.secondary ? `<div class="confirmed-booking-price-note">${escapeHtml(priceView.secondary)}</div>` : ''}
                 </div>
                 <p class="confirmed-booking-note">${escapeHtml(booking.packageNote || CONFIRMED_BOOKING_COPY.emptyNote)}</p>
+                ${metaSignals.length ? `
+                    <div class="confirmed-booking-signal-row">
+                        ${metaSignals.map((item) => `<span class="confirmed-booking-signal">${escapeHtml(item)}</span>`).join('')}
+                    </div>
+                ` : ''}
                 ${packageTags.length ? `
                     <div class="confirmed-booking-tags">
                         ${packageTags.map((tag) => `<span class="confirmed-booking-tag">${escapeHtml(tag)}</span>`).join('')}
@@ -4289,6 +4527,7 @@ function renderConfirmedBookings() {
     if (!Array.isArray(bookings) || bookings.length === 0) {
         empty.hidden = false;
         list.innerHTML = '';
+        renderSeaBrief([]);
 
         // 空列表时不应该保留任何上一轮入场状态。
         // 这里把刷新态、待入场标记和挂着的 timeout 一并清掉，避免下一次渲染继承旧状态。
@@ -4337,6 +4576,8 @@ function renderConfirmedBookings() {
     if (switchButton) {
         switchButton.hidden = bookings.length <= CONFIRMED_BOOKINGS_PAGE_SIZE;
     }
+
+    renderSeaBrief(bookings);
 }
 
 /**
@@ -4365,6 +4606,17 @@ function setupConfirmedBookingsStage() {
     });
 
     stage.addEventListener('click', (event) => {
+        const card = event.target.closest('.confirmed-booking-card[data-booking-entry-id]');
+        if (card && !event.target.closest('button')) {
+            const entryId = String(card.dataset.bookingEntryId || '').trim();
+            if (entryId) {
+                store?.saveActiveBookingId?.(entryId);
+                renderConfirmedBookings();
+                window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated'));
+            }
+            return;
+        }
+
         const detailField = event.target.closest('.confirmed-booking-detail[data-planner-field-target]');
         if (detailField) {
             event.preventDefault();

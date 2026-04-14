@@ -4269,6 +4269,347 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     }
 }
 
+.planner-calendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0 4px;
+}
+
+.planner-calendar-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(228, 240, 247, 0.78);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+}
+
+.planner-calendar-legend-item::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(190, 224, 239, 0.7);
+    box-shadow: 0 0 0 4px rgba(154, 204, 229, 0.08);
+}
+
+.planner-calendar-legend-item.is-recommended::before {
+    background: rgba(154, 232, 220, 0.92);
+    box-shadow: 0 0 0 4px rgba(118, 219, 204, 0.1);
+}
+
+.planner-calendar-legend-item.is-available::before {
+    background: rgba(148, 211, 241, 0.86);
+}
+
+.planner-calendar-legend-item.is-caution::before {
+    background: rgba(245, 197, 132, 0.92);
+    box-shadow: 0 0 0 4px rgba(245, 197, 132, 0.1);
+}
+
+.planner-calendar-day.is-available {
+    border-color: rgba(180, 225, 245, 0.12);
+}
+
+.planner-calendar-day.is-available::after {
+    opacity: 0.68;
+    background: rgba(145, 214, 243, 0.78);
+}
+
+.planner-calendar-day.is-recommended {
+    border-color: rgba(160, 229, 219, 0.24);
+    background:
+        radial-gradient(circle at 50% 18%, rgba(143, 219, 201, 0.22), rgba(143, 219, 201, 0) 42%),
+        linear-gradient(180deg, rgba(84, 134, 127, 0.16), rgba(15, 54, 58, 0.58));
+    box-shadow: inset 0 1px 0 rgba(214, 247, 240, 0.12);
+}
+
+.planner-calendar-day.is-recommended::after {
+    background: rgba(155, 235, 222, 0.96);
+    box-shadow: 0 0 14px rgba(122, 218, 205, 0.36);
+}
+
+.planner-calendar-day.is-caution {
+    border-color: rgba(243, 197, 132, 0.2);
+    background:
+        radial-gradient(circle at 50% 18%, rgba(248, 202, 146, 0.16), rgba(248, 202, 146, 0) 40%),
+        linear-gradient(180deg, rgba(95, 71, 38, 0.18), rgba(45, 30, 16, 0.48));
+    color: rgba(247, 232, 213, 0.92);
+}
+
+.planner-calendar-day.is-caution::after {
+    opacity: 1;
+    background: rgba(247, 203, 139, 0.88);
+    box-shadow: 0 0 12px rgba(245, 187, 108, 0.32);
+}
+
+.confirmed-booking-signal-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.confirmed-booking-signal {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(178, 221, 241, 0.14);
+    background: rgba(155, 214, 236, 0.08);
+    color: rgba(226, 242, 249, 0.84);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+}
+
+.sea-brief-stage {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    gap: 18px;
+    padding: 26px 28px;
+    border-radius: 32px;
+    background:
+        radial-gradient(circle at 14% 0%, rgba(204, 234, 247, 0.12), rgba(204, 234, 247, 0) 26%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(146, 188, 209, 0.04)),
+        rgba(7, 25, 38, 0.54);
+    border: 1px solid rgba(203, 230, 242, 0.12);
+    box-shadow:
+        0 24px 44px rgba(4, 16, 26, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.sea-brief-copy,
+.sea-brief-card {
+    position: relative;
+    z-index: 1;
+}
+
+.sea-brief-kicker {
+    margin: 0 0 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(193, 221, 236, 0.58);
+}
+
+.sea-brief-title {
+    margin: 0 0 12px;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.48rem, 2.2vw, 2rem);
+    color: #f5fbff;
+}
+
+.sea-brief-intro {
+    margin: 0;
+    max-width: 860px;
+    line-height: 1.84;
+    color: rgba(211, 228, 237, 0.76);
+}
+
+.sea-brief-empty {
+    padding: 20px 22px;
+    border-radius: 24px;
+    border: 1px solid rgba(201, 228, 240, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(213, 230, 240, 0.68);
+    line-height: 1.8;
+}
+
+.sea-brief-card {
+    display: grid;
+    gap: 18px;
+    padding: 22px 22px 20px;
+    border-radius: 28px;
+    border: 1px solid rgba(203, 230, 242, 0.1);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(140, 183, 204, 0.04)),
+        rgba(5, 22, 35, 0.56);
+    box-shadow:
+        0 22px 38px rgba(3, 14, 23, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.sea-brief-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.sea-brief-card-kicker {
+    margin: 0 0 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(190, 220, 235, 0.62);
+}
+
+.sea-brief-card-title {
+    margin: 0;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.28rem, 1.8vw, 1.72rem);
+    color: #f4fbff;
+}
+
+.sea-brief-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.sea-brief-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 227, 241, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(233, 245, 250, 0.86);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+}
+
+.sea-brief-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.sea-brief-item {
+    display: grid;
+    gap: 6px;
+    min-height: 86px;
+    padding: 14px 14px 13px;
+    border-radius: 20px;
+    border: 1px solid rgba(203, 230, 242, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.sea-brief-item-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(186, 214, 229, 0.52);
+}
+
+.sea-brief-item-value {
+    color: #eff8ff;
+    font-size: 0.94rem;
+    line-height: 1.68;
+}
+
+.sea-brief-prep {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 14px;
+}
+
+.sea-brief-prep-block {
+    display: grid;
+    gap: 12px;
+    padding: 16px 16px 15px;
+    border-radius: 22px;
+    border: 1px solid rgba(203, 230, 242, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.sea-brief-prep-label {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(188, 219, 234, 0.56);
+}
+
+.sea-brief-prep-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sea-brief-prep-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(157, 214, 239, 0.08);
+    border: 1px solid rgba(190, 227, 241, 0.12);
+    color: rgba(235, 246, 252, 0.84);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.sea-brief-prep-copy {
+    margin: 0;
+    color: rgba(220, 236, 244, 0.78);
+    line-height: 1.82;
+}
+
+.prep-detail-dynamic {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(204, 234, 246, 0.12), rgba(204, 234, 246, 0) 28%),
+        rgba(255, 255, 255, 0.06);
+    border-color: rgba(189, 223, 239, 0.12);
+}
+
+.prep-detail-inline-note {
+    margin: 2px 0 0;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(194, 222, 236, 0.1);
+    color: rgba(214, 232, 241, 0.72);
+    line-height: 1.78;
+}
+
+@media (max-width: 1024px) {
+    .sea-brief-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sea-brief-prep {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .planner-calendar-legend {
+        gap: 8px;
+    }
+
+    .planner-calendar-legend-item {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .sea-brief-stage,
+    .sea-brief-card {
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .sea-brief-card-head {
+        flex-direction: column;
+    }
+
+    .sea-brief-card-badges,
+    .sea-brief-grid {
+        justify-content: flex-start;
+        grid-template-columns: 1fr;
+    }
+}
+
 
 
 

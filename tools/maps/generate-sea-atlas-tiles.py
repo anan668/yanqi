@@ -71,6 +71,49 @@ def project_lon_lat(lon: float, lat: float, z: int, x: int, y: int) -> tuple[flo
     return world_x - (x * TILE_SIZE), world_y - (y * TILE_SIZE)
 
 
+def mercator_ratio_for_lat(lat: float) -> float:
+    lat = clamp(lat, -MAX_LAT, MAX_LAT)
+    lat_rad = math.radians(lat)
+    ratio = (
+        1.0
+        - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi
+    ) / 2.0
+    return clamp(ratio, 0.0, 1.0)
+
+
+def mix_rgb(base: tuple[int, int, int], tint: tuple[int, int, int], amount: float) -> tuple[int, int, int]:
+    clamped_amount = clamp(amount, 0.0, 1.0)
+    inverse = 1.0 - clamped_amount
+    return (
+        round(base[0] * inverse + tint[0] * clamped_amount),
+        round(base[1] * inverse + tint[1] * clamped_amount),
+        round(base[2] * inverse + tint[2] * clamped_amount),
+    )
+
+
+def ocean_color_for_lat(lat: float) -> tuple[int, int, int]:
+    top = (24, 81, 107)
+    bottom = (6, 31, 48)
+    ratio = mercator_ratio_for_lat(lat)
+    return (
+        round(top[0] + (bottom[0] - top[0]) * ratio),
+        round(top[1] + (bottom[1] - top[1]) * ratio),
+        round(top[2] + (bottom[2] - top[2]) * ratio),
+    )
+
+
+def lagoon_fill_for_ring(ring: list[tuple[float, float]]) -> tuple[int, int, int, int]:
+    _, south, _, north = (
+        min(pt[0] for pt in ring),
+        min(pt[1] for pt in ring),
+        max(pt[0] for pt in ring),
+        max(pt[1] for pt in ring),
+    )
+    ocean_rgb = ocean_color_for_lat((south + north) / 2.0)
+    softened = mix_rgb(ocean_rgb, (78, 132, 154), 0.18)
+    return (*softened, 228)
+
+
 def expand_bounds(
     bounds: list[list[float]],
     lat_factor: float = SEA_ATLAS_TILE_BOUNDS_LAT_EXPANSION,
@@ -264,11 +307,13 @@ def render_tile_bytes(polygons: list[dict], z: int, x: int, y: int) -> bytes:
         draw.line(outer, fill=coast_line, width=2)
 
         for hole in polygon["holes"]:
+            if z <= 6:
+                continue
             hole_points = [project_lon_lat(lon, lat, z, x, y) for lon, lat in hole]
             if len(hole_points) < 3:
                 continue
-            draw.polygon(hole_points, fill=(10, 48, 69, 255))
-            draw.line(hole_points, fill=(194, 229, 238, 42), width=1)
+            draw.polygon(hole_points, fill=lagoon_fill_for_ring(hole))
+            draw.line(hole_points, fill=(194, 229, 238, 28), width=1)
 
     output = io.BytesIO()
     image.save(output, format="WEBP", quality=86, method=6)

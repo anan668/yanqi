@@ -15,6 +15,9 @@
 // 文件导读：建议先读数据结构和几个主要类，再回来看 DOMContentLoaded 入口如何把它们串起来。
 const sharedPriceTools = window.YanqiPriceConfig || null;
 const sharedSpotCatalog = window.YanqiSpotCatalog || null;
+const sharedBrandConfig = window.YanqiBrandConfig || null;
+const sharedDiverProfile = window.YanqiDiverProfile || null;
+const sharedShowcaseState = window.YanqiShowcaseState || null;
 const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HERO_HOTSPOTS_STAGE_STORAGE_KEY = 'YANQI_HOME_HOTSPOTS_STAGE_SIZE';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
@@ -1039,6 +1042,13 @@ const HOME_IMAGE_FALLBACK_MANIFEST = Object.freeze([
     { original: 'assets/images/racha.jpg', compressed: 'assets/images/home/racha.webp', width: 1439, height: 842 },
     { original: 'assets/images/redang.jpg', compressed: 'assets/images/home/redang.webp', width: 2200, height: 1117 }
 ]);
+
+function getHomeHeroInitialSpotId() {
+    const recentSpotId = Number(sharedShowcaseState?.getRecentSpotId?.() || 0);
+    return Number.isFinite(recentSpotId) && recentSpotId > 0
+        ? recentSpotId
+        : HOME_HERO_DEFAULT_SPOT_ID;
+}
 const HOME_IMAGE_ASSET_MAP = new Map();
 let homeImageManifestPromise = null;
 
@@ -1218,8 +1228,8 @@ function refreshHomeImageDescriptors(records) {
 function buildImageErrorHandler(imageLabel, slot) {
     const width = slot?.width || 400;
     const height = slot?.height || 300;
-    const safeLabel = encodeURIComponent(String(imageLabel || 'image'));
-    return `const fallback=this.dataset.fallbackSrc;const activeSrc=this.currentSrc||this.src||'';if(fallback&&activeSrc.indexOf(fallback)===-1){this.src=fallback;return;}this.onerror=null;this.src='https://via.placeholder.com/${width}x${height}?text=${safeLabel}'`;
+    const fallbackImage = sharedBrandConfig?.createFallbackImageDataUri?.(imageLabel, width, height) || '';
+    return `const fallback=this.dataset.fallbackSrc;const activeSrc=this.currentSrc||this.src||'';if(fallback&&activeSrc.indexOf(fallback)===-1){this.src=fallback;return;}this.onerror=null;this.src='${fallbackImage}'`;
 }
 
 function buildThumbImageErrorHandler() {
@@ -1825,6 +1835,43 @@ function getDiveMatchKeyFromLocation() {
     return DIVE_MATCH_MAP.has(key) ? key : null;
 }
 
+function getActiveHomeDiverProfile() {
+    return sharedDiverProfile?.getProfile?.() || null;
+}
+
+function resolveDefaultDiveMatchKey() {
+    const profileKey = sharedDiverProfile?.getRecommendedMatchKey?.(getActiveHomeDiverProfile());
+    return DIVE_MATCH_MAP.has(profileKey) ? profileKey : DIVE_MATCH_DEFAULT_KEY;
+}
+
+function resolveProfilePresetKey(profile) {
+    const safeProfile = sharedDiverProfile?.normalizeProfile?.(profile);
+    const presets = sharedDiverProfile?.getPresets?.() || [];
+    const matchedPreset = presets.find((preset) => {
+        const presetProfile = preset?.profile || {};
+        return Object.keys(presetProfile).every((fieldKey) => presetProfile[fieldKey] === safeProfile?.[fieldKey]);
+    });
+    return matchedPreset?.key || '';
+}
+
+const DIVE_MATCH_PROFILE_PRESET_META = Object.freeze({
+    'reentry-calm': Object.freeze({
+        label: '恢复状态'
+    }),
+    'comfort-shore': Object.freeze({
+        label: '舒适慢住'
+    }),
+    'showcase-current': Object.freeze({
+        label: '大景进阶'
+    })
+});
+
+const DIVE_MATCH_PROFILE_PRESET_ORDER = Object.freeze({
+    'reentry-calm': 0,
+    'comfort-shore': 1,
+    'showcase-current': 2
+});
+
 // 统一导航入口：所有需要跨页面保持深度过渡的跳转都先走这里。
 /**
  * navigateWithDepth(url) - 带深度切换效果地跳转到目标页面
@@ -2028,7 +2075,7 @@ class BambooScroll {
     init() {
         this.render();
         this.measure();
-        this.centerOnSpotId(HOME_HERO_DEFAULT_SPOT_ID);
+        this.centerOnSpotId(getHomeHeroInitialSpotId());
         this.attachEvents();
         this.updateTrackPosition(true);
         this.scheduleAutoStep();
@@ -2064,7 +2111,7 @@ class BambooScroll {
     render() {
         const fragment = document.createDocumentFragment();
         const visibleSetIndex = Math.floor(this.cloneSets / 2);
-        const preferredDataIndex = Math.max(0, divingSpotsData.findIndex((spot) => spot.id === HOME_HERO_DEFAULT_SPOT_ID));
+        const preferredDataIndex = Math.max(0, divingSpotsData.findIndex((spot) => spot.id === getHomeHeroInitialSpotId()));
         const eagerRange = this.performanceProfile.lite ? 0 : 1;
         const heroImageSlot = HOME_IMAGE_RENDER_SLOTS.heroCard;
 
@@ -3933,7 +3980,9 @@ class DiveMatchStage {
         this.filters = document.getElementById('diveMatchFilters');
         this.display = document.getElementById('diveMatchDisplay');
         this.liveSummary = document.getElementById('diveMatchLiveSummary');
-        this.activeKey = getDiveMatchKeyFromLocation() || readStoredDiveMatchKey() || DIVE_MATCH_DEFAULT_KEY;
+        this.profile = getActiveHomeDiverProfile();
+        this.profilePanel = null;
+        this.activeKey = getDiveMatchKeyFromLocation() || resolveDefaultDiveMatchKey() || readStoredDiveMatchKey() || DIVE_MATCH_DEFAULT_KEY;
         this.switchTimer = 0;
         this.focusTimer = 0;
         this.stageSettleTimer = 0;
@@ -3949,11 +3998,154 @@ class DiveMatchStage {
         }
     }
 
+    getProfileDescriptor() {
+        return sharedDiverProfile?.describeProfile?.(this.profile) || {
+            title: '当前潜水者档案',
+            summary: '先把这次下潜的节奏慢慢说清，推荐才会更贴近此刻。',
+            chips: [],
+            recommendedMatchKey: this.activeKey
+        };
+    }
+
+    resolveProfilePresetKey() {
+        return resolveProfilePresetKey(this.profile);
+    }
+
+    buildProfileRecommendation(match) {
+        const topSpotId = Number(match?.cards?.[0]?.id || 0);
+        const destination = destinationById.get(topSpotId);
+        const recommendation = sharedDiverProfile?.describeSpotRecommendation?.(topSpotId, this.profile) || {
+            reason: '这片海和你此刻的节奏更容易对上。'
+        };
+
+        return {
+            name: destination?.name || '这一片海',
+            reason: recommendation.reason
+        };
+    }
+
+    buildProfilePresetVariant(preset, activeMatch, activePresetKey) {
+        const presetMeta = DIVE_MATCH_PROFILE_PRESET_META[preset.key] || {};
+        const targetKey = sharedDiverProfile?.getRecommendedMatchKey?.(preset.profile) || '';
+        const targetMatch = DIVE_MATCH_MAP.has(targetKey) ? getDiveMatchEntry(targetKey) : null;
+        const activeDepth = Math.abs(activeMatch?.depth || 0);
+        const targetDepth = Math.abs(targetMatch?.depth || activeDepth);
+        const isCurrentProfile = preset.key === activePresetKey;
+        const isAligned = Boolean(targetMatch) && targetMatch.key === activeMatch?.key;
+        const sameGroup = Boolean(targetMatch) && targetMatch.group === activeMatch?.group;
+        const goesDeeper = targetDepth > activeDepth;
+
+        let badge = '档案预设';
+        let copy = '切换这组档案后，首页推荐会重新整理成更贴近这次状态的进入方式。';
+
+        if (isAligned) {
+            badge = '正贴合这一层';
+            copy = `切过去后仍会停在「${activeMatch.label}」这一层，沿着当前海层继续把海慢慢看完整。`;
+        } else if (sameGroup && targetMatch) {
+            badge = goesDeeper ? '同组更深一点' : '同组更轻一点';
+            copy = `会把默认分类切到同组的「${targetMatch.label}」，在${activeMatch.group}里换成${goesDeeper ? '更深一点' : '更轻一点'}的进入方式。`;
+        } else if (targetMatch) {
+            badge = goesDeeper ? '会下潜一层' : '先回轻一点';
+            copy = goesDeeper
+                ? `会把档案带往更深的「${targetMatch.label}」，从别的维度把眼前这层再推开一些。`
+                : `会把档案收回更轻的「${targetMatch.label}」，先让身体与海况重新对齐，再决定要不要继续往下。`;
+        }
+
+        if (isCurrentProfile) {
+            badge = `当前档案 · ${badge}`;
+        }
+
+        return {
+            key: preset.key,
+            label: presetMeta.label || preset.label || '档案预设',
+            badge,
+            targetLabel: targetMatch ? `${targetMatch.group} · ${targetMatch.label}` : '档案预设',
+            copy,
+            isCurrentProfile,
+            isAligned,
+            relationRank: isAligned ? 0 : (sameGroup ? 1 : 2),
+            currentProfileRank: isCurrentProfile ? 0 : 1,
+            depthDelta: Math.abs(targetDepth - activeDepth),
+            order: DIVE_MATCH_PROFILE_PRESET_ORDER[preset.key] ?? 99
+        };
+    }
+
+    getProfilePresetVariants(activeMatch = getDiveMatchEntry(this.activeKey)) {
+        const activePresetKey = this.resolveProfilePresetKey();
+        return (sharedDiverProfile?.getPresets?.() || [])
+            .map((preset) => this.buildProfilePresetVariant(preset, activeMatch, activePresetKey))
+            .sort((left, right) => {
+                if (left.relationRank !== right.relationRank) {
+                    return left.relationRank - right.relationRank;
+                }
+                if (left.depthDelta !== right.depthDelta) {
+                    return left.depthDelta - right.depthDelta;
+                }
+                if (left.currentProfileRank !== right.currentProfileRank) {
+                    return left.currentProfileRank - right.currentProfileRank;
+                }
+                return left.order - right.order;
+            });
+    }
+
+    renderProfilePanel() {
+        if (!this.stage || !sharedDiverProfile) {
+            return;
+        }
+
+        if (!this.profilePanel) {
+            this.profilePanel = document.createElement('section');
+            this.profilePanel.className = 'dive-match-profile-panel';
+            this.profilePanel.id = 'diveMatchProfilePanel';
+            this.stage.insertBefore(this.profilePanel, this.filters);
+        }
+
+        const descriptor = this.getProfileDescriptor();
+        const activeMatch = getDiveMatchEntry(this.activeKey);
+        const recommendation = this.buildProfileRecommendation(activeMatch);
+        const presetVariants = this.getProfilePresetVariants(activeMatch);
+
+        this.profilePanel.innerHTML = `
+            <div class="dive-match-profile-copy">
+                <p class="dive-match-profile-kicker">Diver Profile</p>
+                <h3 class="dive-match-profile-title">${descriptor.title}</h3>
+                <p class="dive-match-profile-summary">${descriptor.summary}</p>
+                <div class="dive-match-profile-chips">
+                    ${descriptor.chips.map((chip) => `<span class="dive-match-profile-chip">${chip}</span>`).join('')}
+                </div>
+            </div>
+            <div class="dive-match-profile-reason">
+                <p class="dive-match-profile-reason-kicker">Why This Water</p>
+                <p class="dive-match-profile-reason-title">当前默认落在「${activeMatch.label}」这一层</p>
+                <p class="dive-match-profile-reason-copy">先推 ${recommendation.name}，因为${recommendation.reason}</p>
+            </div>
+            <div class="dive-match-profile-presets" role="group" aria-label="切换潜水者档案预设">
+                ${presetVariants.map((preset) => `
+                    <button
+                        type="button"
+                        class="dive-match-profile-preset${preset.isCurrentProfile ? ' is-active' : ''}${preset.isAligned ? ' is-aligned' : ''}"
+                        data-profile-preset="${preset.key}"
+                        aria-pressed="${preset.isCurrentProfile ? 'true' : 'false'}"
+                        title="${preset.copy}"
+                    >
+                        <span class="dive-match-profile-preset-meta">
+                            <span class="dive-match-profile-preset-badge">${preset.badge}</span>
+                            <span class="dive-match-profile-preset-target">${preset.targetLabel}</span>
+                        </span>
+                        <span class="dive-match-profile-preset-label">${preset.label}</span>
+                        <span class="dive-match-profile-preset-copy">${preset.copy}</span>
+                    </button>
+                `).join('')}
+            </div>
+        `;
+    }
+
     /**
      * init() - 渲染分类标签、首屏内容并绑定模块交互
      * @returns {void} - 无返回值，直接启动潜水匹配模块
      */
     init() {
+        this.renderProfilePanel();
         this.renderFilters();
         this.attachEvents();
         this.setupReveal();
@@ -4093,6 +4285,7 @@ class DiveMatchStage {
     }
 
     createMatchFocusMarkup(match) {
+        const recommendation = this.buildProfileRecommendation(match);
         return `
             <article class="dive-match-focus-card">
                 <p class="dive-match-focus-group">${match.group}</p>
@@ -4104,6 +4297,10 @@ class DiveMatchStage {
                 <p class="dive-match-focus-audience">${match.audience}</p>
                 <p class="dive-match-focus-guidance">${match.guidance}</p>
                 <p class="dive-match-focus-note">${match.note}</p>
+                <div class="dive-match-focus-personal">
+                    <span class="dive-match-focus-personal-label">档案联动</span>
+                    <p class="dive-match-focus-personal-copy">先看 ${recommendation.name}，因为${recommendation.reason}</p>
+                </div>
             </article>
         `;
     }
@@ -4222,6 +4419,7 @@ class DiveMatchStage {
         }
 
         this.activeKey = nextMatch.key;
+        this.renderProfilePanel();
         storeDiveMatchKey(this.activeKey);
         this.syncActiveFilter();
         if (syncDepth) {
@@ -4337,6 +4535,25 @@ class DiveMatchStage {
             }
 
             this.renderActiveMatch(nextKey);
+        });
+
+        this.stage.addEventListener('click', (event) => {
+            const presetButton = event.target.closest('[data-profile-preset]');
+            if (!presetButton || !sharedDiverProfile) {
+                return;
+            }
+
+            const preset = sharedDiverProfile.getPreset(presetButton.dataset.profilePreset);
+            if (!preset?.profile) {
+                return;
+            }
+
+            this.profile = sharedDiverProfile.saveProfile(preset.profile);
+            const nextKey = sharedDiverProfile.getRecommendedMatchKey(this.profile);
+            this.renderProfilePanel();
+            if (DIVE_MATCH_MAP.has(nextKey)) {
+                this.renderActiveMatch(nextKey);
+            }
         });
 
         this.display.addEventListener('click', (event) => {

@@ -160,10 +160,11 @@ function setGaugeInteractiveState(isActive) {
 }
 
 /**
- * navigateToHome() - 统一从登录门厅进入首页，复用已有潜浮式跳转逻辑
+ * navigateToPage(url) - 统一从登录门厅进入目标页，复用已有潜浮式跳转逻辑
+ * @param {string} [url] - 目标页面地址
  * @returns {void}
  */
-function navigateToHome() {
+function navigateToPage(url = 'home.html') {
     if (isNavigatingToHome) {
         return;
     }
@@ -175,12 +176,60 @@ function navigateToHome() {
     const manager = getDepthManager();
     window.setTimeout(() => {
         if (manager && typeof manager.navigateTo === 'function') {
-            manager.navigateTo('home.html');
+            manager.navigateTo(url);
             return;
         }
 
-        window.location.href = 'home.html';
+        window.location.href = url;
     }, STAGE_DEBUG_EXIT_DELAY_MS);
+}
+
+function navigateToHome() {
+    navigateToPage('home.html');
+}
+
+function seedProfilePreset(presetKey) {
+    const profilePreset = window.YanqiDiverProfile?.getPreset?.(presetKey);
+    if (!profilePreset?.profile) {
+        return null;
+    }
+
+    return window.YanqiDiverProfile?.saveProfile?.(profilePreset.profile) || profilePreset.profile;
+}
+
+function startDemoVoyage(feedbackNode, sourceLabel = '展示航线') {
+    window.YanqiShowcaseState?.seedShowcaseState?.({
+        presetKey: 'desktop-full'
+    });
+    showFeedback(feedbackNode, `${sourceLabel} 已替你装载完整展示状态，接下来会直接进入首页主线。`, 'success');
+    window.setTimeout(() => {
+        navigateToHome();
+    }, 420);
+}
+
+function startGuestVoyage(feedbackNode, sourceLabel = '游客入口') {
+    try {
+        localStorage.removeItem(window.YanqiShowcaseState?.SHOWCASE_STORAGE_KEY || 'YANQI_SHOWCASE_MODE');
+    } catch (error) {
+        // localStorage 不可用时静默降级。
+    }
+    document.documentElement?.classList.remove('yanqi-showcase-mode');
+    document.body?.classList.remove('yanqi-showcase-mode');
+    window.dispatchEvent(new CustomEvent('yanqi:showcase-mode-updated', {
+        detail: {
+            mode: {
+                enabled: false,
+                presetKey: '',
+                seededAt: ''
+            }
+        }
+    }));
+    seedProfilePreset('comfort-shore');
+    window.YanqiShowcaseState?.recordRecentSpot?.(12);
+    showFeedback(feedbackNode, `${sourceLabel} 会先带着一份轻量档案进入海面层，推荐会偏向更舒缓、更好靠近的那片海。`, 'info');
+    window.setTimeout(() => {
+        navigateToHome();
+    }, 420);
 }
 
 /**
@@ -886,7 +935,7 @@ function bindInteractiveFeedback(nodes, feedbackNode) {
                 }, 360);
             }
             triggerDepthResponse(1.18);
-            navigateToHome();
+            startDemoVoyage(feedbackNode, `${button.textContent.trim() || '社交入口'}入口`);
         });
     });
 }
@@ -1015,22 +1064,39 @@ function handleRegisterSubmit(nodes, feedbackNode) {
  * @param {object} nodes - 页面节点集合
  * @returns {void}
  */
-function bindGuestEntries(nodes) {
-    const { guestButton, guestLoginButton } = nodes;
+function bindGuestEntries(nodes, feedbackNode) {
+    const { guestButton, guestLoginButton, demoVoyageButton, forgotLink } = nodes;
+
+    demoVoyageButton?.addEventListener('click', (event) => {
+        event.preventDefault();
+        triggerDepthResponse(1.18);
+        startDemoVoyage(feedbackNode);
+    });
 
     if (guestButton) {
         guestButton.addEventListener('click', (event) => {
             event.preventDefault();
-            navigateToHome();
+            triggerDepthResponse(0.96);
+            startGuestVoyage(feedbackNode);
         });
     }
 
     if (guestLoginButton) {
         guestLoginButton.addEventListener('click', (event) => {
             event.preventDefault();
-            navigateToHome();
+            triggerDepthResponse(0.96);
+            startGuestVoyage(feedbackNode, '辅助游客入口');
         });
     }
+
+    forgotLink?.addEventListener('click', (event) => {
+        event.preventDefault();
+        triggerDepthResponse(0.88);
+        showFeedback(feedbackNode, '找回入口会先把你带去联络水域，那边会保留一条更适合演示版的找回路径。', 'info');
+        window.setTimeout(() => {
+            navigateToPage(forgotLink.getAttribute('href') || 'contact.html#contactFormSection');
+        }, 420);
+    });
 }
 
 /**
@@ -1378,8 +1444,10 @@ function collectAuthNodes() {
         registerConfirmInput: document.getElementById('register-confirm'),
         rememberCheckbox: document.getElementById('remember-me'),
         agreeTermsInput: document.getElementById('agree-terms'),
-        guestButton: document.querySelector('.link-guest'),
-        guestLoginButton: document.getElementById('guest-login-btn')
+        guestButton: document.querySelector('.footer-links .link-guest:not(.link-demo-voyage)'),
+        guestLoginButton: document.getElementById('guest-login-btn'),
+        demoVoyageButton: document.getElementById('demoVoyageButton'),
+        forgotLink: document.querySelector('.link-forgot[data-brand-link="forgot"]')
     };
 }
 
@@ -1397,7 +1465,7 @@ function initializeAuthPage() {
     bindRememberMe(nodes);
     bindInteractiveFeedback(nodes, feedbackNode);
     bindFormSubmit(nodes, feedbackNode);
-    bindGuestEntries(nodes);
+    bindGuestEntries(nodes, feedbackNode);
 
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {

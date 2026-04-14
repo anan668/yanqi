@@ -23,37 +23,42 @@
         })
         : null;
 
-    // 联系方式配置：
-    // 这里不硬编真实品牌联系方式；如果未来补了真实值，页面会自动显示真实渠道。
-    const yanqiContactConfig = {
-        email: '',
-        wechat: '',
-        xiaohongshu: '',
-        weibo: ''
-    };
-
-    const contactMethodMeta = Object.freeze({
-        email: {
+    const brandConfig = window.YanqiBrandConfig || null;
+    const fallbackContactMethods = Object.freeze([
+        Object.freeze({
+            key: 'email',
             label: '联系邮箱',
-            placeholder: '联系邮箱正在整理中',
-            note: '如果这一条还没靠岸，先把想说的话留在下方，也会被安静收下。'
-        },
-        wechat: {
-            label: '微信',
-            placeholder: '这一条联络方式还在靠岸',
-            note: '更适合聊行程、节奏和出发前想确认的细节。'
-        },
-        xiaohongshu: {
+            value: 'hello@yanqi-sea.com',
+            href: 'mailto:hello@yanqi-sea.com',
+            note: '更适合安静地留下行程轮廓与需要慢慢确认的细节。'
+        }),
+        Object.freeze({
+            key: 'wechat',
+            label: '微信 / 公众号',
+            value: 'YANQI-SEA',
+            href: 'contact.html#contactMethodsSection',
+            note: '更适合出发前的节奏确认和轻沟通。'
+        }),
+        Object.freeze({
+            key: 'xiaohongshu',
             label: '小红书',
-            placeholder: '这一条联络方式还在慢慢整理',
-            note: '更适合先看海，再决定要不要继续靠近。'
-        },
-        weibo: {
+            value: '@盐憩 Yanqi Sea Retreat',
+            href: 'contact.html#contactMethodsSection',
+            note: '更适合先看海的气质、停驻感和盐憩的片段。'
+        }),
+        Object.freeze({
+            key: 'weibo',
             label: '微博',
-            placeholder: '这一条联络方式还在靠岸',
-            note: '如果想先留下一个轻一点的问候，这里会是更柔和的入口。'
-        }
-    });
+            value: '@盐憩 Yanqi',
+            href: 'contact.html#contactMethodsSection',
+            note: '更适合留下轻一点的问候和临近出发时的回声。'
+        })
+    ]);
+
+    function getContactMethodEntries() {
+        const methods = brandConfig?.getContactMethods?.();
+        return Array.isArray(methods) && methods.length ? methods : fallbackContactMethods;
+    }
 
     /**
      * escapeHtml(value) - 转义用户输入，避免把本地留言直接当成 HTML 渲染
@@ -420,16 +425,19 @@
             return;
         }
 
-        const items = Object.entries(contactMethodMeta).map(([key, meta]) => {
-            const value = (yanqiContactConfig[key] || '').trim();
-            const hasValue = Boolean(value);
-
+        const items = getContactMethodEntries().map((meta) => {
+            const value = String(meta?.value || '').trim();
+            const href = String(meta?.href || '').trim();
             return `
                 <article class="contact-method info-reveal info-reveal-delay-2">
-                    <p class="contact-method-label">${meta.label}</p>
-                    <p class="contact-method-value">${hasValue ? value : meta.placeholder}</p>
-                    <p class="contact-method-note">${meta.note}</p>
-                    <span class="contact-method-status">${hasValue ? '已靠岸' : '仍在整理中'}</span>
+                    <p class="contact-method-label">${escapeHtml(meta.label || '')}</p>
+                    <p class="contact-method-value">
+                        ${href
+        ? `<a href="${escapeHtml(href)}" class="policy-link">${escapeHtml(value)}</a>`
+        : escapeHtml(value)}
+                    </p>
+                    <p class="contact-method-note">${escapeHtml(meta.note || '')}</p>
+                    <span class="contact-method-status">已开放</span>
                 </article>
             `;
         });
@@ -594,8 +602,6 @@
                 return;
             }
 
-            // 这里仍然是演示版前端流程：
-            // 留言不会发送到服务器，而是暂存在当前浏览器的 localStorage 里。
             const messages = safeReadContactMessages();
             messages.unshift({
                 name: nameInput.value.trim(),
@@ -615,7 +621,7 @@
             clearContactDraft();
             updateContactDraftState(createEmptyContactDraft());
             renderStoredContactMessages();
-            showContactFeedback('已为你暂时收下这条留言。它会继续停在当前浏览器里，刷新回来也不会散开。');
+            showContactFeedback('这条留言已经先替你收在这层回声里，刷新回来也还能继续看见。');
         });
     }
 
@@ -624,6 +630,7 @@
      * @returns {void}
      */
     function initializeInfoPages() {
+        brandConfig?.applyBrandLinks?.(document);
         renderContactMethods();
         bindInfoNavigation();
         bindContactForm();

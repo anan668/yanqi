@@ -2,7 +2,35 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const { chromium } = require('@playwright/test');
 
+const VIEWPORTS = [
+  {
+    label: '1440',
+    width: 1440,
+    height: 1200
+  },
+  {
+    label: '1920',
+    width: 1920,
+    height: 1280
+  },
+  {
+    label: '2560',
+    width: 2560,
+    height: 1440
+  }
+];
+
 const PAGE_SPECS = [
+  {
+    name: 'index',
+    file: 'index.html',
+    checks: [
+      '#loginStageShell',
+      '#authForm',
+      '#demoVoyageButton',
+      '#loginStageHud'
+    ]
+  },
   {
     name: 'home',
     file: 'home.html',
@@ -24,15 +52,25 @@ const PAGE_SPECS = [
       '#trip-prep',
       '#tripFooter'
     ]
+  },
+  {
+    name: 'contact',
+    file: 'contact.html',
+    checks: [
+      '#contactMethodsSection',
+      '#contactMethods',
+      '#contactFormSection',
+      '#contactMemorySection'
+    ]
   }
 ];
 
-async function runPageSmoke(browser, spec) {
+async function runPageSmoke(browser, spec, viewport) {
   const pageUrl = pathToFileURL(path.resolve(__dirname, '..', '..', 'site', spec.file)).toString();
   const page = await browser.newPage({
     viewport: {
-      width: 1440,
-      height: 1200
+      width: viewport.width,
+      height: viewport.height
     }
   });
 
@@ -71,6 +109,7 @@ async function runPageSmoke(browser, spec) {
 
   const summary = {
     name: spec.name,
+    viewport: viewport.label,
     url: pageUrl,
     requestCount: requests.length,
     missingSelectors,
@@ -86,8 +125,10 @@ async function runSmoke() {
   const browser = await chromium.launch({ headless: true });
   const results = [];
 
-  for (const spec of PAGE_SPECS) {
-    results.push(await runPageSmoke(browser, spec));
+  for (const viewport of VIEWPORTS) {
+    for (const spec of PAGE_SPECS) {
+      results.push(await runPageSmoke(browser, spec, viewport));
+    }
   }
 
   await browser.close();
@@ -98,13 +139,13 @@ async function runSmoke() {
     .flatMap((result) => {
       const messages = [];
       if (result.missingSelectors.length) {
-        messages.push(`${result.name}: missing selectors ${result.missingSelectors.join(', ')}`);
+        messages.push(`${result.name}@${result.viewport}: missing selectors ${result.missingSelectors.join(', ')}`);
       }
       if (result.consoleErrors.length) {
-        messages.push(`${result.name}: console errors ${JSON.stringify(result.consoleErrors)}`);
+        messages.push(`${result.name}@${result.viewport}: console errors ${JSON.stringify(result.consoleErrors)}`);
       }
       if (result.pageErrors.length) {
-        messages.push(`${result.name}: page errors ${JSON.stringify(result.pageErrors)}`);
+        messages.push(`${result.name}@${result.viewport}: page errors ${JSON.stringify(result.pageErrors)}`);
       }
       return messages;
     });

@@ -84,6 +84,12 @@
         return String(value || '').trim();
     }
 
+    function normalizeStringArray(value) {
+        return Array.isArray(value)
+            ? value.map((item) => sanitizeReadableText(item, '')).filter(Boolean)
+            : [];
+    }
+
     /**
      * looksLikeMojibake(text) - 粗略判断文本是否出现了常见的编码乱码
      * @param {string} text - 待判断的文本
@@ -370,6 +376,11 @@
             packageTags: Array.isArray(source.packageTags)
                 ? source.packageTags.map((item) => sanitizeReadableText(item, '')).filter(Boolean)
                 : [],
+            fitLabel: sanitizeReadableText(source.fitLabel, ''),
+            windowKey: normalizeText(source.windowKey),
+            windowLabel: sanitizeReadableText(source.windowLabel, ''),
+            prepFlags: normalizeStringArray(source.prepFlags),
+            briefId: normalizeText(source.briefId),
             selectedDate: normalizeText(source.selectedDate),
             selectedDateLabel: sanitizeReadableText(source.selectedDateLabel, ''),
             selectedPeople: normalizeText(source.selectedPeople),

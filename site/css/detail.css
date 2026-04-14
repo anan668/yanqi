@@ -2475,6 +2475,20 @@ body.has-overlay-lock {
 }
 
 .sea-atlas-route-line-glow,
+.sea-route-line-glow,
+.sea-atlas-route-line-base,
+.sea-route-line-base,
+.sea-atlas-route-line,
+.sea-route-line,
+.sea-atlas-route-line-sheen,
+.sea-route-line-sheen {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.sea-atlas-route-line-glow,
 .sea-route-line-glow {
     stroke: var(--sea-map-route-soft);
 }
@@ -5105,6 +5119,11 @@ body.has-overlay-lock {
     --booking-copy-stick-top: 0px;
     --booking-copy-stick-height: 0px;
     --booking-sticky-stack-gap: 18px;
+    --booking-sticky-focus-context-duration: 300ms;
+    --booking-sticky-focus-context-easing: cubic-bezier(0.22, 0.72, 0.2, 1);
+    --booking-sticky-focus-shift: 0px;
+    --booking-sticky-reading-translate-y: 0px;
+    --booking-sticky-focus-motion-translate-y: 0px;
     position: static;
     max-height: calc(100vh - var(--detail-sidebar-stick-top) - var(--detail-sidebar-stick-bottom));
     overflow-y: auto;
@@ -5122,14 +5141,19 @@ body.has-overlay-lock {
     border: 1px solid rgba(128, 160, 178, 0.76);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    transform: translate3d(
+        0,
+        calc(var(--booking-sticky-reading-translate-y, 0px) + var(--booking-sticky-focus-motion-translate-y, 0px)),
+        0
+    );
     transition:
-        --booking-copy-stick-top 420ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        --booking-copy-stick-height 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        --booking-sticky-stack-gap 360ms ease,
+        --booking-copy-stick-top var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing),
+        --booking-copy-stick-height var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing),
+        --booking-sticky-stack-gap var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing),
         background 420ms ease,
         border-color 320ms ease,
         box-shadow 420ms ease,
-        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1);
+        transform var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing);
 }
 
 .booking-sticky[data-reading-zone="overview"] {
@@ -5158,7 +5182,7 @@ body.has-overlay-lock {
     background:
         linear-gradient(162deg, rgba(188, 208, 220, 0.8), rgba(160, 181, 195, 0.62)),
         rgba(152, 175, 190, 0.78);
-    transform: translate3d(0, -6px, 0);
+    --booking-sticky-reading-translate-y: -6px;
 }
 
 .booking-sticky::-webkit-scrollbar {
@@ -5192,17 +5216,10 @@ body.has-overlay-lock {
 .booking-sticky .price-badge,
 .booking-sticky .booking-match,
 .booking-sticky .booking-note {
-    overflow: hidden;
-    max-height: 720px;
     transform-origin: top center;
     transition:
-        opacity 420ms ease,
-        transform 420ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        max-height 360ms ease,
-        margin 360ms ease,
-        padding 360ms ease,
-        border-color 320ms ease;
-    will-change: opacity, transform, max-height;
+        opacity var(--booking-sticky-focus-context-duration) ease,
+        transform var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing);
 }
 
 /* 控制 .price-label 的布局、视觉和状态表现 */
@@ -5244,26 +5261,24 @@ body.has-overlay-lock {
     overflow-y: auto;
 }
 
-.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) {
+.booking-sticky.is-focus-only-context {
     max-height: none;
     overflow: visible;
     scrollbar-width: none;
 }
 
-.booking-sticky[data-focus-context-phase="entering"] .price-badge,
-.booking-sticky[data-focus-context-phase="entering"] .booking-match,
-.booking-sticky[data-focus-context-phase="entering"] .booking-note,
-.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) .price-badge,
-.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) .booking-match,
-.booking-sticky.is-focus-only-context:not([data-focus-context-phase]) .booking-note {
+.booking-sticky.is-focus-only-context .price-badge,
+.booking-sticky.is-focus-only-context .booking-match,
+.booking-sticky.is-focus-only-context .booking-note {
     opacity: 0;
-    max-height: 0;
     margin-top: 0;
     margin-bottom: 0;
     padding-top: 0;
     padding-bottom: 0;
     border-color: transparent;
-    transform: translate3d(0, -14px, 0) scale(0.985);
+    max-height: 0;
+    overflow: hidden;
+    transform: translate3d(0, -12px, 0) scale(0.988);
     pointer-events: none;
 }
 
@@ -5273,8 +5288,7 @@ body.has-overlay-lock {
     z-index: auto;
 }
 
-.booking-sticky:not(.is-focus-only-context):not([data-focus-context-phase]) .booking-focus-panel,
-.booking-sticky[data-focus-context-phase="leaving"] .booking-focus-panel {
+.booking-sticky:not(.is-focus-only-context):not([data-focus-context-phase]) .booking-focus-panel {
     max-height: 0;
     margin-bottom: 0;
     padding-top: 0;
@@ -5282,8 +5296,74 @@ body.has-overlay-lock {
     border-width: 0;
     opacity: 0;
     box-shadow: none;
-    transform: translate3d(0, 18px, 0) scale(0.985);
+    transform: translate3d(0, 16px, 0) scale(0.992);
     pointer-events: none;
+}
+
+.booking-sticky[data-focus-context-motion="entering"] {
+    --booking-sticky-focus-motion-translate-y: calc(var(--booking-sticky-focus-shift, 0px) * -1);
+}
+
+.booking-sticky[data-focus-context-motion="leaving-prep"] {
+    --booking-sticky-focus-motion-translate-y: calc(var(--booking-sticky-focus-shift, 0px) * -1);
+}
+
+.booking-sticky[data-focus-context-motion="leaving"] {
+    --booking-sticky-focus-motion-translate-y: 0px;
+}
+
+.booking-sticky[data-focus-context-motion="entering"],
+.booking-sticky[data-focus-context-motion="leaving"] {
+    will-change: transform;
+}
+
+.booking-sticky[data-focus-context-motion="entering"] .price-badge,
+.booking-sticky[data-focus-context-motion="entering"] .booking-match,
+.booking-sticky[data-focus-context-motion="entering"] .booking-note,
+.booking-sticky[data-focus-context-motion="entering"] .booking-focus-panel,
+.booking-sticky[data-focus-context-motion="entering"] .itinerary-list,
+.booking-sticky[data-focus-context-motion="leaving"] .price-badge,
+.booking-sticky[data-focus-context-motion="leaving"] .booking-match,
+.booking-sticky[data-focus-context-motion="leaving"] .booking-note,
+.booking-sticky[data-focus-context-motion="leaving"] .booking-focus-panel,
+.booking-sticky[data-focus-context-motion="leaving"] .itinerary-list {
+    will-change: opacity, transform;
+}
+
+.booking-sticky[data-focus-context-motion="entering"] .price-badge,
+.booking-sticky[data-focus-context-motion="entering"] .booking-match,
+.booking-sticky[data-focus-context-motion="entering"] .booking-note,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .price-badge,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-match,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-note {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, -12px, 0) scale(0.988);
+}
+
+.booking-sticky[data-focus-context-motion="leaving"] .price-badge,
+.booking-sticky[data-focus-context-motion="leaving"] .booking-match,
+.booking-sticky[data-focus-context-motion="leaving"] .booking-note {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.booking-sticky[data-focus-context-motion="settling"],
+.booking-sticky[data-focus-context-motion="leaving-prep"],
+.booking-sticky[data-focus-context-motion="settling"] .price-badge,
+.booking-sticky[data-focus-context-motion="settling"] .booking-match,
+.booking-sticky[data-focus-context-motion="settling"] .booking-note,
+.booking-sticky[data-focus-context-motion="settling"] .booking-copy,
+.booking-sticky[data-focus-context-motion="settling"] .booking-focus-panel,
+.booking-sticky[data-focus-context-motion="settling"] .itinerary-list,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .price-badge,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-match,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-note,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-copy,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-focus-panel,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .itinerary-list {
+    transition: none !important;
 }
 
 /* 控制 .booking-match-chip 的布局、视觉和状态表现 */
@@ -5497,12 +5577,9 @@ body.has-overlay-lock {
     -webkit-backdrop-filter: blur(18px);
     transform-origin: top center;
     transition:
-        opacity 420ms ease,
-        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        top 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        max-height 420ms ease,
-        margin-bottom 420ms ease,
-        padding 420ms ease,
+        opacity var(--booking-sticky-focus-context-duration) ease,
+        transform var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing),
+        top var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing),
         border-color 320ms ease,
         box-shadow 420ms ease,
         background 420ms ease;
@@ -5761,10 +5838,13 @@ body.has-overlay-lock {
    让价格、当前套餐名和适合人群在侧栏内部持续停驻，
    用户读评论时不需要只靠高亮卡片猜现在对应的是哪一套安排。 */
 .booking-focus-panel {
+    --booking-focus-panel-reading-translate-y: 0px;
+    --booking-focus-panel-reading-scale: 1;
+    --booking-focus-panel-motion-translate-y: 0px;
+    --booking-focus-panel-motion-scale: 1;
     position: sticky;
     contain: layout paint style;
     isolation: isolate;
-    will-change: transform, opacity;
     top: calc(
         var(--booking-copy-stick-top, 0px) +
         var(--booking-copy-stick-height, 0px) +
@@ -5788,17 +5868,23 @@ body.has-overlay-lock {
         inset 0 1px 0 rgba(243, 249, 252, 0.14);
     overflow: hidden;
     transform-origin: top center;
+    transform: translate3d(
+        0,
+        calc(
+            var(--booking-focus-panel-reading-translate-y, 0px) +
+            var(--booking-focus-panel-motion-translate-y, 0px)
+        ),
+        0
+    ) scale(calc(
+        var(--booking-focus-panel-reading-scale, 1) *
+        var(--booking-focus-panel-motion-scale, 1)
+    ));
     transition:
-        top 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        opacity 360ms ease,
-        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        max-height 420ms ease,
-        margin-bottom 420ms ease,
-        padding 360ms ease,
-        border-width 320ms ease,
+        top var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing),
+        opacity var(--booking-sticky-focus-context-duration) ease,
+        transform var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing),
         box-shadow 420ms ease,
-        border-color 320ms ease,
-        filter 360ms ease;
+        border-color 320ms ease;
 }
 
 .booking-focus-panel[data-reading-zone="overview"] {
@@ -5813,7 +5899,7 @@ body.has-overlay-lock {
 }
 
 .booking-focus-panel[data-reading-zone="reviews"] {
-    transform: translate3d(0, -4px, 0);
+    --booking-focus-panel-reading-translate-y: -4px;
     border-color: rgba(193, 232, 247, 0.32);
     box-shadow:
         0 24px 42px rgba(4, 20, 34, 0.26),
@@ -5821,8 +5907,35 @@ body.has-overlay-lock {
 }
 
 .booking-focus-panel[data-reading-zone="related"] {
-    transform: translate3d(0, -8px, 0) scale(1.01);
+    --booking-focus-panel-reading-translate-y: -8px;
+    --booking-focus-panel-reading-scale: 1.01;
     border-color: rgba(196, 232, 244, 0.24);
+}
+
+.booking-sticky[data-focus-context-phase="entering"] .booking-focus-panel,
+.booking-sticky[data-focus-context-phase="leaving"] .booking-focus-panel {
+    max-height: 520px;
+    margin-bottom: var(--booking-sticky-stack-gap, 18px);
+    padding-top: 16px;
+    padding-bottom: 16px;
+    border-width: 1px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+.booking-sticky[data-focus-context-motion="entering"] .booking-focus-panel,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .booking-focus-panel {
+    opacity: 1;
+    pointer-events: none;
+    --booking-focus-panel-motion-translate-y: 0px;
+    --booking-focus-panel-motion-scale: 1;
+}
+
+.booking-sticky[data-focus-context-motion="leaving"] .booking-focus-panel {
+    opacity: 0;
+    pointer-events: none;
+    --booking-focus-panel-motion-translate-y: 16px;
+    --booking-focus-panel-motion-scale: 0.992;
 }
 
 .booking-focus-panel.is-originating {
@@ -6422,16 +6535,11 @@ body.has-overlay-lock {
     width: 100%;
     padding-left: 0;
     opacity: 1;
-    filter: blur(0);
     transform: translate3d(0, 0, 0);
     transform-origin: top center;
     transition:
-        opacity 300ms ease,
-        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
-        filter 320ms ease,
-        max-height 420ms ease,
-        margin-bottom 420ms ease,
-        padding-left 420ms ease;
+        opacity var(--booking-sticky-focus-context-duration) ease,
+        transform var(--booking-sticky-focus-context-duration) var(--booking-sticky-focus-context-easing);
 }
 
 .itinerary-list[hidden] {
@@ -6445,25 +6553,31 @@ body.has-overlay-lock {
     opacity: 0;
     overflow: hidden;
     pointer-events: none;
-    filter: blur(10px);
-    transform: translate3d(0, 22px, 0) scale(0.985);
+    transform: translate3d(0, 18px, 0) scale(0.986);
 }
 
-.booking-sticky[data-focus-context-phase="entering"] .itinerary-list {
+.booking-sticky[data-focus-context-motion="entering"] .itinerary-list,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .itinerary-list {
     max-height: var(--booking-itinerary-list-open-height, 3200px);
     margin-bottom: 18px;
     opacity: 0;
     overflow: visible;
     pointer-events: none;
-    filter: blur(10px);
-    transform: translate3d(0, 22px, 0) scale(0.985);
+    transform: translate3d(0, 18px, 0) scale(0.986);
+}
+
+.booking-sticky[data-focus-context-motion="leaving"] .itinerary-list {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
 }
 
 .itinerary-list::before {
     display: none;
 }
 
-.booking-sticky[data-focus-context-phase="entering"] .itinerary-list::before,
+.booking-sticky[data-focus-context-motion="entering"] .itinerary-list::before,
+.booking-sticky[data-focus-context-motion="leaving-prep"] .itinerary-list::before,
 .itinerary-list.is-focus-only-context::before {
     opacity: 0;
     transform: translate3d(0, 18px, 0);
@@ -13104,5 +13218,118 @@ body.page-transition-active .booking-match-floating-confirm {
 /* 控制大屏下 .sea-route-node 的布局、视觉和状态表现 */
     .sea-route-node {
         max-width: 160px;
+    }
+}
+
+.package-card-fit-note {
+    margin: 2px 0 0;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(168, 209, 229, 0.32);
+    background: rgba(255, 255, 255, 0.28);
+    color: #275977;
+    font-size: 0.84rem;
+    line-height: 1.68;
+}
+
+.package-card-fit-note.is-fit {
+    border-color: rgba(123, 197, 183, 0.34);
+    background: rgba(210, 242, 236, 0.44);
+    color: #215a5e;
+}
+
+.package-card-fit-note.is-caution {
+    border-color: rgba(220, 175, 126, 0.36);
+    background: rgba(250, 236, 214, 0.54);
+    color: #7a5633;
+}
+
+.package-card-fit-note.is-check-dive {
+    border-color: rgba(149, 191, 222, 0.36);
+    background: rgba(219, 236, 247, 0.56);
+    color: #2f6283;
+}
+
+.package-card-window-note {
+    margin: 10px 0 0;
+    color: rgba(61, 97, 122, 0.74);
+    font-size: 0.82rem;
+    line-height: 1.74;
+}
+
+.package-modal-personal-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 14px 0 18px;
+}
+
+.package-modal-personal-card {
+    display: grid;
+    gap: 10px;
+    padding: 16px 18px;
+    border-radius: 22px;
+    border: 1px solid rgba(172, 214, 232, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(140, 183, 204, 0.04)),
+        rgba(7, 28, 42, 0.5);
+    box-shadow:
+        0 18px 30px rgba(4, 16, 28, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.package-modal-personal-card.is-fit {
+    border-color: rgba(133, 208, 192, 0.2);
+    background:
+        radial-gradient(circle at 18% 12%, rgba(143, 219, 201, 0.16), rgba(143, 219, 201, 0) 30%),
+        rgba(7, 28, 42, 0.54);
+}
+
+.package-modal-personal-card.is-caution {
+    border-color: rgba(242, 198, 139, 0.22);
+    background:
+        radial-gradient(circle at 18% 12%, rgba(242, 198, 139, 0.16), rgba(242, 198, 139, 0) 30%),
+        rgba(7, 28, 42, 0.54);
+}
+
+.package-modal-personal-card.is-check-dive {
+    border-color: rgba(153, 198, 228, 0.22);
+    background:
+        radial-gradient(circle at 18% 12%, rgba(153, 198, 228, 0.16), rgba(153, 198, 228, 0) 30%),
+        rgba(7, 28, 42, 0.54);
+}
+
+.package-modal-personal-kicker {
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(186, 221, 237, 0.56);
+}
+
+.package-modal-personal-title {
+    margin: 0;
+    font-family: "Noto Serif SC", "Source Han Serif SC", serif;
+    font-size: 1.18rem;
+    color: #f2fbff;
+}
+
+.package-modal-personal-copy {
+    margin: 0;
+    color: rgba(218, 235, 244, 0.78);
+    line-height: 1.8;
+}
+
+.package-modal-personal-meta,
+.package-modal-personal-footnote {
+    margin: 0;
+    color: rgba(188, 219, 234, 0.62);
+    font-size: 0.78rem;
+    line-height: 1.74;
+}
+
+@media (max-width: 900px) {
+    .package-modal-personal-panel {
+        grid-template-columns: 1fr;
     }
 }

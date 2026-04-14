@@ -17,6 +17,10 @@ const sharedSpotCatalog = window.YanqiSpotCatalog || null;
 const sharedSpotMapCatalog = window.YanqiSpotMapCatalog || null;
 const sharedDetailSpotDataManifest = window.YanqiDetailSpotDataManifest || null;
 const sharedDetailSpotDataRegistry = window.YanqiDetailSpotDataRegistry || null;
+const sharedBrandConfig = window.YanqiBrandConfig || null;
+const sharedDiverProfile = window.YanqiDiverProfile || null;
+const sharedSpotWindowConfig = window.YanqiSpotWindowConfig || null;
+const sharedShowcaseState = window.YanqiShowcaseState || null;
 const PRICE_DISPLAY_VERSION = sharedPriceTools?.PRICE_DISPLAY_VERSION || '';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
@@ -24,6 +28,9 @@ const PACKAGE_MODAL_DURATION_MIN_DAYS = 2;
 const PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS = 6;
 const PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS = 12;
 const BOOKING_MATCH_CONFIRM_CLOSE_DURATION = 380;
+const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS = 300;
+const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_FALLBACK_MS = BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS + 120;
+const BOOKING_STICKY_DESKTOP_FOCUS_CONTEXT_MIN_WIDTH = 1025;
 const DETAIL_SPOT_DATA_SCRIPT_SRC_ATTRIBUTE = 'data-detail-spot-data-src';
 const DETAIL_SPOT_DATA_SCRIPT_ID_ATTRIBUTE = 'data-detail-spot-data-id';
 const DETAIL_LEAFLET_SCRIPT_SRC = 'assets/vendor/leaflet/leaflet.js';
@@ -172,6 +179,10 @@ function normalizeDisplayPriceText(priceText) {
     return sharedPriceTools && typeof sharedPriceTools.normalizePriceText === 'function'
         ? sharedPriceTools.normalizePriceText(priceText)
         : String(priceText || '');
+}
+
+function getDetailFallbackImage(label, width = 960, height = 620) {
+    return sharedBrandConfig?.createFallbackImageDataUri?.(label, width, height) || '';
 }
 
 /**
@@ -1617,6 +1628,8 @@ class DetailPage {
         this.detailHero = document.getElementById('detailHero');
         this.spotId = this.getSpotIdFromUrl();
         this.spotData = buildBootstrapDetailSpotData(this.spotId);
+        this.diverProfile = sharedDiverProfile?.getProfile?.() || null;
+        this.windowConfig = sharedSpotWindowConfig?.getBySpotId?.(this.spotId) || null;
         this.packageData = [];
         this.reviewData = [];
         this.reviewDataCache = new Map();
@@ -1836,9 +1849,13 @@ class DetailPage {
         this.detailReadingAwakenTimer = 0;
         this.bookingFocusContextPhaseTimer = 0;
         this.bookingStickyFocusContextCommitTimer = 0;
+        this.bookingStickyFocusContextFallbackTimer = 0;
         this.bookingStickyFocusContextRaf = 0;
         this.handleBookingStickyListScroll = null;
+        this.handleBookingStickyFocusContextTransitionEnd = null;
         this.bookingStickyFocusContextState = this.bookingSticky?.classList.contains('is-focus-only-context') ? 'focus' : 'list';
+        this.bookingStickyFocusContextTargetPackageId = this.selectedPackageId || '';
+        this.bookingStickyFocusContextShift = 0;
         this.bookingStickyListContextScrollTop = this.bookingSticky?.scrollTop || 0;
         this.activeDetailReadingSectionKey = '';
         this.activeReviewLinkedPackageId = null;
@@ -1876,6 +1893,10 @@ class DetailPage {
     async ensurePrimarySpotDataReady() {
         const nextSpotData = await loadDetailSpotData(this.spotId);
         this.spotData = nextSpotData || buildBootstrapDetailSpotData(this.spotId);
+        if (Array.isArray(this.spotData.related) && sharedDiverProfile?.sortSpotsForProfile) {
+            this.spotData.related = sharedDiverProfile.sortSpotsForProfile(this.spotData.related, this.diverProfile);
+        }
+        this.windowConfig = sharedSpotWindowConfig?.getBySpotId?.(this.spotId) || null;
         this.activeRelatedSpotId = this.spotData.related?.[0]?.id || null;
         return this.spotData;
     }
@@ -1886,6 +1907,10 @@ class DetailPage {
         } catch (error) {
             console.error('[Yanqi detail] Failed to load primary detail spot data:', error);
             this.spotData = buildBootstrapDetailSpotData(this.spotId);
+            if (Array.isArray(this.spotData.related) && sharedDiverProfile?.sortSpotsForProfile) {
+                this.spotData.related = sharedDiverProfile.sortSpotsForProfile(this.spotData.related, this.diverProfile);
+            }
+            this.windowConfig = sharedSpotWindowConfig?.getBySpotId?.(this.spotId) || null;
             this.activeRelatedSpotId = this.spotData.related?.[0]?.id || null;
         }
 
@@ -2304,6 +2329,7 @@ class DetailPage {
         this.resetBookingCopySwapState();
         this.resetBookingFocusSwapState();
         this.clearBookingStickyFocusContextTransition();
+        this.setBookingStickyFocusContextMotionState('');
         this.setBookingStickyFocusContextPhase('');
         this.applyBookingStickyFocusOnlyState(false);
         this.bookingStickyFocusContextState = 'list';
@@ -2783,6 +2809,9 @@ class DetailPage {
         this.reviewsHydrated = false;
         this.relatedHydrated = false;
         this.footerHydrated = false;
+        this.diverProfile = sharedDiverProfile?.getProfile?.() || this.diverProfile;
+        this.windowConfig = sharedSpotWindowConfig?.getBySpotId?.(this.spotId) || this.windowConfig;
+        sharedShowcaseState?.recordRecentSpot?.(this.spotId);
         document.title = `盐憩 - ${this.spotData.name}`;
 
         document.getElementById('spotName').textContent = this.spotData.name;
@@ -2798,7 +2827,7 @@ class DetailPage {
             heroImage.alt = `${this.spotData.name}潜点风景`;
             heroImage.onerror = () => {
                 heroImage.onerror = null;
-                heroImage.src = `https://via.placeholder.com/1600x900?text=${encodeURIComponent(this.spotData.name)}`;
+                heroImage.src = getDetailFallbackImage(this.spotData.name, 1600, 900);
             };
         }
 
@@ -3422,6 +3451,154 @@ class DetailPage {
     }
 
     /**
+     * isBookingStickyDesktopFocusContextEnabled() - 判断右侧 focus-only 动画是否启用桌面端合成层过渡。
+     * @returns {boolean}
+     */
+    isBookingStickyDesktopFocusContextEnabled() {
+        return Boolean(
+            this.bookingSticky &&
+            window.innerWidth >= BOOKING_STICKY_DESKTOP_FOCUS_CONTEXT_MIN_WIDTH
+        );
+    }
+
+    /**
+     * setBookingStickyFocusContextMotionState() - 设置 focus-only 过渡中的 motion 子阶段。
+     * @param {string} state - entering / leaving-prep / leaving / settling / ''
+     * @returns {void}
+     */
+    setBookingStickyFocusContextMotionState(state) {
+        if (!this.bookingSticky) {
+            return;
+        }
+
+        const normalizedState = ['entering', 'leaving-prep', 'leaving', 'settling'].includes(state)
+            ? state
+            : '';
+        if (normalizedState) {
+            this.bookingSticky.dataset.focusContextMotion = normalizedState;
+        } else {
+            delete this.bookingSticky.dataset.focusContextMotion;
+        }
+    }
+
+    /**
+     * setBookingStickyFocusContextShift() - 缓存并写入 focus-only 过渡所需的上移距离。
+     * @param {number} shift - 需要上移的像素值
+     * @returns {number}
+     */
+    setBookingStickyFocusContextShift(shift) {
+        const safeShift = Math.max(0, Math.round(Number(shift) || 0));
+        this.bookingStickyFocusContextShift = safeShift;
+        this.bookingSticky?.style.setProperty('--booking-sticky-focus-shift', `${safeShift}px`);
+        return safeShift;
+    }
+
+    /**
+     * measureBookingStickyFocusContextShift() - 测量价格块与匹配标签占用的真实高度，供 focus-only motion 使用。
+     * @returns {number}
+     */
+    measureBookingStickyFocusContextShift() {
+        if (!this.bookingSticky) {
+            return 0;
+        }
+
+        const measureOuterHeight = (element) => {
+            if (!(element instanceof HTMLElement)) {
+                return 0;
+            }
+
+            const computedStyle = window.getComputedStyle(element);
+            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+                return 0;
+            }
+
+            const rect = element.getBoundingClientRect();
+            const height = rect.height || element.offsetHeight || 0;
+            if (height <= 0.5) {
+                return 0;
+            }
+
+            const marginTop = parseFloat(computedStyle.marginTop || '0') || 0;
+            const marginBottom = parseFloat(computedStyle.marginBottom || '0') || 0;
+            return Math.ceil(height + marginTop + marginBottom);
+        };
+
+        const priceBadge = this.bookingSticky.querySelector('.price-badge');
+        const bookingMatch = this.packageMatchTags || this.bookingSticky.querySelector('.booking-match');
+        const measuredShift = measureOuterHeight(priceBadge) + measureOuterHeight(bookingMatch);
+        const nextShift = measuredShift > 0 ? measuredShift : this.bookingStickyFocusContextShift;
+        return this.setBookingStickyFocusContextShift(nextShift);
+    }
+
+    /**
+     * armBookingStickyFocusContextFallback() - 为 focus-only 动画阶段挂一个 transitionend 兜底。
+     * @param {'entering'|'leaving'} direction - 当前等待结束的方向
+     * @returns {void}
+     */
+    armBookingStickyFocusContextFallback(direction) {
+        if (!this.bookingSticky) {
+            return;
+        }
+
+        if (this.bookingStickyFocusContextFallbackTimer) {
+            window.clearTimeout(this.bookingStickyFocusContextFallbackTimer);
+            this.bookingStickyFocusContextFallbackTimer = 0;
+        }
+
+        this.bookingStickyFocusContextFallbackTimer = window.setTimeout(() => {
+            this.bookingStickyFocusContextFallbackTimer = 0;
+            this.finishBookingStickyFocusContextTransition(direction);
+        }, BOOKING_STICKY_FOCUS_CONTEXT_MOTION_FALLBACK_MS);
+    }
+
+    /**
+     * finishBookingStickyFocusContextTransition() - 统一收尾 entering / leaving 的桌面端 focus-only motion。
+     * @param {'entering'|'leaving'} direction - 当前结束的方向
+     * @returns {void}
+     */
+    finishBookingStickyFocusContextTransition(direction) {
+        if (!this.bookingSticky) {
+            return;
+        }
+
+        const normalizedDirection = direction === 'leaving' ? 'leaving' : 'entering';
+        const targetPackageId = this.bookingStickyFocusContextTargetPackageId || this.selectedPackageId;
+
+        this.clearBookingStickyFocusContextTransition();
+
+        if (normalizedDirection === 'entering') {
+            if (this.bookingStickyFocusContextState !== 'entering') {
+                return;
+            }
+
+            this.setBookingStickyFocusContextMotionState('settling');
+            this.setBookingStickyFocusContextPhase('');
+            this.applyBookingStickyFocusOnlyState(true);
+            this.bookingStickyFocusContextState = 'focus';
+            this.applyPackageCardSelectionState(targetPackageId);
+
+            this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+                this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+                    this.bookingStickyFocusContextRaf = 0;
+                    this.setBookingStickyFocusContextMotionState('');
+                    this.applyPackageCardSelectionState(targetPackageId);
+                });
+            });
+            return;
+        }
+
+        if (this.bookingStickyFocusContextState !== 'leaving') {
+            return;
+        }
+
+        this.setBookingStickyFocusContextPhase('');
+        this.setBookingStickyFocusContextMotionState('');
+        this.applyBookingStickyFocusOnlyState(false);
+        this.bookingStickyFocusContextState = 'list';
+        this.applyPackageCardSelectionState(targetPackageId);
+    }
+
+    /**
      * setBookingStickyFocusContextPhase() - 设置 booking-sticky 的聚焦阶段标识，帮助 CSS 过渡。
      * @param {string} phase - 取值 "entering" / "leaving" / "" 。
      * @returns {void}
@@ -3437,24 +3614,7 @@ class DetailPage {
         } else {
             delete this.bookingSticky.dataset.focusContextPhase;
         }
-
-        if (this.bookingFocusContextPhaseTimer) {
-            window.clearTimeout(this.bookingFocusContextPhaseTimer);
-            this.bookingFocusContextPhaseTimer = 0;
-        }
-
-        if (!normalizedPhase) {
-            this.applyPackageCardSelectionState();
-            return;
-        }
-
-        this.bookingFocusContextPhaseTimer = window.setTimeout(() => {
-            if (this.bookingSticky) {
-                delete this.bookingSticky.dataset.focusContextPhase;
-            }
-            this.bookingFocusContextPhaseTimer = 0;
-            this.applyPackageCardSelectionState();
-        }, 380);
+        this.applyPackageCardSelectionState();
     }
 
     /**
@@ -3465,6 +3625,16 @@ class DetailPage {
         if (this.bookingStickyFocusContextCommitTimer) {
             window.clearTimeout(this.bookingStickyFocusContextCommitTimer);
             this.bookingStickyFocusContextCommitTimer = 0;
+        }
+
+        if (this.bookingStickyFocusContextFallbackTimer) {
+            window.clearTimeout(this.bookingStickyFocusContextFallbackTimer);
+            this.bookingStickyFocusContextFallbackTimer = 0;
+        }
+
+        if (this.bookingFocusContextPhaseTimer) {
+            window.clearTimeout(this.bookingFocusContextPhaseTimer);
+            this.bookingFocusContextPhaseTimer = 0;
         }
 
         if (this.bookingStickyFocusContextRaf) {
@@ -3507,6 +3677,18 @@ class DetailPage {
         }
 
         const shouldFocusOnly = Boolean(isFocusOnlyContext);
+        this.bookingStickyFocusContextTargetPackageId = packageId || this.selectedPackageId || '';
+
+        if (!this.isBookingStickyDesktopFocusContextEnabled()) {
+            this.clearBookingStickyFocusContextTransition();
+            this.setBookingStickyFocusContextMotionState('');
+            this.setBookingStickyFocusContextPhase('');
+            this.applyBookingStickyFocusOnlyState(shouldFocusOnly);
+            this.bookingStickyFocusContextState = shouldFocusOnly ? 'focus' : 'list';
+            this.applyPackageCardSelectionState(packageId);
+            return;
+        }
+
         const state = this.bookingStickyFocusContextState || (
             this.bookingSticky.classList.contains('is-focus-only-context') ? 'focus' : 'list'
         );
@@ -3518,30 +3700,34 @@ class DetailPage {
             }
 
             if (state === 'entering') {
+                this.applyPackageCardSelectionState(packageId);
                 return;
             }
 
+            if (state === 'leaving') {
+                this.clearBookingStickyFocusContextTransition();
+                this.setBookingStickyFocusContextMotionState('');
+                this.setBookingStickyFocusContextPhase('');
+                this.applyBookingStickyFocusOnlyState(false);
+                this.bookingStickyFocusContextState = 'list';
+            }
+
             this.clearBookingStickyFocusContextTransition();
-            this.bookingStickyListContextScrollTop = this.bookingSticky.scrollTop || 0;
+            this.measureBookingStickyFocusContextShift();
+            this.bookingStickyListContextScrollTop = this.bookingSticky.scrollTop || this.bookingStickyListContextScrollTop || 0;
             this.bookingStickyScrollTargetTop = this.bookingStickyListContextScrollTop;
             this.bookingStickyFocusContextState = 'entering';
-            this.setBookingStickyFocusContextPhase('entering');
             this.applyBookingStickyFocusOnlyState(false);
-
-            this.bookingStickyFocusContextCommitTimer = window.setTimeout(() => {
-                this.bookingStickyFocusContextCommitTimer = 0;
-                if (!this.bookingSticky || this.bookingStickyFocusContextState !== 'entering') {
-                    return;
-                }
-
-                this.applyBookingStickyFocusOnlyState(true);
-                this.bookingStickyFocusContextState = 'focus';
-                this.applyPackageCardSelectionState(packageId);
-            }, 360);
+            this.setBookingStickyFocusContextPhase('entering');
+            this.setBookingStickyFocusContextMotionState('entering');
+            this.armBookingStickyFocusContextFallback('entering');
+            this.applyPackageCardSelectionState(packageId);
             return;
         }
 
         if (state === 'list') {
+            this.setBookingStickyFocusContextMotionState('');
+            this.setBookingStickyFocusContextPhase('');
             this.applyBookingStickyFocusOnlyState(false);
             this.applyPackageCardSelectionState(packageId);
             return;
@@ -3549,6 +3735,7 @@ class DetailPage {
 
         if (state === 'entering') {
             this.clearBookingStickyFocusContextTransition();
+            this.setBookingStickyFocusContextMotionState('');
             this.bookingStickyFocusContextState = 'list';
             this.setBookingStickyFocusContextPhase('');
             this.applyBookingStickyFocusOnlyState(false);
@@ -3562,15 +3749,27 @@ class DetailPage {
 
         this.clearBookingStickyFocusContextTransition();
         this.bookingStickyFocusContextState = 'leaving';
-        this.setBookingStickyFocusContextPhase('leaving');
-        this.applyBookingStickyFocusOnlyState(false);
-
+        this.measureBookingStickyFocusContextShift();
         const maxScrollTop = this.getBookingStickyMaxScrollTop();
         const restoreTop = Math.max(0, Math.min(this.bookingStickyListContextScrollTop || 0, maxScrollTop));
         this.bookingStickyScrollTargetTop = restoreTop;
+        this.setBookingStickyFocusContextMotionState('leaving-prep');
+        this.setBookingStickyFocusContextPhase('leaving');
+        this.applyBookingStickyFocusOnlyState(false);
         this.bookingSticky.scrollTop = restoreTop;
-        this.bookingStickyFocusContextState = 'list';
         this.applyPackageCardSelectionState(packageId);
+
+        this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+            this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+                this.bookingStickyFocusContextRaf = 0;
+                if (!this.bookingSticky || this.bookingStickyFocusContextState !== 'leaving') {
+                    return;
+                }
+
+                this.setBookingStickyFocusContextMotionState('leaving');
+                this.armBookingStickyFocusContextFallback('leaving');
+            });
+        });
     }
 
     /**
@@ -3587,6 +3786,7 @@ class DetailPage {
         this.bookingSticky.style.setProperty('--booking-copy-stick-top', '0px');
         this.bookingSticky.style.setProperty('--booking-copy-stick-height', `${copyHeight}px`);
         this.bookingSticky.style.setProperty('--booking-sticky-stack-gap', '18px');
+        this.measureBookingStickyFocusContextShift();
     }
 
     /**
@@ -3648,6 +3848,10 @@ class DetailPage {
             this.bookingSticky.removeEventListener('scroll', this.handleBookingStickyListScroll);
         }
 
+        if (typeof this.handleBookingStickyFocusContextTransitionEnd === 'function') {
+            this.bookingSticky.removeEventListener('transitionend', this.handleBookingStickyFocusContextTransitionEnd);
+        }
+
         this.handleBookingStickyListScroll = () => {
             if (!this.bookingSticky) {
                 return;
@@ -3672,6 +3876,23 @@ class DetailPage {
             this.bookingStickyScrollTargetTop = this.bookingStickyListContextScrollTop;
         };
         this.bookingSticky.addEventListener('scroll', this.handleBookingStickyListScroll, { passive: true });
+
+        this.handleBookingStickyFocusContextTransitionEnd = (event) => {
+            if (!this.bookingSticky || event.target !== this.bookingSticky || event.propertyName !== 'transform') {
+                return;
+            }
+
+            const motionState = this.bookingSticky.dataset.focusContextMotion || '';
+            if (this.bookingStickyFocusContextState === 'entering' && motionState === 'entering') {
+                this.finishBookingStickyFocusContextTransition('entering');
+                return;
+            }
+
+            if (this.bookingStickyFocusContextState === 'leaving' && motionState === 'leaving') {
+                this.finishBookingStickyFocusContextTransition('leaving');
+            }
+        };
+        this.bookingSticky.addEventListener('transitionend', this.handleBookingStickyFocusContextTransitionEnd);
 
         if ('ResizeObserver' in window) {
             this.bookingCopyResizeObserver?.disconnect();
@@ -4061,11 +4282,14 @@ class DetailPage {
      */
     buildBookingFocusMetaMarkup(pkg, options = {}) {
         const { isBooked = false } = options;
+        const fitResult = this.getPackageFitResult(pkg);
+        const primaryWindow = this.getPackageModalViewState(pkg)?.windowLabel || this.getWindowConfigForSpot()?.dayWindows?.[0]?.label || '';
         const metaItems = [
             isBooked ? '已收进行程' : '',
             pkg?.group,
             pkg?.duration,
-            Array.isArray(pkg?.fitTags) ? pkg.fitTags[0] : ''
+            fitResult.label || (Array.isArray(pkg?.fitTags) ? pkg.fitTags[0] : ''),
+            primaryWindow
         ].filter(Boolean);
 
         return metaItems.map((item) => `
@@ -4081,10 +4305,12 @@ class DetailPage {
      */
     getBookingFocusSummary(pkg, sectionKey, options = {}) {
         const { isBooked = false } = options;
+        const fitResult = this.getPackageFitResult(pkg);
         const summaryParts = [
             pkg?.audience ? `适合 ${pkg.audience}` : '',
             pkg?.diveSummary || '',
-            pkg?.staySummary || ''
+            pkg?.staySummary || '',
+            fitResult.reason || ''
         ].filter(Boolean);
 
         const leadMap = {
@@ -5521,7 +5747,8 @@ class DetailPage {
             ['出发酒店', atlas.route.hotel],
             ['出发码头', mapData?.portLabel || atlas.route.harbor],
             ['当前季节', mapData?.seasonLabel || atlas.season],
-            ['推荐深度', mapData?.depthRange || atlas.depth]
+            ['推荐深度', mapData?.depthRange || atlas.depth],
+            ['当前窗口', this.getWindowConfigForSpot()?.dayWindows?.[0]?.label || '窗口待定']
         ];
         const underwaterLayers = Array.isArray(atlas.underwater?.layers) ? atlas.underwater.layers : [];
         const underwaterHotspots = Array.isArray(atlas.underwater?.hotspots) ? atlas.underwater.hotspots : [];
@@ -5718,10 +5945,10 @@ class DetailPage {
                 </div>
                 <div class="sea-atlas-route-overlay" data-sea-atlas-route-overlay aria-hidden="true">
                     <svg class="sea-atlas-route-svg" data-sea-atlas-route-svg preserveAspectRatio="none">
-                        <path class="sea-atlas-route-line-glow sea-route-line-glow" data-sea-atlas-route-layer="glow"></path>
-                        <path class="sea-atlas-route-line-base sea-route-line-base" data-sea-atlas-route-layer="base"></path>
-                        <path class="sea-atlas-route-line sea-route-line" data-sea-atlas-route-layer="line"></path>
-                        <path class="sea-atlas-route-line-sheen sea-route-line-sheen" data-sea-atlas-route-layer="sheen"></path>
+                        <path class="sea-atlas-route-line-glow sea-route-line-glow" data-sea-atlas-route-layer="glow" fill="none"></path>
+                        <path class="sea-atlas-route-line-base sea-route-line-base" data-sea-atlas-route-layer="base" fill="none"></path>
+                        <path class="sea-atlas-route-line sea-route-line" data-sea-atlas-route-layer="line" fill="none"></path>
+                        <path class="sea-atlas-route-line-sheen sea-route-line-sheen" data-sea-atlas-route-layer="sheen" fill="none"></path>
                     </svg>
                 </div>
                 <div class="sea-atlas-info-root" data-sea-atlas-info-root></div>
@@ -5905,10 +6132,10 @@ class DetailPage {
 
         routeStage.innerHTML = `
             <svg class="sea-route-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
-                <path class="sea-route-line-glow" d="${routePath}"></path>
-                <path class="sea-route-line-base" d="${routePath}"></path>
-                <path class="sea-route-line" d="${routePath}"></path>
-                <path class="sea-route-line-sheen" d="${routePath}"></path>
+                <path class="sea-route-line-glow" d="${routePath}" fill="none"></path>
+                <path class="sea-route-line-base" d="${routePath}" fill="none"></path>
+                <path class="sea-route-line" d="${routePath}" fill="none"></path>
+                <path class="sea-route-line-sheen" d="${routePath}" fill="none"></path>
                 ${routeNodes.map((node, index) => `
                     <g class="sea-route-anchor-dot${node.final ? ' is-final' : ''}" style="--route-index:${index};" aria-hidden="true">
                         <circle class="sea-route-anchor-dot-halo" cx="${node.x}" cy="${node.y}" r="${node.final ? 12 : 10}"></circle>
@@ -7969,6 +8196,24 @@ class DetailPage {
         return this.packageData.find((pkg) => pkg.id === packageId) || null;
     }
 
+    getWindowConfigForSpot(spotId = this.spotId) {
+        return sharedSpotWindowConfig?.getBySpotId?.(spotId) || this.windowConfig || null;
+    }
+
+    getPackageFitResult(pkg) {
+        return sharedDiverProfile?.evaluatePackageFit?.({
+            profile: this.diverProfile,
+            spotId: this.spotId,
+            pkg,
+            windowConfig: this.getWindowConfigForSpot()
+        }) || {
+            label: '',
+            tone: 'fit',
+            reason: '',
+            prepFlags: []
+        };
+    }
+
     /**
      * getReviewById(reviewId) - 按 ID 获取指定评论数据
      * @param {string} reviewId - 评论 ID
@@ -8010,6 +8255,8 @@ class DetailPage {
         this.itineraryList.innerHTML = flowPackages.map((pkg, index) => {
             const isActive = pkg.id === this.selectedPackageId;
             const isBooked = bookedPackageIds.has(pkg.id);
+            const fitResult = this.getPackageFitResult(pkg);
+            const windowLabel = this.getPackageModalViewState(pkg)?.windowLabel || this.getWindowConfigForSpot()?.dayWindows?.[0]?.label || '';
             const stateMarkup = isBooked
                 ? '<div class="package-card-state-stack"><span class="package-card-state package-card-state-booked">已收进行程</span></div>'
                 : '';
@@ -8043,12 +8290,13 @@ class DetailPage {
                             ${stateMarkup}
                         </div>
 
-                        <div class="package-card-audience">
-                            <span class="package-card-section-label">适合谁</span>
-                            <p class="package-card-audience-copy">${pkg.audience}</p>
-                            <div class="package-tag-cluster package-tag-cluster-fit">
-                                ${fitPlates}
-                            </div>
+                            <div class="package-card-audience">
+                                <span class="package-card-section-label">适合谁</span>
+                                <p class="package-card-audience-copy">${pkg.audience}</p>
+                                ${fitResult.label ? `<p class="package-card-fit-note is-${fitResult.tone}">${fitResult.label} · ${fitResult.reason}</p>` : ''}
+                                <div class="package-tag-cluster package-tag-cluster-fit">
+                                    ${fitPlates}
+                                </div>
                         </div>
                     </div>
 
@@ -8078,11 +8326,12 @@ class DetailPage {
                         </div>
                     </div>
 
-                    <div class="package-card-focus">
-                        <span class="package-card-section-label">当前海流</span>
-                        <p class="package-card-focus-copy">${focusCopy}</p>
-                        <div class="package-card-echo-slot" data-package-card-echo-slot></div>
-                    </div>
+                        <div class="package-card-focus">
+                            <span class="package-card-section-label">当前海流</span>
+                            <p class="package-card-focus-copy">${focusCopy}</p>
+                            ${windowLabel ? `<p class="package-card-window-note">更适合 ${windowLabel} 这一段入海。</p>` : ''}
+                            <div class="package-card-echo-slot" data-package-card-echo-slot></div>
+                        </div>
 
                     <div class="package-card-footer">
                         <p class="package-card-guidance">${guidanceCopy}</p>
@@ -8186,6 +8435,7 @@ class DetailPage {
         const measuredHeight = Math.ceil(this.itineraryList.scrollHeight || 0);
         const safeHeight = Math.max(measuredHeight + 32, 480);
         this.itineraryList.style.setProperty('--booking-itinerary-list-open-height', `${safeHeight}px`);
+        this.measureBookingStickyFocusContextShift();
     }
 
     /**
@@ -8985,7 +9235,7 @@ class DetailPage {
                                 loading="lazy"
                                 decoding="async"
                                 fetchpriority="low"
-                                onerror="this.onerror=null;this.src='https://via.placeholder.com/1200x900?text=${encodeURIComponent(review.featurePhoto.caption)}';"
+                                onerror="this.onerror=null;this.src='${getDetailFallbackImage(review.featurePhoto.caption, 1200, 900)}';"
                                 style="object-position: ${review.featurePhoto.position};"
                             >
                             <span class="review-photo-caption review-photo-caption-featured">${review.featurePhoto.caption}</span>
@@ -9006,7 +9256,7 @@ class DetailPage {
                                 loading="lazy"
                                 decoding="async"
                                 fetchpriority="low"
-                                onerror="this.onerror=null;this.src='https://via.placeholder.com/960x720?text=${encodeURIComponent(photo.caption)}';"
+                                onerror="this.onerror=null;this.src='${getDetailFallbackImage(photo.caption, 960, 720)}';"
                                 style="object-position: ${photo.position};"
                             >
                             <span class="review-photo-caption">${photo.caption}</span>
@@ -9891,7 +10141,7 @@ class DetailPage {
                                         loading="lazy"
                                         decoding="async"
                                         fetchpriority="low"
-                                        onerror="this.onerror=null;this.src='https://via.placeholder.com/1200x900?text=${encodeURIComponent(photo.caption)}';"
+                                        onerror="this.onerror=null;this.src='${getDetailFallbackImage(photo.caption, 1200, 900)}';"
                                         style="object-position: ${photo.position};"
                                     >
                                     <span class="review-detail-photo-caption">${photo.caption}</span>
@@ -9963,24 +10213,28 @@ class DetailPage {
 
     getPackageModalWindowOptions(pkg) {
         const defaultKey = this.getPackageModalDefaultWindowKey(pkg);
+        const config = this.getWindowConfigForSpot();
+        const options = Array.isArray(config?.dayWindows) && config.dayWindows.length
+            ? config.dayWindows
+            : [
+                {
+                    key: 'dawn',
+                    label: '清晨入海',
+                    hint: '把更轻的第一束蓝，留给刚刚开始的下潜。'
+                },
+                {
+                    key: 'arrival',
+                    label: '午后抵达',
+                    hint: '把抵达、适应和海边慢住留得更松一点。'
+                },
+                {
+                    key: 'afterglow',
+                    label: '黄昏慢住',
+                    hint: '把傍晚的风、潜后停驻和海面余光一起留下。'
+                }
+            ];
 
-        return [
-            {
-                key: 'dawn',
-                label: '清晨入海',
-                hint: '把更轻的第一束蓝，留给刚刚开始的下潜。'
-            },
-            {
-                key: 'arrival',
-                label: '午后抵达',
-                hint: '把抵达、适应和海边慢住留得更松一点。'
-            },
-            {
-                key: 'afterglow',
-                label: '黄昏慢住',
-                hint: '把傍晚的风、潜后停驻和海面余光一起留下。'
-            }
-        ].map((option) => ({
+        return options.map((option) => ({
             ...option,
             isDefault: option.key === defaultKey
         }));
@@ -10940,6 +11194,7 @@ class DetailPage {
             : 0;
 
         this.bookingModalBody.innerHTML = this.createPackageModalMarkup(pkg);
+        this.enhanceBookingModalPanel(pkg);
 
         const nextModalContent = this.bookingModal?.querySelector('.booking-modal-content');
         if (nextModalContent) {
@@ -10955,6 +11210,45 @@ class DetailPage {
                 this.runPackageModalEditorOpenMotion(pkg.id);
             });
         }
+    }
+
+    enhanceBookingModalPanel(pkg) {
+        if (!this.bookingModalBody) {
+            return;
+        }
+
+        const shell = this.bookingModalBody.querySelector('.package-modal-shell');
+        const head = this.bookingModalBody.querySelector('.package-modal-head');
+        if (!shell || !head) {
+            return;
+        }
+
+        shell.querySelector('.package-modal-personal-panel')?.remove();
+
+        const fitResult = this.getPackageFitResult(pkg);
+        const modalState = this.getPackageModalViewState(pkg);
+        const windowConfig = this.getWindowConfigForSpot();
+        const monthWindowLabel = (windowConfig?.recommendedMonths || []).length
+            ? `${windowConfig.recommendedMonths.join(' / ')} 月更稳`
+            : '窗口待确认';
+        const panel = document.createElement('section');
+        panel.className = 'package-modal-personal-panel';
+        panel.innerHTML = `
+            <div class="package-modal-personal-card is-${escapeHtml(fitResult.tone || 'fit')}">
+                <p class="package-modal-personal-kicker">Profile Fit</p>
+                <h3 class="package-modal-personal-title">${escapeHtml(fitResult.label || '适合')}</h3>
+                <p class="package-modal-personal-copy">${escapeHtml(fitResult.reason || '这套安排和你此刻的节奏更容易对上。')}</p>
+            </div>
+            <div class="package-modal-personal-card">
+                <p class="package-modal-personal-kicker">Sea Window</p>
+                <h3 class="package-modal-personal-title">${escapeHtml(modalState?.windowLabel || windowConfig?.dayWindows?.[0]?.label || '窗口待定')}</h3>
+                <p class="package-modal-personal-copy">${escapeHtml(modalState?.windowHint || '')}</p>
+                <p class="package-modal-personal-meta">推荐月份 · ${escapeHtml(monthWindowLabel)}</p>
+                ${windowConfig?.reentryNote ? `<p class="package-modal-personal-footnote">${escapeHtml(windowConfig.reentryNote)}</p>` : ''}
+            </div>
+        `;
+
+        head.insertAdjacentElement('afterend', panel);
     }
 
     /**
@@ -12606,6 +12900,7 @@ class DetailPage {
             ? this.tripStore.getPlannerDraft()
             : {};
         const modalState = this.getPackageModalViewState(pkg);
+        const fitResult = this.getPackageFitResult(pkg);
         const packageTags = modalState?.isCustomized
             ? Array.from(new Set([
                 modalState.durationLabel,
@@ -12629,6 +12924,11 @@ class DetailPage {
             packagePrice: modalState?.priceLabel || pkg.price,
             packageNote,
             packageTags,
+            fitLabel: fitResult.label || '',
+            windowKey: modalState?.windowKey || '',
+            windowLabel: modalState?.windowLabel || '',
+            prepFlags: Array.isArray(fitResult.prepFlags) ? fitResult.prepFlags.slice() : [],
+            briefId: `yanqi-brief:${this.spotId}:${pkg.id}:${modalState?.windowKey || 'window'}:${draft.dateValue || 'open-date'}`,
             selectedDate: draft.dateValue || '',
             selectedDateLabel: draft.dateLabel || '',
             selectedPeople: modalState?.peopleValue || '',
@@ -12679,6 +12979,8 @@ class DetailPage {
             <span class="booking-confirm-chip">${escapeHtml(booking.spotName || '未命名海域')}</span>
             <span class="booking-confirm-chip">${escapeHtml(booking.packageTitle || '未命名套餐')}</span>
             ${booking.packageTier ? `<span class="booking-confirm-chip">${escapeHtml(booking.packageTier)}</span>` : ''}
+            ${booking.fitLabel ? `<span class="booking-confirm-chip">${escapeHtml(booking.fitLabel)}</span>` : ''}
+            ${booking.windowLabel ? `<span class="booking-confirm-chip">${escapeHtml(booking.windowLabel)}</span>` : ''}
             <span class="booking-confirm-chip">潮汐：${escapeHtml(dateCopy)}</span>
             <span class="booking-confirm-chip">同行：${escapeHtml(peopleCopy)}</span>
         `;
@@ -12696,8 +12998,13 @@ class DetailPage {
 
         window.clearTimeout(this.bookingConfirmCloseTimer);
         this.bookingConfirmFeedback.classList.remove('is-closing');
-        this.bookingConfirmCopy.textContent = '你可以继续留在这里看这片海，也可以去“我的行程”整理出发时间与同行节奏。';
+        this.bookingConfirmCopy.textContent = '你可以继续留在这里看这片海，也可以去“我的行程”直接查看这一潜的回执与准备判断。';
         this.bookingConfirmMeta.innerHTML = this.renderBookingConfirmedMeta(savedBooking);
+        if (this.bookingConfirmGoTrip) {
+            this.bookingConfirmGoTrip.href = savedBooking?.briefId
+                ? `trip.html#seaBriefStage`
+                : 'trip.html#confirmedBookingsStage';
+        }
         this.bookingConfirmFeedback.classList.add('active');
         this.bookingConfirmFeedback.setAttribute('aria-hidden', 'false');
         this.syncOverlayLock();
@@ -12854,7 +13161,7 @@ class DetailPage {
         this.reviewLightboxImage.alt = alt;
         this.reviewLightboxImage.onerror = () => {
             this.reviewLightboxImage.onerror = null;
-            this.reviewLightboxImage.src = `https://via.placeholder.com/1200x900?text=${encodeURIComponent(caption || this.spotData.name)}`;
+            this.reviewLightboxImage.src = getDetailFallbackImage(caption || this.spotData.name, 1200, 900);
         };
         if (this.reviewLightboxCaption) {
             this.reviewLightboxCaption.textContent = caption;
@@ -12931,7 +13238,7 @@ class DetailPage {
                             src="${activeImage}"
                             alt="${activeSpot.name}"
                             class="related-feature-image"
-                            onerror="this.src='https://via.placeholder.com/960x620?text=${encodeURIComponent(activeSpot.name)}'"
+                            onerror="this.src='${getDetailFallbackImage(activeSpot.name, 960, 620)}'"
                         >
                         <div class="related-feature-overlay"></div>
                     </div>
@@ -12981,7 +13288,7 @@ class DetailPage {
                                         src="${spotImage}"
                                         alt="${spot.name}"
                                         class="related-neighbor-image"
-                                        onerror="this.src='https://via.placeholder.com/420x320?text=${encodeURIComponent(spot.name)}'"
+                                        onerror="this.src='${getDetailFallbackImage(spot.name, 420, 320)}'"
                                     >
                                 </div>
                                 <div class="related-neighbor-copy">
@@ -14353,6 +14660,8 @@ class DetailPage {
 
         window.addEventListener('pagehide', () => {
             this.teardownBookingModalForPageExit();
+            this.clearBookingStickyFocusContextTransition();
+            this.setBookingStickyFocusContextMotionState('');
             this.setBookingStickyFocusContextPhase('');
 
             if (this.inDocumentDetailSwapTimer) {
