@@ -4800,6 +4800,84 @@ class DiveMatchStage {
             .sort((left, right) => Number(left.dataset.typeOrder || 0) - Number(right.dataset.typeOrder || 0));
     }
 
+    getProfilePanelTrackLineTexts(track) {
+        return this.getProfilePanelTypeLines(track).map((line) => (
+            line.dataset.text
+            || line.getAttribute('aria-label')
+            || line.textContent
+            || ''
+        ).trim());
+    }
+
+    buildProfilePanelTypeDiff(text, previousText = '') {
+        const nextChars = Array.from(String(text || ''));
+        const previousChars = Array.from(String(previousText || ''));
+        const changedMap = new Array(nextChars.length).fill(false);
+
+        if (!nextChars.length) {
+            return {
+                changedMap,
+                hasDiff: false
+            };
+        }
+
+        if (!previousChars.length) {
+            nextChars.forEach((char, index) => {
+                if (!/\s/.test(char)) {
+                    changedMap[index] = true;
+                }
+            });
+
+            return {
+                changedMap,
+                hasDiff: changedMap.some(Boolean)
+            };
+        }
+
+        let prefixLength = 0;
+        while (
+            prefixLength < nextChars.length
+            && prefixLength < previousChars.length
+            && nextChars[prefixLength] === previousChars[prefixLength]
+        ) {
+            prefixLength += 1;
+        }
+
+        let nextSuffixIndex = nextChars.length - 1;
+        let previousSuffixIndex = previousChars.length - 1;
+        while (
+            nextSuffixIndex >= prefixLength
+            && previousSuffixIndex >= prefixLength
+            && nextChars[nextSuffixIndex] === previousChars[previousSuffixIndex]
+        ) {
+            nextSuffixIndex -= 1;
+            previousSuffixIndex -= 1;
+        }
+
+        for (let index = prefixLength; index <= nextSuffixIndex; index += 1) {
+            if (!/\s/.test(nextChars[index])) {
+                changedMap[index] = true;
+            }
+        }
+
+        return {
+            changedMap,
+            hasDiff: changedMap.some(Boolean)
+        };
+    }
+
+    syncProfilePanelTrackPreviousTexts(track, previousTexts = []) {
+        if (!track) {
+            return;
+        }
+
+        this.getProfilePanelTypeLines(track).forEach((line, index) => {
+            const text = (line.dataset.text || line.textContent || '').trim();
+            line.dataset.text = text;
+            line.dataset.previousText = previousTexts[index] ?? text;
+        });
+    }
+
     buildProfilePanelTypeCharacters(line, options = {}) {
         if (!line) {
             return [];
@@ -4807,25 +4885,47 @@ class DiveMatchStage {
 
         const { active = false } = options;
         const text = line.dataset.text || line.textContent || '';
+        const previousText = options.previousText ?? line.dataset.previousText ?? text;
+        const { changedMap, hasDiff } = active
+            ? { changedMap: new Array(Array.from(String(text)).length).fill(false), hasDiff: false }
+            : this.buildProfilePanelTypeDiff(text, previousText);
         const fragment = document.createDocumentFragment();
+        const ghostLayer = document.createElement('span');
+        ghostLayer.className = 'dive-match-profile-type-ghost';
+        ghostLayer.setAttribute('aria-hidden', 'true');
         const activeLayer = document.createElement('span');
         activeLayer.className = 'dive-match-profile-type-active';
         activeLayer.setAttribute('aria-hidden', 'true');
-        const characters = Array.from(String(text)).map((char) => {
+        const characters = Array.from(String(text)).map((char, index) => {
+            const isSpace = /\s/.test(char);
+            const isChanged = Boolean(changedMap[index]) && !isSpace;
+            const ghostCharNode = document.createElement('span');
             const charNode = document.createElement('span');
+            ghostCharNode.className = 'dive-match-profile-ghost-char';
             charNode.className = 'dive-match-profile-type-char';
+            ghostCharNode.textContent = char;
             charNode.textContent = char;
 
-            if (/\s/.test(char)) {
-                charNode.classList.add('is-space');
-            } else if (active) {
+            if (isSpace) {
+                ghostCharNode.classList.add('is-space');
+                charNode.classList.add('is-space', 'is-visible');
+            } else if (active || !isChanged) {
                 charNode.classList.add('is-visible');
+            } else {
+                ghostCharNode.classList.add('is-diff');
+                charNode.dataset.typeDiff = 'true';
             }
 
+            ghostLayer.appendChild(ghostCharNode);
             activeLayer.appendChild(charNode);
             return charNode;
         });
 
+        line.classList.toggle('has-type-diff', hasDiff);
+        line.dataset.text = text;
+        line.dataset.previousText = previousText;
+        line.dataset.hasTypeDiff = hasDiff ? 'true' : 'false';
+        fragment.appendChild(ghostLayer);
         fragment.appendChild(activeLayer);
         line.setAttribute('aria-label', text);
         line.replaceChildren(fragment);
@@ -4846,6 +4946,9 @@ class DiveMatchStage {
             line.classList.remove('is-typed');
             line.dataset.typingActive = 'false';
             this.buildProfilePanelTypeCharacters(line, { active: false });
+            if (!line.classList.contains('has-type-diff')) {
+                line.classList.add('is-typed');
+            }
         });
 
         track.classList.remove('is-awakened', 'is-typed');
@@ -4900,7 +5003,7 @@ class DiveMatchStage {
     awakenProfilePanelLine(track, line, slotKey, token) {
         return new Promise((resolve) => {
             const state = this.getProfilePanelSlotTransitionState(slotKey);
-            const characters = Array.from(line?.querySelectorAll('.dive-match-profile-type-char:not(.is-space)') || []);
+            const characters = Array.from(line?.querySelectorAll('.dive-match-profile-type-char[data-type-diff=\"true\"]') || []);
             const baseDelay = Number.parseInt(line?.dataset.typeDelay || '34', 10) || 34;
 
             if (!track?.isConnected || !line?.isConnected || state.typingToken !== token || !characters.length) {
@@ -4949,10 +5052,12 @@ class DiveMatchStage {
 
         this.clearProfilePanelTrackTyping(slotKey);
         const lines = this.prepareProfilePanelTrackTypeTargets(track);
+        const diffLines = lines.filter((line) => line.classList.contains('has-type-diff'));
         const state = this.getProfilePanelSlotTransitionState(slotKey);
         const token = state.typingToken;
 
-        if (!lines.length) {
+        if (!diffLines.length) {
+            lines.forEach((line) => line.classList.add('is-typed'));
             track.classList.add('is-typed');
             slotNode?.classList.remove('is-transitioning');
             this.syncProfilePanelMotionState();
@@ -4966,7 +5071,7 @@ class DiveMatchStage {
         void track.offsetWidth;
         track.classList.add('is-awakened');
 
-        for (const line of lines) {
+        for (const line of diffLines) {
             if (!track.isConnected || state.typingToken !== token) {
                 return;
             }
@@ -5099,6 +5204,7 @@ class DiveMatchStage {
 
         const { immediate = false } = options;
         const currentTrack = this.cancelPendingProfilePanelSlotTransition(slotNode, slotKey);
+        const previousLineTexts = this.getProfilePanelTrackLineTexts(currentTrack);
 
         if (currentTrack?.dataset.panelSignature === signature) {
             slotNode.replaceChildren(currentTrack);
@@ -5112,6 +5218,7 @@ class DiveMatchStage {
             nextTrack.dataset.panelSignature = signature;
             nextTrack.innerHTML = markup;
             nextTrack.removeAttribute('aria-hidden');
+            this.syncProfilePanelTrackPreviousTexts(nextTrack, previousLineTexts);
             slotNode.replaceChildren(nextTrack);
             this.restoreProfilePanelTrackTypeText(nextTrack);
             slotNode.classList.remove('is-transitioning');
@@ -5123,6 +5230,7 @@ class DiveMatchStage {
         currentTrack.dataset.panelSignature = signature;
         currentTrack.innerHTML = markup;
         currentTrack.removeAttribute('aria-hidden');
+        this.syncProfilePanelTrackPreviousTexts(currentTrack, previousLineTexts);
         slotNode.replaceChildren(currentTrack);
         this.syncProfilePanelMotionState();
         this.runProfilePanelTrackTypewriter(currentTrack, slotKey, slotNode);

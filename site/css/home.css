@@ -4661,46 +4661,54 @@ body[data-home-performance='lite'] .bamboo-card-content {
     display: grid;
     min-height: 1em;
     isolation: isolate;
-    will-change: opacity, transform, filter;
-    transform: translate3d(0, 0, 0);
-    filter: blur(0);
 }
 
-.dive-match-profile-kicker-line::before,
-.dive-match-profile-title-line::before,
-.dive-match-profile-summary-line::before,
-.dive-match-profile-reason-kicker-line::before,
-.dive-match-profile-reason-title-line::before,
-.dive-match-profile-reason-copy-line::before {
-    content: attr(data-text);
-    grid-area: 1 / 1;
-    white-space: pre-wrap;
-    color: currentColor;
-    opacity: 0.22;
-    filter: blur(1.4px);
-    transform: translate3d(0, 4px, 0);
-    pointer-events: none;
-    transition:
-        opacity 280ms ease,
-        transform 520ms cubic-bezier(0.2, 0.78, 0.22, 1),
-        filter 520ms ease;
-}
-
+.dive-match-profile-type-ghost,
 .dive-match-profile-type-active {
     grid-area: 1 / 1;
-    position: relative;
-    z-index: 1;
     display: block;
     white-space: pre-wrap;
 }
 
-.dive-match-profile-kicker-line.is-typed::before,
-.dive-match-profile-title-line.is-typed::before,
-.dive-match-profile-summary-line.is-typed::before,
-.dive-match-profile-reason-kicker-line.is-typed::before,
-.dive-match-profile-reason-title-line.is-typed::before,
-.dive-match-profile-reason-copy-line.is-typed::before {
-    opacity: 0.04;
+.dive-match-profile-type-ghost {
+    position: relative;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.dive-match-profile-type-active {
+    position: relative;
+    z-index: 1;
+}
+
+.dive-match-profile-ghost-char {
+    display: inline-block;
+    opacity: 0;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    transition:
+        opacity 240ms ease,
+        transform 520ms cubic-bezier(0.2, 0.78, 0.22, 1),
+        filter 520ms ease;
+}
+
+.dive-match-profile-ghost-char.is-space {
+    min-width: 0.3em;
+}
+
+.dive-match-profile-ghost-char.is-diff {
+    opacity: 0.22;
+    filter: blur(1.4px);
+    transform: translate3d(0, 4px, 0);
+}
+
+.dive-match-profile-kicker-line.is-typed .dive-match-profile-ghost-char.is-diff,
+.dive-match-profile-title-line.is-typed .dive-match-profile-ghost-char.is-diff,
+.dive-match-profile-summary-line.is-typed .dive-match-profile-ghost-char.is-diff,
+.dive-match-profile-reason-kicker-line.is-typed .dive-match-profile-ghost-char.is-diff,
+.dive-match-profile-reason-title-line.is-typed .dive-match-profile-ghost-char.is-diff,
+.dive-match-profile-reason-copy-line.is-typed .dive-match-profile-ghost-char.is-diff {
+    opacity: 0;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
 }
@@ -4754,21 +4762,6 @@ body[data-home-performance='lite'] .bamboo-card-content {
     animation-delay: calc(var(--dive-match-profile-line-delay) * 0.35);
 }
 
-.dive-match-profile-copy-track.is-awakened .dive-match-profile-kicker-line,
-.dive-match-profile-copy-track.is-awakened .dive-match-profile-title-line,
-.dive-match-profile-copy-track.is-awakened .dive-match-profile-summary-line,
-.dive-match-profile-reason-track.is-awakened .dive-match-profile-reason-kicker-line,
-.dive-match-profile-reason-track.is-awakened .dive-match-profile-reason-title-line,
-.dive-match-profile-reason-track.is-awakened .dive-match-profile-reason-copy-line {
-    animation: dive-match-profile-line-in 860ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
-    animation-delay: var(--dive-match-profile-line-delay);
-}
-
-.dive-match-profile-copy-track.is-typed .dive-match-profile-title-line,
-.dive-match-profile-reason-track.is-typed .dive-match-profile-reason-title-line {
-    animation: dive-match-profile-title-settle 1.7s ease-out 1 both;
-}
-
 .dive-match-profile-chips {
     display: flex;
     flex-wrap: wrap;
@@ -4782,8 +4775,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match-profile-copy-track.is-awakened .dive-match-profile-chips {
-    opacity: 0.9;
-    transform: translate3d(0, 4px, 0);
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
 }
 
 .dive-match-profile-copy-track.is-typed .dive-match-profile-chips {
