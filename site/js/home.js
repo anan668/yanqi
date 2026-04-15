@@ -22,6 +22,80 @@ const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HERO_HOTSPOTS_STAGE_STORAGE_KEY = 'YANQI_HOME_HOTSPOTS_STAGE_SIZE';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
+const HOME_GUIDE_JUMP_STORAGE_KEY = 'YANQI_HOME_GUIDE_JUMP_MODE';
+const HOME_GUIDE_JUMP_QUERY_KEY = 'guideJump';
+const HOME_GUIDE_JUMP_DEFAULT_MODE = 'custom';
+const HOME_GUIDE_JUMP_LONG_TRAVEL_RATIO = 1.75;
+const HOME_GUIDE_JUMP_PROXIMITY_THRESHOLD = 12;
+const HOME_GUIDE_JUMP_ALLOWED_MODES = new Set(['native', 'staged', 'custom']);
+const HOME_GUIDE_JUMP_MODE_META = Object.freeze({
+    native: Object.freeze({
+        label: '原生长跳',
+        hint: '浏览器接管长距离滚动'
+    }),
+    staged: Object.freeze({
+        label: '分段潜游',
+        hint: '分 2 到 3 段潜游过去'
+    }),
+    custom: Object.freeze({
+        label: '全自定义长跳',
+        hint: '保留整段海流驱动'
+    })
+});
+
+function normalizeHomeGuideJumpMode(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    return HOME_GUIDE_JUMP_ALLOWED_MODES.has(normalized) ? normalized : '';
+}
+
+function resolveHomeGuideJumpMode() {
+    let resolvedMode = '';
+
+    try {
+        const queryValue = new URLSearchParams(window.location.search).get(HOME_GUIDE_JUMP_QUERY_KEY);
+        resolvedMode = normalizeHomeGuideJumpMode(queryValue);
+        if (resolvedMode) {
+            return resolvedMode;
+        }
+    } catch (error) {
+        resolvedMode = '';
+    }
+
+    try {
+        resolvedMode = normalizeHomeGuideJumpMode(localStorage.getItem(HOME_GUIDE_JUMP_STORAGE_KEY));
+        if (resolvedMode) {
+            return resolvedMode;
+        }
+    } catch (error) {
+        resolvedMode = '';
+    }
+
+    return HOME_GUIDE_JUMP_DEFAULT_MODE;
+}
+
+function persistHomeGuideJumpMode(mode) {
+    const nextMode = normalizeHomeGuideJumpMode(mode) || HOME_GUIDE_JUMP_DEFAULT_MODE;
+
+    try {
+        localStorage.setItem(HOME_GUIDE_JUMP_STORAGE_KEY, nextMode);
+    } catch (error) {
+        // 本地存储不可用时静默降级，不阻断调试切换。
+    }
+}
+
+function stripHomeGuideJumpQueryFromUrl() {
+    try {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.delete(HOME_GUIDE_JUMP_QUERY_KEY);
+        window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+    } catch (error) {
+        // URL 处理失败时保留当前地址，不影响主流程。
+    }
+}
+
+function getHomeGuideJumpModeMeta(mode) {
+    return HOME_GUIDE_JUMP_MODE_META[normalizeHomeGuideJumpMode(mode)] || HOME_GUIDE_JUMP_MODE_META[HOME_GUIDE_JUMP_DEFAULT_MODE];
+}
 
 /**
  * resolveStageDebugMode() - 读取当前页面是否需要暴露舞台调试能力
@@ -121,6 +195,72 @@ function setupStageDebugToggle() {
         stripStageDebugQueryFromUrl();
         window.location.reload();
     });
+}
+
+function setupHomeGuideJumpDebugPanel() {
+    if (!isStageDebugModeEnabled || !document.body?.classList.contains('home-page')) {
+        return;
+    }
+
+    const existingPanel = document.getElementById('homeGuideJumpDebugPanel');
+    if (existingPanel) {
+        existingPanel.remove();
+    }
+
+    const activeMode = resolveHomeGuideJumpMode();
+    const panel = document.createElement('section');
+    panel.className = 'home-guide-jump-debug';
+    panel.id = 'homeGuideJumpDebugPanel';
+    panel.setAttribute('aria-label', '首页长跳策略调试面板');
+
+    const label = document.createElement('p');
+    label.className = 'home-guide-jump-debug-label';
+    label.textContent = '长跳策略';
+
+    const currentMeta = getHomeGuideJumpModeMeta(activeMode);
+    const current = document.createElement('p');
+    current.className = 'home-guide-jump-debug-current';
+    current.textContent = `${currentMeta.label} · 切换后刷新再测`;
+
+    const list = document.createElement('div');
+    list.className = 'home-guide-jump-debug-options';
+
+    Object.keys(HOME_GUIDE_JUMP_MODE_META).forEach((mode) => {
+        const button = document.createElement('button');
+        const meta = HOME_GUIDE_JUMP_MODE_META[mode];
+        const isActive = activeMode === mode;
+        button.type = 'button';
+        button.className = 'home-guide-jump-debug-button';
+        button.dataset.guideJumpMode = mode;
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) {
+            button.classList.add('is-active');
+        }
+
+        const strong = document.createElement('strong');
+        strong.textContent = meta.label;
+        const small = document.createElement('small');
+        small.textContent = meta.hint;
+        button.appendChild(strong);
+        button.appendChild(small);
+
+        button.addEventListener('click', () => {
+            if (button.classList.contains('is-active')) {
+                return;
+            }
+
+            persistHomeGuideJumpMode(mode);
+            stripHomeGuideJumpQueryFromUrl();
+            window.location.reload();
+        });
+
+        list.appendChild(button);
+    });
+
+    panel.appendChild(label);
+    panel.appendChild(current);
+    panel.appendChild(list);
+    document.body.appendChild(panel);
 }
 
 // 价格展示工具：首页不再自己换汇，统一走共享人民币模块。
@@ -1055,6 +1195,32 @@ function createHomeViewportCoordinator() {
 }
 
 const homeViewportCoordinator = createHomeViewportCoordinator();
+let homeHydrationMeasureRafId = 0;
+let homeHydrationMeasureNeedsForce = false;
+
+function scheduleHomeHydrationViewportRefresh(options = {}) {
+    if (typeof homeViewportCoordinator === 'undefined') {
+        return;
+    }
+
+    if (options.updateOnly) {
+        homeViewportCoordinator.requestUpdate();
+        return;
+    }
+
+    homeHydrationMeasureNeedsForce = homeHydrationMeasureNeedsForce || Boolean(options.force);
+    if (homeHydrationMeasureRafId) {
+        return;
+    }
+
+    homeHydrationMeasureRafId = window.requestAnimationFrame(() => {
+        homeHydrationMeasureRafId = 0;
+        const shouldForce = homeHydrationMeasureNeedsForce;
+        homeHydrationMeasureNeedsForce = false;
+        homeViewportCoordinator.requestMeasure(shouldForce ? { force: true } : undefined);
+    });
+}
+
 const HOME_HERO_DEFAULT_SPOT_ID = 13;
 const HOME_CURATED_DEFAULT_DESTINATION_ID = 13;
 const HOME_IMAGE_MANIFEST_PATH = 'assets/images/home/home-image-manifest.json';
@@ -2126,6 +2292,59 @@ function setHomeGuideOpenState(isOpen) {
  */
 function isHomeInteractionLocked() {
     return HOME_INTERACTION_STATE.guideOpen || performance.now() < HOME_INTERACTION_STATE.lockUntil;
+}
+
+function resolveHomeGuideJumpStrategy(mode) {
+    const registry = window.YanqiHomeGuideJumpStrategies || {};
+    const resolvedMode = normalizeHomeGuideJumpMode(mode) || HOME_GUIDE_JUMP_DEFAULT_MODE;
+    const strategy = registry[resolvedMode];
+    return strategy && typeof strategy.run === 'function' ? strategy : null;
+}
+
+function runHomeGuideLongJumpStrategy(options = {}) {
+    const mode = normalizeHomeGuideJumpMode(options.mode) || HOME_GUIDE_JUMP_DEFAULT_MODE;
+    const strategy = resolveHomeGuideJumpStrategy(mode);
+    if (!strategy) {
+        return null;
+    }
+
+    const adaptiveDuration = clamp(Number(options.adaptiveDuration) || 0, 420, 2400);
+    const top = Math.max(0, Number(options.top) || 0);
+    const viewportHeight = Math.max(window.innerHeight || 0, 1);
+    const travelDistance = Math.abs(top - (window.scrollY || window.pageYOffset || 0));
+    const mood = travelDistance > viewportHeight * 2.2 ? 'midwater' : 'buoyant';
+
+    if (window.OceanScroll && typeof window.OceanScroll.cancelActiveAnimation === 'function') {
+        window.OceanScroll.cancelActiveAnimation();
+    }
+
+    return strategy.run({
+        top,
+        currentScrollY: window.scrollY || window.pageYOffset || 0,
+        travelDistance,
+        adaptiveDuration,
+        viewportHeight,
+        proximityThreshold: HOME_GUIDE_JUMP_PROXIMITY_THRESHOLD,
+        mood,
+        animateTo(targetY, strategyOptions = {}) {
+            if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
+                return window.OceanScroll.animateTo(targetY, strategyOptions);
+            }
+
+            window.scrollTo(0, Math.max(0, Number(targetY) || 0));
+            return Promise.resolve();
+        },
+        beginManagedScroll(durationMs) {
+            if (window.DepthManager && typeof window.DepthManager.beginManagedScroll === 'function') {
+                window.DepthManager.beginManagedScroll(durationMs);
+            }
+        },
+        finishManagedScroll() {
+            if (window.DepthManager && typeof window.DepthManager.finishManagedScroll === 'function') {
+                window.DepthManager.finishManagedScroll();
+            }
+        }
+    });
 }
 
 // 竹签滚动推荐控制器：负责热门潜点卡片的渲染、拖拽、自动滑动、惯性与点击跳转。
@@ -3623,7 +3842,7 @@ class CuratedWatersStage {
                 onComplete: () => {
                     this.syncActiveNav();
                     this.initialHydrationStep = 1;
-                    homeViewportCoordinator.requestMeasure();
+                    scheduleHomeHydrationViewportRefresh({ updateOnly: true });
                     this.scheduleInitialHydration();
                 }
             });
@@ -3639,7 +3858,7 @@ class CuratedWatersStage {
             }
 
             this.initialHydrationStep = 2;
-            homeViewportCoordinator.requestMeasure();
+            scheduleHomeHydrationViewportRefresh({ updateOnly: true });
             this.scheduleInitialHydration();
             return;
         }
@@ -3647,7 +3866,7 @@ class CuratedWatersStage {
         this.section.classList.add('is-stage-hydrated');
         this.initialHydrationComplete = true;
         this.initialHydrationStep = 3;
-        homeViewportCoordinator.requestMeasure();
+        scheduleHomeHydrationViewportRefresh({ force: true });
         this.scheduleInitialPreload(this.currentIndex);
     }
 
@@ -4506,21 +4725,21 @@ class DiveMatchStage {
                 <span
                     class="dive-match-profile-kicker-line dive-match-profile-type-line"
                     data-type-order="0"
-                    data-type-delay="14"
+                    data-type-delay="38"
                 >Diver Profile</span>
             </p>
             <h3 class="dive-match-profile-title">
                 <span
                     class="dive-match-profile-title-line dive-match-profile-type-line"
                     data-type-order="1"
-                    data-type-delay="22"
+                    data-type-delay="52"
                 >${descriptor.title}</span>
             </h3>
             <p class="dive-match-profile-summary">
                 <span
                     class="dive-match-profile-summary-line dive-match-profile-type-line"
                     data-type-order="2"
-                    data-type-delay="4"
+                    data-type-delay="18"
                 >${descriptor.summary}</span>
             </p>
             <div class="dive-match-profile-chips">
@@ -4543,21 +4762,21 @@ class DiveMatchStage {
                 <span
                     class="dive-match-profile-reason-kicker-line dive-match-profile-type-line"
                     data-type-order="0"
-                    data-type-delay="14"
+                    data-type-delay="38"
                 >Why This Water</span>
             </p>
             <p class="dive-match-profile-reason-title">
                 <span
                     class="dive-match-profile-reason-title-line dive-match-profile-type-line"
                     data-type-order="1"
-                    data-type-delay="22"
+                    data-type-delay="52"
                 >当前默认落在「${activeMatch.label}」这一层</span>
             </p>
             <p class="dive-match-profile-reason-copy">
                 <span
                     class="dive-match-profile-reason-copy-line dive-match-profile-type-line"
                     data-type-order="2"
-                    data-type-delay="4"
+                    data-type-delay="18"
                 >先推 ${recommendation.name}，因为${recommendation.reason}</span>
             </p>
         `;
@@ -4581,6 +4800,38 @@ class DiveMatchStage {
             .sort((left, right) => Number(left.dataset.typeOrder || 0) - Number(right.dataset.typeOrder || 0));
     }
 
+    buildProfilePanelTypeCharacters(line, options = {}) {
+        if (!line) {
+            return [];
+        }
+
+        const { active = false } = options;
+        const text = line.dataset.text || line.textContent || '';
+        const fragment = document.createDocumentFragment();
+        const activeLayer = document.createElement('span');
+        activeLayer.className = 'dive-match-profile-type-active';
+        activeLayer.setAttribute('aria-hidden', 'true');
+        const characters = Array.from(String(text)).map((char) => {
+            const charNode = document.createElement('span');
+            charNode.className = 'dive-match-profile-type-char';
+            charNode.textContent = char;
+
+            if (/\s/.test(char)) {
+                charNode.classList.add('is-space');
+            } else if (active) {
+                charNode.classList.add('is-visible');
+            }
+
+            activeLayer.appendChild(charNode);
+            return charNode;
+        });
+
+        fragment.appendChild(activeLayer);
+        line.setAttribute('aria-label', text);
+        line.replaceChildren(fragment);
+        return characters;
+    }
+
     prepareProfilePanelTrackTypeTargets(track) {
         if (!track) {
             return [];
@@ -4592,9 +4843,9 @@ class DiveMatchStage {
                 line.dataset.text = line.textContent.trim();
             }
 
-            line.textContent = '';
             line.classList.remove('is-typed');
             line.dataset.typingActive = 'false';
+            this.buildProfilePanelTypeCharacters(line, { active: false });
         });
 
         track.classList.remove('is-awakened', 'is-typed');
@@ -4608,13 +4859,17 @@ class DiveMatchStage {
 
         const lines = this.getProfilePanelTypeLines(track);
         lines.forEach((line) => {
-            const text = line.dataset.text || line.textContent.trim();
-            line.textContent = text;
+            if (!line.dataset.text) {
+                line.dataset.text = line.textContent.trim();
+            }
+
+            this.buildProfilePanelTypeCharacters(line, { active: true });
             line.classList.add('is-typed');
             line.dataset.typingActive = 'false';
         });
 
-        track.classList.add('is-awakened', 'is-typed');
+        track.classList.remove('is-awakened');
+        track.classList.add('is-typed');
     }
 
     queueProfilePanelTypeTimeout(slotKey, callback, delay = 0) {
@@ -4642,16 +4897,15 @@ class DiveMatchStage {
         }
     }
 
-    typeProfilePanelLine(track, line, slotKey, token) {
+    awakenProfilePanelLine(track, line, slotKey, token) {
         return new Promise((resolve) => {
             const state = this.getProfilePanelSlotTransitionState(slotKey);
-            const text = line?.dataset.text || '';
-            const characters = Array.from(String(text));
-            const baseDelay = Number.parseInt(line?.dataset.typeDelay || '42', 10) || 42;
+            const characters = Array.from(line?.querySelectorAll('.dive-match-profile-type-char:not(.is-space)') || []);
+            const baseDelay = Number.parseInt(line?.dataset.typeDelay || '34', 10) || 34;
 
             if (!track?.isConnected || !line?.isConnected || state.typingToken !== token || !characters.length) {
                 if (line?.isConnected) {
-                    line.textContent = text;
+                    this.buildProfilePanelTypeCharacters(line, { active: true });
                     line.classList.add('is-typed');
                     line.dataset.typingActive = 'false';
                 }
@@ -4659,49 +4913,36 @@ class DiveMatchStage {
                 return;
             }
 
-            line.textContent = '';
             line.classList.remove('is-typed');
             line.dataset.typingActive = 'true';
             let index = 0;
 
-            const appendNextCharacter = () => {
+            const activateNextCharacter = () => {
                 if (!track.isConnected || !line.isConnected || state.typingToken !== token) {
                     line.dataset.typingActive = 'false';
                     resolve();
                     return;
                 }
 
-                const char = characters[index];
-                const charNode = document.createElement('span');
-                charNode.className = 'dive-match-profile-type-char';
-                charNode.textContent = char;
-
-                if (/\s/.test(char)) {
-                    charNode.classList.add('is-space');
-                }
-
-                line.appendChild(charNode);
-                window.requestAnimationFrame(() => {
-                    charNode.classList.add('is-visible');
-                });
-
+                const charNode = characters[index];
+                charNode.classList.add('is-visible');
                 index += 1;
                 if (index >= characters.length) {
                     line.dataset.typingActive = 'false';
                     line.classList.add('is-typed');
-                    this.queueProfilePanelTypeTimeout(slotKey, resolve, 20);
+                    this.queueProfilePanelTypeTimeout(slotKey, resolve, 90);
                     return;
                 }
 
-                const extraPause = /[，。！？,.!?：:]/.test(char) ? 18 : 0;
-                this.queueProfilePanelTypeTimeout(slotKey, appendNextCharacter, baseDelay + extraPause);
+                const extraPause = /[·，。！？,.!?：:]/.test(charNode.textContent || '') ? 86 : 0;
+                this.queueProfilePanelTypeTimeout(slotKey, activateNextCharacter, baseDelay + extraPause);
             };
 
-            appendNextCharacter();
+            activateNextCharacter();
         });
     }
 
-    async runProfilePanelTrackTypewriter(track, slotKey) {
+    async runProfilePanelTrackTypewriter(track, slotKey, slotNode = null) {
         if (!track?.isConnected) {
             return;
         }
@@ -4712,11 +4953,17 @@ class DiveMatchStage {
         const token = state.typingToken;
 
         if (!lines.length) {
-            track.classList.add('is-awakened', 'is-typed');
+            track.classList.add('is-typed');
+            slotNode?.classList.remove('is-transitioning');
+            this.syncProfilePanelMotionState();
             return;
         }
 
+        slotNode?.classList.add('is-transitioning');
+        this.syncProfilePanelMotionState();
         track.classList.remove('is-typed');
+        track.classList.remove('is-awakened');
+        void track.offsetWidth;
         track.classList.add('is-awakened');
 
         for (const line of lines) {
@@ -4724,14 +4971,17 @@ class DiveMatchStage {
                 return;
             }
 
-            await this.typeProfilePanelLine(track, line, slotKey, token);
+            await this.awakenProfilePanelLine(track, line, slotKey, token);
         }
 
         if (!track.isConnected || state.typingToken !== token) {
             return;
         }
 
+        track.classList.remove('is-awakened');
         track.classList.add('is-typed');
+        slotNode?.classList.remove('is-transitioning');
+        this.syncProfilePanelMotionState();
     }
 
     createProfilePanelTrack(trackClass, markup, signature, options = {}) {
@@ -4848,7 +5098,6 @@ class DiveMatchStage {
         }
 
         const { immediate = false } = options;
-        const state = this.getProfilePanelSlotTransitionState(slotKey);
         const currentTrack = this.cancelPendingProfilePanelSlotTransition(slotNode, slotKey);
 
         if (currentTrack?.dataset.panelSignature === signature) {
@@ -4857,43 +5106,26 @@ class DiveMatchStage {
             return;
         }
 
-        const nextTrack = this.createProfilePanelTrack(trackClass, markup, signature);
         if (immediate || this.shouldReduceProfilePresetMotion() || !currentTrack) {
-            nextTrack.classList.add('is-current');
+            const nextTrack = currentTrack || this.createProfilePanelTrack(trackClass, '', signature);
+            nextTrack.className = `dive-match-profile-panel-track ${trackClass} is-current`;
+            nextTrack.dataset.panelSignature = signature;
+            nextTrack.innerHTML = markup;
+            nextTrack.removeAttribute('aria-hidden');
             slotNode.replaceChildren(nextTrack);
+            this.restoreProfilePanelTrackTypeText(nextTrack);
+            slotNode.classList.remove('is-transitioning');
             this.syncProfilePanelMotionState();
             return;
         }
 
-        currentTrack.classList.remove('is-current');
-        currentTrack.classList.add('is-swapping-out');
-        currentTrack.setAttribute('aria-hidden', 'true');
-        nextTrack.classList.add('is-preparing');
-        slotNode.classList.add('is-transitioning');
-        slotNode.appendChild(nextTrack);
-        this.playProfilePanelTrackAnimations(currentTrack, nextTrack);
+        currentTrack.className = `dive-match-profile-panel-track ${trackClass} is-current`;
+        currentTrack.dataset.panelSignature = signature;
+        currentTrack.innerHTML = markup;
+        currentTrack.removeAttribute('aria-hidden');
+        slotNode.replaceChildren(currentTrack);
         this.syncProfilePanelMotionState();
-
-        state.swapInTimer = window.setTimeout(() => {
-            state.swapInTimer = 0;
-            state.rafId = requestAnimationFrame(() => {
-                state.rafId = 0;
-                state.rafId2 = requestAnimationFrame(() => {
-                    state.rafId2 = 0;
-                    if (!nextTrack.isConnected) {
-                        return;
-                    }
-
-                    nextTrack.classList.remove('is-preparing');
-                    nextTrack.classList.add('is-current', 'is-swapping-in');
-                    this.runProfilePanelTrackTypewriter(nextTrack, slotKey);
-                });
-            });
-        }, DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS);
-
-        state.timer = window.setTimeout(() => {
-            this.finalizeProfilePanelSlotTransition(slotNode, slotKey, nextTrack);
-        }, DIVE_MATCH_PROFILE_PANEL_SWAP_DURATION_MS);
+        this.runProfilePanelTrackTypewriter(currentTrack, slotKey, slotNode);
     }
 
     renderProfileCopy(descriptor, options = {}) {
@@ -5407,7 +5639,7 @@ class DiveMatchStage {
             if (markInitialReady) {
                 this.initialSurfaceReady = true;
             }
-            homeViewportCoordinator.requestMeasure();
+            scheduleHomeHydrationViewportRefresh({ force: true });
             return;
         }
 
@@ -5428,7 +5660,7 @@ class DiveMatchStage {
             if (batchMarkup) {
                 grid.insertAdjacentHTML('beforeend', batchMarkup);
             }
-            homeViewportCoordinator.requestMeasure();
+            scheduleHomeHydrationViewportRefresh({ updateOnly: true });
 
             if (cards.length) {
                 this.initialCardHydrationRafId = requestAnimationFrame(appendBatch);
@@ -5438,6 +5670,7 @@ class DiveMatchStage {
             if (markInitialReady) {
                 this.initialSurfaceReady = true;
             }
+            scheduleHomeHydrationViewportRefresh({ force: true });
         };
 
         this.initialCardHydrationRafId = requestAnimationFrame(appendBatch);
@@ -5824,11 +6057,18 @@ function scrollToSection(targetSelector) {
             : Math.max(0, anchorTop - latestNavOffset - extraOffset);
         const currentScrollY = window.scrollY || window.pageYOffset || 0;
         const travelDistance = Math.abs(top - currentScrollY);
-        const isLongTravel = travelDistance > window.innerHeight * 1.75;
+        const isLongTravel = travelDistance > window.innerHeight * HOME_GUIDE_JUMP_LONG_TRAVEL_RATIO;
         const adaptiveDuration = clamp(
             680 + travelDistance * 0.12,
             820,
             1320
+        );
+        const scrollMood = travelDistance > window.innerHeight * 2.2 ? 'midwater' : 'buoyant';
+        const longJumpMode = isLongTravel ? resolveHomeGuideJumpMode() : '';
+        const expectedLongTravelDuration = clamp(
+            Math.ceil(adaptiveDuration * (longJumpMode === 'staged' ? 1.08 : 1.02)),
+            820,
+            2400
         );
         const guideTargetDepth = getHomeGuideDepthTarget(targetSelector);
         const depthManager = window.DepthManager;
@@ -5870,12 +6110,26 @@ function scrollToSection(targetSelector) {
             );
         }
 
+        if (isLongTravel) {
+            const strategyResult = runHomeGuideLongJumpStrategy({
+                mode: longJumpMode,
+                top,
+                adaptiveDuration
+            });
+            if (strategyResult) {
+                setHomeScrollTraveling(true, 'programmatic');
+                beginHomeInteractionLock(expectedLongTravelDuration + 220);
+                Promise.resolve(strategyResult).then(finishScroll, finishScroll);
+                return;
+            }
+        }
+
         if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
             setHomeScrollTraveling(isLongTravel, 'programmatic');
-            beginHomeInteractionLock(adaptiveDuration + 180);
+            beginHomeInteractionLock((isLongTravel ? expectedLongTravelDuration : adaptiveDuration) + 180);
             const animateResult = window.OceanScroll.animateTo(top, {
                 duration: adaptiveDuration,
-                mood: travelDistance > window.innerHeight * 2.2 ? 'midwater' : 'buoyant'
+                mood: scrollMood
             });
             if (animateResult && typeof animateResult.then === 'function') {
                 animateResult.then(finishScroll, finishScroll);
@@ -7009,6 +7263,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const homePerformanceProfile = resolveHomePerformanceProfile();
 
     setupStageDebugToggle();
+    setupHomeGuideJumpDebugPanel();
     applyHomePerformanceProfile(homePerformanceProfile);
     setupHomeManualScrollTraveling();
     new BambooScroll();

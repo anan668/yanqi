@@ -1123,6 +1123,8 @@
             this.pageScrollManagedResumeEnabled = false;
             this.pageScrollManagedFinishTimerId = 0;
             this.lastOverlayState = null;
+            this.homeTravelingGaugeDepth = null;
+            this.handleHomeInteractionChange = null;
             this.pageScrollMetricsObserver = null;
             this.pageStateDepthObserver = null;
             this.pageStateDepthRules = [];
@@ -1240,6 +1242,19 @@
             this.setupPageShowHandler();
             this.setupSpecialTransitionAbortHandler();
             this.bindTrackedLinks();
+
+            if (this.pageId === 'home') {
+                this.handleHomeInteractionChange = (event) => {
+                    if (event?.detail?.scrollTraveling) {
+                        return;
+                    }
+
+                    this.homeTravelingGaugeDepth = null;
+                    this.lastRenderedDepthText = '';
+                    this.renderDepth(this.currentDepth);
+                };
+                window.addEventListener('homeinteractionchange', this.handleHomeInteractionChange);
+            }
         }
 
         // 特殊遮罩层准备：为登录页到首页的蓝层和气泡动画补齐需要的 DOM 结构。
@@ -1877,6 +1892,10 @@
             );
         }
 
+        isHomeTravelingFastPathActive() {
+            return this.pageId === 'home' && Boolean(this.body?.classList.contains('home-scroll-traveling'));
+        }
+
         /**
          * setOverlayState(depth, boost) - 按当前深度和增强值同步页面海水覆盖层状态
          * @param {number} depth - 当前深度
@@ -1886,10 +1905,15 @@
         setOverlayState(depth, boost) {
             const safeDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
             const managedScroll = this.isPageScrollManagedActive();
-            const overlayDepth = managedScroll
+            const homeTraveling = this.isHomeTravelingFastPathActive();
+            const overlayDepth = homeTraveling
+                ? Math.round(safeDepth)
+                : managedScroll
                 ? Math.round(safeDepth * 2) / 2
                 : Math.round(safeDepth * 5) / 5;
-            const overlayBoost = managedScroll
+            const overlayBoost = homeTraveling
+                ? Math.round(clamp(boost, 0, 0.45) * 10) / 10
+                : managedScroll
                 ? Math.round(clamp(boost, 0, 0.45) * 50) / 50
                 : Math.round(clamp(boost, 0, 0.45) * 100) / 100;
             const depthProgress = clamp(Math.abs(overlayDepth) / Math.abs(MIN_DEPTH), 0, 1);
@@ -1899,10 +1923,12 @@
             const particleOpacity = clamp(0.035 + depthProgress * 0.08 + extraOpacity * 0.08, 0.035, 0.16);
             const hazeOpacity = clamp(0.02 + depthProgress * 0.11 + extraOpacity * 0.12, 0.02, 0.2);
             const visibility = clamp(0.98 - depthProgress * 0.04 - extraOpacity * 0.04, 0.9, 1);
-            const gaugeCompression = clamp(1 + depthProgress * 0.08, 1, 1.1);
-            const gaugeShift = clamp(depthProgress * 10, 0, 10);
-            const gaugePulse = clamp(1 + extraOpacity * 0.12 + depthProgress * 0.02, 1, 1.12);
-            const mediumBlur = clamp(4 + depthProgress * 4 + extraOpacity * 6, 4, 9);
+            const gaugeCompression = clamp(1 + depthProgress * (homeTraveling ? 0.05 : 0.08), 1, homeTraveling ? 1.06 : 1.1);
+            const gaugeShift = clamp(depthProgress * (homeTraveling ? 7 : 10), 0, homeTraveling ? 7 : 10);
+            const gaugePulse = clamp(1 + extraOpacity * (homeTraveling ? 0.08 : 0.12) + depthProgress * 0.02, 1, homeTraveling ? 1.08 : 1.12);
+            const mediumBlur = homeTraveling
+                ? clamp(3.2 + depthProgress * 2.4 + extraOpacity * 2.8, 3.2, 6.4)
+                : clamp(4 + depthProgress * 4 + extraOpacity * 6, 4, 9);
             const gaugeVariableTarget = this.body || this.rootElement;
             const nextOverlayState = {
                 oceanBaseOpacity: baseOpacity.toFixed(2),
@@ -1963,8 +1989,12 @@
          */
         renderDepth(depth) {
             const safeDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
+            const homeTraveling = this.isHomeTravelingFastPathActive();
             const renderedGaugeDepth = this.getRenderedGaugeDepth(safeDepth);
-            const depthText = formatDepth(renderedGaugeDepth);
+            const gaugeDepthForRender = homeTraveling
+                ? Math.round(renderedGaugeDepth)
+                : renderedGaugeDepth;
+            const depthText = formatDepth(gaugeDepthForRender);
 
             if (this.leftCurrent && this.lastRenderedDepthText !== depthText) {
                 this.leftCurrent.textContent = depthText;
@@ -1975,11 +2005,14 @@
             }
 
             this.lastRenderedDepthText = depthText;
-            this.updateMarkersForContainer(this.leftMarkersContainer, renderedGaugeDepth);
-            this.updateMarkersForContainer(this.rightMarkersContainer, renderedGaugeDepth);
-            this.updateDetailGaugeTapePosition(this.leftMarkersContainer, renderedGaugeDepth);
-            this.updateDetailGaugeTapePosition(this.rightMarkersContainer, renderedGaugeDepth);
-            this.setOverlayState(safeDepth, this.overlayBoost);
+            if (!homeTraveling || this.homeTravelingGaugeDepth !== gaugeDepthForRender) {
+                this.updateMarkersForContainer(this.leftMarkersContainer, gaugeDepthForRender);
+                this.updateMarkersForContainer(this.rightMarkersContainer, gaugeDepthForRender);
+                this.updateDetailGaugeTapePosition(this.leftMarkersContainer, gaugeDepthForRender);
+                this.updateDetailGaugeTapePosition(this.rightMarkersContainer, gaugeDepthForRender);
+            }
+            this.homeTravelingGaugeDepth = homeTraveling ? gaugeDepthForRender : null;
+            this.setOverlayState(homeTraveling ? gaugeDepthForRender : safeDepth, this.overlayBoost);
         }
 
         // 刻度高亮状态：根据当前深度同步哪些刻度已到达、哪一条是当前指针位置。

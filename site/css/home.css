@@ -82,6 +82,62 @@ body[data-home-interaction='locked'] .curated-nav-rail.is-cycling .curated-nav-r
     animation-play-state: paused !important;
 }
 
+body.home-scroll-traveling .curated-display-media::after,
+body.home-scroll-traveling .curated-nav-rail.is-cycling .curated-nav-refresh::after,
+body.home-scroll-traveling .dive-match.is-stage-visible .dive-match-surface.is-resting,
+body.home-scroll-traveling .story-river-glow,
+body.home-scroll-traveling .sea-guide-home.is-visible .sea-guide-trigger {
+    animation-play-state: paused !important;
+}
+
+body.home-scroll-traveling .curated-waters-stage,
+body.home-scroll-traveling .curated-display-copy,
+body.home-scroll-traveling .dive-match-stage,
+body.home-scroll-traveling .dive-match-profile-panel,
+body.home-scroll-traveling .dive-match-focus-card,
+body.home-scroll-traveling .dive-match-card,
+body.home-scroll-traveling .sea-guide-home .sea-guide-panel,
+body.home-scroll-traveling .sea-guide-home .sea-guide-trigger,
+body[data-home-interaction='locked'] .curated-waters-stage,
+body[data-home-interaction='locked'] .curated-display-copy,
+body[data-home-interaction='locked'] .dive-match-stage,
+body[data-home-interaction='locked'] .dive-match-profile-panel,
+body[data-home-interaction='locked'] .dive-match-focus-card,
+body[data-home-interaction='locked'] .dive-match-card,
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-panel,
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger {
+    backdrop-filter: blur(12px) saturate(116%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(116%) !important;
+}
+
+body.home-scroll-traveling .curated-waters-stage::before,
+body.home-scroll-traveling .curated-waters-stage::after,
+body.home-scroll-traveling .curated-display-media::after,
+body.home-scroll-traveling .dive-match::before,
+body.home-scroll-traveling .dive-match::after,
+body.home-scroll-traveling .dive-match-stage::before,
+body.home-scroll-traveling .dive-match-focus-card::before,
+body.home-scroll-traveling .dive-match-focus-card::after,
+body.home-scroll-traveling .dive-match-profile-presets-focus-aura,
+body.home-scroll-traveling .story-river-glow,
+body.home-scroll-traveling .sea-guide-home .sea-guide-trigger::after,
+body.home-scroll-traveling .sea-guide-home .sea-guide-panel::before,
+body[data-home-interaction='locked'] .curated-waters-stage::before,
+body[data-home-interaction='locked'] .curated-waters-stage::after,
+body[data-home-interaction='locked'] .curated-display-media::after,
+body[data-home-interaction='locked'] .dive-match::before,
+body[data-home-interaction='locked'] .dive-match::after,
+body[data-home-interaction='locked'] .dive-match-stage::before,
+body[data-home-interaction='locked'] .dive-match-focus-card::before,
+body[data-home-interaction='locked'] .dive-match-focus-card::after,
+body[data-home-interaction='locked'] .dive-match-profile-presets-focus-aura,
+body[data-home-interaction='locked'] .story-river-glow,
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger::after,
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-panel::before {
+    filter: none !important;
+    opacity: 0.34 !important;
+}
+
 /* ============================================
    首屏区
    ============================================ */
@@ -4557,8 +4613,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 .dive-match-profile-panel-track.is-preparing,
 .dive-match-profile-panel-track.is-swapping-out {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0);
+    opacity: 0.88;
+    transform: translate3d(0, 6px, 0);
 }
 
 .dive-match-profile-panel-track.is-swapping-in {
@@ -4601,11 +4657,52 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .dive-match-profile-reason-kicker-line,
 .dive-match-profile-reason-title-line,
 .dive-match-profile-reason-copy-line {
-    display: block;
+    position: relative;
+    display: grid;
     min-height: 1em;
+    isolation: isolate;
     will-change: opacity, transform, filter;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
+}
+
+.dive-match-profile-kicker-line::before,
+.dive-match-profile-title-line::before,
+.dive-match-profile-summary-line::before,
+.dive-match-profile-reason-kicker-line::before,
+.dive-match-profile-reason-title-line::before,
+.dive-match-profile-reason-copy-line::before {
+    content: attr(data-text);
+    grid-area: 1 / 1;
+    white-space: pre-wrap;
+    color: currentColor;
+    opacity: 0.22;
+    filter: blur(1.4px);
+    transform: translate3d(0, 4px, 0);
+    pointer-events: none;
+    transition:
+        opacity 280ms ease,
+        transform 520ms cubic-bezier(0.2, 0.78, 0.22, 1),
+        filter 520ms ease;
+}
+
+.dive-match-profile-type-active {
+    grid-area: 1 / 1;
+    position: relative;
+    z-index: 1;
+    display: block;
+    white-space: pre-wrap;
+}
+
+.dive-match-profile-kicker-line.is-typed::before,
+.dive-match-profile-title-line.is-typed::before,
+.dive-match-profile-summary-line.is-typed::before,
+.dive-match-profile-reason-kicker-line.is-typed::before,
+.dive-match-profile-reason-title-line.is-typed::before,
+.dive-match-profile-reason-copy-line.is-typed::before {
+    opacity: 0.04;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
 }
 
 .dive-match-profile-kicker-line,
@@ -4628,10 +4725,12 @@ body[data-home-performance='lite'] .bamboo-card-content {
     opacity: 0;
     filter: blur(12px);
     transform: translate3d(0, 10px, 0);
+    text-shadow: 0 0 0 rgba(198, 228, 241, 0);
     transition:
         opacity 0.5s ease,
-        transform 0.82s cubic-bezier(0.2, 0.78, 0.22, 1),
-        filter 0.78s ease;
+        transform 620ms cubic-bezier(0.2, 0.78, 0.22, 1),
+        filter 520ms ease,
+        text-shadow 620ms ease;
 }
 
 .dive-match-profile-type-char.is-space {
@@ -4642,6 +4741,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
+    text-shadow: 0 10px 18px rgba(117, 177, 202, 0.14);
 }
 
 .dive-match-profile-copy-track.is-swapping-out .dive-match-profile-kicker-line,
@@ -4677,13 +4777,13 @@ body[data-home-performance='lite'] .bamboo-card-content {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     transition:
-        opacity 360ms ease,
-        transform 620ms cubic-bezier(0.14, 0.82, 0.2, 1);
+        opacity 260ms ease,
+        transform 520ms cubic-bezier(0.14, 0.82, 0.2, 1);
 }
 
 .dive-match-profile-copy-track.is-awakened .dive-match-profile-chips {
-    opacity: 0;
-    transform: translate3d(0, 12px, 0);
+    opacity: 0.9;
+    transform: translate3d(0, 4px, 0);
 }
 
 .dive-match-profile-copy-track.is-typed .dive-match-profile-chips {
@@ -4692,8 +4792,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .dive-match-profile-copy-track.is-swapping-out .dive-match-profile-chips {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
+    opacity: 0.86;
+    transform: translate3d(0, 5px, 0);
 }
 
 .dive-match-profile-chip {
@@ -4979,21 +5079,21 @@ body[data-home-performance='lite'] .bamboo-card-content {
         filter: blur(0);
     }
     100% {
-        opacity: 0;
-        transform: translate3d(0, 12px, 0);
-        filter: blur(10px);
+        opacity: 0.82;
+        transform: translate3d(0, 8px, 0);
+        filter: blur(1.2px);
     }
 }
 
 @keyframes dive-match-profile-line-in {
     0% {
-        opacity: 0;
-        transform: translate3d(0, 18px, 0);
-        filter: blur(12px);
+        opacity: 0.86;
+        transform: translate3d(0, 8px, 0);
+        filter: blur(1.2px);
     }
     58% {
         opacity: 1;
-        transform: translate3d(0, -2px, 0);
+        transform: translate3d(0, -1px, 0);
         filter: blur(0);
     }
     100% {
@@ -6558,6 +6658,103 @@ body[data-current-home-layer="story"] .story-river-line {
     font-size: 0.84rem;
     line-height: 1.6;
     color: rgba(168, 192, 208, 0.54);
+}
+
+/* ============================================
+   Guide Jump Debug
+   ============================================ */
+
+.yanqi-stage-debug .home-guide-jump-debug {
+    position: fixed;
+    top: 96px;
+    right: 26px;
+    z-index: 1395;
+    width: min(292px, calc(100vw - 40px));
+    display: grid;
+    gap: 12px;
+    padding: 14px 14px 16px;
+    border-radius: 20px;
+    color: #eaf6fb;
+    background:
+        linear-gradient(150deg, rgba(10, 37, 53, 0.88), rgba(10, 48, 69, 0.82)),
+        rgba(10, 37, 53, 0.82);
+    border: 1px solid rgba(188, 226, 238, 0.18);
+    box-shadow:
+        0 22px 40px rgba(4, 16, 25, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-label {
+    margin: 0;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(210, 232, 242, 0.58);
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-current {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: rgba(236, 247, 252, 0.84);
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-options {
+    display: grid;
+    gap: 8px;
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-button {
+    all: unset;
+    display: grid;
+    gap: 4px;
+    padding: 11px 12px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    background:
+        linear-gradient(150deg, rgba(242, 249, 253, 0.08), rgba(181, 219, 233, 0.04)),
+        rgba(13, 44, 63, 0.2);
+    border: 1px solid rgba(192, 227, 239, 0.12);
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        background-color 180ms ease;
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(203, 232, 243, 0.22);
+    box-shadow: 0 12px 22px rgba(6, 20, 31, 0.14);
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-button.is-active {
+    border-color: rgba(196, 231, 242, 0.28);
+    background:
+        linear-gradient(150deg, rgba(245, 250, 253, 0.14), rgba(184, 222, 236, 0.08)),
+        rgba(18, 54, 75, 0.28);
+    box-shadow:
+        0 14px 24px rgba(6, 20, 31, 0.18),
+        0 0 18px rgba(137, 205, 227, 0.08);
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-button strong {
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #f2fbff;
+}
+
+.yanqi-stage-debug .home-guide-jump-debug-button small {
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: rgba(208, 230, 240, 0.6);
+}
+
+body.home-scroll-traveling.yanqi-stage-debug .home-guide-jump-debug {
+    opacity: 0.78;
 }
 
 /* ============================================
