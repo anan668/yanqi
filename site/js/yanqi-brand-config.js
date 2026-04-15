@@ -1,26 +1,28 @@
 (function attachYanqiBrandConfig(window) {
+    const CONTACT_STATUS_HREF = 'contact.html#contactStatusSection';
+
     const CONTACT_METHODS = Object.freeze({
         email: Object.freeze({
             key: 'email',
             label: '联系邮箱',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
-            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先在下方留言台慢慢写下来。',
+            href: CONTACT_STATUS_HREF,
+            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先去演示留言台收住想法。',
             status: '未开放'
         }),
         wechat: Object.freeze({
             key: 'wechat',
             label: '微信 / 公众号',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
-            note: '微信与公众号入口还没有正式整理好，这一层会先保留为未开放状态。',
+            href: CONTACT_STATUS_HREF,
+            note: '微信与公众号入口还没有正式整理好，这一层会先停在联络状态说明里。',
             status: '未开放'
         }),
         xiaohongshu: Object.freeze({
             key: 'xiaohongshu',
             label: '小红书',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
+            href: CONTACT_STATUS_HREF,
             note: '品牌展示入口还在慢慢整理，这里暂时不放真实账号，先保留为未开放。',
             status: '未开放'
         }),
@@ -28,8 +30,8 @@
             key: 'weibo',
             label: '微博',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
-            note: '微博联络路径也还没有启用，当前只保留一个安静的占位说明。',
+            href: CONTACT_STATUS_HREF,
+            note: '微博联络路径也还没有启用，当前只保留一层更安静的状态说明。',
             status: '未开放'
         })
     });
@@ -37,43 +39,43 @@
     const BRAND_LINKS = Object.freeze({
         email: Object.freeze({
             key: 'email',
-            href: 'contact.html#contactMethodsSection',
+            href: CONTACT_STATUS_HREF,
             value: '暂未开放',
             label: '联系邮箱',
             external: false
         }),
         wechat: Object.freeze({
             key: 'wechat',
-            href: 'contact.html#contactMethodsSection',
+            href: CONTACT_STATUS_HREF,
             value: '暂未开放',
             label: '微信 / 公众号',
             external: false
         }),
         xiaohongshu: Object.freeze({
             key: 'xiaohongshu',
-            href: 'contact.html#contactMethodsSection',
+            href: CONTACT_STATUS_HREF,
             value: '暂未开放',
             label: '小红书',
             external: false
         }),
         weibo: Object.freeze({
             key: 'weibo',
-            href: 'contact.html#contactMethodsSection',
+            href: CONTACT_STATUS_HREF,
             value: '暂未开放',
             label: '微博',
             external: false
         }),
         contact: Object.freeze({
             key: 'contact',
-            href: 'contact.html#contactMethodsSection',
-            value: '联络方式未开放',
+            href: CONTACT_STATUS_HREF,
+            value: '联络状态说明',
             label: '联系我们',
             external: false
         }),
         forgot: Object.freeze({
             key: 'forgot',
-            href: 'contact.html#contactFormSection',
-            value: '暂未开放',
+            href: CONTACT_STATUS_HREF,
+            value: '联络状态与演示留言台',
             label: '忘记密码',
             external: false
         }),
@@ -109,9 +111,10 @@
                 return;
             }
 
+            const title = config.value ? `${config.label} · ${config.value}` : config.label;
             link.setAttribute('href', config.href);
-            link.setAttribute('title', `${config.label} · ${config.value}`);
-            link.setAttribute('aria-label', `${config.label} · ${config.value}`);
+            link.setAttribute('title', title);
+            link.setAttribute('aria-label', title);
 
             if (config.external) {
                 link.setAttribute('target', '_blank');

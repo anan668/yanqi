@@ -3643,7 +3643,75 @@ function getActiveConfirmedBooking(bookings = []) {
         || null;
 }
 
-function buildSeaBriefPrepMarkup(booking, profile, windowConfig) {
+function scrollToSeaBriefStage() {
+    const stage = document.getElementById('seaBriefStage');
+    if (!stage) {
+        return;
+    }
+
+    if (window.OceanScroll && typeof window.OceanScroll.toSelector === 'function') {
+        window.OceanScroll.toSelector('#seaBriefStage', {
+            duration: 1280,
+            offset: 92
+        });
+        return;
+    }
+
+    stage.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
+}
+
+function setSeaBriefLiveMessage(message) {
+    const live = document.getElementById('seaBriefLive');
+    if (!live) {
+        return;
+    }
+
+    live.textContent = '';
+    window.setTimeout(() => {
+        live.textContent = String(message || '').trim();
+    }, 40);
+}
+
+async function copyTextToClipboard(text) {
+    const safeText = String(text || '').trim();
+    if (!safeText) {
+        return false;
+    }
+
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        try {
+            await navigator.clipboard.writeText(safeText);
+            return true;
+        } catch (error) {
+            // 回退到临时 textarea。
+        }
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = safeText;
+    textarea.setAttribute('readonly', 'readonly');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    let copied = false;
+    try {
+        copied = document.execCommand('copy');
+    } catch (error) {
+        copied = false;
+    }
+
+    document.body.removeChild(textarea);
+    return copied;
+}
+
+function getSeaBriefPrepData(booking, profile, windowConfig) {
     const prepLabels = {
         'check-dive': '把第一潜收作 check dive',
         'current-briefing': '出海前再读一遍流区 brief',
@@ -3660,6 +3728,15 @@ function buildSeaBriefPrepMarkup(booking, profile, windowConfig) {
         ? (windowConfig?.reentryNote || '如果近期没有稳定下潜记录，第一潜更适合先收作回水确认。')
         : '当前状态更适合把注意力留给节奏、光线和进入海的方式。';
 
+    return {
+        prepItems,
+        bodyStateCopy
+    };
+}
+
+function buildSeaBriefPrepMarkup(booking, profile, windowConfig) {
+    const { prepItems, bodyStateCopy } = getSeaBriefPrepData(booking, profile, windowConfig);
+
     return `
         <div class="sea-brief-prep-block">
             <p class="sea-brief-prep-label">准备清单</p>
@@ -3672,6 +3749,55 @@ function buildSeaBriefPrepMarkup(booking, profile, windowConfig) {
             <p class="sea-brief-prep-copy">${escapeHtml(bodyStateCopy)}</p>
         </div>
     `;
+}
+
+function buildSeaBriefSummaryText(booking, profile, windowConfig) {
+    const { prepItems, bodyStateCopy } = getSeaBriefPrepData(booking, profile, windowConfig);
+    const windowCopy = windowConfig ? `${(windowConfig.recommendedMonths || []).join(' / ')} 月更稳` : '窗口待确认';
+    const checkDiveCopy = booking?.prepFlags?.includes('check-dive') ? '建议先做' : '可按当前节奏进入';
+
+    return [
+        '盐憩 Sea Brief',
+        `海域：${booking?.spotName || '当前海域'}`,
+        `套餐：${booking?.packageTitle || '当前套餐'}`,
+        `停留：${booking?.packageDuration || '停留待定'}`,
+        `入海时段：${booking?.windowLabel || windowConfig?.dayWindows?.[0]?.label || '窗口待定'}`,
+        `同行人数：${booking?.selectedPeopleLabel || '同行待定'}`,
+        `适配结论：${booking?.fitLabel || '待判断'}`,
+        `准备清单：${prepItems.join('、')}`,
+        `check dive：${checkDiveCopy}`,
+        `当前窗口：${windowCopy}`,
+        `身体与状态：${bodyStateCopy}`
+    ].join('\n');
+}
+
+function setSeaBriefActionState(activeBooking, summaryText = '') {
+    const card = document.getElementById('seaBriefCard');
+    const copyButton = document.getElementById('seaBriefCopy');
+    const printButton = document.getElementById('seaBriefPrint');
+    const detailButton = document.getElementById('seaBriefBackToDetail');
+    const hasActiveBooking = Boolean(activeBooking && card);
+    const detailHref = hasActiveBooking ? String(activeBooking.detailHref || '').trim() : '';
+    const safeSummaryText = hasActiveBooking ? String(summaryText || '').trim() : '';
+
+    if (card) {
+        card.dataset.summaryText = safeSummaryText;
+        card.dataset.detailHref = detailHref;
+        card.dataset.entryId = hasActiveBooking ? String(activeBooking.entryId || '').trim() : '';
+        card.dataset.briefId = hasActiveBooking ? String(activeBooking.briefId || '').trim() : '';
+    }
+
+    if (copyButton) {
+        copyButton.disabled = !safeSummaryText;
+    }
+
+    if (printButton) {
+        printButton.disabled = !hasActiveBooking;
+    }
+
+    if (detailButton) {
+        detailButton.disabled = !detailHref;
+    }
 }
 
 function renderSeaBrief(bookings = []) {
@@ -3691,11 +3817,13 @@ function renderSeaBrief(bookings = []) {
     if (!activeBooking) {
         empty.hidden = false;
         card.hidden = true;
+        setSeaBriefActionState(null, '');
         return;
     }
 
     const profile = getTripDiverProfile();
     const windowConfig = getTripWindowConfigBySpotId(resolveTripSpotId(activeBooking.spotKey));
+    const summaryText = buildSeaBriefSummaryText(activeBooking, profile, windowConfig);
     const gridItems = [
         ['海域', activeBooking.spotName || '当前海域'],
         ['套餐', activeBooking.packageTitle || '当前套餐'],
@@ -3723,6 +3851,53 @@ function renderSeaBrief(bookings = []) {
         </div>
     `).join('');
     prepNode.innerHTML = buildSeaBriefPrepMarkup(activeBooking, profile, windowConfig);
+    setSeaBriefActionState(activeBooking, summaryText);
+}
+
+function setupSeaBriefActions() {
+    const copyButton = document.getElementById('seaBriefCopy');
+    const printButton = document.getElementById('seaBriefPrint');
+    const detailButton = document.getElementById('seaBriefBackToDetail');
+    const card = document.getElementById('seaBriefCard');
+
+    if (!copyButton || !printButton || !detailButton || !card) {
+        return;
+    }
+
+    copyButton.addEventListener('click', async () => {
+        const summaryText = String(card.dataset.summaryText || '').trim();
+        if (!summaryText) {
+            setSeaBriefLiveMessage('当前还没有可复制的桌面回执。');
+            return;
+        }
+
+        const copied = await copyTextToClipboard(summaryText);
+        setSeaBriefLiveMessage(
+            copied
+                ? 'Sea Brief 已复制到剪贴板。'
+                : '回执复制没有完成，可以先手动复制这段摘要。'
+        );
+    });
+
+    printButton.addEventListener('click', () => {
+        if (!String(card.dataset.entryId || '').trim()) {
+            setSeaBriefLiveMessage('当前还没有可打印的桌面回执。');
+            return;
+        }
+
+        setSeaBriefLiveMessage('正在打开 Sea Brief 的打印视图。');
+        window.print();
+    });
+
+    detailButton.addEventListener('click', () => {
+        const detailHref = String(card.dataset.detailHref || '').trim();
+        if (!detailHref) {
+            setSeaBriefLiveMessage('当前回执还没有对应的海域详情页。');
+            return;
+        }
+
+        navigateWithDepth(detailHref);
+    });
 }
 
 let confirmedBookingsTextLayoutController = null;
@@ -4362,6 +4537,21 @@ function getConfirmedBookingStayLabel(booking) {
     return '停留节奏待定';
 }
 
+function getConfirmedBookingsPageIndexForEntryId(bookings, entryId) {
+    const safeBookings = Array.isArray(bookings) ? bookings : [];
+    const safeEntryId = String(entryId || '').trim();
+    if (!safeBookings.length || !safeEntryId) {
+        return 0;
+    }
+
+    const targetIndex = safeBookings.findIndex((booking) => String(booking?.entryId || '').trim() === safeEntryId);
+    if (targetIndex < 0) {
+        return 0;
+    }
+
+    return Math.floor(targetIndex / CONFIRMED_BOOKINGS_PAGE_SIZE);
+}
+
 /**
  * syncPlannerSelectionToConfirmedBookings(selection) - 把当前行程控制台的日期与同行写回已收进行程
  * @param {{spotValue: string, dateValue: string, dateLabel: string, peopleValue: string, peopleLabel: string}} selection - 当前控制台选择结果
@@ -4443,6 +4633,7 @@ function buildConfirmedBookingCardMarkup(booking) {
                     <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '行程档案')}</p>
                     <h3 class="confirmed-booking-spot">${escapeHtml(booking.spotName || '未命名海域')}</h3>
                     <p class="confirmed-booking-tagline">${escapeHtml(safeTagline)}</p>
+                    ${isActive ? '<span class="confirmed-booking-state">Sea Brief 正在对准这一程</span>' : ''}
                 </div>
                 <span class="confirmed-booking-chip">${escapeHtml(booking.packageTitle || '未命名套餐')}</span>
             </div>
@@ -4499,6 +4690,9 @@ function buildConfirmedBookingCardMarkup(booking) {
             </div>
 
             <div class="confirmed-booking-actions">
+                <button type="button" class="confirmed-booking-brief" data-booking-entry-id="${escapeHtml(entryId)}" aria-pressed="${String(isActive)}">
+                    ${isActive ? '正在查看回执' : '查看回执'}
+                </button>
                 <button type="button" class="confirmed-booking-link" data-detail-href="${escapeHtml(booking.detailHref || `detail.html?id=${booking.spotKey}`)}">
                     回到这片海
                 </button>
@@ -4544,7 +4738,13 @@ function renderConfirmedBookings() {
     }
 
     const totalPages = Math.max(1, Math.ceil(bookings.length / CONFIRMED_BOOKINGS_PAGE_SIZE));
-    confirmedBookingsPageIndex = ((confirmedBookingsPageIndex % totalPages) + totalPages) % totalPages;
+    const activeBooking = getActiveConfirmedBooking(bookings);
+    const activeEntryId = String(activeBooking?.entryId || '').trim();
+    if (activeEntryId) {
+        confirmedBookingsPageIndex = getConfirmedBookingsPageIndexForEntryId(bookings, activeEntryId);
+    } else {
+        confirmedBookingsPageIndex = ((confirmedBookingsPageIndex % totalPages) + totalPages) % totalPages;
+    }
     const start = confirmedBookingsPageIndex * CONFIRMED_BOOKINGS_PAGE_SIZE;
     const visibleBookings = bookings.slice(start, start + CONFIRMED_BOOKINGS_PAGE_SIZE);
 
@@ -4602,10 +4802,19 @@ function setupConfirmedBookingsStage() {
         }
 
         confirmedBookingsPageIndex = (confirmedBookingsPageIndex + 1) % totalPages;
+        const nextBooking = bookings[confirmedBookingsPageIndex * CONFIRMED_BOOKINGS_PAGE_SIZE] || bookings[0];
+        if (nextBooking?.entryId) {
+            store?.saveActiveBookingId?.(nextBooking.entryId);
+        }
         renderConfirmedBookings();
+        window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated'));
+        if (nextBooking?.spotName) {
+            setSeaBriefLiveMessage(`已切到 ${nextBooking.spotName} 的桌面回执。`);
+        }
     });
 
     stage.addEventListener('click', (event) => {
+        const store = getTripStore();
         const card = event.target.closest('.confirmed-booking-card[data-booking-entry-id]');
         if (card && !event.target.closest('button')) {
             const entryId = String(card.dataset.bookingEntryId || '').trim();
@@ -4627,9 +4836,29 @@ function setupConfirmedBookingsStage() {
             return;
         }
 
+        const briefButton = event.target.closest('.confirmed-booking-brief[data-booking-entry-id]');
+        if (briefButton) {
+            event.preventDefault();
+            const entryId = String(briefButton.dataset.bookingEntryId || '').trim();
+            if (entryId) {
+                store?.saveActiveBookingId?.(entryId);
+                renderConfirmedBookings();
+                window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated'));
+                scrollToSeaBriefStage();
+                const activeBooking = getActiveConfirmedBooking(store?.getConfirmedBookings?.() || []);
+                if (activeBooking?.spotName) {
+                    setSeaBriefLiveMessage(`已对准 ${activeBooking.spotName} 的桌面回执。`);
+                }
+            }
+            return;
+        }
+
         const detailLink = event.target.closest('.confirmed-booking-link[data-detail-href]');
         if (detailLink) {
             event.preventDefault();
+            if (card?.dataset.bookingEntryId) {
+                store?.saveActiveBookingId?.(String(card.dataset.bookingEntryId).trim());
+            }
             navigateWithDepth(detailLink.dataset.detailHref);
             return;
         }
@@ -4640,7 +4869,6 @@ function setupConfirmedBookingsStage() {
         }
 
         event.preventDefault();
-        const store = getTripStore();
         if (!store) {
             return;
         }
@@ -4673,6 +4901,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new TripSeaGuide();
     setupPlannerSummary();
     setupConfirmedBookingsStage();
+    setupSeaBriefActions();
     new PrepSystem();
     setupTripReveal();
 

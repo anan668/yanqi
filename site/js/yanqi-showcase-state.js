@@ -20,7 +20,7 @@
                 bookingId: 'yanqi-booking:7:komodo-advanced-ritual:2026-09-18:2',
                 spotKey: '7',
                 spotName: '科莫多',
-                spotTagline: '用巨物与大鱼的流线，慢慢把呼吸拉到更完整的一层海里。',
+                spotTagline: '让大景、洋流和更完整的海况层次，慢慢把呼吸拉到更深一层海里。',
                 detailHref: 'detail.html?id=7',
                 packageId: 'komodo-advanced-ritual',
                 packageTitle: '深流进阶 · 科莫多完整海境档案',
@@ -57,12 +57,6 @@
                 editingEntryId: 'yanqi-showcase-entry-komodo',
                 editingSpotKey: '7',
                 editingPackageId: 'komodo-advanced-ritual'
-            }),
-            contactMessage: Object.freeze({
-                name: '展示航线',
-                contact: 'hello@yanqi-sea.com',
-                topic: '行程咨询',
-                message: '想把近期状态、check dive 和科莫多的清晨窗口一起排稳，希望保留大景进阶，但第一潜先从更稳的节奏开始。'
             })
         })
     });
@@ -204,10 +198,7 @@
         writeJson(STORAGE_KEYS.plannerDraft, plannerDraft);
         writeJson(STORAGE_KEYS.confirmedBookings, [booking]);
         writeJson(STORAGE_KEYS.activeBookingId, booking.entryId);
-        writeJson(STORAGE_KEYS.contactMessages, [{
-            ...preset.contactMessage,
-            createdAt: seededAt
-        }]);
+        removeKey(STORAGE_KEYS.contactMessages);
         recordRecentSpot(preset.recentSpotId);
 
         dispatchShowcaseChange({

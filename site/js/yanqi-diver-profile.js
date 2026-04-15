@@ -53,7 +53,7 @@
         Object.freeze({
             key: 'comfort-shore',
             label: '舒适慢住',
-            description: '更在意海岛停驻、舒适度和整趟行程的平稳展开，适合把海放进假期里慢慢看。',
+            description: '更在意海岛停驻、舒适度和整段行程的平稳展开，适合把海放进假期里慢慢看。',
             profile: Object.freeze({
                 certificationLevel: 'ow',
                 recentDiveState: 'returning',
@@ -66,7 +66,7 @@
         Object.freeze({
             key: 'showcase-current',
             label: '大景进阶',
-            description: '把近期状态、流区判断和完整的大景海况一起带进这一次下潜，适合展示满血效果。',
+            description: '把近期状态、流区判断和更完整的大景海况一起带进这一潜，适合展示满血效果。',
             profile: Object.freeze({
                 certificationLevel: 'aow',
                 recentDiveState: 'recent',
@@ -78,7 +78,7 @@
         })
     ]);
 
-    const DEFAULT_PRESET_KEY = 'showcase-current';
+    const DEFAULT_PRESET_KEY = 'comfort-shore';
 
     const CERTIFICATION_RANK = Object.freeze({
         beginner: 0,
@@ -279,7 +279,7 @@
 
         return {
             title: [certificationLabel, goalLabel].filter(Boolean).join(' · '),
-            summary: `${recentLabel}，更偏向${comfortLabel}，这一次会按${paceLabel}的节奏慢慢展开。`,
+            summary: `${recentLabel}，更偏向${comfortLabel}，这一次会按「${paceLabel}」的节奏慢慢展开。`,
             chips: buildProfileChips(safeProfile),
             recommendedMatchKey: getRecommendedMatchKey(safeProfile)
         };
@@ -353,19 +353,19 @@
         const reasons = [];
 
         if (safeProfile.tripGoal === 'bigScene' && traits.tags.includes('bigScene')) {
-            reasons.push('它更容易把鱼群、大景和外海层次完整接住。');
+            reasons.push('这片海更容易把鱼群、大景和外海层次完整接住。');
         }
         if (safeProfile.tripGoal === 'comfort' && traits.tags.includes('comfort')) {
-            reasons.push('它会把停驻感、舒适度和行程稳定性放得更靠前。');
+            reasons.push('它会把停驻感、舒适度和整段行程的平稳性放得更靠前。');
         }
         if (safeProfile.tripGoal === 'scenery' && traits.tags.includes('scenery')) {
             reasons.push('它更适合把海墙、结构和光线层次慢慢看清。');
         }
         if (safeProfile.tripGoal === 'recovery' && traits.tags.includes('recovery')) {
-            reasons.push('它更像一片适合重新回到水里的海。');
+            reasons.push('它更像一片适合重新回到海里的海。');
         }
         if (safeProfile.currentComfort === 'gentle' && traits.tags.includes('gentle')) {
-            reasons.push('对现在更想要温和海况的状态更友好。');
+            reasons.push('对现在更想要温和海况的状态会更友好。');
         }
         if (safeProfile.currentComfort === 'currentReady' && traits.tags.includes('current')) {
             reasons.push('你愿意进入更明显的流区，这片海会给你更完整的推进感。');
@@ -410,12 +410,12 @@
 
         let label = '适合';
         let tone = 'fit';
-        let reason = '这套安排和你当前的证书、海况适应度与此次目标基本对得上。';
+        let reason = '这套安排和你当前的证书、海况适应度与此刻目标基本对得上。';
 
         if (tooDeepForProfile) {
             label = '谨慎';
             tone = 'caution';
-            reason = context.windowConfig?.advancedNote || '这片海更适合把证书、外海经验和近期状态一起确认后再往下排。';
+            reason = context.windowConfig?.advancedNote || '这片海更适合把证书、外海经验和近期状态一起确认后，再继续往下排。';
         } else if (shouldCheckDive || currentRisk) {
             label = '先做 check dive';
             tone = 'check-dive';

@@ -1081,8 +1081,8 @@ function buildBootstrapDetailSpotData(spotId) {
 
     return normalizeDetailSpotDataRecord({
         id: fallbackSpotId,
-        name: activeBootstrap?.name || fallbackSpot?.name || '???',
-        tagline: activeBootstrap?.tagline || fallbackSpot?.tagline || '??????????',
+        name: activeBootstrap?.name || fallbackSpot?.name || '这片海',
+        tagline: activeBootstrap?.tagline || fallbackSpot?.tagline || '海图还没完全显影，但这一层蓝已经先轻轻靠近。',
         image: activeBootstrap?.image || fallbackSpot?.image || 'assets/images/sipadan.jpg',
         difficulty: activeBootstrap?.difficulty || '',
         depth: activeBootstrap?.depth || '',
@@ -12953,17 +12953,18 @@ class DetailPage {
         const peopleCopy = booking.selectedPeopleLabel || '同行节奏还没写进这一潜';
 
         this.bookingNote.classList.add('is-success');
+        const nextHref = booking?.briefId ? 'trip.html#seaBriefStage' : 'trip.html#confirmedBookingsStage';
         this.bookingNote.innerHTML = `
             <div class="booking-note-feedback">
                 <div class="booking-note-feedback-inner">
                     <span class="booking-note-state">这片海已经慢慢收进行程了</span>
-                    <p>${booking.packageTitle} 已替你停进这次安排里。接下来，可以去“我的行程”里继续整理日期与同行节奏。</p>
+                    <p>${booking.packageTitle} 已替你停进这次安排里。接下来，可以直接去看这一潜已经对准的回执，再继续整理日期、同行与准备判断。</p>
                     <div class="booking-note-meta">
                         <span>日期：${dateCopy}</span>
                         <span>同行：${peopleCopy}</span>
                     </div>
                 </div>
-                <a class="booking-note-link" href="trip.html#confirmedBookingsStage">去我的行程继续往下排</a>
+                <a class="booking-note-link" href="${nextHref}">继续看回执</a>
             </div>
         `;
     }
@@ -13000,7 +13001,7 @@ class DetailPage {
 
         window.clearTimeout(this.bookingConfirmCloseTimer);
         this.bookingConfirmFeedback.classList.remove('is-closing');
-        this.bookingConfirmCopy.textContent = '你可以继续留在这里看这片海，也可以去“我的行程”直接查看这一潜的回执与准备判断。';
+        this.bookingConfirmCopy.textContent = '你可以继续留在这里看这片海，也可以去“我的行程”直接查看这一潜已经对准的回执、准备判断和已收进行程。';
         this.bookingConfirmMeta.innerHTML = this.renderBookingConfirmedMeta(savedBooking);
         if (this.bookingConfirmGoTrip) {
             this.bookingConfirmGoTrip.href = savedBooking?.briefId

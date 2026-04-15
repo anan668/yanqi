@@ -29,15 +29,15 @@
             key: 'email',
             label: '联系邮箱',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
-            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先用下方留言台收住想法。',
+            href: 'contact.html#contactStatusSection',
+            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先去演示留言台收住想法。',
             status: '未开放'
         }),
         Object.freeze({
             key: 'wechat',
             label: '微信 / 公众号',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
+            href: 'contact.html#contactStatusSection',
             note: '微信与公众号入口还没有正式整理好，这一层会先保留为未开放状态。',
             status: '未开放'
         }),
@@ -45,7 +45,7 @@
             key: 'xiaohongshu',
             label: '小红书',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
+            href: 'contact.html#contactStatusSection',
             note: '品牌展示入口还在慢慢整理，这里暂时不放真实账号，先保留为未开放。',
             status: '未开放'
         }),
@@ -53,7 +53,7 @@
             key: 'weibo',
             label: '微博',
             value: '暂未开放',
-            href: 'contact.html#contactMethodsSection',
+            href: 'contact.html#contactStatusSection',
             note: '微博联络路径也还没有启用，当前只保留一个安静的占位说明。',
             status: '未开放'
         })
@@ -202,7 +202,7 @@
 
         return {
             name: name || '未署名',
-            contact: contact || '尚未留下联系方式',
+            contact: contact || '仅停在当前浏览器',
             topic: topic || '未说明主题',
             message,
             createdAt: isValidIsoDate(createdAt) ? createdAt : new Date().toISOString()
@@ -313,11 +313,11 @@
         const messages = safeReadContactMessages();
 
         if (!messages.length) {
-            meta.textContent = '这里还没有已经靠岸的留言。写下的草稿会先被本地收住，真正发送之后，它也会继续停在这里。';
+            meta.textContent = '这里还没有已经靠岸的演示回声。写下的草稿会先被本地收住，真正留下以后，它也会继续停在这里。';
             list.innerHTML = `
                 <article class="contact-memory-item is-empty">
                     <p class="contact-memory-empty-title">这片回看水域暂时还是安静的</p>
-                    <p class="contact-memory-empty-copy">当你真正留下第一条留言以后，它会继续停在当前浏览器里。哪怕刷新回来，也还能从这里重新看见。</p>
+                    <p class="contact-memory-empty-copy">当你真正留下第一条演示回声以后，它会继续停在当前浏览器里。哪怕刷新回来，也还能从这里重新看见。</p>
                 </article>
             `;
 
@@ -327,7 +327,7 @@
             return;
         }
 
-        meta.textContent = `当前浏览器里已经安静收着 ${messages.length} 条留言。刷新回来时，它们也会继续停在这里。`;
+        meta.textContent = `当前浏览器里已经安静收着 ${messages.length} 条演示回声。刷新回来时，它们也会继续停在这里。`;
         list.innerHTML = messages.map((entry) => `
             <article class="contact-memory-item">
                 <div class="contact-memory-item-top">
@@ -450,6 +450,51 @@
         });
 
         container.innerHTML = items.join('');
+    }
+
+    /**
+     * renderContactStatusBoard() - 渲染联系页顶部的联络状态总览
+     * @returns {void}
+     */
+    function renderContactStatusBoard() {
+        const container = document.getElementById('contactStatusBoard');
+        if (!container) {
+            return;
+        }
+
+        const items = getContactMethodEntries();
+        const availableCount = items.filter((meta) => String(meta?.status || '').trim() === '已开放').length;
+        const totalCount = items.length;
+        const title = availableCount
+            ? `目前已有 ${availableCount} 条联络渠道慢慢打开`
+            : '这一层现在先只展示联络状态，不开放真实渠道';
+        const copy = availableCount
+            ? '已经开放的渠道会继续留在这里，尚未开放的入口仍会停在状态说明里，不会突然把你带去站外。'
+            : `当前展示的 ${totalCount} 条联络入口都还在整理中，所以这里先不伪装成真实联络系统，只保留一层更清楚的状态说明。`;
+
+        container.innerHTML = `
+            <article class="contact-status-primary">
+                <p class="contact-status-kicker">Channel Status</p>
+                <h3 class="contact-status-title">${escapeHtml(title)}</h3>
+                <p class="contact-status-copy">${escapeHtml(copy)}</p>
+            </article>
+            <div class="contact-status-list">
+                ${items.map((meta) => {
+        const status = String(meta?.status || '未开放').trim() || '未开放';
+        const isAvailable = status === '已开放';
+        return `
+                        <article class="contact-status-item${isAvailable ? ' is-available' : ''}">
+                            <p class="contact-status-item-label">${escapeHtml(meta?.label || '')}</p>
+                            <div class="contact-status-item-row">
+                                <strong class="contact-status-item-value">${escapeHtml(meta?.value || status)}</strong>
+                                <span class="contact-status-item-badge">${escapeHtml(status)}</span>
+                            </div>
+                            <p class="contact-status-item-note">${escapeHtml(meta?.note || '')}</p>
+                        </article>
+                    `;
+    }).join('')}
+            </div>
+        `;
     }
 
     /**
@@ -587,7 +632,7 @@
 
                 clearContactMessages();
                 renderStoredContactMessages();
-                showContactFeedback('本地暂存的留言已经轻轻收起，这片回看水域暂时安静下来了。');
+                showContactFeedback('本地暂存的演示回声已经轻轻收起，这片回看水域暂时安静下来了。');
             });
         }
 
@@ -605,7 +650,7 @@
             });
 
             if (hasError) {
-                showContactFeedback('在继续之前，还有几格想法没有写完整。慢一点补齐也没关系。', 'error');
+                showContactFeedback('在继续之前，还有几格演示回声没有写完整。慢一点补齐也没关系。', 'error');
                 return;
             }
 
@@ -619,7 +664,7 @@
             });
 
             if (!safeSaveContactMessages(messages)) {
-                showContactFeedback('这条留言暂时没能写进当前浏览器的本地存储。可以先复制一下文字，再重新试一次。', 'error');
+                showContactFeedback('这条演示回声暂时没能写进当前浏览器的本地存储。可以先复制一下文字，再重新试一次。', 'error');
                 return;
             }
 
@@ -628,7 +673,7 @@
             clearContactDraft();
             updateContactDraftState(createEmptyContactDraft());
             renderStoredContactMessages();
-            showContactFeedback('这条留言已经先替你收在这层回声里，刷新回来也还能继续看见。');
+            showContactFeedback('这条演示回声已经先替你留在当前浏览器里，不会发往真实渠道；刷新回来也还能继续看见。');
         });
     }
 
@@ -638,6 +683,7 @@
      */
     function initializeInfoPages() {
         brandConfig?.applyBrandLinks?.(document);
+        renderContactStatusBoard();
         renderContactMethods();
         bindInfoNavigation();
         bindContactForm();

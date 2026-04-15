@@ -4080,6 +4080,20 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(208, 224, 235, 0.72);
 }
 
+.confirmed-booking-state {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(180, 233, 248, 0.12);
+    border: 1px solid rgba(196, 230, 251, 0.18);
+    color: rgba(233, 246, 251, 0.84);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+}
+
 .confirmed-booking-chip,
 .confirmed-booking-tag {
     display: inline-flex;
@@ -4207,6 +4221,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
 }
 
 .confirmed-booking-link,
+.confirmed-booking-brief,
 .confirmed-booking-remove {
     appearance: none;
     -webkit-appearance: none;
@@ -4219,7 +4234,15 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease;
 }
 
+.confirmed-booking-brief {
+    background:
+        linear-gradient(180deg, rgba(191, 231, 247, 0.16), rgba(139, 201, 225, 0.08)),
+        rgba(255, 255, 255, 0.08);
+    border-color: rgba(190, 227, 241, 0.18);
+}
+
 .confirmed-booking-link:hover,
+.confirmed-booking-brief:hover,
 .confirmed-booking-remove:hover {
     transform: translateY(-2px);
     border-color: rgba(214, 238, 248, 0.2);
@@ -4263,6 +4286,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     }
 
     .confirmed-booking-link,
+    .confirmed-booking-brief,
     .confirmed-booking-remove {
         width: 100%;
         justify-content: center;
@@ -4556,6 +4580,116 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     line-height: 1.82;
 }
 
+.sea-brief-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.sea-brief-action {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f2fbff;
+    transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease;
+}
+
+.sea-brief-action:hover,
+.sea-brief-action:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(214, 238, 248, 0.22);
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.sea-brief-action[disabled] {
+    opacity: 0.46;
+    pointer-events: none;
+}
+
+.sea-brief-action-primary {
+    background:
+        linear-gradient(180deg, rgba(191, 231, 247, 0.16), rgba(139, 201, 225, 0.08)),
+        rgba(255, 255, 255, 0.08);
+    border-color: rgba(190, 227, 241, 0.18);
+}
+
+@media print {
+    html,
+    body {
+        background: #ffffff !important;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    #seaBriefStage,
+    #seaBriefStage * {
+        visibility: visible !important;
+    }
+
+    #seaBriefStage {
+        position: absolute;
+        inset: 0 auto auto 0;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    #seaBriefStage .sea-brief-empty,
+    #seaBriefStage .sea-brief-actions,
+    #seaBriefLive {
+        display: none !important;
+    }
+
+    #seaBriefStage .sea-brief-card,
+    #seaBriefStage .sea-brief-stage,
+    #seaBriefStage .sea-brief-prep-block,
+    #seaBriefStage .sea-brief-item {
+        background: #ffffff !important;
+        border-color: rgba(25, 51, 68, 0.16) !important;
+        box-shadow: none !important;
+        color: #163041 !important;
+    }
+
+    #seaBriefStage .sea-brief-kicker,
+    #seaBriefStage .sea-brief-card-kicker,
+    #seaBriefStage .sea-brief-item-label,
+    #seaBriefStage .sea-brief-prep-label,
+    #seaBriefStage .sea-brief-intro {
+        color: rgba(34, 63, 82, 0.72) !important;
+    }
+
+    #seaBriefStage .sea-brief-title,
+    #seaBriefStage .sea-brief-card-title,
+    #seaBriefStage .sea-brief-item-value,
+    #seaBriefStage .sea-brief-prep-copy,
+    #seaBriefStage .sea-brief-badge,
+    #seaBriefStage .sea-brief-prep-chip {
+        color: #163041 !important;
+    }
+
+    #seaBriefStage .sea-brief-badge,
+    #seaBriefStage .sea-brief-prep-chip {
+        background: rgba(22, 48, 65, 0.04) !important;
+        border-color: rgba(25, 51, 68, 0.12) !important;
+    }
+}
+
 .prep-detail-dynamic {
     background:
         radial-gradient(circle at 18% 18%, rgba(204, 234, 246, 0.12), rgba(204, 234, 246, 0) 28%),
@@ -4580,6 +4714,15 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
 
     .sea-brief-prep {
         grid-template-columns: 1fr;
+    }
+
+    .sea-brief-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sea-brief-action {
+        width: 100%;
     }
 }
 
