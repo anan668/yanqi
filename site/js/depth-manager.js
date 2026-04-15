@@ -1118,6 +1118,8 @@
             this.pageScrollManagedUntil = 0;
             this.pageScrollManagedMinIntervalMs = this.pageId === 'home' ? 120 : 96;
             this.pageScrollLastQueuedAt = 0;
+            this.pageScrollLastQueuedScrollY = this.pageScrollLastScrollY;
+            this.pageScrollHomeMinIntervalMs = this.pageId === 'home' ? 56 : 0;
             this.pageScrollManagedResumeEnabled = false;
             this.pageScrollManagedFinishTimerId = 0;
             this.lastOverlayState = null;
@@ -2789,14 +2791,21 @@
             }
 
             const isManaged = this.isPageScrollManagedActive();
-            if (isManaged && !force) {
-                const now = performance.now();
-                if (now - this.pageScrollLastQueuedAt < this.pageScrollManagedMinIntervalMs) {
+            const now = performance.now();
+            const currentScrollY = window.scrollY || window.pageYOffset || 0;
+            const minIntervalMs = isManaged
+                ? this.pageScrollManagedMinIntervalMs
+                : this.pageScrollHomeMinIntervalMs;
+            if (!force && minIntervalMs > 0) {
+                const largeDelta = Math.abs(currentScrollY - this.pageScrollLastQueuedScrollY)
+                    >= Math.max((window.innerHeight || 0) * 0.16, 120);
+                if (!largeDelta && now - this.pageScrollLastQueuedAt < minIntervalMs) {
                     return;
                 }
-
-                this.pageScrollLastQueuedAt = now;
             }
+
+            this.pageScrollLastQueuedAt = now;
+            this.pageScrollLastQueuedScrollY = currentScrollY;
 
             this.pageScrollFrameId = requestAnimationFrame(() => {
                 this.stepPageScrollDepth({
@@ -2858,12 +2867,15 @@
                 ? cachedMetricPoint.top
                 : (Number.isFinite(diveMatchStop.cachedTop)
                     ? diveMatchStop.cachedTop
-                    : diveMatchStop.element.getBoundingClientRect().top + scrollY);
+                    : null);
             const sectionHeight = Number.isFinite(cachedMetricPoint?.height)
                 ? Math.max(cachedMetricPoint.height, 0)
                 : (Number.isFinite(diveMatchStop.cachedHeight)
-                    ? diveMatchStop.cachedHeight
-                    : (diveMatchStop.element.offsetHeight || diveMatchStop.element.getBoundingClientRect().height || 0));
+                    ? Math.max(diveMatchStop.cachedHeight, 0)
+                    : null);
+            if (!Number.isFinite(sectionTop) || !Number.isFinite(sectionHeight) || sectionHeight <= 0) {
+                return baseDepth;
+            }
             const { viewportHeight } = this.getHomeScrollRuntimeMetrics();
             const focusY = viewportHeight * 0.48;
             const sectionMid = sectionTop - scrollY + Math.max(sectionHeight * 0.42, 120);

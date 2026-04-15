@@ -28,30 +28,34 @@
         Object.freeze({
             key: 'email',
             label: '联系邮箱',
-            value: 'hello@yanqi-sea.com',
-            href: 'mailto:hello@yanqi-sea.com',
-            note: '更适合安静地留下行程轮廓与需要慢慢确认的细节。'
+            value: '暂未开放',
+            href: 'contact.html#contactMethodsSection',
+            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先用下方留言台收住想法。',
+            status: '未开放'
         }),
         Object.freeze({
             key: 'wechat',
             label: '微信 / 公众号',
-            value: 'YANQI-SEA',
+            value: '暂未开放',
             href: 'contact.html#contactMethodsSection',
-            note: '更适合出发前的节奏确认和轻沟通。'
+            note: '微信与公众号入口还没有正式整理好，这一层会先保留为未开放状态。',
+            status: '未开放'
         }),
         Object.freeze({
             key: 'xiaohongshu',
             label: '小红书',
-            value: '@盐憩 Yanqi Sea Retreat',
+            value: '暂未开放',
             href: 'contact.html#contactMethodsSection',
-            note: '更适合先看海的气质、停驻感和盐憩的片段。'
+            note: '品牌展示入口还在慢慢整理，这里暂时不放真实账号，先保留为未开放。',
+            status: '未开放'
         }),
         Object.freeze({
             key: 'weibo',
             label: '微博',
-            value: '@盐憩 Yanqi',
+            value: '暂未开放',
             href: 'contact.html#contactMethodsSection',
-            note: '更适合留下轻一点的问候和临近出发时的回声。'
+            note: '微博联络路径也还没有启用，当前只保留一个安静的占位说明。',
+            status: '未开放'
         })
     ]);
 
@@ -428,16 +432,19 @@
         const items = getContactMethodEntries().map((meta) => {
             const value = String(meta?.value || '').trim();
             const href = String(meta?.href || '').trim();
+            const status = String(meta?.status || '未开放').trim() || '未开放';
+            const isAvailable = status === '已开放';
+            const valueClassName = `contact-method-value${isAvailable ? '' : ' is-unavailable'}`;
             return `
                 <article class="contact-method info-reveal info-reveal-delay-2">
                     <p class="contact-method-label">${escapeHtml(meta.label || '')}</p>
-                    <p class="contact-method-value">
-                        ${href
+                    <p class="${valueClassName}">
+                        ${isAvailable && href
         ? `<a href="${escapeHtml(href)}" class="policy-link">${escapeHtml(value)}</a>`
         : escapeHtml(value)}
                     </p>
                     <p class="contact-method-note">${escapeHtml(meta.note || '')}</p>
-                    <span class="contact-method-status">已开放</span>
+                    <span class="contact-method-status${isAvailable ? '' : ' is-unavailable'}">${escapeHtml(status)}</span>
                 </article>
             `;
         });

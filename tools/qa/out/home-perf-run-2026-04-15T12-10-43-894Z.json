@@ -1,0 +1,79 @@
+{
+  "capturedAt": "2026-04-15T12:10:43.880Z",
+  "url": "file:///C:/Users/%E6%A1%89%E6%A1%89/Desktop/%E7%9B%90%E6%86%A9/site/home.html",
+  "viewport": {
+    "width": 1440,
+    "height": 1200
+  },
+  "mode": "",
+  "pageErrors": [],
+  "consoleErrors": [],
+  "results": [
+    {
+      "label": "idle",
+      "durationMs": 1812.1000000005588,
+      "rafSamples": 137,
+      "avgRafDeltaMs": 12.917518248175181,
+      "p95RafDeltaMs": 18.300000000000182,
+      "maxRafDeltaMs": 24.399999999999636,
+      "estimatedFps": 77.41425100299486,
+      "framesOver20Ms": 3,
+      "framesOver33Ms": 0,
+      "framesOver50Ms": 0,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxLongTaskMs": 0,
+      "flags": {
+        "motionLiteSeen": true,
+        "scrollTravelingSeen": false,
+        "interactionLockedSeen": false
+      },
+      "scrollY": 0
+    },
+    {
+      "label": "hero_drag",
+      "durationMs": 2455.9000000003725,
+      "rafSamples": 168,
+      "avgRafDeltaMs": 14.50178571428572,
+      "p95RafDeltaMs": 18.300000000000182,
+      "maxRafDeltaMs": 30.399999999999636,
+      "estimatedFps": 68.95702499692153,
+      "framesOver20Ms": 8,
+      "framesOver33Ms": 0,
+      "framesOver50Ms": 0,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxLongTaskMs": 0,
+      "flags": {
+        "motionLiteSeen": true,
+        "scrollTravelingSeen": false,
+        "interactionLockedSeen": false
+      },
+      "scrollY": 0
+    },
+    {
+      "error": "no-active-session"
+    },
+    {
+      "label": "fast_scroll",
+      "durationMs": 2162.2999999998137,
+      "rafSamples": 265,
+      "avgRafDeltaMs": 8.14188679245283,
+      "p95RafDeltaMs": 18.09999999999991,
+      "maxRafDeltaMs": 84.79999999999995,
+      "estimatedFps": 122.82165368928439,
+      "framesOver20Ms": 8,
+      "framesOver33Ms": 6,
+      "framesOver50Ms": 2,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxLongTaskMs": 0,
+      "flags": {
+        "motionLiteSeen": false,
+        "scrollTravelingSeen": false,
+        "interactionLockedSeen": false
+      },
+      "scrollY": 0
+    }
+  ]
+}

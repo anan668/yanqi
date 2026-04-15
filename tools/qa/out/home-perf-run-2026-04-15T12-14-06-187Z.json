@@ -1,0 +1,106 @@
+{
+  "capturedAt": "2026-04-15T12:14:06.185Z",
+  "url": "file:///C:/Users/%E6%A1%89%E6%A1%89/Desktop/%E7%9B%90%E6%86%A9/site/home.html",
+  "viewport": {
+    "width": 1440,
+    "height": 1200
+  },
+  "mode": "full",
+  "pageErrors": [],
+  "consoleErrors": [],
+  "results": [
+    {
+      "label": "ambient_home",
+      "durationMs": 1809.5999999996275,
+      "rafSamples": 135,
+      "avgRafDeltaMs": 13.242962962962961,
+      "p95RafDeltaMs": 18.299999999999272,
+      "maxRafDeltaMs": 24.400000000000546,
+      "estimatedFps": 75.51180221501288,
+      "framesOver20Ms": 2,
+      "framesOver33Ms": 0,
+      "framesOver50Ms": 0,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxLongTaskMs": 0,
+      "flags": {
+        "motionLiteSeen": false,
+        "scrollTravelingSeen": false,
+        "interactionLockedSeen": false
+      },
+      "scrollY": 0,
+      "scenario": "ambient"
+    },
+    {
+      "label": "hero_drag",
+      "durationMs": 2440.7999999998137,
+      "rafSamples": 168,
+      "avgRafDeltaMs": 14.46547619047619,
+      "p95RafDeltaMs": 18.399999999999636,
+      "maxRafDeltaMs": 24.400000000000546,
+      "estimatedFps": 69.13011274792198,
+      "framesOver20Ms": 8,
+      "framesOver33Ms": 0,
+      "framesOver50Ms": 0,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxLongTaskMs": 0,
+      "flags": {
+        "motionLiteSeen": true,
+        "scrollTravelingSeen": false,
+        "interactionLockedSeen": false
+      },
+      "scrollY": 0,
+      "scenario": "hero_drag"
+    },
+    {
+      "label": "guide_jump_sequence",
+      "durationMs": 6569.5,
+      "rafSamples": 817,
+      "avgRafDeltaMs": 8.03378212974296,
+      "p95RafDeltaMs": 18.299999999999272,
+      "maxRafDeltaMs": 72.60000000000036,
+      "estimatedFps": 124.47437381924557,
+      "framesOver20Ms": 35,
+      "framesOver33Ms": 8,
+      "framesOver50Ms": 1,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxLongTaskMs": 0,
+      "flags": {
+        "motionLiteSeen": true,
+        "scrollTravelingSeen": true,
+        "interactionLockedSeen": true
+      },
+      "scrollY": 2506.060546875,
+      "scenario": "guide_jumps",
+      "targets": [
+        "#homeFooter",
+        "#featured-destinations",
+        "#dive-match"
+      ]
+    },
+    {
+      "label": "scroll_burst",
+      "durationMs": 1787,
+      "rafSamples": 135,
+      "avgRafDeltaMs": 13.19777777777777,
+      "p95RafDeltaMs": 24.30000000000109,
+      "maxRafDeltaMs": 78.89999999999782,
+      "estimatedFps": 75.77033170567441,
+      "framesOver20Ms": 8,
+      "framesOver33Ms": 3,
+      "framesOver50Ms": 2,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxLongTaskMs": 0,
+      "flags": {
+        "motionLiteSeen": true,
+        "scrollTravelingSeen": true,
+        "interactionLockedSeen": true
+      },
+      "scrollY": 0,
+      "scenario": "scroll_burst"
+    }
+  ]
+}

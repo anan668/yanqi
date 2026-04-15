@@ -3,73 +3,77 @@
         email: Object.freeze({
             key: 'email',
             label: '联系邮箱',
-            value: 'hello@yanqi-sea.com',
-            href: 'mailto:hello@yanqi-sea.com',
-            note: '更适合把行程轮廓、窗口判断和需要慢慢确认的细节安静地留在这里。'
+            value: '暂未开放',
+            href: 'contact.html#contactMethodsSection',
+            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先在下方留言台慢慢写下来。',
+            status: '未开放'
         }),
         wechat: Object.freeze({
             key: 'wechat',
             label: '微信 / 公众号',
-            value: 'YANQI-SEA',
+            value: '暂未开放',
             href: 'contact.html#contactMethodsSection',
-            note: '更适合出发前的节奏确认、轻沟通，以及把这一潜慢慢排稳。'
+            note: '微信与公众号入口还没有正式整理好，这一层会先保留为未开放状态。',
+            status: '未开放'
         }),
         xiaohongshu: Object.freeze({
             key: 'xiaohongshu',
             label: '小红书',
-            value: '@盐憩 Yanqi Sea Retreat',
+            value: '暂未开放',
             href: 'contact.html#contactMethodsSection',
-            note: '更适合先看海的气质、停驻感，以及盐憩正在整理的片段。'
+            note: '品牌展示入口还在慢慢整理，这里暂时不放真实账号，先保留为未开放。',
+            status: '未开放'
         }),
         weibo: Object.freeze({
             key: 'weibo',
             label: '微博',
-            value: '@盐憩 Yanqi',
+            value: '暂未开放',
             href: 'contact.html#contactMethodsSection',
-            note: '更适合轻一点的问候、更新提醒和临近出发时的短回声。'
+            note: '微博联络路径也还没有启用，当前只保留一个安静的占位说明。',
+            status: '未开放'
         })
     });
 
     const BRAND_LINKS = Object.freeze({
         email: Object.freeze({
             key: 'email',
-            href: CONTACT_METHODS.email.href,
-            value: CONTACT_METHODS.email.value,
-            label: CONTACT_METHODS.email.label,
+            href: 'contact.html#contactMethodsSection',
+            value: '暂未开放',
+            label: '联系邮箱',
             external: false
         }),
         wechat: Object.freeze({
             key: 'wechat',
-            href: CONTACT_METHODS.wechat.href,
-            value: CONTACT_METHODS.wechat.value,
-            label: CONTACT_METHODS.wechat.label,
+            href: 'contact.html#contactMethodsSection',
+            value: '暂未开放',
+            label: '微信 / 公众号',
             external: false
         }),
         xiaohongshu: Object.freeze({
             key: 'xiaohongshu',
-            href: CONTACT_METHODS.xiaohongshu.href,
-            value: CONTACT_METHODS.xiaohongshu.value,
-            label: CONTACT_METHODS.xiaohongshu.label,
+            href: 'contact.html#contactMethodsSection',
+            value: '暂未开放',
+            label: '小红书',
             external: false
         }),
         weibo: Object.freeze({
             key: 'weibo',
-            href: CONTACT_METHODS.weibo.href,
-            value: CONTACT_METHODS.weibo.value,
-            label: CONTACT_METHODS.weibo.label,
+            href: 'contact.html#contactMethodsSection',
+            value: '暂未开放',
+            label: '微博',
             external: false
         }),
         contact: Object.freeze({
             key: 'contact',
             href: 'contact.html#contactMethodsSection',
-            value: '联络水域',
+            value: '联络方式未开放',
             label: '联系我们',
             external: false
         }),
         forgot: Object.freeze({
             key: 'forgot',
             href: 'contact.html#contactFormSection',
-            value: '找回入口',
+            value: '暂未开放',
             label: '忘记密码',
             external: false
         }),

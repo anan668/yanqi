@@ -313,6 +313,10 @@ body.info-page {
     color: #effbff;
 }
 
+.contact-method-value.is-unavailable {
+    color: rgba(226, 239, 245, 0.78);
+}
+
 .contact-method-note {
     margin: 0;
     color: rgba(213, 231, 239, 0.62);
@@ -327,6 +331,12 @@ body.info-page {
     background: rgba(168, 209, 227, 0.12);
     color: rgba(231, 245, 250, 0.7);
     font-size: 0.78rem;
+}
+
+.contact-method-status.is-unavailable {
+    background: rgba(150, 184, 199, 0.12);
+    color: rgba(219, 233, 240, 0.72);
+    border: 1px solid rgba(188, 214, 225, 0.1);
 }
 
 /* 留言表单：

@@ -707,10 +707,11 @@ function resolveHomePerformanceProfile() {
     const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory <= 4;
     const lowConcurrency = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4;
     const lowEnd = lowMemory || lowConcurrency;
-    const lite = lowEnd || (coarsePointer && compactViewport);
+    const desktopFullMode = anyFinePointer;
+    const lite = desktopFullMode ? false : (lowEnd || (coarsePointer && compactViewport));
 
     return {
-        mode: lite ? 'lite' : (coarsePointer || compactViewport ? 'balanced' : 'full'),
+        mode: desktopFullMode ? 'full' : (lite ? 'lite' : (coarsePointer || compactViewport ? 'balanced' : 'full')),
         coarsePointer,
         compactViewport,
         lowMemory,
@@ -1917,12 +1918,8 @@ const DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS = 200;
 const DIVE_MATCH_PROFILE_PRESET_SWAP_DURATION_MS = 1200;
 const DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS = 180;
 const DIVE_MATCH_PROFILE_PANEL_SWAP_DURATION_MS = 1060;
-const DIVE_MATCH_PROFILE_PANEL_VEIL_DELAY_MS = 60;
-const DIVE_MATCH_PROFILE_PANEL_VEIL_DURATION_MS = 1200;
 const DIVE_MATCH_PROFILE_PANEL_TRACK_OUT_DURATION_MS = 340;
 const DIVE_MATCH_PROFILE_PANEL_TRACK_IN_DURATION_MS = 520;
-const DIVE_MATCH_PROFILE_PANEL_ITEM_OUT_DURATION_MS = 280;
-const DIVE_MATCH_PROFILE_PANEL_ITEM_IN_DURATION_MS = 460;
 const DIVE_MATCH_PROFILE_PRESET_TRACK_OUT_DURATION_MS = 360;
 const DIVE_MATCH_PROFILE_PRESET_TRACK_IN_DURATION_MS = 560;
 const DIVE_MATCH_PROFILE_PRESET_ITEM_OUT_DURATION_MS = 300;
@@ -2912,7 +2909,15 @@ class BambooScroll {
             this.cancelAutoStep();
             this.inertia.active = false;
             this.trackVelocity = 0;
-        } else if (this.enableAutoStep && !this.isDragging && !this.pointerInsideWrapper) {
+        }
+
+        if (isHomeInteractionLocked() && !this.isDragging) {
+            this.syncMotionLiteState(true);
+            this.stopFrameLoop();
+            return;
+        }
+
+        if (this.enableAutoStep && !this.isDragging && !this.pointerInsideWrapper) {
             this.scheduleAutoStep();
         }
 
@@ -4220,12 +4225,9 @@ class DiveMatchStage {
         this.profilePresetFocusAuraNode = null;
         this.profilePresetRailResizeObserver = null;
         this.profilePresetSwapInTimer = 0;
-        this.profilePanelTransitionTimer = 0;
-        this.profilePanelTransitionEndTimer = 0;
-        this.pendingProfilePanelState = null;
         this.profilePanelSlotTransitions = {
-            copy: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 },
-            reason: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 }
+            copy: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0, typingTimers: [], typingToken: 0 },
+            reason: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0, typingTimers: [], typingToken: 0 }
         };
         this.activeKey = getDiveMatchKeyFromLocation() || resolveDefaultDiveMatchKey() || readStoredDiveMatchKey() || DIVE_MATCH_DEFAULT_KEY;
         this.switchTimer = 0;
@@ -4243,12 +4245,39 @@ class DiveMatchStage {
         }
     }
 
-    getProfileDescriptor() {
-        return sharedDiverProfile?.describeProfile?.(this.profile) || {
+    getProfileDescriptor(activeMatch = getDiveMatchEntry(this.activeKey)) {
+        const baseDescriptor = sharedDiverProfile?.describeProfile?.(this.profile) || {
             title: '当前潜水者档案',
             summary: '先把这次下潜的节奏慢慢说清，推荐才会更贴近此刻。',
             chips: [],
             recommendedMatchKey: this.activeKey
+        };
+
+        const recommendedMatchKey = baseDescriptor.recommendedMatchKey || this.activeKey;
+        const recommendedMatch = DIVE_MATCH_MAP.has(recommendedMatchKey)
+            ? getDiveMatchEntry(recommendedMatchKey)
+            : null;
+        const viewingChip = activeMatch?.label ? `当前查看 · ${activeMatch.label}` : '';
+        const recommendationChip = recommendedMatch && recommendedMatch.key !== activeMatch?.key
+            ? `默认贴近 · ${recommendedMatch.label}`
+            : '';
+        const chips = [viewingChip, recommendationChip, ...(baseDescriptor.chips || [])]
+            .filter(Boolean)
+            .filter((chip, index, source) => source.indexOf(chip) === index);
+
+        let summary = baseDescriptor.summary || '先把这次下潜的节奏慢慢说清，推荐才会更贴近此刻。';
+        if (activeMatch?.label) {
+            if (recommendedMatch && recommendedMatch.key !== activeMatch.key) {
+                summary = `${summary} 当前档案原本更贴近「${recommendedMatch.label}」，现在你正在查看「${activeMatch.label}」这一层。`;
+            } else {
+                summary = `${summary} 这次会先从「${activeMatch.label}」这一层慢慢进入。`;
+            }
+        }
+
+        return {
+            ...baseDescriptor,
+            summary,
+            chips
         };
     }
 
@@ -4415,17 +4444,6 @@ class DiveMatchStage {
             easing: 'cubic-bezier(0.22, 0.1, 0.24, 1)'
         });
 
-        Array.from(currentTrack.children).forEach((node, index) => {
-            this.animateNode(node, [
-                { opacity: 1, transform: 'translate3d(0, 0, 0)' },
-                { opacity: 0, transform: 'translate3d(0, -12px, 0)' }
-            ], {
-                duration: DIVE_MATCH_PROFILE_PANEL_ITEM_OUT_DURATION_MS,
-                delay: index * 40,
-                easing: 'cubic-bezier(0.22, 0.1, 0.24, 1)'
-            });
-        });
-
         this.animateNode(nextTrack, [
             { opacity: 0, transform: 'translate3d(0, 20px, 0)' },
             { opacity: 1, transform: 'translate3d(0, 0, 0)' }
@@ -4433,17 +4451,6 @@ class DiveMatchStage {
             duration: DIVE_MATCH_PROFILE_PANEL_TRACK_IN_DURATION_MS,
             delay: DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS,
             easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
-        });
-
-        Array.from(nextTrack.children).forEach((node, index) => {
-            this.animateNode(node, [
-                { opacity: 0, transform: 'translate3d(0, 16px, 0)' },
-                { opacity: 1, transform: 'translate3d(0, 0, 0)' }
-            ], {
-                duration: DIVE_MATCH_PROFILE_PANEL_ITEM_IN_DURATION_MS,
-                delay: DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS + 80 + index * 56,
-                easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
-            });
         });
     }
 
@@ -4495,9 +4502,27 @@ class DiveMatchStage {
 
     buildProfileCopyMarkup(descriptor) {
         return `
-            <p class="dive-match-profile-kicker">Diver Profile</p>
-            <h3 class="dive-match-profile-title">${descriptor.title}</h3>
-            <p class="dive-match-profile-summary">${descriptor.summary}</p>
+            <p class="dive-match-profile-kicker">
+                <span
+                    class="dive-match-profile-kicker-line dive-match-profile-type-line"
+                    data-type-order="0"
+                    data-type-delay="14"
+                >Diver Profile</span>
+            </p>
+            <h3 class="dive-match-profile-title">
+                <span
+                    class="dive-match-profile-title-line dive-match-profile-type-line"
+                    data-type-order="1"
+                    data-type-delay="22"
+                >${descriptor.title}</span>
+            </h3>
+            <p class="dive-match-profile-summary">
+                <span
+                    class="dive-match-profile-summary-line dive-match-profile-type-line"
+                    data-type-order="2"
+                    data-type-delay="4"
+                >${descriptor.summary}</span>
+            </p>
             <div class="dive-match-profile-chips">
                 ${descriptor.chips.map((chip) => `<span class="dive-match-profile-chip">${chip}</span>`).join('')}
             </div>
@@ -4514,9 +4539,27 @@ class DiveMatchStage {
 
     buildProfileReasonMarkup(activeMatch, recommendation) {
         return `
-            <p class="dive-match-profile-reason-kicker">Why This Water</p>
-            <p class="dive-match-profile-reason-title">当前默认落在「${activeMatch.label}」这一层</p>
-            <p class="dive-match-profile-reason-copy">先推 ${recommendation.name}，因为${recommendation.reason}</p>
+            <p class="dive-match-profile-reason-kicker">
+                <span
+                    class="dive-match-profile-reason-kicker-line dive-match-profile-type-line"
+                    data-type-order="0"
+                    data-type-delay="14"
+                >Why This Water</span>
+            </p>
+            <p class="dive-match-profile-reason-title">
+                <span
+                    class="dive-match-profile-reason-title-line dive-match-profile-type-line"
+                    data-type-order="1"
+                    data-type-delay="22"
+                >当前默认落在「${activeMatch.label}」这一层</span>
+            </p>
+            <p class="dive-match-profile-reason-copy">
+                <span
+                    class="dive-match-profile-reason-copy-line dive-match-profile-type-line"
+                    data-type-order="2"
+                    data-type-delay="4"
+                >先推 ${recommendation.name}，因为${recommendation.reason}</span>
+            </p>
         `;
     }
 
@@ -4527,6 +4570,168 @@ class DiveMatchStage {
             recommendation?.name || '',
             recommendation?.reason || ''
         ].join('::');
+    }
+
+    getProfilePanelTypeLines(track) {
+        if (!track) {
+            return [];
+        }
+
+        return Array.from(track.querySelectorAll('.dive-match-profile-type-line'))
+            .sort((left, right) => Number(left.dataset.typeOrder || 0) - Number(right.dataset.typeOrder || 0));
+    }
+
+    prepareProfilePanelTrackTypeTargets(track) {
+        if (!track) {
+            return [];
+        }
+
+        const lines = this.getProfilePanelTypeLines(track);
+        lines.forEach((line) => {
+            if (!line.dataset.text) {
+                line.dataset.text = line.textContent.trim();
+            }
+
+            line.textContent = '';
+            line.classList.remove('is-typed');
+            line.dataset.typingActive = 'false';
+        });
+
+        track.classList.remove('is-awakened', 'is-typed');
+        return lines;
+    }
+
+    restoreProfilePanelTrackTypeText(track) {
+        if (!track) {
+            return;
+        }
+
+        const lines = this.getProfilePanelTypeLines(track);
+        lines.forEach((line) => {
+            const text = line.dataset.text || line.textContent.trim();
+            line.textContent = text;
+            line.classList.add('is-typed');
+            line.dataset.typingActive = 'false';
+        });
+
+        track.classList.add('is-awakened', 'is-typed');
+    }
+
+    queueProfilePanelTypeTimeout(slotKey, callback, delay = 0) {
+        const state = this.getProfilePanelSlotTransitionState(slotKey);
+        const timerId = window.setTimeout(() => {
+            state.typingTimers = state.typingTimers.filter((activeTimerId) => activeTimerId !== timerId);
+            callback();
+        }, delay);
+
+        state.typingTimers.push(timerId);
+        return timerId;
+    }
+
+    clearProfilePanelTrackTyping(slotKey, track = null, options = {}) {
+        const { restoreText = false } = options;
+        const state = this.getProfilePanelSlotTransitionState(slotKey);
+        state.typingToken += 1;
+        state.typingTimers.forEach((timerId) => {
+            window.clearTimeout(timerId);
+        });
+        state.typingTimers = [];
+
+        if (restoreText) {
+            this.restoreProfilePanelTrackTypeText(track);
+        }
+    }
+
+    typeProfilePanelLine(track, line, slotKey, token) {
+        return new Promise((resolve) => {
+            const state = this.getProfilePanelSlotTransitionState(slotKey);
+            const text = line?.dataset.text || '';
+            const characters = Array.from(String(text));
+            const baseDelay = Number.parseInt(line?.dataset.typeDelay || '42', 10) || 42;
+
+            if (!track?.isConnected || !line?.isConnected || state.typingToken !== token || !characters.length) {
+                if (line?.isConnected) {
+                    line.textContent = text;
+                    line.classList.add('is-typed');
+                    line.dataset.typingActive = 'false';
+                }
+                resolve();
+                return;
+            }
+
+            line.textContent = '';
+            line.classList.remove('is-typed');
+            line.dataset.typingActive = 'true';
+            let index = 0;
+
+            const appendNextCharacter = () => {
+                if (!track.isConnected || !line.isConnected || state.typingToken !== token) {
+                    line.dataset.typingActive = 'false';
+                    resolve();
+                    return;
+                }
+
+                const char = characters[index];
+                const charNode = document.createElement('span');
+                charNode.className = 'dive-match-profile-type-char';
+                charNode.textContent = char;
+
+                if (/\s/.test(char)) {
+                    charNode.classList.add('is-space');
+                }
+
+                line.appendChild(charNode);
+                window.requestAnimationFrame(() => {
+                    charNode.classList.add('is-visible');
+                });
+
+                index += 1;
+                if (index >= characters.length) {
+                    line.dataset.typingActive = 'false';
+                    line.classList.add('is-typed');
+                    this.queueProfilePanelTypeTimeout(slotKey, resolve, 20);
+                    return;
+                }
+
+                const extraPause = /[，。！？,.!?：:]/.test(char) ? 18 : 0;
+                this.queueProfilePanelTypeTimeout(slotKey, appendNextCharacter, baseDelay + extraPause);
+            };
+
+            appendNextCharacter();
+        });
+    }
+
+    async runProfilePanelTrackTypewriter(track, slotKey) {
+        if (!track?.isConnected) {
+            return;
+        }
+
+        this.clearProfilePanelTrackTyping(slotKey);
+        const lines = this.prepareProfilePanelTrackTypeTargets(track);
+        const state = this.getProfilePanelSlotTransitionState(slotKey);
+        const token = state.typingToken;
+
+        if (!lines.length) {
+            track.classList.add('is-awakened', 'is-typed');
+            return;
+        }
+
+        track.classList.remove('is-typed');
+        track.classList.add('is-awakened');
+
+        for (const line of lines) {
+            if (!track.isConnected || state.typingToken !== token) {
+                return;
+            }
+
+            await this.typeProfilePanelLine(track, line, slotKey, token);
+        }
+
+        if (!track.isConnected || state.typingToken !== token) {
+            return;
+        }
+
+        track.classList.add('is-typed');
     }
 
     createProfilePanelTrack(trackClass, markup, signature, options = {}) {
@@ -4546,7 +4751,14 @@ class DiveMatchStage {
 
     getProfilePanelSlotTransitionState(slotKey) {
         if (!this.profilePanelSlotTransitions[slotKey]) {
-            this.profilePanelSlotTransitions[slotKey] = { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 };
+            this.profilePanelSlotTransitions[slotKey] = {
+                timer: 0,
+                swapInTimer: 0,
+                rafId: 0,
+                rafId2: 0,
+                typingTimers: [],
+                typingToken: 0
+            };
         }
         return this.profilePanelSlotTransitions[slotKey];
     }
@@ -4574,6 +4786,8 @@ class DiveMatchStage {
             state.rafId2 = 0;
         }
 
+        this.clearProfilePanelTrackTyping(slotKey);
+
         if (!slotNode) {
             return null;
         }
@@ -4587,6 +4801,7 @@ class DiveMatchStage {
         });
 
         if (currentTrack) {
+            this.restoreProfilePanelTrackTypeText(currentTrack);
             this.cancelNodeAnimations(currentTrack);
             currentTrack.classList.remove('is-preparing', 'is-swapping-in', 'is-swapping-out');
             currentTrack.classList.add('is-current');
@@ -4638,6 +4853,7 @@ class DiveMatchStage {
 
         if (currentTrack?.dataset.panelSignature === signature) {
             slotNode.replaceChildren(currentTrack);
+            this.syncProfilePanelMotionState();
             return;
         }
 
@@ -4670,6 +4886,7 @@ class DiveMatchStage {
 
                     nextTrack.classList.remove('is-preparing');
                     nextTrack.classList.add('is-current', 'is-swapping-in');
+                    this.runProfilePanelTrackTypewriter(nextTrack, slotKey);
                 });
             });
         }, DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS);
@@ -4722,8 +4939,8 @@ class DiveMatchStage {
     }
 
     buildProfilePanelState() {
-        const descriptor = this.getProfileDescriptor();
         const activeMatch = getDiveMatchEntry(this.activeKey);
+        const descriptor = this.getProfileDescriptor(activeMatch);
         const recommendation = this.buildProfileRecommendation(activeMatch);
         const presetVariants = this.getProfilePresetVariants(activeMatch);
         const signature = [
@@ -4754,41 +4971,6 @@ class DiveMatchStage {
         if (this.profilePanel) {
             this.profilePanel.dataset.panelSignature = panelState.signature;
         }
-    }
-
-    clearPendingProfilePanelTransition(options = {}) {
-        const { keepPanelClass = false } = options;
-
-        if (this.profilePanelTransitionTimer) {
-            clearTimeout(this.profilePanelTransitionTimer);
-            this.profilePanelTransitionTimer = 0;
-        }
-
-        if (this.profilePanelTransitionEndTimer) {
-            clearTimeout(this.profilePanelTransitionEndTimer);
-            this.profilePanelTransitionEndTimer = 0;
-        }
-
-        this.pendingProfilePanelState = null;
-
-        if (!keepPanelClass) {
-            this.profilePanel?.classList.remove('is-panel-transitioning');
-        }
-    }
-
-    restartProfilePanelTransition() {
-        if (!this.profilePanel) {
-            return;
-        }
-
-        this.profilePanel.classList.remove('is-panel-transitioning');
-        void this.profilePanel.offsetWidth;
-        this.profilePanel.classList.add('is-panel-transitioning');
-
-        this.profilePanelTransitionEndTimer = window.setTimeout(() => {
-            this.profilePanel?.classList.remove('is-panel-transitioning');
-            this.profilePanelTransitionEndTimer = 0;
-        }, DIVE_MATCH_PROFILE_PANEL_VEIL_DURATION_MS);
     }
 
     createProfilePresetTrack(presetVariants, options = {}) {
@@ -5040,33 +5222,7 @@ class DiveMatchStage {
         const { immediate = false } = options;
         this.ensureProfilePanelShell();
         const panelState = this.buildProfilePanelState();
-        const currentSignature = this.profilePanel?.dataset.panelSignature || '';
-        const pendingSignature = this.pendingProfilePanelState?.signature || '';
-        const shouldAnimatePanel =
-            !immediate
-            && !this.shouldReduceProfilePresetMotion()
-            && Boolean(this.profilePanel)
-            && currentSignature !== panelState.signature;
-
-        if (!shouldAnimatePanel) {
-            this.clearPendingProfilePanelTransition();
-            this.applyProfilePanelState(panelState, { immediate });
-            return;
-        }
-
-        if (pendingSignature === panelState.signature && this.profilePanelTransitionTimer) {
-            return;
-        }
-
-        this.clearPendingProfilePanelTransition();
-        this.pendingProfilePanelState = panelState;
-        this.restartProfilePanelTransition();
-        this.profilePanelTransitionTimer = window.setTimeout(() => {
-            const nextPanelState = this.pendingProfilePanelState || panelState;
-            this.pendingProfilePanelState = null;
-            this.profilePanelTransitionTimer = 0;
-            this.applyProfilePanelState(nextPanelState, { immediate: false });
-        }, DIVE_MATCH_PROFILE_PANEL_VEIL_DELAY_MS);
+        this.applyProfilePanelState(panelState, { immediate });
     }
 
     /**
@@ -5736,7 +5892,7 @@ function scrollToSection(targetSelector) {
 
     const featuredTopOverride = targetSelector === '#featured-destinations'
         ? resolveFeaturedTopOverride(sharedMetrics)
-        : 0;
+        : null;
     const needsFreshMetrics = primedNewLayout
         || !sharedMetrics
         || !Number.isFinite(anchorTopFromMetrics)
@@ -5756,7 +5912,7 @@ function scrollToSection(targetSelector) {
 /**
  * primeHomeScrollTarget(targetSelector) - 在长距离滚动前预热目标路径上的延迟模块，避免滚动途中初始化造成掉帧
  * @param {string} targetSelector - 目标区块选择器
- * @returns {void}
+ * @returns {boolean} - 本次是否初始化了新的会影响布局的延迟模块
  */
 function primeHomeScrollTarget(targetSelector) {
     const shouldPrimeCurated = [
@@ -6361,6 +6517,7 @@ class HomeSeaGuide {
         this.currentKey = '';
         this.lastVisible = false;
         this.lastDeep = false;
+        this.probeTargets = new Map();
         this.targetTops = new Map();
         this.targetMetricsVersion = 0;
         this.targetOffset = Number.NaN;
@@ -6393,8 +6550,19 @@ class HomeSeaGuide {
      * @returns {Element|null} - 用于高亮判断的 DOM 元素
      */
     getProbeTarget(selector) {
-        const target = selector ? document.querySelector(selector) : null;
-        return resolveHomeSectionProbeElement(selector, target);
+        if (!selector) {
+            return null;
+        }
+
+        const cached = this.probeTargets.get(selector);
+        if (cached && cached.isConnected) {
+            return cached;
+        }
+
+        const target = document.querySelector(selector);
+        const probeTarget = resolveHomeSectionProbeElement(selector, target);
+        this.probeTargets.set(selector, probeTarget || null);
+        return probeTarget;
     }
 
     /**
@@ -6405,6 +6573,7 @@ class HomeSeaGuide {
         const offset = this.getOffset();
         const sharedMetrics = homeViewportCoordinator.readHomeSectionMetrics?.();
         const metricsVersion = Number.isFinite(sharedMetrics?.version) ? sharedMetrics.version : 0;
+        const previousTargetTops = new Map(this.targetTops);
         if (
             this.targetTops.size
             && metricsVersion > 0
@@ -6434,7 +6603,7 @@ class HomeSeaGuide {
                 return;
             }
 
-            const cachedTop = this.targetTops.get(selector);
+            const cachedTop = previousTargetTops.get(selector);
             if (Number.isFinite(cachedTop)) {
                 this.targetTops.set(selector, cachedTop);
             }
@@ -6552,11 +6721,6 @@ class HomeSeaGuide {
                 if (probeY >= sharedTop - 24) {
                     currentKey = entry.dataset.key || currentKey;
                 }
-                return;
-            }
-
-            const target = this.getProbeTarget(entry.dataset.target);
-            if (!target) {
                 return;
             }
 
