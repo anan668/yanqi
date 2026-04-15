@@ -765,10 +765,12 @@ function createHomeViewportCoordinator() {
     const listeners = new Set();
     let updateRaf = 0;
     let measureRaf = 0;
+    let measureTimer = 0;
     let attached = false;
     let lastLockedUpdateAt = 0;
     let sectionMetricsVersion = 0;
     let syncedDepthMetricsVersion = 0;
+    let lastMeasuredAt = 0;
     let homeSectionMetrics = null;
     const sectionElementCache = new Map();
     const trackedSectionSelectors = ['#hero-home', '#featured-destinations', '#dive-match', '#why-yanqi', '#homeFooter'];
@@ -943,6 +945,28 @@ function createHomeViewportCoordinator() {
         });
     };
 
+    const runMeasureCycle = () => {
+        computeSectionMetrics();
+        lastMeasuredAt = performance.now();
+        syncDepthManagerSectionMetrics();
+        runPhase('measure');
+        if (shouldDeferLockedUpdate()) {
+            return;
+        }
+        runPhase('update');
+    };
+
+    const scheduleMeasureFrame = () => {
+        if (measureRaf) {
+            return;
+        }
+
+        measureRaf = window.requestAnimationFrame(() => {
+            measureRaf = 0;
+            runMeasureCycle();
+        });
+    };
+
     const requestUpdate = () => {
         if (updateRaf) {
             return;
@@ -957,21 +981,38 @@ function createHomeViewportCoordinator() {
         });
     };
 
-    const requestMeasure = () => {
+    const requestMeasure = (options = {}) => {
+        const force = Boolean(options?.force);
         if (measureRaf) {
             return;
         }
 
-        measureRaf = window.requestAnimationFrame(() => {
-            measureRaf = 0;
-            computeSectionMetrics();
-            syncDepthManagerSectionMetrics();
-            runPhase('measure');
-            if (shouldDeferLockedUpdate()) {
+        if (measureTimer) {
+            if (force) {
+                window.clearTimeout(measureTimer);
+                measureTimer = 0;
+            } else {
                 return;
             }
-            runPhase('update');
-        });
+        }
+
+        const now = performance.now();
+        const isTraveling = typeof HOME_INTERACTION_STATE !== 'undefined'
+            && Boolean(HOME_INTERACTION_STATE.scrollTraveling);
+        const minIntervalMs = force || !homeSectionMetrics
+            ? 0
+            : (isTraveling ? 140 : 56);
+        const waitMs = Math.max(0, minIntervalMs - (now - lastMeasuredAt));
+
+        if (waitMs <= 0) {
+            scheduleMeasureFrame();
+            return;
+        }
+
+        measureTimer = window.setTimeout(() => {
+            measureTimer = 0;
+            scheduleMeasureFrame();
+        }, waitMs);
     };
 
     const attach = () => {
@@ -1872,18 +1913,20 @@ const DIVE_MATCH_PROFILE_PRESET_ORDER = Object.freeze({
     'showcase-current': 2
 });
 
-const DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS = 220;
-const DIVE_MATCH_PROFILE_PRESET_SWAP_DURATION_MS = 1460;
+const DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS = 200;
+const DIVE_MATCH_PROFILE_PRESET_SWAP_DURATION_MS = 1200;
 const DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS = 180;
-const DIVE_MATCH_PROFILE_PANEL_SWAP_DURATION_MS = 1240;
-const DIVE_MATCH_PROFILE_PANEL_TRACK_OUT_DURATION_MS = 760;
-const DIVE_MATCH_PROFILE_PANEL_TRACK_IN_DURATION_MS = 980;
-const DIVE_MATCH_PROFILE_PANEL_ITEM_OUT_DURATION_MS = 640;
-const DIVE_MATCH_PROFILE_PANEL_ITEM_IN_DURATION_MS = 900;
-const DIVE_MATCH_PROFILE_PRESET_TRACK_OUT_DURATION_MS = 780;
-const DIVE_MATCH_PROFILE_PRESET_TRACK_IN_DURATION_MS = 1040;
-const DIVE_MATCH_PROFILE_PRESET_ITEM_OUT_DURATION_MS = 680;
-const DIVE_MATCH_PROFILE_PRESET_ITEM_IN_DURATION_MS = 980;
+const DIVE_MATCH_PROFILE_PANEL_SWAP_DURATION_MS = 1060;
+const DIVE_MATCH_PROFILE_PANEL_VEIL_DELAY_MS = 60;
+const DIVE_MATCH_PROFILE_PANEL_VEIL_DURATION_MS = 1200;
+const DIVE_MATCH_PROFILE_PANEL_TRACK_OUT_DURATION_MS = 340;
+const DIVE_MATCH_PROFILE_PANEL_TRACK_IN_DURATION_MS = 520;
+const DIVE_MATCH_PROFILE_PANEL_ITEM_OUT_DURATION_MS = 280;
+const DIVE_MATCH_PROFILE_PANEL_ITEM_IN_DURATION_MS = 460;
+const DIVE_MATCH_PROFILE_PRESET_TRACK_OUT_DURATION_MS = 360;
+const DIVE_MATCH_PROFILE_PRESET_TRACK_IN_DURATION_MS = 560;
+const DIVE_MATCH_PROFILE_PRESET_ITEM_OUT_DURATION_MS = 300;
+const DIVE_MATCH_PROFILE_PRESET_ITEM_IN_DURATION_MS = 500;
 
 // 统一导航入口：所有需要跨页面保持深度过渡的跳转都先走这里。
 /**
@@ -1904,8 +1947,18 @@ const HOME_INTERACTION_STATE = {
     guideOpen: false,
     lockUntil: 0,
     unlockTimer: 0,
-    scrollTraveling: false
+    scrollTraveling: false,
+    programmaticTraveling: false,
+    manualTraveling: false,
+    manualTravelTimer: 0,
+    lastDatasetLocked: false,
+    manualLastScrollY: 0,
+    manualLastScrollAt: 0
 };
+
+const HOME_MANUAL_SCROLL_BURST_GAP_MS = 96;
+const HOME_MANUAL_SCROLL_BURST_RESET_MS = 180;
+const HOME_MANUAL_SCROLL_BURST_DELTA_MIN = 220;
 
 /**
  * syncHomeInteractionDataset() - 把首页交互锁状态同步到 body data 属性，供样式层做临时降载
@@ -1916,9 +1969,27 @@ function syncHomeInteractionDataset() {
         return;
     }
 
+    const nextScrollTraveling = HOME_INTERACTION_STATE.programmaticTraveling || HOME_INTERACTION_STATE.manualTraveling;
+    const previousLocked = HOME_INTERACTION_STATE.lastDatasetLocked;
+    const previousScrollTraveling = HOME_INTERACTION_STATE.scrollTraveling;
     const isLocked = HOME_INTERACTION_STATE.guideOpen || performance.now() < HOME_INTERACTION_STATE.lockUntil;
+    HOME_INTERACTION_STATE.scrollTraveling = nextScrollTraveling;
+    HOME_INTERACTION_STATE.lastDatasetLocked = isLocked;
+
     document.body.dataset.homeInteraction = isLocked ? 'locked' : 'idle';
-    document.body.classList.toggle('home-scroll-traveling', HOME_INTERACTION_STATE.scrollTraveling);
+    document.body.classList.toggle('home-scroll-traveling', nextScrollTraveling);
+
+    if (
+        previousLocked !== isLocked
+        || previousScrollTraveling !== nextScrollTraveling
+    ) {
+        window.dispatchEvent(new CustomEvent('homeinteractionchange', {
+            detail: {
+                isLocked,
+                scrollTraveling: nextScrollTraveling
+            }
+        }));
+    }
 }
 
 /**
@@ -1935,7 +2006,7 @@ function scheduleHomeInteractionRefresh(delayMs = 0) {
     const delay = Math.max(0, delayMs);
     HOME_INTERACTION_STATE.unlockTimer = window.setTimeout(() => {
         HOME_INTERACTION_STATE.unlockTimer = 0;
-        HOME_INTERACTION_STATE.scrollTraveling = false;
+        HOME_INTERACTION_STATE.programmaticTraveling = false;
         syncHomeInteractionDataset();
         if (typeof homeViewportCoordinator !== 'undefined') {
             homeViewportCoordinator.requestMeasure();
@@ -1957,13 +2028,86 @@ function beginHomeInteractionLock(durationMs = 0) {
 }
 
 /**
- * setHomeScrollTraveling(isTraveling) - 标记首页是否处于程序化长距离滚动中
+ * setHomeScrollTraveling(isTraveling, source) - 标记首页是否处于程序化或手动的大幅滚动中
  * @param {boolean} isTraveling - 是否处于长距离滚动态
+ * @param {'programmatic'|'manual'} source - 滚动来源
  * @returns {void}
  */
-function setHomeScrollTraveling(isTraveling) {
-    HOME_INTERACTION_STATE.scrollTraveling = Boolean(isTraveling);
+function setHomeScrollTraveling(isTraveling, source = 'programmatic') {
+    if (source === 'manual') {
+        HOME_INTERACTION_STATE.manualTraveling = Boolean(isTraveling);
+        if (!isTraveling && HOME_INTERACTION_STATE.manualTravelTimer) {
+            window.clearTimeout(HOME_INTERACTION_STATE.manualTravelTimer);
+            HOME_INTERACTION_STATE.manualTravelTimer = 0;
+        }
+    } else {
+        HOME_INTERACTION_STATE.programmaticTraveling = Boolean(isTraveling);
+    }
+
     syncHomeInteractionDataset();
+}
+
+function markHomeManualScrollTraveling() {
+    if (HOME_INTERACTION_STATE.programmaticTraveling) {
+        return;
+    }
+
+    HOME_INTERACTION_STATE.manualTraveling = true;
+    syncHomeInteractionDataset();
+
+    if (HOME_INTERACTION_STATE.manualTravelTimer) {
+        window.clearTimeout(HOME_INTERACTION_STATE.manualTravelTimer);
+    }
+
+    HOME_INTERACTION_STATE.manualTravelTimer = window.setTimeout(() => {
+        HOME_INTERACTION_STATE.manualTravelTimer = 0;
+        HOME_INTERACTION_STATE.manualTraveling = false;
+        syncHomeInteractionDataset();
+        if (typeof homeViewportCoordinator !== 'undefined') {
+            homeViewportCoordinator.requestUpdate();
+        }
+    }, HOME_MANUAL_SCROLL_BURST_RESET_MS);
+}
+
+function setupHomeManualScrollTraveling() {
+    if (!document.body.classList.contains('home-page')) {
+        return;
+    }
+
+    HOME_INTERACTION_STATE.manualLastScrollY = window.scrollY || window.pageYOffset || 0;
+    HOME_INTERACTION_STATE.manualLastScrollAt = performance.now();
+
+    let scrollRafId = 0;
+    const evaluateScrollBurst = () => {
+        scrollRafId = 0;
+
+        const currentScrollY = window.scrollY || window.pageYOffset || 0;
+        const now = performance.now();
+        const delta = Math.abs(currentScrollY - HOME_INTERACTION_STATE.manualLastScrollY);
+        const elapsed = Math.max(now - HOME_INTERACTION_STATE.manualLastScrollAt, 1);
+
+        HOME_INTERACTION_STATE.manualLastScrollY = currentScrollY;
+        HOME_INTERACTION_STATE.manualLastScrollAt = now;
+
+        if (HOME_INTERACTION_STATE.programmaticTraveling) {
+            return;
+        }
+
+        if (
+            elapsed <= HOME_MANUAL_SCROLL_BURST_GAP_MS
+            && delta >= Math.max((window.innerHeight || 0) * 0.35, HOME_MANUAL_SCROLL_BURST_DELTA_MIN)
+        ) {
+            markHomeManualScrollTraveling();
+        }
+    };
+
+    window.addEventListener('scroll', () => {
+        if (scrollRafId) {
+            return;
+        }
+
+        scrollRafId = window.requestAnimationFrame(evaluateScrollBurst);
+    }, { passive: true });
 }
 
 /**
@@ -2056,6 +2200,8 @@ class BambooScroll {
         this.autoInitialDelayJitterMaxMs = this.performanceProfile.lite ? 220 : 220;
         this.autoStepDurationMin = this.performanceProfile.lite ? 1.08 : 1.02;
         this.autoStepDurationMax = this.performanceProfile.lite ? 1.24 : 1.18;
+        this.motionLiteVelocityThreshold = 900;
+        this.isMotionLite = false;
 
         this.shakeEnergy = 0;
 
@@ -2073,6 +2219,7 @@ class BambooScroll {
         this.visibilityObserver = null;
         this.frameLoop = (timestamp) => this.runFrame(timestamp);
         this.handleDocumentVisibilityChange = () => this.syncDocumentVisibility();
+        this.handleHomeInteractionChange = () => this.onHomeInteractionChange();
 
         if (!this.content || !this.wrapper) {
             return;
@@ -2091,6 +2238,7 @@ class BambooScroll {
         this.centerOnSpotId(getHomeHeroInitialSpotId());
         this.attachEvents();
         this.updateTrackPosition(true);
+        this.syncMotionLiteState(true);
         this.scheduleAutoStep();
     }
 
@@ -2312,6 +2460,7 @@ class BambooScroll {
             this.updateTrackPosition(true);
             this.ensureFrameLoop();
         });
+        window.addEventListener('homeinteractionchange', this.handleHomeInteractionChange);
 
         this.setupVisibilityTracking();
     }
@@ -2347,6 +2496,7 @@ class BambooScroll {
         this.trackPositionDirty = false;
 
         this.wrapper.classList.add('is-dragging');
+        this.syncMotionLiteState(true);
         this.ensureFrameLoop();
 
         if (this.wrapper.setPointerCapture) {
@@ -2476,7 +2626,9 @@ class BambooScroll {
             this.inertia.active = false;
         }
 
-        if (this.enableAutoStep) {
+        this.syncMotionLiteState(true);
+
+        if (this.enableAutoStep && !HOME_INTERACTION_STATE.scrollTraveling) {
             this.scheduleAutoStep();
         }
     }
@@ -2578,6 +2730,10 @@ class BambooScroll {
             return false;
         }
 
+        if (HOME_INTERACTION_STATE.scrollTraveling) {
+            return false;
+        }
+
         if (isHomeInteractionLocked()) {
             return false;
         }
@@ -2634,7 +2790,7 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接设置定时器
      */
     scheduleAutoStep() {
-        if (!this.enableAutoStep) {
+        if (!this.enableAutoStep || HOME_INTERACTION_STATE.scrollTraveling) {
             return;
         }
 
@@ -2658,7 +2814,7 @@ class BambooScroll {
                 this.lastHoverSyncTs = 0;
             }
 
-            if (!this.canAnimateFrame()) {
+            if (!this.canAnimateFrame() || HOME_INTERACTION_STATE.scrollTraveling) {
                 this.scheduleAutoStep();
                 return;
             }
@@ -2748,6 +2904,48 @@ class BambooScroll {
         this.stopFrameLoop();
     }
 
+    onHomeInteractionChange() {
+        if (HOME_INTERACTION_STATE.scrollTraveling) {
+            if (this.autoStep) {
+                this.finishStepScrollImmediately();
+            }
+            this.cancelAutoStep();
+            this.inertia.active = false;
+            this.trackVelocity = 0;
+        } else if (this.enableAutoStep && !this.isDragging && !this.pointerInsideWrapper) {
+            this.scheduleAutoStep();
+        }
+
+        this.syncMotionLiteState(true);
+        this.ensureFrameLoop();
+    }
+
+    shouldUseMotionLite() {
+        return this.isDragging
+            || HOME_INTERACTION_STATE.scrollTraveling
+            || Math.abs(this.trackVelocity) >= this.motionLiteVelocityThreshold;
+    }
+
+    syncMotionLiteState(force = false) {
+        const nextMotionLite = this.shouldUseMotionLite();
+        if (!force && nextMotionLite === this.isMotionLite) {
+            return;
+        }
+
+        this.isMotionLite = nextMotionLite;
+        this.wrapper.classList.toggle('is-motion-lite', nextMotionLite);
+
+        if (!nextMotionLite) {
+            return;
+        }
+
+        this.shakeEnergy = 0;
+        this.lastActivePhysicsRange = null;
+        this.cardPhysics.forEach((_, index) => {
+            this.resetCardPhysicsState(index);
+        });
+    }
+
     /**
      * canAnimateFrame() - 判断当前组件是否适合继续执行逐帧动画
      * @returns {boolean}
@@ -2828,6 +3026,7 @@ class BambooScroll {
             this.updateTrackPosition();
             this.trackPositionDirty = false;
         }
+        this.syncMotionLiteState();
         this.updateCardPhysics(dt, timestamp / 1000);
         this.syncHoverWhileTrackMoves(timestamp);
 
@@ -2905,6 +3104,10 @@ class BambooScroll {
             return;
         }
 
+        if (this.isMotionLite) {
+            return;
+        }
+
         const energyDecay = this.isDragging ? 0.985 : 0.965;
         this.shakeEnergy *= Math.pow(energyDecay, dt * 60);
         if (this.shakeEnergy < 0.01) {
@@ -2963,6 +3166,10 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接更新抖动能量
      */
     injectShake(speedPxPerSecond) {
+        if (this.shouldUseMotionLite()) {
+            return;
+        }
+
         const normalized = this.clamp(speedPxPerSecond / 1600, 0, 1);
         this.shakeEnergy = this.clamp(this.shakeEnergy + 0.22 + normalized * 0.82, 0, 1.28);
 
@@ -2981,6 +3188,10 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接更新回弹参数
      */
     applyDragRecoil(velocity, accel) {
+        if (this.shouldUseMotionLite()) {
+            return;
+        }
+
         if (Math.abs(velocity) < 25 && Math.abs(accel) < 650) {
             return;
         }
@@ -3162,6 +3373,10 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接修改轨道速度
      */
     applyStepBrakeImpulse(direction) {
+        if (this.shouldUseMotionLite()) {
+            return;
+        }
+
         const brakeDirection = -Math.sign(direction || 1);
         this.shakeEnergy = this.clamp(this.shakeEnergy + 0.08, 0, 1.12);
 
@@ -4003,8 +4218,11 @@ class DiveMatchStage {
         this.profilePresetTransitionRafId2 = 0;
         this.profilePresetFocusRafId = 0;
         this.profilePresetFocusAuraNode = null;
-            this.profilePresetRailResizeObserver = null;
+        this.profilePresetRailResizeObserver = null;
         this.profilePresetSwapInTimer = 0;
+        this.profilePanelTransitionTimer = 0;
+        this.profilePanelTransitionEndTimer = 0;
+        this.pendingProfilePanelState = null;
         this.profilePanelSlotTransitions = {
             copy: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 },
             reason: { timer: 0, swapInTimer: 0, rafId: 0, rafId2: 0 }
@@ -4116,7 +4334,7 @@ class DiveMatchStage {
     }
 
     shouldReduceProfilePresetMotion() {
-        return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+        return false;
     }
 
     ensureProfilePanelShell() {
@@ -4184,37 +4402,33 @@ class DiveMatchStage {
     }
 
     playProfilePanelTrackAnimations(currentTrack, nextTrack) {
-        if (this.shouldReduceProfilePresetMotion()) {
-            return;
-        }
-
         this.cancelNodeAnimations(currentTrack);
         this.cancelNodeAnimations(nextTrack);
         void currentTrack.offsetWidth;
         void nextTrack.offsetWidth;
 
         this.animateNode(currentTrack, [
-            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' },
-            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 18px, 0)' }
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+            { opacity: 0, transform: 'translate3d(0, -16px, 0)' }
         ], {
             duration: DIVE_MATCH_PROFILE_PANEL_TRACK_OUT_DURATION_MS,
-            easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+            easing: 'cubic-bezier(0.22, 0.1, 0.24, 1)'
         });
 
         Array.from(currentTrack.children).forEach((node, index) => {
             this.animateNode(node, [
-                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' },
-                { opacity: 0, filter: 'blur(10px)', transform: 'translate3d(0, 14px, 0)' }
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+                { opacity: 0, transform: 'translate3d(0, -12px, 0)' }
             ], {
                 duration: DIVE_MATCH_PROFILE_PANEL_ITEM_OUT_DURATION_MS,
-                delay: index * 32,
-                easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+                delay: index * 40,
+                easing: 'cubic-bezier(0.22, 0.1, 0.24, 1)'
             });
         });
 
         this.animateNode(nextTrack, [
-            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 22px, 0)' },
-            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' }
+            { opacity: 0, transform: 'translate3d(0, 20px, 0)' },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
         ], {
             duration: DIVE_MATCH_PROFILE_PANEL_TRACK_IN_DURATION_MS,
             delay: DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS,
@@ -4223,48 +4437,44 @@ class DiveMatchStage {
 
         Array.from(nextTrack.children).forEach((node, index) => {
             this.animateNode(node, [
-                { opacity: 0, filter: 'blur(10px)', transform: 'translate3d(0, 18px, 0)' },
-                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' }
+                { opacity: 0, transform: 'translate3d(0, 16px, 0)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' }
             ], {
                 duration: DIVE_MATCH_PROFILE_PANEL_ITEM_IN_DURATION_MS,
-                delay: DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS + 140 + index * 42,
+                delay: DIVE_MATCH_PROFILE_PANEL_SWAP_IN_DELAY_MS + 80 + index * 56,
                 easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
             });
         });
     }
 
     playProfilePresetTrackAnimations(currentTrack, nextTrack) {
-        if (this.shouldReduceProfilePresetMotion()) {
-            return;
-        }
-
         this.cancelNodeAnimations(currentTrack);
         this.cancelNodeAnimations(nextTrack);
         void currentTrack.offsetWidth;
         void nextTrack.offsetWidth;
 
         this.animateNode(currentTrack, [
-            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' },
-            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 16px, 0)' }
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+            { opacity: 0, transform: 'translate3d(0, -14px, 0)' }
         ], {
             duration: DIVE_MATCH_PROFILE_PRESET_TRACK_OUT_DURATION_MS,
-            easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+            easing: 'cubic-bezier(0.22, 0.1, 0.24, 1)'
         });
 
         Array.from(currentTrack.querySelectorAll('.dive-match-profile-preset')).forEach((node, index) => {
             this.animateNode(node, [
-                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0) scale(1)' },
-                { opacity: 0, filter: 'blur(12px)', transform: 'translate3d(0, 16px, 0) scale(0.978)' }
+                { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
+                { opacity: 0, transform: 'translate3d(0, -10px, 0) scale(0.94)' }
             ], {
                 duration: DIVE_MATCH_PROFILE_PRESET_ITEM_OUT_DURATION_MS,
-                delay: index * 52,
-                easing: 'cubic-bezier(0.3, 0, 0.24, 1)'
+                delay: index * 60,
+                easing: 'cubic-bezier(0.22, 0.1, 0.24, 1)'
             });
         });
 
         this.animateNode(nextTrack, [
-            { opacity: 0, filter: 'blur(18px)', transform: 'translate3d(0, 20px, 0)' },
-            { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0)' }
+            { opacity: 0, transform: 'translate3d(0, 22px, 0)' },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
         ], {
             duration: DIVE_MATCH_PROFILE_PRESET_TRACK_IN_DURATION_MS,
             delay: DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS,
@@ -4273,11 +4483,11 @@ class DiveMatchStage {
 
         Array.from(nextTrack.querySelectorAll('.dive-match-profile-preset')).forEach((node, index) => {
             this.animateNode(node, [
-                { opacity: 0, filter: 'blur(12px)', transform: 'translate3d(0, 22px, 0) scale(0.968)' },
-                { opacity: 1, filter: 'blur(0px)', transform: 'translate3d(0, 0, 0) scale(1)' }
+                { opacity: 0, transform: 'translate3d(0, 18px, 0) scale(0.92)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' }
             ], {
                 duration: DIVE_MATCH_PROFILE_PRESET_ITEM_IN_DURATION_MS,
-                delay: DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS + 140 + index * 78,
+                delay: DIVE_MATCH_PROFILE_PRESET_SWAP_IN_DELAY_MS + 100 + index * 90,
                 easing: 'cubic-bezier(0.14, 0.82, 0.2, 1)'
             });
         });
@@ -4509,6 +4719,76 @@ class DiveMatchStage {
             preset.isCurrentProfile ? 'current' : 'rest',
             preset.isAligned ? 'aligned' : 'loose'
         ].join('::')).join('||');
+    }
+
+    buildProfilePanelState() {
+        const descriptor = this.getProfileDescriptor();
+        const activeMatch = getDiveMatchEntry(this.activeKey);
+        const recommendation = this.buildProfileRecommendation(activeMatch);
+        const presetVariants = this.getProfilePresetVariants(activeMatch);
+        const signature = [
+            this.buildProfileCopySignature(descriptor),
+            this.buildProfileReasonSignature(activeMatch, recommendation),
+            this.getProfilePresetSignature(presetVariants)
+        ].join('||');
+
+        return {
+            descriptor,
+            activeMatch,
+            recommendation,
+            presetVariants,
+            signature
+        };
+    }
+
+    applyProfilePanelState(panelState, options = {}) {
+        if (!panelState) {
+            return;
+        }
+
+        const { immediate = false } = options;
+        this.renderProfileCopy(panelState.descriptor, { immediate });
+        this.renderProfileReason(panelState.activeMatch, panelState.recommendation, { immediate });
+        this.transitionProfilePresets(panelState.presetVariants, { immediate });
+
+        if (this.profilePanel) {
+            this.profilePanel.dataset.panelSignature = panelState.signature;
+        }
+    }
+
+    clearPendingProfilePanelTransition(options = {}) {
+        const { keepPanelClass = false } = options;
+
+        if (this.profilePanelTransitionTimer) {
+            clearTimeout(this.profilePanelTransitionTimer);
+            this.profilePanelTransitionTimer = 0;
+        }
+
+        if (this.profilePanelTransitionEndTimer) {
+            clearTimeout(this.profilePanelTransitionEndTimer);
+            this.profilePanelTransitionEndTimer = 0;
+        }
+
+        this.pendingProfilePanelState = null;
+
+        if (!keepPanelClass) {
+            this.profilePanel?.classList.remove('is-panel-transitioning');
+        }
+    }
+
+    restartProfilePanelTransition() {
+        if (!this.profilePanel) {
+            return;
+        }
+
+        this.profilePanel.classList.remove('is-panel-transitioning');
+        void this.profilePanel.offsetWidth;
+        this.profilePanel.classList.add('is-panel-transitioning');
+
+        this.profilePanelTransitionEndTimer = window.setTimeout(() => {
+            this.profilePanel?.classList.remove('is-panel-transitioning');
+            this.profilePanelTransitionEndTimer = 0;
+        }, DIVE_MATCH_PROFILE_PANEL_VEIL_DURATION_MS);
     }
 
     createProfilePresetTrack(presetVariants, options = {}) {
@@ -4759,13 +5039,34 @@ class DiveMatchStage {
 
         const { immediate = false } = options;
         this.ensureProfilePanelShell();
-        const descriptor = this.getProfileDescriptor();
-        const activeMatch = getDiveMatchEntry(this.activeKey);
-        const recommendation = this.buildProfileRecommendation(activeMatch);
-        const presetVariants = this.getProfilePresetVariants(activeMatch);
-        this.renderProfileCopy(descriptor, { immediate });
-        this.renderProfileReason(activeMatch, recommendation, { immediate });
-        this.transitionProfilePresets(presetVariants, { immediate });
+        const panelState = this.buildProfilePanelState();
+        const currentSignature = this.profilePanel?.dataset.panelSignature || '';
+        const pendingSignature = this.pendingProfilePanelState?.signature || '';
+        const shouldAnimatePanel =
+            !immediate
+            && !this.shouldReduceProfilePresetMotion()
+            && Boolean(this.profilePanel)
+            && currentSignature !== panelState.signature;
+
+        if (!shouldAnimatePanel) {
+            this.clearPendingProfilePanelTransition();
+            this.applyProfilePanelState(panelState, { immediate });
+            return;
+        }
+
+        if (pendingSignature === panelState.signature && this.profilePanelTransitionTimer) {
+            return;
+        }
+
+        this.clearPendingProfilePanelTransition();
+        this.pendingProfilePanelState = panelState;
+        this.restartProfilePanelTransition();
+        this.profilePanelTransitionTimer = window.setTimeout(() => {
+            const nextPanelState = this.pendingProfilePanelState || panelState;
+            this.pendingProfilePanelState = null;
+            this.profilePanelTransitionTimer = 0;
+            this.applyProfilePanelState(nextPanelState, { immediate: false });
+        }, DIVE_MATCH_PROFILE_PANEL_VEIL_DELAY_MS);
     }
 
     /**
@@ -5289,7 +5590,7 @@ function scrollToSection(targetSelector) {
         return;
     }
 
-    primeHomeScrollTarget(targetSelector);
+    const primedNewLayout = primeHomeScrollTarget(targetSelector);
 
     const target = document.querySelector(targetSelector);
     if (!target) {
@@ -5303,12 +5604,21 @@ function scrollToSection(targetSelector) {
         : (navbar ? navbar.offsetHeight + 14 : 0);
     let anchor = target;
     let extraOffset = 0;
-    let topOverride = null;
     let anchorTopFromMetrics = sharedMetrics?.sections?.[targetSelector]?.anchorTop
         ?? sharedMetrics?.sections?.[targetSelector]?.sectionTop
         ?? null;
 
     const featuredDestinationsTargetDepth = -12;
+    const resolveFeaturedTopOverride = (metrics) => {
+        const featuredThreshold = metrics?.thresholds?.featuredDepth;
+        const diveMatchThreshold = metrics?.thresholds?.diveMatchDepth;
+        if (!Number.isFinite(featuredThreshold) || !Number.isFinite(diveMatchThreshold)) {
+            return null;
+        }
+
+        const depthTwelveRatio = 0.5;
+        return featuredThreshold + ((diveMatchThreshold - featuredThreshold) * depthTwelveRatio);
+    };
 
     if (targetSelector === '#featured-destinations') {
         const curatedStage = target.querySelector('#curatedWatersStage');
@@ -5317,28 +5627,6 @@ function scrollToSection(targetSelector) {
             extraOffset = 26;
         }
         // 精选目的地真正的视觉入口在舞台本身，不在 section 标题顶端。
-
-        const featuredThresholdFromMetrics = sharedMetrics?.thresholds?.featuredDepth;
-        const diveMatchThresholdFromMetrics = sharedMetrics?.thresholds?.diveMatchDepth;
-        if (Number.isFinite(featuredThresholdFromMetrics) && Number.isFinite(diveMatchThresholdFromMetrics)) {
-            const depthTwelveRatio = 0.5;
-            topOverride = featuredThresholdFromMetrics
-                + ((diveMatchThresholdFromMetrics - featuredThresholdFromMetrics) * depthTwelveRatio);
-        } else {
-            const diveMatchSection = document.querySelector('#dive-match');
-            if (diveMatchSection) {
-                const featuredThreshold = Math.max(
-                    0,
-                    target.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.42
-                );
-                const diveMatchThreshold = Math.max(
-                    0,
-                    diveMatchSection.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.42
-                );
-                const depthTwelveRatio = 0.5;
-                topOverride = featuredThreshold + ((diveMatchThreshold - featuredThreshold) * depthTwelveRatio);
-            }
-        }
 
         if (Number.isFinite(sharedMetrics?.sections?.['#featured-destinations']?.anchorTop)) {
             anchorTopFromMetrics = sharedMetrics.sections['#featured-destinations'].anchorTop;
@@ -5363,6 +5651,9 @@ function scrollToSection(targetSelector) {
 
     const startScroll = () => {
         const latestMetrics = homeViewportCoordinator.readHomeSectionMetrics?.() || sharedMetrics;
+        const latestTopOverride = targetSelector === '#featured-destinations'
+            ? resolveFeaturedTopOverride(latestMetrics)
+            : null;
         const latestAnchorTop = latestMetrics?.sections?.[targetSelector]?.anchorTop
             ?? latestMetrics?.sections?.[targetSelector]?.sectionTop
             ?? anchorTopFromMetrics;
@@ -5372,8 +5663,8 @@ function scrollToSection(targetSelector) {
         const latestNavOffset = Number.isFinite(latestMetrics?.navOffsets?.scrollToSection)
             ? latestMetrics.navOffsets.scrollToSection
             : navOffset;
-        const top = topOverride !== null
-            ? Math.max(0, topOverride)
+        const top = latestTopOverride !== null
+            ? Math.max(0, latestTopOverride)
             : Math.max(0, anchorTop - latestNavOffset - extraOffset);
         const currentScrollY = window.scrollY || window.pageYOffset || 0;
         const travelDistance = Math.abs(top - currentScrollY);
@@ -5408,6 +5699,7 @@ function scrollToSection(targetSelector) {
         };
 
         if (
+            !isLongTravel &&
             guideTargetDepth !== null &&
             depthManager &&
             typeof depthManager.animateDepth === 'function'
@@ -5423,7 +5715,7 @@ function scrollToSection(targetSelector) {
         }
 
         if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
-            setHomeScrollTraveling(isLongTravel);
+            setHomeScrollTraveling(isLongTravel, 'programmatic');
             beginHomeInteractionLock(adaptiveDuration + 180);
             const animateResult = window.OceanScroll.animateTo(top, {
                 duration: adaptiveDuration,
@@ -5442,12 +5734,23 @@ function scrollToSection(targetSelector) {
         finishScroll();
     };
 
-    window.requestAnimationFrame(() => {
-        if (typeof homeViewportCoordinator !== 'undefined') {
-            homeViewportCoordinator.requestMeasure();
-        }
-        window.requestAnimationFrame(startScroll);
-    });
+    const featuredTopOverride = targetSelector === '#featured-destinations'
+        ? resolveFeaturedTopOverride(sharedMetrics)
+        : 0;
+    const needsFreshMetrics = primedNewLayout
+        || !sharedMetrics
+        || !Number.isFinite(anchorTopFromMetrics)
+        || (targetSelector === '#featured-destinations' && !Number.isFinite(featuredTopOverride));
+
+    if (needsFreshMetrics && typeof homeViewportCoordinator !== 'undefined') {
+        window.requestAnimationFrame(() => {
+            homeViewportCoordinator.requestMeasure({ force: true });
+            window.requestAnimationFrame(startScroll);
+        });
+        return;
+    }
+
+    window.requestAnimationFrame(startScroll);
 }
 
 /**
@@ -5464,18 +5767,23 @@ function primeHomeScrollTarget(targetSelector) {
     ].includes(targetSelector);
     const shouldPrimeDiveMatch = ['#dive-match', '#why-yanqi', '#homeFooter'].includes(targetSelector);
     const shouldPrimeStory = ['#why-yanqi', '#homeFooter'].includes(targetSelector);
+    let primedNewLayout = false;
 
-    if (shouldPrimeCurated) {
+    if (shouldPrimeCurated && !curatedWatersStageInstance) {
         ensureCuratedWatersStage();
+        primedNewLayout = true;
     }
 
-    if (shouldPrimeDiveMatch) {
+    if (shouldPrimeDiveMatch && !diveMatchStageInstance) {
         ensureDiveMatchStage();
+        primedNewLayout = true;
     }
 
-    if (shouldPrimeStory) {
+    if (shouldPrimeStory && !homeStoryRevealInitialized) {
         ensureStoryReveal();
     }
+
+    return primedNewLayout;
 }
 
 /**
@@ -6014,7 +6322,7 @@ function consumePendingHomeScrollTarget() {
  */
 function setupStoryReveal() {
     const section = document.getElementById('why-yanqi');
-    const revealItems = document.querySelectorAll('#why-yanqi .story-reveal');
+    const revealItems = Array.from(document.querySelectorAll('#why-yanqi .story-reveal'));
     if (!section || revealItems.length === 0) {
         return;
     }
@@ -6024,55 +6332,19 @@ function setupStoryReveal() {
         return;
     }
 
-    let itemObserver = null;
-    const startItemObserver = () => {
-        if (itemObserver) {
-            return;
-        }
+    // 直接用 observer 的 rootMargin 定义“入场线”，避免先收到一次 intersect 回调、
+    // 但因为未过 trigger line 而被跳过，后续又没有新的阈值变化可触发的问题。
+    revealItems.forEach((item) => {
+        const isStoryCard = item.classList.contains('story-card');
 
-        itemObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
-
-                const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-                const rect = entry.boundingClientRect;
-                const isStoryCard = entry.target.classList.contains('story-card');
-                const triggerLine = isStoryCard
-                    ? viewportHeight * 0.72
-                    : viewportHeight * 0.92;
-
-                if (rect.top > triggerLine) {
-                    return;
-                }
-
-                entry.target.classList.add('is-visible');
-                itemObserver.unobserve(entry.target);
-            });
+        observeOnceInViewport(item, () => {
+            item.classList.add('is-visible');
         }, {
-            threshold: 0.2,
-            rootMargin: '0px 0px -20% 0px'
+            threshold: 0.01,
+            rootMargin: isStoryCard ? '0px 0px -28% 0px' : '0px 0px -8% 0px',
+            deferDuringPageEntryTransition: false
         });
-
-        revealItems.forEach((item) => itemObserver.observe(item));
-    };
-
-    const sectionObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-                return;
-            }
-
-            startItemObserver();
-            sectionObserver.unobserve(entry.target);
-        });
-    }, {
-        threshold: 0.01,
-        rootMargin: '0px 0px -42% 0px'
     });
-
-    sectionObserver.observe(section);
 }
 
 // 首页海图导览：用浮层式海图导航替代普通回顶按钮，负责快速跳转和当前位置反馈。
@@ -6090,6 +6362,8 @@ class HomeSeaGuide {
         this.lastVisible = false;
         this.lastDeep = false;
         this.targetTops = new Map();
+        this.targetMetricsVersion = 0;
+        this.targetOffset = Number.NaN;
         this.resizeObserver = null;
         this.viewportSyncDisposer = null;
         this.currentEntrySyncRafId = 0;
@@ -6130,7 +6404,19 @@ class HomeSeaGuide {
     measureTargets() {
         const offset = this.getOffset();
         const sharedMetrics = homeViewportCoordinator.readHomeSectionMetrics?.();
+        const metricsVersion = Number.isFinite(sharedMetrics?.version) ? sharedMetrics.version : 0;
+        if (
+            this.targetTops.size
+            && metricsVersion > 0
+            && this.targetMetricsVersion === metricsVersion
+            && Math.abs(this.targetOffset - offset) < 1
+        ) {
+            return;
+        }
+
         this.targetTops.clear();
+        this.targetMetricsVersion = metricsVersion;
+        this.targetOffset = offset;
 
         this.entries.forEach((entry) => {
             const selector = entry.dataset.target;
@@ -6148,10 +6434,10 @@ class HomeSeaGuide {
                 return;
             }
 
-            this.targetTops.set(
-                selector,
-                target.getBoundingClientRect().top + window.scrollY - offset
-            );
+            const cachedTop = this.targetTops.get(selector);
+            if (Number.isFinite(cachedTop)) {
+                this.targetTops.set(selector, cachedTop);
+            }
         });
     }
 
@@ -6274,8 +6560,10 @@ class HomeSeaGuide {
                 return;
             }
 
-            const sectionTop = this.targetTops.get(entry.dataset.target)
-                ?? (target.getBoundingClientRect().top + window.scrollY - offset);
+            const sectionTop = this.targetTops.get(entry.dataset.target);
+            if (!Number.isFinite(sectionTop)) {
+                return;
+            }
             if (probeY >= sectionTop - 24) {
                 currentKey = entry.dataset.key || currentKey;
             }
@@ -6558,6 +6846,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     setupStageDebugToggle();
     applyHomePerformanceProfile(homePerformanceProfile);
+    setupHomeManualScrollTraveling();
     new BambooScroll();
     setupHeroImmersion();
     setupHeroHotspotsStageResize();
