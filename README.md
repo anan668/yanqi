@@ -17,6 +17,10 @@
     <a href="#overview">项目总览</a> ·
     <a href="#experience">页面层级</a> ·
     <a href="#architecture">主题框架</a> ·
+    <a href="#design-system">设计系统</a> ·
+    <a href="#page-design">页面设计</a> ·
+    <a href="#interaction-design">交互动效</a> ·
+    <a href="#signature-modules">标志模块</a> ·
     <a href="#sea-atlas">地图系统</a> ·
     <a href="#depth-gauge">深度计系统</a> ·
     <a href="#run">运行方式</a> ·
@@ -117,6 +121,129 @@ flowchart LR
 
 4. 最后才补状态与数据闭环  
    让套餐确认、行程草稿、跨页返回、地图加载这些行为保持连续。
+
+<a id="design-system"></a>
+## 设计系统 / Design System
+
+盐憩的设计系统，不是先做一套按钮、输入框、卡片，再把它们塞进页面里；它是先定义“人在海里如何进入、停驻、下潜、确认、回看”，再反推视觉、结构和交互。
+
+换句话说，这个项目里的设计不是单点美化，而是一套从世界观到底层代码都相互扣合的空间语言。
+
+### 设计原则
+
+| 维度 | 盐憩的设计判断 | 在项目里的落地方式 |
+| --- | --- | --- |
+| 海层空间 | 页面不是平级栏目，而是不同深浅的海层 | `DepthManager`、跨页过渡、深度计和分段滚动停靠点共同工作 |
+| 光色材质 | 不用高饱和旅游站视觉，而用深海蓝、海盐白、低饱和青蓝、雾面玻璃和微发光 | [`site/css/global.css`](site/css/global.css) 统一底盘，各页面样式再按海层做偏移 |
+| 组件语气 | 搜索栏、地图、页脚、表单、弹层都不能回到普通网页组件范式 | `Planner Desk`、`Sea Atlas`、`Sea Guide`、`Local Echoes` 等模块全部重新命名并重构语义 |
+| 呼吸节奏 | 页面不追求密集信息堆叠，而追求留白、缓动和慢展开 | `requestAnimationFrame`、`OceanScroll`、观察器触发、延迟入场和分层动画 |
+| 文案克制 | 不用平台腔和营销腔，而用更安静的海洋语气 | 页面文案、评论标签、状态说明、确认反馈全部维持同一口吻 |
+| 稳定阅读 | 再丰富的内容也不能破坏“安静” | `pretext` 文本布局预测、详情页首屏 bootstrap、地图与图片区按需加载 |
+
+### 视觉底盘与样式分层
+
+- [`site/css/global.css`](site/css/global.css) 是品牌底盘，统一全站颜色、边框、雾感、玻璃感、头像入口、全局按钮和通用浮层的基础语法。
+- [`site/css/login.css`](site/css/login.css) 把门厅做成“潜前观察舱”，重点是静水、盐粒、波纹、呼吸感和舞台外壳。
+- [`site/css/home.css`](site/css/home.css) 维持海面第一层的开阔感，让浮光、海浪、目的地展台和匹配舞台都更轻、更亮。
+- [`site/css/trip.css`](site/css/trip.css) 把规划页收进更深、更稳的水层里，让表单看起来像潮线桌面而不是普通填写控件。
+- [`site/css/detail.css`](site/css/detail.css) 把视觉重心压向具体海域、路线与水下剖面，让阅读、地图和预订形成同一个舞台。
+- [`site/css/info-pages.css`](site/css/info-pages.css) 则把联系页、协议页、隐私页收成一层更安静的说明水域，避免信息页脱离主站世界观。
+- [`site/css/page-transition.css`](site/css/page-transition.css) 和 [`site/css/depth-gauge.css`](site/css/depth-gauge.css) 不属于某一页，而属于整站的“空间层样式系统”。
+
+<a id="page-design"></a>
+## 页面设计拆解 / Page Design Breakdown
+
+| 页面 | 空间角色 | 设计关键词 | 关键设计动作 | 关键文件 |
+| --- | --- | --- | --- | --- |
+| `index.html` | 潜前门厅 / 静水层 | 门厅、观察舱、呼吸放慢、玻璃双层 | 左右深度计、双栏门厅、盐粒与波纹背景、可调舞台壳体 | [`site/index.html`](site/index.html), [`site/css/login.css`](site/css/login.css), [`site/js/auth.js`](site/js/auth.js) |
+| `home.html` | 海面第一层 | 浮光、今日海域、档案墙、匹配舞台 | `今日海域` 卡片卷轴、精选目的地展台、潜水匹配预设、故事河流、停靠式页脚 | [`site/home.html`](site/home.html), [`site/css/home.css`](site/css/home.css), [`site/js/home.js`](site/js/home.js) |
+| `trip.html` | 更深一层的规划空间 | 潮线、桌面、缓慢收束、准备系统 | `Planner Desk`、三步节点、浮层选项板、草稿泳道、已收进行程切换器、准备卡组 | [`site/trip.html`](site/trip.html), [`site/css/trip.css`](site/css/trip.css), [`site/js/trip.js`](site/js/trip.js) |
+| `detail.html` | 进入具体海域 | 海域档案、路线、剖面、停驻确认 | 视差英雄区、左右阅读/预订结构、三态 `Sea Atlas`、套餐弹层、相关推荐舞台 | [`site/detail.html`](site/detail.html), [`site/css/detail.css`](site/css/detail.css), [`site/js/detail.js`](site/js/detail.js) |
+| 信息页 | 安静说明水域 | 潮线目录、回声、说明层、缓慢上浮 | 左侧段落导航、玻璃说明壳、浏览器本地留言回声、Surface Return 页脚 | [`site/contact.html`](site/contact.html), [`site/terms.html`](site/terms.html), [`site/privacy.html`](site/privacy.html), [`site/js/info-pages.js`](site/js/info-pages.js) |
+
+### 门厅页：潜前门厅，而不是普通登录页
+
+- 门厅页先做情绪，再做认证。背景层里的渐变、波纹、盐粒和微光先把用户带进“静水层”，随后才落到登录和注册本身。
+- 版式不是单栏登录盒，而是左侧品牌门厅、右侧认证控制台的双层结构，语义上更像“进入之前先安静下来”。
+- `glass-card`、`login-stage-shell`、`login-stage-glow` 和整套 HUD / resize 结构，让这页本身也是一个被精细校准过的舞台，而不是普通卡片居中。
+
+### 首页：海面第一层，而不是普通落地页
+
+- 首屏不是大图 Banner，而是由 `hero-ocean-glow`、`hero-ocean-wave`、`hero-plankton` 组成的海面氛围层，品牌开场和今日海域共同悬在这一层海面上。
+- `今日海域` 区不是普通轮播，而是竹卷式卡片舞台；卡片、箭头、拖拽、惯性和详情跳转被收进同一个海流装置里。
+- `精选目的地` 不是网格卡片墙，而是“左侧航线 + 右侧主展台”的档案墙；旁边海域不是消失，而是退到一侧等待继续靠近。
+- `Dive Match` 不是简单筛选器，而是带潜水者档案预设、理由解释和推荐海域的大舞台，首页因此不只是展示海，而是在判断“这次更适合哪片海”。
+- `盐憩故事` 用河流线、错位故事卡和延迟入场把品牌内容收成一段流动叙事，页脚则被做成停靠港口，而不是普通链接尾栏。
+
+### 行程页：规划空间，而不是普通表单页
+
+- `Planner Desk` 看上去像一张潮线桌，而不是“海域 + 日期 + 人数”的传统搜索栏。字段被拆成节奏、窗口、同行关系三件事来慢慢收束。
+- 表单不是直接展开，而是通过 `planner-floating-layer`、下沉态和浮层面板，让海域、日期和人数像在更深一层里被取出。
+- `01 / 02 / 03` 三个潮线节点把决策顺序明确写进视觉里，配合 `planner-summary-meter`、`planner-summary-swim-stage` 与草稿轨道，让填写过程像一条逐渐成形的出发线。
+- 已确认套餐不会只变成一行文本，而是进入 `confirmedBookings` 切换器、`Sea Brief` 回执和准备系统，继续承接后面的装备、等级、海况与身体状态说明。
+
+### 详情页：具体海域，而不是信息堆叠页
+
+- 首屏不是固定模板英雄区，而是按 `surge / lagoon / abyss / garden` 等英雄气质档切换叠层、色压与漂移方式，让不同海域有不同的“第一眼性格”。
+- 主体布局采用左读右收的结构。左侧先读海域档案、地图、评论，右侧套餐栏和 `bookingFocusPanel` 会随着阅读区变化而更新语气与推荐焦点。
+- `Sea Atlas` 不是单一地图，而是 `location / route / underwater` 三种视图共同组成的海图舞台。`underwater` 视图甚至不是地图，而是一张水下剖面图与层级说明。
+- 套餐弹层不是突兀弹窗，而是从套餐卡形变展开；评论图片区有 lightbox；相关推荐也不是简单列表替换，而是相邻海域之间的潜游式切换。
+
+### 信息页：说明层，也要留在同一片海里
+
+- `contact.html`、`terms.html`、`privacy.html` 都没有退回普通白底文档，而是继续使用玻璃外壳、深度计、跨页过渡和统一导航。
+- 联系页的三张卡片分别对应咨询、合作、反馈三种靠近方式，语义是“如何接近盐憩”，不是客服入口陈列。
+- 协议页和隐私页采用左窄右宽结构，左侧是 `潮线目录` 粘性导航，右侧是真正正文，让信息阅读也保留海流感。
+- 联系页的留言台明确说明内容只停留在当前浏览器，发送后进入 `Local Echoes` 本地回声区，既解释了隐私边界，也延续了“回声”这一世界观设定。
+
+<a id="interaction-design"></a>
+## 交互与动效设计 / Interaction Design
+
+盐憩里的动效不是给页面“加一点高级感”，而是负责把页面关系翻译成海层关系。也因此，这个项目的大部分交互都不是在做普通 UI 响应，而是在做空间说明。
+
+| 交互系统 | 设计目标 | 关键实现 |
+| --- | --- | --- |
+| 跨页过渡 | 让跳转看起来像下潜、上浮、潜游，而不是换页 | [`site/js/depth-manager.js`](site/js/depth-manager.js), [`site/css/page-transition.css`](site/css/page-transition.css) |
+| 深度联动滚动 | 让滚动不只是往下，而是进入更深的层 | 页面基础深度、section 停靠点、深度计刻度联动 |
+| OceanScroll | 给页内跳转和导览统一“海流语气” | [`site/js/ocean-scroll.js`](site/js/ocean-scroll.js) 中的 `surface / midwater / deep / trench` 语气档 |
+| Sea Guide | 让首页、行程页、详情页都有一套浮在侧边的海图导览 | `sea-guide` 触发器、分段高亮、目标区平滑滚动 |
+| 弹层与形变 | 避免 modal 像后台弹窗一样突兀 | 头像返回确认、套餐卡形变弹层、评论 lightbox、确认回执层 |
+| 稳定与降载 | 在动效丰富的前提下保证首屏和阅读稳定 | 首屏 bootstrap、懒加载、观察器、性能档位、文本布局预测 |
+
+### 海流语气与阅读节奏
+
+- [`site/js/ocean-scroll.js`](site/js/ocean-scroll.js) 不只是一个平滑滚动工具，而是把滚动拆成 `surface`、`midwater`、`deep`、`trench` 等语气档，不同深度用不同缓动和时长。
+- 首页、行程页、详情页的 `Sea Guide` 都会根据当前阅读位置高亮对应条目，帮助用户在不同层之间切换，但它的角色更像“海图导览”，不是普通 back-to-top。
+- 详情页右侧 `bookingFocusPanel` 会随着阅读区块变化，让“阅读”和“预订”始终互相照应，而不是把预订区做成静止广告位。
+- `avatar-return.js` 也延续了这套逻辑，点头像回入口时依然优先走深度导航，而不是直接把人硬切回登录页。
+
+### 形变、懒加载与稳定性
+
+- 详情页套餐卡到弹层的展开，使用的是 source card 到 modal 的形变过渡，所以用户感受到的是“同一套安排被展开”，不是“跳出一个新东西”。
+- `Sea Atlas` 直到真正进入可视区域才加载 Leaflet、地图 pack 和路线叠层，避免首屏被地图体积拖慢。
+- 详情页首屏还做了 bootstrap 首帧填充，让标题、标签、价格和英雄图区在数据真正初始化之前就先稳定占位。
+- [`site/js/text-layout-adapter.js`](site/js/text-layout-adapter.js) 通过 `pretext` 预测文本高度，减少推荐卡、评论块、相关海域文案因为字数差异产生的跳动。
+
+<a id="signature-modules"></a>
+## 标志性模块设计 / Signature Modules
+
+| 模块 | 如果按普通网页会变成什么 | 盐憩把它做成了什么 | 关键文件 |
+| --- | --- | --- | --- |
+| 深度计 | 装饰性刻度边栏 | 整站空间语言的可视化仪表 | [`site/js/depth-manager.js`](site/js/depth-manager.js), [`site/css/depth-gauge.css`](site/css/depth-gauge.css) |
+| Sea Atlas | 在线地图嵌入或静态截图 | 本地生成、按海域打包、三态切换的离线海图舞台 | [`site/js/detail.js`](site/js/detail.js), [`site/js/yanqi-spot-map-catalog.js`](site/js/yanqi-spot-map-catalog.js), [`tools/maps/generate-sea-atlas-tiles.py`](tools/maps/generate-sea-atlas-tiles.py) |
+| Planner Desk | 普通搜索栏 / 表单栏 | 一张带潮线、浮层和草稿泳道的规划控制台 | [`site/trip.html`](site/trip.html), [`site/css/trip.css`](site/css/trip.css), [`site/js/trip.js`](site/js/trip.js) |
+| Dive Match | 几个筛选 tag | 带潜水者档案预设、推荐理由和目标海域的大舞台 | [`site/js/yanqi-diver-profile.js`](site/js/yanqi-diver-profile.js), [`site/js/home.js`](site/js/home.js) |
+| Booking Focus | 右侧价格框 | 会随着阅读区变化的节奏化套餐焦点面板 | [`site/detail.html`](site/detail.html), [`site/js/detail.js`](site/js/detail.js) |
+| Local Echoes | 普通联系表单历史 | 浏览器本地回声水域，用于展示、草稿和回看 | [`site/contact.html`](site/contact.html), [`site/js/info-pages.js`](site/js/info-pages.js) |
+| Sea Guide | 悬浮目录或回到顶部 | 跨 section 的海图导览装置 | [`site/home.html`](site/home.html), [`site/trip.html`](site/trip.html), [`site/detail.html`](site/detail.html) |
+| 相关推荐舞台 | 相关内容列表 | 在相邻海域间横向潜游的邻近海域舞台 | [`site/js/detail.js`](site/js/detail.js), [`site/css/detail.css`](site/css/detail.css) |
+
+### 设计调试与展示能力
+
+- 门厅页和首页都保留了 `stage-debug-toggle`、可调舞台外壳和 HUD，不是为了给用户操作，而是为了开发时校准门厅、首屏和热点舞台的呼吸比例。
+- [`site/js/yanqi-showcase-state.js`](site/js/yanqi-showcase-state.js) 负责写入一套完整的展示态，包括最近浏览海域、潜水者档案、行程草稿和已确认套餐，方便项目展示或录屏时快速进入最佳状态。
+- [`site/js/yanqi-diver-profile.js`](site/js/yanqi-diver-profile.js) 把“潜水等级 / 近期状态 / 海况舒适区 / 旅行节奏 / 出行人数 / 目标”收成统一档案，让首页推荐、详情页套餐语气和展示模式能共用同一套判断。
+- 这也意味着盐憩的“设计”不止是静态画面，而是包含调试、演示、状态播种和跨页语义在内的一整套前端表达系统。
 
 ## 核心技术栈
 
