@@ -267,14 +267,14 @@
                                 </button>
                             </div>
 
-                            <!-- 行程回执层：
+                            <!-- 行程草稿层：
                                  这里保留 #plannerSummary 作为海图导览锚点，
-                                 但视觉上收成附着在控制台下方的一层轻回执，只负责安静回看当前安排。 -->
-                            <div class="planner-summary planner-summary-ritual-shell" id="plannerSummary" data-summary-stage="idle">
+                                 但视觉上收成附着在控制台下方的一层轻草稿，只负责安静回看当前正在整理的安排。 -->
+                            <div class="planner-summary planner-summary-draft-shell" id="plannerSummary" data-summary-stage="idle">
                                 <div class="planner-summary-head">
                                     <div class="planner-summary-heading">
-                                        <p class="planner-summary-kicker">Tide Receipt</p>
-                                        <h2 class="planner-summary-title">潮汐回执</h2>
+                                        <p class="planner-summary-kicker">Tide Draft</p>
+                                        <h2 class="planner-summary-title">潮汐草稿</h2>
                                     </div>
                                     <div class="planner-summary-active-identity">
                                         <div class="planner-summary-active-index-wrap">
@@ -286,7 +286,7 @@
                                 </div>
 
                                 <p class="planner-summary-intro" id="plannerSummaryIntro">
-                                    先留下一句很轻的回执，等海域、潮汐与同行节奏慢慢收出轮廓。
+                                    先留下一句很轻的草稿，等海域、潮汐与同行节奏慢慢收出轮廓。
                                 </p>
 
                                 <div class="planner-summary-meter" aria-hidden="true">
@@ -300,7 +300,7 @@
                                     </div>
                                 </div>
 
-                                <div class="planner-summary-swim-stage" id="plannerSummarySwimStage" role="group" aria-label="潮汐回执海域切换舞台" tabindex="0">
+                                <div class="planner-summary-swim-stage" id="plannerSummarySwimStage" role="group" aria-label="潮汐草稿海域切换舞台" tabindex="0">
                                     <button type="button" class="planner-summary-neighbor planner-summary-neighbor-prev" id="plannerSummaryPrevNeighbor" hidden>
                                         <span class="planner-summary-neighbor-kicker">Previous Water</span>
                                         <strong class="planner-summary-neighbor-name" data-summary-neighbor-slot="name">上一片海</strong>
@@ -317,32 +317,33 @@
                                     <div class="planner-summary-swim-viewport" id="plannerSummarySwimViewport">
                                         <div class="planner-summary-swim-deck is-deck-active">
                                             <p class="planner-summary-status-note" data-summary-slot="status-note">
-                                                先让回执停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。
+                                                先让草稿停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。
                                             </p>
 
-                                            <div class="planner-summary-ritual">
-                                                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--route">
-                                                    <p class="planner-summary-ritual-route-label">Current Route</p>
-                                                    <strong class="planner-summary-ritual-route-spot" data-summary-slot="route-spot">当前海域待定</strong>
+                                            <div class="planner-summary-draft-rail">
+                                                <div class="planner-summary-draft-segment planner-summary-draft-segment--spot">
+                                                    <p class="planner-summary-draft-label">Current Water</p>
+                                                    <strong class="planner-summary-draft-spot" data-summary-slot="route-spot">当前海域待定</strong>
                                                 </div>
-                                                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--rhythm">
-                                                    <p class="planner-summary-ritual-rhythm" data-summary-slot="rhythm-sentence">
+                                                <div class="planner-summary-draft-segment planner-summary-draft-segment--rhythm">
+                                                    <p class="planner-summary-draft-label">Current Draft</p>
+                                                    <p class="planner-summary-draft-rhythm" data-summary-slot="rhythm-sentence">
                                                         这一潜还在收束。等海域、潮汐与同行节奏写齐，它会变成一句完整的出发节奏。
                                                     </p>
                                                 </div>
-                                                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--chips">
-                                                    <span class="planner-summary-ritual-chip planner-summary-ritual-chip-package" data-summary-slot="active-package">套餐尚未写入</span>
-                                                    <span class="planner-summary-ritual-chip planner-summary-ritual-chip-companion" data-summary-slot="active-companion">同行节奏待定</span>
+                                                <div class="planner-summary-draft-tags">
+                                                    <span class="planner-summary-draft-tag planner-summary-draft-tag-package" data-summary-slot="active-package">套餐尚未写入</span>
+                                                    <span class="planner-summary-draft-tag planner-summary-draft-tag-companion" data-summary-slot="active-companion">同行节奏待定</span>
                                                 </div>
                                             </div>
 
-                                            <div class="planner-summary-receipt">
+                                            <div class="planner-summary-draft-steps">
                                                 <article class="planner-item is-empty" data-summary-field="spot">
                                                     <span class="planner-item-index">01</span>
                                                     <div class="planner-item-copy">
                                                         <span class="planner-label">海域</span>
                                                         <strong data-summary-slot="spot-value">海域待定</strong>
-                                                        <small data-summary-slot="spot-meta">还没写进回执。</small>
+                                                        <small data-summary-slot="spot-meta">还没写进草稿。</small>
                                                     </div>
                                                     <span class="planner-item-state" data-summary-slot="spot-state">待写入</span>
                                                 </article>
@@ -365,19 +366,6 @@
                                                         <small data-summary-slot="people-meta">同行节奏还没写进来。</small>
                                                     </div>
                                                     <span class="planner-item-state" data-summary-slot="people-state">待写入</span>
-                                                </article>
-                                            </div>
-
-                                            <div class="planner-summary-guidance">
-                                                <article class="planner-summary-guidance-card">
-                                                    <p class="planner-summary-guidance-label">海域焦点</p>
-                                                    <h3 class="planner-summary-guidance-title" data-summary-slot="focus-title">先决定这一潜最想靠近什么</h3>
-                                                    <p class="planner-summary-guidance-copy" data-summary-slot="focus-copy">是鱼群风暴、岩壁、沉船，还是更安静的浅蓝。把焦点写清楚，盐憩才好替你筛掉不合适的点位。</p>
-                                                </article>
-                                                <article class="planner-summary-guidance-card">
-                                                    <p class="planner-summary-guidance-label">准备提示</p>
-                                                    <h3 class="planner-summary-guidance-title" data-summary-slot="prep-title">让准备先于出发发生</h3>
-                                                    <p class="planner-summary-guidance-copy" data-summary-slot="prep-copy">确认证书状态、最近下潜记录与装备边界，盐憩会据此给出更稳的窗口和上船节奏。</p>
                                                 </article>
                                             </div>
                                         </div>
@@ -427,21 +415,23 @@
                                 <div class="sea-brief-head">
                                     <div class="sea-brief-copy">
                                         <p class="sea-brief-kicker">Sea Brief</p>
-                                        <h2 class="sea-brief-title" id="seaBriefTitle">这一潜的桌面回执</h2>
-                                        <p class="sea-brief-intro">当一套安排真正被收进行程以后，这里会把海域、窗口、适配判断和准备节奏一起写成一张更完整的回执。</p>
+                                        <h2 class="sea-brief-title" id="seaBriefTitle">这一潜的最终回执</h2>
+                                        <p class="sea-brief-intro">当一套安排真正被收进行程以后，这里会把海域、窗口、适配判断和准备节奏一起写成一张可以带走的桌面档案。</p>
                                     </div>
                                 </div>
-                                <div class="sea-brief-empty" id="seaBriefEmpty">还没有哪一套安排被写成回执。等你在详情页确认套餐以后，它会慢慢停在这里。</div>
+                                <div class="sea-brief-empty" id="seaBriefEmpty">还没有哪一套安排被写成最终回执。等你在详情页确认套餐以后，它会慢慢停在这里。</div>
                                 <article class="sea-brief-card" id="seaBriefCard" hidden>
                                     <div class="sea-brief-card-head">
                                         <div>
                                             <p class="sea-brief-card-kicker" id="seaBriefSpot">当前海域</p>
                                             <h3 class="sea-brief-card-title" id="seaBriefPackage">套餐待定</h3>
+                                            <p class="sea-brief-card-identity" id="seaBriefIdentity">最终安排 · 编号待生成</p>
                                         </div>
                                         <div class="sea-brief-card-badges" id="seaBriefBadges"></div>
                                     </div>
                                     <div class="sea-brief-grid" id="seaBriefGrid"></div>
                                     <div class="sea-brief-prep" id="seaBriefPrep"></div>
+                                    <div class="sea-brief-divider" aria-hidden="true"></div>
                                     <div class="sea-brief-actions" id="seaBriefActions">
                                         <button type="button" class="sea-brief-action" id="seaBriefCopy">复制回执</button>
                                         <button type="button" class="sea-brief-action" id="seaBriefPrint">打印回执</button>
@@ -495,11 +485,7 @@
                     <button type="button" class="prep-card is-active" data-prep-card="gear" role="tab" aria-controls="prepDetailPanel" aria-expanded="true">
                         <p class="prep-card-kicker">Equipment & Rhythm</p>
                         <h3 class="prep-card-title">装备与节奏</h3>
-                        <p class="prep-card-lines">
-                            <span>把下一次下潜，</span>
-                            <span>安静地排进日程。</span>
-                        </p>
-                        <p class="prep-card-summary">盐憩会先判断哪些装备建议自带、哪些可现场租借，再把上船前的核对节奏写成一份简明清单。</p>
+                        <p class="prep-card-summary">把下一次下潜安静地排进日程。盐憩会先判断哪些装备建议自带、哪些可现场租借，再把上船前的核对节奏写成一份简明清单。</p>
                     </button>
 
                     <button type="button" class="prep-card" data-prep-card="certification" role="tab" aria-controls="prepDetailPanel" aria-expanded="false">

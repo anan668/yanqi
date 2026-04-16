@@ -57,10 +57,33 @@ body[data-home-performance='lite'] [data-home-layer].is-home-passed:not(.is-home
     filter: saturate(0.96) brightness(0.98);
 }
 
+body.home-page.home-guide-custom-travel-active {
+    --home-guide-travel-direction: 1;
+}
+
+body.home-page.home-guide-custom-travel-active .page-stage,
+body.home-page.home-guide-custom-travel-active > .navbar {
+    will-change: transform;
+    transition: none !important;
+    backface-visibility: hidden;
+}
+
+body.home-page.home-guide-custom-travel-active .page-stage {
+    transform: translate3d(0, 0, 0);
+}
+
+body.home-page.home-guide-custom-travel-active > .navbar {
+    transform: translate3d(0, 0, 0);
+}
+
 body.home-scroll-traveling .featured-destinations,
+body.home-guide-custom-travel-active .featured-destinations,
 body.home-scroll-traveling .dive-match,
+body.home-guide-custom-travel-active .dive-match,
 body.home-scroll-traveling .why-yanqi,
-body.home-scroll-traveling .footer {
+body.home-guide-custom-travel-active .why-yanqi,
+body.home-scroll-traveling .footer,
+body.home-guide-custom-travel-active .footer {
     transition: opacity 220ms ease;
 }
 
@@ -73,30 +96,54 @@ body[data-home-interaction='locked'] .home-page.hero-awakened .today-sea-card,
 body[data-home-interaction='locked'] .scroll-arrow,
 body[data-home-interaction='locked'] .dive-match.is-stage-visible .dive-match-surface.is-resting,
 body[data-home-interaction='locked'] .story-river-glow,
-body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger {
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger,
+body.home-guide-custom-travel-active .hero-ocean-glow-one,
+body.home-guide-custom-travel-active .hero-ocean-glow-two,
+body.home-guide-custom-travel-active .hero-ocean-wave-one,
+body.home-guide-custom-travel-active .hero-ocean-wave-two,
+body.home-guide-custom-travel-active .hero-plankton,
+body.home-guide-custom-travel-active .home-page.hero-awakened .today-sea-card,
+body.home-guide-custom-travel-active .scroll-arrow,
+body.home-guide-custom-travel-active .dive-match.is-stage-visible .dive-match-surface.is-resting,
+body.home-guide-custom-travel-active .story-river-glow,
+body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger {
     animation-play-state: paused !important;
 }
 
 body[data-home-interaction='locked'] .curated-display-media::after,
-body[data-home-interaction='locked'] .curated-nav-rail.is-cycling .curated-nav-refresh::after {
+body[data-home-interaction='locked'] .curated-nav-rail.is-cycling .curated-nav-refresh::after,
+body.home-guide-custom-travel-active .curated-display-media::after,
+body.home-guide-custom-travel-active .curated-nav-rail.is-cycling .curated-nav-refresh::after {
     animation-play-state: paused !important;
 }
 
 body.home-scroll-traveling .curated-display-media::after,
+body.home-guide-custom-travel-active .curated-display-media::after,
 body.home-scroll-traveling .curated-nav-rail.is-cycling .curated-nav-refresh::after,
+body.home-guide-custom-travel-active .curated-nav-rail.is-cycling .curated-nav-refresh::after,
 body.home-scroll-traveling .dive-match.is-stage-visible .dive-match-surface.is-resting,
+body.home-guide-custom-travel-active .dive-match.is-stage-visible .dive-match-surface.is-resting,
 body.home-scroll-traveling .story-river-glow,
-body.home-scroll-traveling .sea-guide-home.is-visible .sea-guide-trigger {
+body.home-guide-custom-travel-active .story-river-glow,
+body.home-scroll-traveling .sea-guide-home.is-visible .sea-guide-trigger,
+body.home-guide-custom-travel-active .sea-guide-home.is-visible .sea-guide-trigger {
     animation-play-state: paused !important;
 }
 
 body.home-scroll-traveling .curated-waters-stage,
+body.home-guide-custom-travel-active .curated-waters-stage,
 body.home-scroll-traveling .curated-display-copy,
+body.home-guide-custom-travel-active .curated-display-copy,
 body.home-scroll-traveling .dive-match-stage,
+body.home-guide-custom-travel-active .dive-match-stage,
 body.home-scroll-traveling .dive-match-profile-panel,
+body.home-guide-custom-travel-active .dive-match-profile-panel,
 body.home-scroll-traveling .dive-match-focus-card,
+body.home-guide-custom-travel-active .dive-match-focus-card,
 body.home-scroll-traveling .dive-match-card,
+body.home-guide-custom-travel-active .dive-match-card,
 body.home-scroll-traveling .sea-guide-home .sea-guide-panel,
+body.home-guide-custom-travel-active .sea-guide-home .sea-guide-panel,
 body.home-scroll-traveling .sea-guide-home .sea-guide-trigger,
 body[data-home-interaction='locked'] .curated-waters-stage,
 body[data-home-interaction='locked'] .curated-display-copy,
@@ -105,22 +152,34 @@ body[data-home-interaction='locked'] .dive-match-profile-panel,
 body[data-home-interaction='locked'] .dive-match-focus-card,
 body[data-home-interaction='locked'] .dive-match-card,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-panel,
-body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger {
-    backdrop-filter: blur(12px) saturate(116%) !important;
-    -webkit-backdrop-filter: blur(12px) saturate(116%) !important;
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger,
+body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 body.home-scroll-traveling .curated-waters-stage::before,
+body.home-guide-custom-travel-active .curated-waters-stage::before,
 body.home-scroll-traveling .curated-waters-stage::after,
+body.home-guide-custom-travel-active .curated-waters-stage::after,
 body.home-scroll-traveling .curated-display-media::after,
+body.home-guide-custom-travel-active .curated-display-media::after,
 body.home-scroll-traveling .dive-match::before,
+body.home-guide-custom-travel-active .dive-match::before,
 body.home-scroll-traveling .dive-match::after,
+body.home-guide-custom-travel-active .dive-match::after,
 body.home-scroll-traveling .dive-match-stage::before,
+body.home-guide-custom-travel-active .dive-match-stage::before,
 body.home-scroll-traveling .dive-match-focus-card::before,
+body.home-guide-custom-travel-active .dive-match-focus-card::before,
 body.home-scroll-traveling .dive-match-focus-card::after,
+body.home-guide-custom-travel-active .dive-match-focus-card::after,
 body.home-scroll-traveling .dive-match-profile-presets-focus-aura,
+body.home-guide-custom-travel-active .dive-match-profile-presets-focus-aura,
 body.home-scroll-traveling .story-river-glow,
+body.home-guide-custom-travel-active .story-river-glow,
 body.home-scroll-traveling .sea-guide-home .sea-guide-trigger::after,
+body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger::after,
 body.home-scroll-traveling .sea-guide-home .sea-guide-panel::before,
 body[data-home-interaction='locked'] .curated-waters-stage::before,
 body[data-home-interaction='locked'] .curated-waters-stage::after,
@@ -133,9 +192,65 @@ body[data-home-interaction='locked'] .dive-match-focus-card::after,
 body[data-home-interaction='locked'] .dive-match-profile-presets-focus-aura,
 body[data-home-interaction='locked'] .story-river-glow,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger::after,
-body[data-home-interaction='locked'] .sea-guide-home .sea-guide-panel::before {
+body[data-home-interaction='locked'] .sea-guide-home .sea-guide-panel::before,
+body.home-scroll-traveling .hero-bamboo-scroll-container::before,
+body.home-scroll-traveling .hero-bamboo-cards-wrapper::before,
+body.home-scroll-traveling .hero-bamboo-cards-wrapper::after,
+body.home-scroll-traveling .today-sea-card::before,
+body[data-home-interaction='locked'] .hero-bamboo-scroll-container::before,
+body[data-home-interaction='locked'] .hero-bamboo-cards-wrapper::before,
+body[data-home-interaction='locked'] .hero-bamboo-cards-wrapper::after,
+body[data-home-interaction='locked'] .today-sea-card::before,
+body.home-guide-custom-travel-active .sea-guide-home .sea-guide-panel::before,
+body.home-guide-custom-travel-active .hero-bamboo-scroll-container::before,
+body.home-guide-custom-travel-active .hero-bamboo-cards-wrapper::before,
+body.home-guide-custom-travel-active .hero-bamboo-cards-wrapper::after,
+body.home-guide-custom-travel-active .today-sea-card::before {
     filter: none !important;
     opacity: 0.34 !important;
+}
+
+body.home-scroll-traveling .today-sea-card,
+body.home-scroll-traveling .hero-hotspots-shell .bamboo-card,
+body.home-scroll-traveling .bamboo-card,
+body.home-scroll-traveling .bamboo-card-image,
+body.home-scroll-traveling .bamboo-card-content,
+body[data-home-interaction='locked'] .today-sea-card,
+body[data-home-interaction='locked'] .hero-hotspots-shell .bamboo-card,
+body[data-home-interaction='locked'] .bamboo-card,
+body[data-home-interaction='locked'] .bamboo-card-image,
+body[data-home-interaction='locked'] .bamboo-card-content,
+body.home-guide-custom-travel-active .today-sea-card,
+body.home-guide-custom-travel-active .hero-hotspots-shell .bamboo-card,
+body.home-guide-custom-travel-active .bamboo-card,
+body.home-guide-custom-travel-active .bamboo-card-image,
+body.home-guide-custom-travel-active .bamboo-card-content {
+    transition: none !important;
+    animation-play-state: paused !important;
+}
+
+body.home-scroll-traveling .today-sea-card,
+body.home-scroll-traveling .hero-hotspots-shell .bamboo-card,
+body.home-scroll-traveling .bamboo-card,
+body.home-scroll-traveling .bamboo-card-content,
+body[data-home-interaction='locked'] .today-sea-card,
+body[data-home-interaction='locked'] .hero-hotspots-shell .bamboo-card,
+body[data-home-interaction='locked'] .bamboo-card,
+body[data-home-interaction='locked'] .bamboo-card-content,
+body.home-guide-custom-travel-active .today-sea-card,
+body.home-guide-custom-travel-active .hero-hotspots-shell .bamboo-card,
+body.home-guide-custom-travel-active .bamboo-card,
+body.home-guide-custom-travel-active .bamboo-card-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 12px 22px rgba(8, 30, 45, 0.16) !important;
+    filter: none !important;
+}
+
+body.home-scroll-traveling .bamboo-card-image,
+body[data-home-interaction='locked'] .bamboo-card-image,
+body.home-guide-custom-travel-active .bamboo-card-image {
+    transform: none !important;
 }
 
 /* ============================================
@@ -6651,103 +6766,6 @@ body[data-current-home-layer="story"] .story-river-line {
     font-size: 0.84rem;
     line-height: 1.6;
     color: rgba(168, 192, 208, 0.54);
-}
-
-/* ============================================
-   Guide Jump Debug
-   ============================================ */
-
-.yanqi-stage-debug .home-guide-jump-debug {
-    position: fixed;
-    top: 96px;
-    right: 26px;
-    z-index: 1395;
-    width: min(292px, calc(100vw - 40px));
-    display: grid;
-    gap: 12px;
-    padding: 14px 14px 16px;
-    border-radius: 20px;
-    color: #eaf6fb;
-    background:
-        linear-gradient(150deg, rgba(10, 37, 53, 0.88), rgba(10, 48, 69, 0.82)),
-        rgba(10, 37, 53, 0.82);
-    border: 1px solid rgba(188, 226, 238, 0.18);
-    box-shadow:
-        0 22px 40px rgba(4, 16, 25, 0.24),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-label {
-    margin: 0;
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgba(210, 232, 242, 0.58);
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-current {
-    margin: 0;
-    font-size: 0.84rem;
-    line-height: 1.55;
-    color: rgba(236, 247, 252, 0.84);
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-options {
-    display: grid;
-    gap: 8px;
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-button {
-    all: unset;
-    display: grid;
-    gap: 4px;
-    padding: 11px 12px 12px;
-    border-radius: 16px;
-    cursor: pointer;
-    background:
-        linear-gradient(150deg, rgba(242, 249, 253, 0.08), rgba(181, 219, 233, 0.04)),
-        rgba(13, 44, 63, 0.2);
-    border: 1px solid rgba(192, 227, 239, 0.12);
-    transition:
-        transform 180ms ease,
-        border-color 180ms ease,
-        box-shadow 180ms ease,
-        background-color 180ms ease;
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-button:hover {
-    transform: translateY(-1px);
-    border-color: rgba(203, 232, 243, 0.22);
-    box-shadow: 0 12px 22px rgba(6, 20, 31, 0.14);
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-button.is-active {
-    border-color: rgba(196, 231, 242, 0.28);
-    background:
-        linear-gradient(150deg, rgba(245, 250, 253, 0.14), rgba(184, 222, 236, 0.08)),
-        rgba(18, 54, 75, 0.28);
-    box-shadow:
-        0 14px 24px rgba(6, 20, 31, 0.18),
-        0 0 18px rgba(137, 205, 227, 0.08);
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-button strong {
-    font-size: 0.88rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: #f2fbff;
-}
-
-.yanqi-stage-debug .home-guide-jump-debug-button small {
-    font-size: 0.72rem;
-    line-height: 1.45;
-    color: rgba(208, 230, 240, 0.6);
-}
-
-body.home-scroll-traveling.yanqi-stage-debug .home-guide-jump-debug {
-    opacity: 0.78;
 }
 
 /* ============================================

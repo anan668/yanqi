@@ -1122,8 +1122,11 @@
             this.pageScrollHomeMinIntervalMs = this.pageId === 'home' ? 56 : 0;
             this.pageScrollManagedResumeEnabled = false;
             this.pageScrollManagedFinishTimerId = 0;
+            this.pageScrollResumeBlockedUntil = 0;
+            this.pageScrollSkipNextHomeMetricSync = false;
             this.lastOverlayState = null;
             this.homeTravelingGaugeDepth = null;
+            this.homeGuideVirtualTravel = null;
             this.handleHomeInteractionChange = null;
             this.pageScrollMetricsObserver = null;
             this.pageStateDepthObserver = null;
@@ -1677,6 +1680,8 @@
                 window.clearTimeout(this.pageScrollManagedFinishTimerId);
                 this.pageScrollManagedFinishTimerId = 0;
             }
+
+            this.cancelHomeGuideVirtualTravel();
         }
 
         /**
@@ -1736,25 +1741,129 @@
             }
         }
 
+        isHomeGuideVirtualTravelActive() {
+            return Boolean(this.homeGuideVirtualTravel && this.homeGuideVirtualTravel.active);
+        }
+
+        beginHomeGuideVirtualTravel(options = {}) {
+            if (this.pageId !== 'home') {
+                return;
+            }
+
+            const startDepth = clamp(
+                readNumber(options.startDepth) ?? this.currentDepth,
+                MIN_DEPTH,
+                MAX_DEPTH
+            );
+            const targetDepth = clamp(
+                readNumber(options.targetDepth) ?? startDepth,
+                MIN_DEPTH,
+                MAX_DEPTH
+            );
+            const duration = clamp(
+                Math.round(readNumber(options.duration) ?? 0),
+                0,
+                6000
+            );
+            const easing = typeof options.easing === 'function'
+                ? options.easing
+                : (value) => clamp(readNumber(value) ?? 0, 0, 1);
+
+            this.homeGuideVirtualTravel = {
+                active: true,
+                startDepth,
+                targetDepth,
+                duration,
+                easing,
+                lastRenderedDepth: Math.round(this.getRenderedGaugeDepth(startDepth))
+            };
+            this.homeTravelingGaugeDepth = null;
+            this.currentDepth = startDepth;
+            this.renderDepth(this.currentDepth);
+        }
+
+        updateHomeGuideVirtualTravel(progress) {
+            const travel = this.homeGuideVirtualTravel;
+            if (!travel || !travel.active) {
+                return;
+            }
+
+            const rawProgress = clamp(readNumber(progress) ?? 0, 0, 1);
+            const easedProgress = clamp(
+                readNumber(travel.easing(rawProgress)) ?? rawProgress,
+                0,
+                1
+            );
+            const nextDepth = travel.startDepth
+                + ((travel.targetDepth - travel.startDepth) * easedProgress);
+            const nextRenderedDepth = Math.round(
+                this.getRenderedGaugeDepth(clamp(nextDepth, MIN_DEPTH, MAX_DEPTH))
+            );
+
+            this.currentDepth = clamp(nextDepth, MIN_DEPTH, MAX_DEPTH);
+            if (travel.lastRenderedDepth === nextRenderedDepth) {
+                return;
+            }
+
+            travel.lastRenderedDepth = nextRenderedDepth;
+            this.renderDepth(this.currentDepth);
+        }
+
+        finishHomeGuideVirtualTravel(targetDepth) {
+            const travel = this.homeGuideVirtualTravel;
+            const finalDepth = clamp(
+                readNumber(targetDepth) ?? travel?.targetDepth ?? this.currentDepth,
+                MIN_DEPTH,
+                MAX_DEPTH
+            );
+
+            this.homeGuideVirtualTravel = null;
+            this.homeTravelingGaugeDepth = null;
+            this.currentDepth = finalDepth;
+            this.renderDepth(this.currentDepth);
+        }
+
+        cancelHomeGuideVirtualTravel() {
+            if (!this.isHomeGuideVirtualTravelActive()) {
+                return;
+            }
+
+            this.homeGuideVirtualTravel = null;
+            this.homeTravelingGaugeDepth = null;
+            this.renderDepth(this.currentDepth);
+        }
+
         /**
          * finishManagedScroll() - 在程序化滚动结束后恢复正常滚动深度联动并立刻对齐一次
          * @returns {void}
          */
-        finishManagedScroll() {
+        finishManagedScroll(options = {}) {
             if (!this.pageScrollManagedActive && !this.pageScrollManagedUntil) {
                 return;
             }
 
+            const skipImmediateSync = Boolean(options?.skipImmediateSync);
             const shouldResumeEnabled = this.pageScrollManagedResumeEnabled;
             this.pageScrollManagedActive = false;
             this.pageScrollManagedUntil = 0;
             this.pageScrollLastQueuedAt = 0;
-            this.pageScrollManagedResumeEnabled = false;
-            this.pageScrollDepthEnabled = shouldResumeEnabled;
             this.pageScrollLastScrollY = window.scrollY || window.pageYOffset || 0;
             this.pageScrollLastScrollAt = performance.now();
 
+            if (skipImmediateSync) {
+                this.pageScrollManagedResumeEnabled = shouldResumeEnabled;
+                this.pageScrollDepthEnabled = false;
+                this.pageScrollResumeBlockedUntil = performance.now() + 720;
+                this.pageScrollSkipNextHomeMetricSync = false;
+                this.pageScrollTargetDepth = this.currentDepth;
+                return;
+            }
+
+            this.pageScrollManagedResumeEnabled = false;
+            this.pageScrollDepthEnabled = shouldResumeEnabled;
+
             if (shouldResumeEnabled) {
+
                 const targetDepth = clamp(this.computePageScrollDepth(), MIN_DEPTH, MAX_DEPTH);
                 const deltaMagnitude = Math.abs(targetDepth - this.currentDepth);
                 this.pageScrollTargetDepth = targetDepth;
@@ -1893,7 +2002,11 @@
         }
 
         isHomeTravelingFastPathActive() {
-            return this.pageId === 'home' && Boolean(this.body?.classList.contains('home-scroll-traveling'));
+            return this.pageId === 'home' && (
+                Boolean(this.body?.classList.contains('home-scroll-traveling'))
+                || Boolean(this.body?.classList.contains('home-guide-custom-travel-active'))
+                || this.isHomeGuideVirtualTravelActive()
+            );
         }
 
         /**
@@ -2111,6 +2224,8 @@
          * @returns {void} - 无返回值，直接更新深度状态
          */
         finishDepth(depth) {
+            this.homeGuideVirtualTravel = null;
+            this.homeTravelingGaugeDepth = null;
             this.currentDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
             this.renderDepth(this.currentDepth);
             this.persistCurrentDepth(this.currentDepth, true);
@@ -2333,6 +2448,11 @@
             this.applyHomeSectionMetricsToStops();
 
             if (this.pageId === 'home' && this.pageScrollDepthEnabled) {
+                if (this.pageScrollSkipNextHomeMetricSync) {
+                    this.pageScrollSkipNextHomeMetricSync = false;
+                    return true;
+                }
+
                 this.queuePageScrollDepthUpdate(true);
             }
 
@@ -2812,11 +2932,26 @@
         queuePageScrollDepthUpdate(force = false) {
             if (
                 !this.hasScrollDepthConfig() ||
-                !this.pageScrollDepthEnabled ||
                 this.isNavigating ||
                 this.specialTransitionMode
             ) {
                 return;
+            }
+
+            if (!this.pageScrollDepthEnabled) {
+                if (
+                    this.pageId === 'home'
+                    && this.pageScrollManagedResumeEnabled
+                    && !this.isPageScrollManagedActive()
+                    && !this.isHomeGuideVirtualTravelActive()
+                    && performance.now() >= this.pageScrollResumeBlockedUntil
+                ) {
+                    this.pageScrollDepthEnabled = true;
+                    this.pageScrollManagedResumeEnabled = false;
+                    this.pageScrollResumeBlockedUntil = 0;
+                } else {
+                    return;
+                }
             }
 
             if (this.pageScrollFrameId) {

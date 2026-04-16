@@ -1,0 +1,451 @@
+﻿{
+    "generatedAt":  "2026-04-16T15:01:19",
+    "targetUrl":  "http://127.0.0.1:8000/site/home.html",
+    "viewport":  {
+                     "width":  1440,
+                     "height":  1200
+                 },
+    "metricsAfterLoad":  {
+                             "Timestamp":  2692.503137,
+                             "AudioHandlers":  0,
+                             "AudioWorkletProcessors":  0,
+                             "Documents":  1,
+                             "Frames":  1,
+                             "JSEventListeners":  116,
+                             "LayoutObjects":  1305,
+                             "MediaKeySessions":  0,
+                             "MediaKeys":  0,
+                             "Nodes":  2374,
+                             "Resources":  29,
+                             "ContextLifecycleStateObservers":  7,
+                             "V8PerContextDatas":  2,
+                             "WorkerGlobalScopes":  0,
+                             "UACSSResources":  0,
+                             "RTCPeerConnections":  0,
+                             "ResourceFetchers":  1,
+                             "AdSubframes":  0,
+                             "DetachedScriptStates":  0,
+                             "ArrayBufferContents":  0,
+                             "LayoutCount":  35,
+                             "RecalcStyleCount":  82,
+                             "LayoutDuration":  0.63207,
+                             "RecalcStyleDuration":  0.444563,
+                             "DevToolsCommandDuration":  0.000027,
+                             "ScriptDuration":  0.500999,
+                             "V8CompileDuration":  0.000358,
+                             "TaskDuration":  2.322088,
+                             "TaskOtherDuration":  0.744071,
+                             "ThreadTime":  1.096677,
+                             "ProcessTime":  1.970732,
+                             "JSHeapUsedSize":  1937864,
+                             "JSHeapTotalSize":  3145728,
+                             "FirstMeaningfulPaint":  2690.892654,
+                             "DomContentLoaded":  2690.663389,
+                             "NavigationStart":  2689.189135
+                         },
+    "metricsAfterScroll":  {
+                               "Timestamp":  2695.526382,
+                               "AudioHandlers":  0,
+                               "AudioWorkletProcessors":  0,
+                               "Documents":  1,
+                               "Frames":  1,
+                               "JSEventListeners":  119,
+                               "LayoutObjects":  1731,
+                               "MediaKeySessions":  0,
+                               "MediaKeys":  0,
+                               "Nodes":  2884,
+                               "Resources":  29,
+                               "ContextLifecycleStateObservers":  7,
+                               "V8PerContextDatas":  2,
+                               "WorkerGlobalScopes":  0,
+                               "UACSSResources":  0,
+                               "RTCPeerConnections":  0,
+                               "ResourceFetchers":  1,
+                               "AdSubframes":  0,
+                               "DetachedScriptStates":  0,
+                               "ArrayBufferContents":  0,
+                               "LayoutCount":  58,
+                               "RecalcStyleCount":  241,
+                               "LayoutDuration":  0.755564,
+                               "RecalcStyleDuration":  0.847251,
+                               "DevToolsCommandDuration":  0.001875,
+                               "ScriptDuration":  0.525075,
+                               "V8CompileDuration":  0.000358,
+                               "TaskDuration":  3.469712,
+                               "TaskOtherDuration":  1.339589,
+                               "ThreadTime":  2.137866,
+                               "ProcessTime":  3.685037,
+                               "JSHeapUsedSize":  2026964,
+                               "JSHeapTotalSize":  3145728,
+                               "FirstMeaningfulPaint":  2690.892654,
+                               "DomContentLoaded":  2690.663389,
+                               "NavigationStart":  2689.189135
+                           },
+    "pageSummaryAfterLoad":  {
+                                 "title":  "盐憩 - 首页",
+                                 "homePerformanceMode":  "full",
+                                 "domNodeCount":  967,
+                                 "imageCount":  47,
+                                 "scriptCount":  10,
+                                 "stageAnimatedCount":  10,
+                                 "sectionCounts":  {
+                                                       "bambooCards":  42,
+                                                       "curatedNavButtons":  0,
+                                                       "diveMatchFilters":  0,
+                                                       "diveMatchCards":  0
+                                                   },
+                                 "nav":  {
+                                             "domInteractive":  1474.1999999997206,
+                                             "domContentLoadedEnd":  1475.6000000000931,
+                                             "loadEventEnd":  1476.6999999997206,
+                                             "transferSize":  24747,
+                                             "encodedBodySize":  24447,
+                                             "decodedBodySize":  24447
+                                         },
+                                 "paints":  [
+                                                {
+                                                    "name":  "first-paint",
+                                                    "startTime":  1472
+                                                },
+                                                {
+                                                    "name":  "first-contentful-paint",
+                                                    "startTime":  1472
+                                                }
+                                            ],
+                                 "resources":  {
+                                                   "count":  25,
+                                                   "transferSize":  2564545,
+                                                   "encodedBodySize":  2557045,
+                                                   "decodedBodySize":  2557045,
+                                                   "slowest":  [
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/avatar-return.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  122.5,
+                                                                       "transferSize":  11604,
+                                                                       "encodedBodySize":  11304,
+                                                                       "decodedBodySize":  11304
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-spot-catalog.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  122.29999999981374,
+                                                                       "transferSize":  4001,
+                                                                       "encodedBodySize":  3701,
+                                                                       "decodedBodySize":  3701
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/home.js?v=20260414-profile-motion-3",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  88.79999999981374,
+                                                                       "transferSize":  246810,
+                                                                       "encodedBodySize":  246510,
+                                                                       "decodedBodySize":  246510
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/price-config.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  86.3000000002794,
+                                                                       "transferSize":  5393,
+                                                                       "encodedBodySize":  5093,
+                                                                       "decodedBodySize":  5093
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-spot-window-config.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  86.10000000009313,
+                                                                       "transferSize":  12096,
+                                                                       "encodedBodySize":  11796,
+                                                                       "decodedBodySize":  11796
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-showcase-state.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  85.6999999997206,
+                                                                       "transferSize":  10384,
+                                                                       "encodedBodySize":  10084,
+                                                                       "decodedBodySize":  10084
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-diver-profile.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  85.3000000002794,
+                                                                       "transferSize":  18841,
+                                                                       "encodedBodySize":  18541,
+                                                                       "decodedBodySize":  18541
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-brand-config.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  84.90000000037253,
+                                                                       "transferSize":  7990,
+                                                                       "encodedBodySize":  7690,
+                                                                       "decodedBodySize":  7690
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/depth-manager.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  84.1999999997206,
+                                                                       "transferSize":  161387,
+                                                                       "encodedBodySize":  161087,
+                                                                       "decodedBodySize":  161087
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/ocean-scroll.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  77.39999999990687,
+                                                                       "transferSize":  12911,
+                                                                       "encodedBodySize":  12611,
+                                                                       "decodedBodySize":  12611
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/assets/images/avatar.png",
+                                                                       "initiatorType":  "img",
+                                                                       "duration":  70.3000000002794,
+                                                                       "transferSize":  60725,
+                                                                       "encodedBodySize":  60425,
+                                                                       "decodedBodySize":  60425
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/css/home.css?v=20260414-profile-motion-3",
+                                                                       "initiatorType":  "link",
+                                                                       "duration":  64.89999999990687,
+                                                                       "transferSize":  211228,
+                                                                       "encodedBodySize":  210928,
+                                                                       "decodedBodySize":  210928
+                                                                   }
+                                                               ],
+                                                   "heaviest":  [
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/blue-hole.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  19.40000000037253,
+                                                                        "transferSize":  517568,
+                                                                        "encodedBodySize":  517268,
+                                                                        "decodedBodySize":  517268
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/palau.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  19.600000000093132,
+                                                                        "transferSize":  448886,
+                                                                        "encodedBodySize":  448586,
+                                                                        "decodedBodySize":  448586
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/redang.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  27,
+                                                                        "transferSize":  299596,
+                                                                        "encodedBodySize":  299296,
+                                                                        "decodedBodySize":  299296
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/js/home.js?v=20260414-profile-motion-3",
+                                                                        "initiatorType":  "script",
+                                                                        "duration":  88.79999999981374,
+                                                                        "transferSize":  246810,
+                                                                        "encodedBodySize":  246510,
+                                                                        "decodedBodySize":  246510
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/css/home.css?v=20260414-profile-motion-3",
+                                                                        "initiatorType":  "link",
+                                                                        "duration":  64.89999999990687,
+                                                                        "transferSize":  211228,
+                                                                        "encodedBodySize":  210928,
+                                                                        "decodedBodySize":  210928
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/maldives-liveaboard.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  17.299999999813735,
+                                                                        "transferSize":  174022,
+                                                                        "encodedBodySize":  173722,
+                                                                        "decodedBodySize":  173722
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/js/depth-manager.js",
+                                                                        "initiatorType":  "script",
+                                                                        "duration":  84.1999999997206,
+                                                                        "transferSize":  161387,
+                                                                        "encodedBodySize":  161087,
+                                                                        "decodedBodySize":  161087
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/bohol.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  24,
+                                                                        "transferSize":  101230,
+                                                                        "encodedBodySize":  100930,
+                                                                        "decodedBodySize":  100930
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/coron-review-1-island-chain.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  10.800000000279397,
+                                                                        "transferSize":  86474,
+                                                                        "encodedBodySize":  86174,
+                                                                        "decodedBodySize":  86174
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/sipadan.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  16.899999999906868,
+                                                                        "transferSize":  85410,
+                                                                        "encodedBodySize":  85110,
+                                                                        "decodedBodySize":  85110
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/avatar.png",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  70.3000000002794,
+                                                                        "transferSize":  60725,
+                                                                        "encodedBodySize":  60425,
+                                                                        "decodedBodySize":  60425
+                                                                    },
+                                                                    {
+                                                                        "name":  "http://127.0.0.1:8000/site/assets/images/home/racha.webp",
+                                                                        "initiatorType":  "img",
+                                                                        "duration":  18.100000000093132,
+                                                                        "transferSize":  34468,
+                                                                        "encodedBodySize":  34168,
+                                                                        "decodedBodySize":  34168
+                                                                    }
+                                                                ]
+                                               },
+                                 "perfObserver":  {
+                                                      "longTasks":  [
+                                                                        {
+                                                                            "startTime":  252.79999999981374,
+                                                                            "duration":  379,
+                                                                            "name":  "unknown",
+                                                                            "containerType":  "window"
+                                                                        },
+                                                                        {
+                                                                            "startTime":  673.1000000000931,
+                                                                            "duration":  468,
+                                                                            "name":  "self",
+                                                                            "containerType":  "window"
+                                                                        },
+                                                                        {
+                                                                            "startTime":  1486.5,
+                                                                            "duration":  145,
+                                                                            "name":  "unknown",
+                                                                            "containerType":  "window"
+                                                                        },
+                                                                        {
+                                                                            "startTime":  1700.6000000000931,
+                                                                            "duration":  83,
+                                                                            "name":  "self",
+                                                                            "containerType":  "window"
+                                                                        },
+                                                                        {
+                                                                            "startTime":  1842.2999999998137,
+                                                                            "duration":  78,
+                                                                            "name":  "self",
+                                                                            "containerType":  "window"
+                                                                        }
+                                                                    ],
+                                                      "lcpCandidates":  [
+                                                                            {
+                                                                                "startTime":  1472,
+                                                                                "renderTime":  1472,
+                                                                                "loadTime":  0,
+                                                                                "size":  1449,
+                                                                                "url":  ""
+                                                                            },
+                                                                            {
+                                                                                "startTime":  1556,
+                                                                                "renderTime":  1556,
+                                                                                "loadTime":  0,
+                                                                                "size":  2295,
+                                                                                "url":  ""
+                                                                            }
+                                                                        ],
+                                                      "layoutShifts":  [
+                                                                           {
+                                                                               "startTime":  1645.2999999998137,
+                                                                               "value":  0.14516666666666667
+                                                                           },
+                                                                           {
+                                                                               "startTime":  1836.2999999998137,
+                                                                               "value":  0.00009065755208333334
+                                                                           }
+                                                                       ],
+                                                      "cls":  0.14525732421875
+                                                  }
+                             },
+    "pageSummaryAfterScroll":  {
+                                   "scrollY":  3672,
+                                   "currentHomeLayer":  "match",
+                                   "guideVisible":  true,
+                                   "guideDeep":  true,
+                                   "curatedMounted":  0,
+                                   "diveMatchMounted":  11,
+                                   "longTaskCount":  7,
+                                   "topLongTasks":  [
+                                                        {
+                                                            "startTime":  673.1000000000931,
+                                                            "duration":  468,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  252.79999999981374,
+                                                            "duration":  379,
+                                                            "name":  "unknown",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  1486.5,
+                                                            "duration":  145,
+                                                            "name":  "unknown",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  3820.100000000093,
+                                                            "duration":  85,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  1700.6000000000931,
+                                                            "duration":  83,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  1842.2999999998137,
+                                                            "duration":  78,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  4355.399999999907,
+                                                            "duration":  58,
+                                                            "name":  "unknown",
+                                                            "containerType":  "window"
+                                                        }
+                                                    ],
+                                   "cls":  0.1527612937644676,
+                                   "layoutShiftCount":  5,
+                                   "lcpCandidates":  [
+                                                         {
+                                                             "startTime":  1556,
+                                                             "renderTime":  1556,
+                                                             "loadTime":  0,
+                                                             "size":  2295,
+                                                             "url":  ""
+                                                         },
+                                                         {
+                                                             "startTime":  1472,
+                                                             "renderTime":  1472,
+                                                             "loadTime":  0,
+                                                             "size":  1449,
+                                                             "url":  ""
+                                                         }
+                                                     ]
+                               },
+    "tracePath":  "tools\\qa\\out\\home-cdp-profile\\home-trace.json"
+}

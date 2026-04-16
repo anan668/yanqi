@@ -546,7 +546,7 @@ class TripSeaGuide {
 // 行程控制台主控逻辑：
 // 1. 管理海域 / 日期 / 人数三个字段的当前选择。
 // 2. 控制三个浮层的打开、关闭、定位与联动。
-// 3. 把字段结果实时回写到回执层和“已收进行程”。
+// 3. 把字段结果实时回写到草稿层和“已收进行程”。
 // 4. 在桌面端与移动端之间维持一致的交互节奏。
 /**
  * setupPlannerSummary() - 监听行程控制台输入并实时更新摘要卡片
@@ -697,9 +697,9 @@ function setupPlannerSummary() {
         }
     };
     const SUMMARY_INTRO_COPY = {
-        idle: '\u5148\u7559\u4e0b\u4e00\u53e5\u5f88\u8f7b\u7684\u56de\u6267\uff0c\u7b49\u6d77\u57df\u3001\u6f6e\u6c50\u4e0e\u540c\u884c\u8282\u594f\u6162\u6162\u6536\u51fa\u8f6e\u5ed3\u3002',
-        date: '\u6d77\u57df\u5df2\u7ecf\u5148\u5199\u8fdb\u6765\uff0c\u8fd9\u5c42\u56de\u6267\u4f1a\u987a\u7740\u540e\u9762\u7684\u5b89\u6392\u7ee7\u7eed\u663e\u5f62\u3002',
-        people: '\u6d77\u57df\u548c\u51fa\u53d1\u7a97\u53e3\u90fd\u5df2\u843d\u4f4d\uff0c\u56de\u6267\u5f00\u59cb\u6709\u4e86\u66f4\u6e05\u695a\u7684\u8282\u594f\u3002',
+        idle: '\u5148\u7559\u4e0b\u4e00\u53e5\u5f88\u8f7b\u7684\u8349\u7a3f\uff0c\u7b49\u6d77\u57df\u3001\u6f6e\u6c50\u4e0e\u540c\u884c\u8282\u594f\u6162\u6162\u6536\u51fa\u8f6e\u5ed3\u3002',
+        date: '\u6d77\u57df\u5df2\u7ecf\u5148\u5199\u8fdb\u6765\uff0c\u8fd9\u5c42\u8349\u7a3f\u4f1a\u987a\u7740\u540e\u9762\u7684\u5b89\u6392\u7ee7\u7eed\u663e\u5f62\u3002',
+        people: '\u6d77\u57df\u548c\u51fa\u53d1\u7a97\u53e3\u90fd\u5df2\u843d\u4f4d\uff0c\u8349\u7a3f\u5f00\u59cb\u6709\u4e86\u66f4\u6e05\u695a\u7684\u8282\u594f\u3002',
         confirmed: '\u8fd9\u4e00\u6f5c\u7684\u8f6e\u5ed3\u5df2\u7ecf\u88ab\u5b89\u9759\u6536\u4f4f\uff0c\u540e\u9762\u53ea\u9700\u8981\u987a\u7740\u5b83\u7ee7\u7eed\u51c6\u5907\u3002'
     };
     function readInitialSummaryDeckText(slotName, fallbackValue = '') {
@@ -864,7 +864,7 @@ function setupPlannerSummary() {
             metaSlot: 'spot-meta',
             stateSlot: 'spot-state',
             emptyValue: '\u6d77\u57df\u5f85\u5b9a',
-            emptyMeta: '\u8fd8\u6ca1\u5199\u8fdb\u56de\u6267\u3002',
+            emptyMeta: '\u8fd8\u6ca1\u5199\u8fdb\u8349\u7a3f\u3002',
             emptyState: '\u5f85\u5199\u5165',
             filledState: '\u5df2\u843d\u4f4d',
             filledMeta: '\u8fd9\u4e00\u7247\u84dd\u5df2\u7ecf\u5148\u843d\u4e0b\u3002'
@@ -1175,14 +1175,14 @@ function setupPlannerSummary() {
         }
 
         if (hasSpot && hasDate) {
-            return `已记下 ${spotLabel}${staySegment} · ${dateLabel}，再把同行节奏写进来，这层回执就会收完整。`;
+            return `已记下 ${spotLabel}${staySegment} · ${dateLabel}，再把同行节奏写进来，这层草稿就会慢慢收稳。`;
         }
 
         if (hasSpot) {
             return `已记下 ${spotLabel}${staySegment}，接下来等一段合适的潮汐把出发写进来。`;
         }
 
-        return '先让回执停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。';
+        return '先让草稿停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。';
     }
 
     function buildPlannerRhythmSentence({
@@ -1358,23 +1358,24 @@ function setupPlannerSummary() {
                 ${escapeHtml(state.statusNote)}
             </p>
 
-            <div class="planner-summary-ritual">
-                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--route">
-                    <p class="planner-summary-ritual-route-label">Current Route</p>
-                    <strong class="planner-summary-ritual-route-spot" data-summary-slot="route-spot">${escapeHtml(state.activeSpotLabel || '当前海域待定')}</strong>
+            <div class="planner-summary-draft-rail">
+                <div class="planner-summary-draft-segment planner-summary-draft-segment--spot">
+                    <p class="planner-summary-draft-label">Current Water</p>
+                    <strong class="planner-summary-draft-spot" data-summary-slot="route-spot">${escapeHtml(state.activeSpotLabel || '当前海域待定')}</strong>
                 </div>
-                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--rhythm">
-                    <p class="planner-summary-ritual-rhythm" data-summary-slot="rhythm-sentence">
+                <div class="planner-summary-draft-segment planner-summary-draft-segment--rhythm">
+                    <p class="planner-summary-draft-label">Current Draft</p>
+                    <p class="planner-summary-draft-rhythm" data-summary-slot="rhythm-sentence">
                         ${escapeHtml(state.rhythmSentence)}
                     </p>
                 </div>
-                <div class="planner-summary-ritual-segment planner-summary-ritual-segment--chips">
-                    <span class="planner-summary-ritual-chip planner-summary-ritual-chip-package" data-summary-slot="active-package">${escapeHtml(state.activePackageLabel)}</span>
-                    <span class="planner-summary-ritual-chip planner-summary-ritual-chip-companion" data-summary-slot="active-companion">${escapeHtml(state.activeCompanionLabel)}</span>
+                <div class="planner-summary-draft-tags">
+                    <span class="planner-summary-draft-tag planner-summary-draft-tag-package" data-summary-slot="active-package">${escapeHtml(state.activePackageLabel)}</span>
+                    <span class="planner-summary-draft-tag planner-summary-draft-tag-companion" data-summary-slot="active-companion">${escapeHtml(state.activeCompanionLabel)}</span>
                 </div>
             </div>
 
-            <div class="planner-summary-receipt">
+            <div class="planner-summary-draft-steps">
                 <article class="planner-item${spotItem.isFilled ? ' is-confirmed' : ' is-empty'}" data-summary-field="spot">
                     <span class="planner-item-index">01</span>
                     <div class="planner-item-copy">
@@ -1403,19 +1404,6 @@ function setupPlannerSummary() {
                         <small data-summary-slot="people-meta">${escapeHtml(peopleItem.meta)}</small>
                     </div>
                     <span class="planner-item-state" data-summary-slot="people-state">${escapeHtml(peopleItem.state)}</span>
-                </article>
-            </div>
-
-            <div class="planner-summary-guidance">
-                <article class="planner-summary-guidance-card">
-                    <p class="planner-summary-guidance-label">海域焦点</p>
-                    <h3 class="planner-summary-guidance-title" data-summary-slot="focus-title">${escapeHtml(state.guidance.focusTitle)}</h3>
-                    <p class="planner-summary-guidance-copy" data-summary-slot="focus-copy">${escapeHtml(state.guidance.focusCopy)}</p>
-                </article>
-                <article class="planner-summary-guidance-card">
-                    <p class="planner-summary-guidance-label">准备提示</p>
-                    <h3 class="planner-summary-guidance-title" data-summary-slot="prep-title">${escapeHtml(state.guidance.prepTitle)}</h3>
-                    <p class="planner-summary-guidance-copy" data-summary-slot="prep-copy">${escapeHtml(state.guidance.prepCopy)}</p>
                 </article>
             </div>
         `;
@@ -2915,7 +2903,7 @@ function setupPlannerSummary() {
     }
 
     /**
-     * updatePlannerSummary() - 根据当前字段值刷新回执层
+     * updatePlannerSummary() - 根据当前字段值刷新草稿层
      * @returns {Object} - 当前回执状态对象
      */
     function updatePlannerSummary() {
@@ -3805,11 +3793,12 @@ function renderSeaBrief(bookings = []) {
     const card = document.getElementById('seaBriefCard');
     const spotNode = document.getElementById('seaBriefSpot');
     const packageNode = document.getElementById('seaBriefPackage');
+    const identityNode = document.getElementById('seaBriefIdentity');
     const badgesNode = document.getElementById('seaBriefBadges');
     const gridNode = document.getElementById('seaBriefGrid');
     const prepNode = document.getElementById('seaBriefPrep');
 
-    if (!empty || !card || !spotNode || !packageNode || !badgesNode || !gridNode || !prepNode) {
+    if (!empty || !card || !spotNode || !packageNode || !identityNode || !badgesNode || !gridNode || !prepNode) {
         return;
     }
 
@@ -3839,6 +3828,9 @@ function renderSeaBrief(bookings = []) {
     card.hidden = false;
     spotNode.textContent = activeBooking.spotName || '当前海域';
     packageNode.textContent = activeBooking.packageTitle || '当前套餐';
+    identityNode.textContent = activeBooking.briefId
+        ? `最终安排 · ${activeBooking.briefId}`
+        : '最终安排 · 已与当前这一程同步';
     badgesNode.innerHTML = [
         activeBooking.packageTier,
         activeBooking.fitLabel,

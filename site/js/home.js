@@ -27,75 +27,30 @@ const HOME_GUIDE_JUMP_QUERY_KEY = 'guideJump';
 const HOME_GUIDE_JUMP_DEFAULT_MODE = 'custom';
 const HOME_GUIDE_JUMP_LONG_TRAVEL_RATIO = 1.75;
 const HOME_GUIDE_JUMP_PROXIMITY_THRESHOLD = 12;
-const HOME_GUIDE_JUMP_ALLOWED_MODES = new Set(['native', 'staged', 'custom']);
-const HOME_GUIDE_JUMP_MODE_META = Object.freeze({
-    native: Object.freeze({
-        label: '原生长跳',
-        hint: '浏览器接管长距离滚动'
-    }),
-    staged: Object.freeze({
-        label: '分段潜游',
-        hint: '分 2 到 3 段潜游过去'
-    }),
-    custom: Object.freeze({
-        label: '全自定义长跳',
-        hint: '保留整段海流驱动'
-    })
-});
-
-function normalizeHomeGuideJumpMode(value) {
-    const normalized = String(value || '').trim().toLowerCase();
-    return HOME_GUIDE_JUMP_ALLOWED_MODES.has(normalized) ? normalized : '';
-}
 
 function resolveHomeGuideJumpMode() {
-    let resolvedMode = '';
-
-    try {
-        const queryValue = new URLSearchParams(window.location.search).get(HOME_GUIDE_JUMP_QUERY_KEY);
-        resolvedMode = normalizeHomeGuideJumpMode(queryValue);
-        if (resolvedMode) {
-            return resolvedMode;
-        }
-    } catch (error) {
-        resolvedMode = '';
-    }
-
-    try {
-        resolvedMode = normalizeHomeGuideJumpMode(localStorage.getItem(HOME_GUIDE_JUMP_STORAGE_KEY));
-        if (resolvedMode) {
-            return resolvedMode;
-        }
-    } catch (error) {
-        resolvedMode = '';
-    }
-
     return HOME_GUIDE_JUMP_DEFAULT_MODE;
 }
 
-function persistHomeGuideJumpMode(mode) {
-    const nextMode = normalizeHomeGuideJumpMode(mode) || HOME_GUIDE_JUMP_DEFAULT_MODE;
-
+function clearLegacyHomeGuideJumpDebugState() {
     try {
-        localStorage.setItem(HOME_GUIDE_JUMP_STORAGE_KEY, nextMode);
+        localStorage.removeItem(HOME_GUIDE_JUMP_STORAGE_KEY);
     } catch (error) {
-        // 本地存储不可用时静默降级，不阻断调试切换。
+        // 本地存储不可用时静默降级。
     }
-}
 
-function stripHomeGuideJumpQueryFromUrl() {
     try {
         const nextUrl = new URL(window.location.href);
-        nextUrl.searchParams.delete(HOME_GUIDE_JUMP_QUERY_KEY);
-        window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+        if (nextUrl.searchParams.has(HOME_GUIDE_JUMP_QUERY_KEY)) {
+            nextUrl.searchParams.delete(HOME_GUIDE_JUMP_QUERY_KEY);
+            window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+        }
     } catch (error) {
-        // URL 处理失败时保留当前地址，不影响主流程。
+        // URL 处理失败时静默降级。
     }
 }
 
-function getHomeGuideJumpModeMeta(mode) {
-    return HOME_GUIDE_JUMP_MODE_META[normalizeHomeGuideJumpMode(mode)] || HOME_GUIDE_JUMP_MODE_META[HOME_GUIDE_JUMP_DEFAULT_MODE];
-}
+clearLegacyHomeGuideJumpDebugState();
 
 /**
  * resolveStageDebugMode() - 读取当前页面是否需要暴露舞台调试能力
@@ -195,72 +150,6 @@ function setupStageDebugToggle() {
         stripStageDebugQueryFromUrl();
         window.location.reload();
     });
-}
-
-function setupHomeGuideJumpDebugPanel() {
-    if (!isStageDebugModeEnabled || !document.body?.classList.contains('home-page')) {
-        return;
-    }
-
-    const existingPanel = document.getElementById('homeGuideJumpDebugPanel');
-    if (existingPanel) {
-        existingPanel.remove();
-    }
-
-    const activeMode = resolveHomeGuideJumpMode();
-    const panel = document.createElement('section');
-    panel.className = 'home-guide-jump-debug';
-    panel.id = 'homeGuideJumpDebugPanel';
-    panel.setAttribute('aria-label', '首页长跳策略调试面板');
-
-    const label = document.createElement('p');
-    label.className = 'home-guide-jump-debug-label';
-    label.textContent = '长跳策略';
-
-    const currentMeta = getHomeGuideJumpModeMeta(activeMode);
-    const current = document.createElement('p');
-    current.className = 'home-guide-jump-debug-current';
-    current.textContent = `${currentMeta.label} · 切换后刷新再测`;
-
-    const list = document.createElement('div');
-    list.className = 'home-guide-jump-debug-options';
-
-    Object.keys(HOME_GUIDE_JUMP_MODE_META).forEach((mode) => {
-        const button = document.createElement('button');
-        const meta = HOME_GUIDE_JUMP_MODE_META[mode];
-        const isActive = activeMode === mode;
-        button.type = 'button';
-        button.className = 'home-guide-jump-debug-button';
-        button.dataset.guideJumpMode = mode;
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-        if (isActive) {
-            button.classList.add('is-active');
-        }
-
-        const strong = document.createElement('strong');
-        strong.textContent = meta.label;
-        const small = document.createElement('small');
-        small.textContent = meta.hint;
-        button.appendChild(strong);
-        button.appendChild(small);
-
-        button.addEventListener('click', () => {
-            if (button.classList.contains('is-active')) {
-                return;
-            }
-
-            persistHomeGuideJumpMode(mode);
-            stripHomeGuideJumpQueryFromUrl();
-            window.location.reload();
-        });
-
-        list.appendChild(button);
-    });
-
-    panel.appendChild(label);
-    panel.appendChild(current);
-    panel.appendChild(list);
-    document.body.appendChild(panel);
 }
 
 // 价格展示工具：首页不再自己换汇，统一走共享人民币模块。
@@ -907,6 +796,11 @@ function createHomeViewportCoordinator() {
     let updateRaf = 0;
     let measureRaf = 0;
     let measureTimer = 0;
+    let deferredResumeMeasureTimer = 0;
+    let suspendDepth = 0;
+    let pendingUpdate = false;
+    let pendingMeasure = false;
+    let pendingMeasureForce = false;
     let attached = false;
     let lastLockedUpdateAt = 0;
     let sectionMetricsVersion = 0;
@@ -1109,6 +1003,11 @@ function createHomeViewportCoordinator() {
     };
 
     const requestUpdate = () => {
+        if (suspendDepth > 0) {
+            pendingUpdate = true;
+            return;
+        }
+
         if (updateRaf) {
             return;
         }
@@ -1124,6 +1023,12 @@ function createHomeViewportCoordinator() {
 
     const requestMeasure = (options = {}) => {
         const force = Boolean(options?.force);
+        if (suspendDepth > 0) {
+            pendingMeasure = true;
+            pendingMeasureForce = pendingMeasureForce || force;
+            return;
+        }
+
         if (measureRaf) {
             return;
         }
@@ -1166,6 +1071,82 @@ function createHomeViewportCoordinator() {
         window.addEventListener('resize', requestMeasure);
     };
 
+    const cancelPendingSchedules = () => {
+        if (updateRaf) {
+            cancelAnimationFrame(updateRaf);
+            updateRaf = 0;
+        }
+
+        if (measureRaf) {
+            cancelAnimationFrame(measureRaf);
+            measureRaf = 0;
+        }
+
+        if (measureTimer) {
+            window.clearTimeout(measureTimer);
+            measureTimer = 0;
+        }
+
+        if (deferredResumeMeasureTimer) {
+            window.clearTimeout(deferredResumeMeasureTimer);
+            deferredResumeMeasureTimer = 0;
+        }
+    };
+
+    const suspend = () => {
+        suspendDepth += 1;
+        if (suspendDepth === 1) {
+            cancelPendingSchedules();
+        }
+    };
+
+    const resume = (options = {}) => {
+        if (suspendDepth === 0) {
+            return;
+        }
+
+        suspendDepth = Math.max(0, suspendDepth - 1);
+        if (suspendDepth > 0) {
+            return;
+        }
+
+        const shouldFlush = options?.flush !== false;
+        const shouldMeasure = pendingMeasure;
+        const shouldForceMeasure = pendingMeasureForce;
+        const shouldUpdate = pendingUpdate;
+        const deferMeasureMs = Math.max(0, Number(options?.deferMeasureMs) || 0);
+
+        pendingMeasure = false;
+        pendingMeasureForce = false;
+        pendingUpdate = false;
+
+        if (!shouldFlush) {
+            return;
+        }
+
+        if (shouldUpdate) {
+            requestUpdate();
+        }
+
+        if (!shouldMeasure) {
+            return;
+        }
+
+        if (deferMeasureMs <= 0) {
+            requestMeasure(shouldForceMeasure ? { force: true } : undefined);
+            return;
+        }
+
+        if (deferredResumeMeasureTimer) {
+            window.clearTimeout(deferredResumeMeasureTimer);
+        }
+
+        deferredResumeMeasureTimer = window.setTimeout(() => {
+            deferredResumeMeasureTimer = 0;
+            requestMeasure(shouldForceMeasure ? { force: true } : undefined);
+        }, deferMeasureMs);
+    };
+
     return {
         register({ measure, update } = {}) {
             attach();
@@ -1190,13 +1171,16 @@ function createHomeViewportCoordinator() {
             return homeSectionMetrics.sections?.[selector] || null;
         },
         requestUpdate,
-        requestMeasure
+        requestMeasure,
+        suspend,
+        resume
     };
 }
 
 const homeViewportCoordinator = createHomeViewportCoordinator();
 let homeHydrationMeasureRafId = 0;
 let homeHydrationMeasureNeedsForce = false;
+let homeGuideScrollRequestToken = 0;
 
 function scheduleHomeHydrationViewportRefresh(options = {}) {
     if (typeof homeViewportCoordinator === 'undefined') {
@@ -2119,9 +2103,9 @@ const HOME_INTERACTION_STATE = {
     manualLastScrollAt: 0
 };
 
-const HOME_MANUAL_SCROLL_BURST_GAP_MS = 96;
-const HOME_MANUAL_SCROLL_BURST_RESET_MS = 180;
-const HOME_MANUAL_SCROLL_BURST_DELTA_MIN = 220;
+const HOME_MANUAL_SCROLL_BURST_GAP_MS = 120;
+const HOME_MANUAL_SCROLL_BURST_RESET_MS = 240;
+const HOME_MANUAL_SCROLL_BURST_DELTA_MIN = 180;
 
 /**
  * syncHomeInteractionDataset() - 把首页交互锁状态同步到 body data 属性，供样式层做临时降载
@@ -2171,6 +2155,12 @@ function scheduleHomeInteractionRefresh(delayMs = 0) {
         HOME_INTERACTION_STATE.unlockTimer = 0;
         HOME_INTERACTION_STATE.programmaticTraveling = false;
         syncHomeInteractionDataset();
+        const remainingLockMs = Math.ceil(HOME_INTERACTION_STATE.lockUntil - performance.now());
+        if (!HOME_INTERACTION_STATE.guideOpen && remainingLockMs > 0) {
+            scheduleHomeInteractionRefresh(remainingLockMs + 48);
+            return;
+        }
+
         if (typeof homeViewportCoordinator !== 'undefined') {
             homeViewportCoordinator.requestMeasure();
             homeViewportCoordinator.requestUpdate();
@@ -2271,6 +2261,22 @@ function setupHomeManualScrollTraveling() {
 
         scrollRafId = window.requestAnimationFrame(evaluateScrollBurst);
     }, { passive: true });
+
+    window.addEventListener('wheel', (event) => {
+        if (HOME_INTERACTION_STATE.programmaticTraveling) {
+            return;
+        }
+
+        const deltaY = Math.abs(Number(event?.deltaY) || 0);
+        const wheelBurstThreshold = Math.max(
+            (window.innerHeight || 0) * 0.18,
+            HOME_MANUAL_SCROLL_BURST_DELTA_MIN
+        );
+
+        if (deltaY >= wheelBurstThreshold) {
+            markHomeManualScrollTraveling();
+        }
+    }, { passive: true });
 }
 
 /**
@@ -2296,13 +2302,15 @@ function isHomeInteractionLocked() {
 
 function resolveHomeGuideJumpStrategy(mode) {
     const registry = window.YanqiHomeGuideJumpStrategies || {};
-    const resolvedMode = normalizeHomeGuideJumpMode(mode) || HOME_GUIDE_JUMP_DEFAULT_MODE;
+    const resolvedMode = mode === HOME_GUIDE_JUMP_DEFAULT_MODE
+        ? mode
+        : HOME_GUIDE_JUMP_DEFAULT_MODE;
     const strategy = registry[resolvedMode];
     return strategy && typeof strategy.run === 'function' ? strategy : null;
 }
 
 function runHomeGuideLongJumpStrategy(options = {}) {
-    const mode = normalizeHomeGuideJumpMode(options.mode) || HOME_GUIDE_JUMP_DEFAULT_MODE;
+    const mode = HOME_GUIDE_JUMP_DEFAULT_MODE;
     const strategy = resolveHomeGuideJumpStrategy(mode);
     if (!strategy) {
         return null;
@@ -2325,6 +2333,11 @@ function runHomeGuideLongJumpStrategy(options = {}) {
         adaptiveDuration,
         viewportHeight,
         proximityThreshold: HOME_GUIDE_JUMP_PROXIMITY_THRESHOLD,
+        targetSelector: String(options.targetSelector || ''),
+        guideTargetDepth: options.guideTargetDepth !== null && options.guideTargetDepth !== undefined
+            && Number.isFinite(Number(options.guideTargetDepth))
+            ? Number(options.guideTargetDepth)
+            : null,
         mood,
         animateTo(targetY, strategyOptions = {}) {
             if (window.OceanScroll && typeof window.OceanScroll.animateTo === 'function') {
@@ -2342,6 +2355,33 @@ function runHomeGuideLongJumpStrategy(options = {}) {
         finishManagedScroll() {
             if (window.DepthManager && typeof window.DepthManager.finishManagedScroll === 'function') {
                 window.DepthManager.finishManagedScroll();
+            }
+        },
+        resolveScrollMood(strategyOptions = {}) {
+            if (window.OceanScroll && typeof window.OceanScroll.resolveScrollMood === 'function') {
+                return window.OceanScroll.resolveScrollMood(strategyOptions);
+            }
+
+            return {
+                name: String(strategyOptions?.mood || mood || 'buoyant').trim() || 'buoyant',
+                durationScale: 1,
+                easing(value) {
+                    return clamp(Number(value) || 0, 0, 1);
+                }
+            };
+        },
+        setHomeScrollTraveling: (isTraveling) => {
+            setHomeScrollTraveling(isTraveling, 'programmatic');
+        },
+        beginHomeInteractionLock,
+        suspendHomeViewportCoordinator() {
+            if (typeof homeViewportCoordinator?.suspend === 'function') {
+                homeViewportCoordinator.suspend();
+            }
+        },
+        resumeHomeViewportCoordinator(resumeOptions = {}) {
+            if (typeof homeViewportCoordinator?.resume === 'function') {
+                homeViewportCoordinator.resume(resumeOptions);
             }
         }
     });
@@ -6087,6 +6127,7 @@ function scrollToSection(targetSelector) {
         return;
     }
 
+    const requestToken = ++homeGuideScrollRequestToken;
     const primedNewLayout = primeHomeScrollTarget(targetSelector);
 
     const target = document.querySelector(targetSelector);
@@ -6182,6 +6223,16 @@ function scrollToSection(targetSelector) {
         const depthManager = window.DepthManager;
 
         const finishScroll = () => {
+            if (requestToken !== homeGuideScrollRequestToken) {
+                return;
+            }
+
+            if (depthManager && typeof depthManager.finishManagedScroll === 'function') {
+                depthManager.finishManagedScroll({
+                    skipImmediateSync: longJumpMode === 'custom'
+                });
+            }
+
             if (
                 guideTargetDepth !== null &&
                 depthManager &&
@@ -6222,7 +6273,9 @@ function scrollToSection(targetSelector) {
             const strategyResult = runHomeGuideLongJumpStrategy({
                 mode: longJumpMode,
                 top,
-                adaptiveDuration
+                adaptiveDuration,
+                targetSelector,
+                guideTargetDepth
             });
             if (strategyResult) {
                 setHomeScrollTraveling(true, 'programmatic');
@@ -7371,7 +7424,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const homePerformanceProfile = resolveHomePerformanceProfile();
 
     setupStageDebugToggle();
-    setupHomeGuideJumpDebugPanel();
     applyHomePerformanceProfile(homePerformanceProfile);
     setupHomeManualScrollTraveling();
     new BambooScroll();
