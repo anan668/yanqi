@@ -8,7 +8,9 @@ param(
     [int]$ViewportHeight = 1200,
     [double]$CpuThrottlingRate = 1,
     [int]$PostLoadDelayMs = 1800,
-    [int]$PostScrollDelayMs = 1200
+    [int]$PostScrollDelayMs = 1200,
+    [ValidateSet('jump', 'slow-glide')]
+    [string]$ScrollProfile = 'jump'
 )
 
 Set-StrictMode -Version Latest
@@ -441,22 +443,46 @@ try {
 })()
 "@
 
+    $scrollProfileJson = $ScrollProfile | ConvertTo-Json -Compress
+
     Invoke-CdpRuntimeJson -Session $session -Expression @"
 (async () => {
+    const scrollProfile = $scrollProfileJson;
     const totalDistance = Math.max(
         0,
         (document.documentElement.scrollHeight || document.body.scrollHeight || 0) - window.innerHeight
     );
-    const steps = 6;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-    for (let index = 1; index <= steps; index += 1) {
-        const nextY = Math.round(totalDistance * (index / steps));
-        window.scrollTo({ top: nextY, left: 0, behavior: 'instant' });
-        await new Promise((resolve) => window.setTimeout(resolve, 180));
+    if (scrollProfile === 'slow-glide') {
+        const stepPx = Math.max(Math.round(window.innerHeight * 0.028), 24);
+        const stepDelayMs = 28;
+        const pauseEvery = 10;
+        let nextY = 0;
+        let stepIndex = 0;
+
+        while (nextY < totalDistance) {
+            nextY = Math.min(totalDistance, nextY + stepPx);
+            window.scrollTo({ top: nextY, left: 0, behavior: 'instant' });
+            stepIndex += 1;
+            await wait(stepDelayMs);
+
+            if (stepIndex % pauseEvery === 0 && nextY < totalDistance) {
+                await wait(48);
+            }
+        }
+    } else {
+        const steps = 6;
+        for (let index = 1; index <= steps; index += 1) {
+            const nextY = Math.round(totalDistance * (index / steps));
+            window.scrollTo({ top: nextY, left: 0, behavior: 'instant' });
+            await wait(180);
+        }
     }
 
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
+    await wait(scrollProfile === 'slow-glide' ? 320 : 450);
     return {
+        scrollProfile,
         finalScrollY: window.scrollY,
         scrollHeight: document.documentElement.scrollHeight || document.body.scrollHeight || 0
     };
@@ -476,6 +502,7 @@ try {
     };
 
     return {
+        scrollProfile: $scrollProfileJson,
         scrollY: window.scrollY,
         currentHomeLayer: document.body?.dataset?.currentHomeLayer || '',
         guideVisible: document.getElementById('homeSeaGuide')?.classList.contains('is-visible') || false,
@@ -506,6 +533,7 @@ try {
     $summary = [ordered]@{
         generatedAt = (Get-Date).ToString('s')
         scenarioLabel = $ScenarioLabel
+        scrollProfile = $ScrollProfile
         targetUrl = $TargetUrl
         viewport = [ordered]@{
             width = $ViewportWidth

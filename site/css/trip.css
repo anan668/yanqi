@@ -4720,3 +4720,42 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
 
 
 
+/* 行程页高对比度保护层：锁住规划层首屏、控制台和关键区块标题的浅色阅读层次。 */
+@media (forced-colors: active) {
+    .trip-page :is(
+        .trip-hero-kicker,
+        .trip-section-kicker,
+        .planner-console-kicker,
+        .confirmed-bookings-kicker,
+        .sea-brief-kicker
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    .trip-page :is(
+        .trip-hero-title,
+        .planner-console-title,
+        .trip-section-title,
+        .confirmed-bookings-title,
+        .prep-card-title,
+        .prep-detail-title,
+        .sea-brief-title
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .trip-page :is(
+        .trip-hero-subtitle,
+        .planner-console-intro,
+        .sea-brief-intro
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-copy);
+        -webkit-text-fill-color: var(--yanqi-forced-copy);
+    }
+}
+

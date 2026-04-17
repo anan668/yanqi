@@ -274,9 +274,6 @@ function setupTripScrollLinks() {
 
             event.preventDefault();
             storePendingHomeScrollTarget(targetSelector);
-            if (targetSelector === '#featured-destinations') {
-                storePendingHomeEntryDepth(targetSelector, -12);
-            }
             navigateWithDepth(rawHref);
         });
     });

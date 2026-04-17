@@ -1673,6 +1673,8 @@ class DetailPage {
         this.packageModalEditorCloseTimer = 0;
         this.packageModalEditorTransitioning = false;
         this.packageModalEditorFocusTimer = 0;
+        this.packageModalConfirmScrollFrame = 0;
+        this.packageModalConfirmFocusTimer = 0;
         this.bookingModalMorphGhost = null;
         this.bookingModalDrafts = new Map();
         this.activeBookingSourceCard = null;
@@ -2171,8 +2173,8 @@ class DetailPage {
         this.deferredReviewsHydration = createDeferredSectionBootstrap(reviewsTarget, () => {
             this.ensureReviewsHydrated();
         }, {
-            immediate: this.shouldHydrateDeferredSectionImmediately(reviewsTarget, 1.08),
-            rootMargin: '0px 0px 28% 0px',
+            immediate: this.shouldHydrateDeferredSectionImmediately(reviewsTarget, 1.18),
+            rootMargin: '0px 0px 72% 0px',
             threshold: 0.01
         });
 
@@ -2813,6 +2815,7 @@ class DetailPage {
         this.windowConfig = sharedSpotWindowConfig?.getBySpotId?.(this.spotId) || this.windowConfig;
         sharedShowcaseState?.recordRecentSpot?.(this.spotId);
         document.title = `盐憩 - ${this.spotData.name}`;
+        document.documentElement.dataset.detailSpotId = String(this.spotId);
 
         document.getElementById('spotName').textContent = this.spotData.name;
         document.getElementById('spotTagline').textContent = this.spotData.tagline;
@@ -7051,6 +7054,7 @@ class DetailPage {
         this.scheduleSeaAtlasMapSync({
             invalidateSize: true
         }, 'inline');
+        this.syncReviewsViewportState();
     }
 
     updateSeaAtlasMapScene(options = {}) {
@@ -7271,6 +7275,7 @@ class DetailPage {
                     animate: Boolean(this.seaAtlasMap)
                 });
             }
+            this.syncReviewsViewportState();
             return targetShell;
         }
 
@@ -7293,6 +7298,7 @@ class DetailPage {
                     this.playSeaRouteAnimation();
                 }
             }, motionDelay);
+            this.syncReviewsViewportState();
             return targetShell;
         }
 
@@ -7301,6 +7307,7 @@ class DetailPage {
             this.playSeaProfileEntrance(motionDelay);
         }
 
+        this.syncReviewsViewportState();
         return targetShell;
     }
 
@@ -7507,6 +7514,7 @@ class DetailPage {
             this.playSeaProfileEntrance(
                 (wasAtlasAwake ? 0 : motionDelay) + this.getSeaProfileRevealDelay()
             );
+            this.syncReviewsViewportState();
             return;
         }
 
@@ -7524,6 +7532,7 @@ class DetailPage {
                     }
                 }, Math.max(motionDelay, 80));
             }
+            this.syncReviewsViewportState();
             return;
         }
 
@@ -7542,6 +7551,7 @@ class DetailPage {
                 invalidateSize: true
             }, 'fullscreen');
         }
+        this.syncReviewsViewportState();
     }
 
     /**
@@ -7851,6 +7861,7 @@ class DetailPage {
         }
         this.setupSeaAtlasReveal();
         this.syncSeaAtlasMapViewState();
+        this.syncReviewsViewportState();
 
         if (this.activeSeaView === 'underwater') {
             this.syncSeaRouteLineState();
@@ -7892,6 +7903,7 @@ class DetailPage {
         this.scheduleSeaAtlasMapSync({
             invalidateSize: true
         });
+        this.syncReviewsViewportState();
     }
 
     /**
@@ -8004,6 +8016,7 @@ class DetailPage {
         this.scheduleSeaAtlasMapSync({
             invalidateSize: true
         });
+        this.syncReviewsViewportState();
     }
 
     /**
@@ -9270,9 +9283,6 @@ class DetailPage {
         }).join('');
 
         this.activeReviewLinkedPackageId = null;
-        const shouldReplayReviewsSectionReveal = this.getReviewsRevealTargets().some((target) => (
-            target?.classList.contains('is-visible')
-        ));
         this.clearPendingReviewsReveal();
         this.spotReviewsHeading?.classList.remove('is-visible');
         this.reviewsStage?.classList.remove('is-visible');
@@ -9283,12 +9293,7 @@ class DetailPage {
         this.resetReviewGalleryPhotoReveal();
         this.setupReviewGalleryPhotoReveal();
 
-        if (
-            shouldReplayReviewsSectionReveal
-            && this.getReviewsRevealTargets().some((target) => this.isReviewsRevealTargetInView(target))
-        ) {
-            this.markReviewsVisible();
-        }
+        this.syncReviewsViewportState();
 
         this.measureDetailScrollMetrics();
         window.requestAnimationFrame(() => {
@@ -10026,6 +10031,64 @@ class DetailPage {
     }
 
     /**
+     * shouldHydrateReviewsFromViewport(target) - 判断评论区是否已经进入应提前完成 hydration 的前置视口带
+     * @param {HTMLElement|null} target - 评论区主触发节点
+     * @returns {boolean} - 是否应主动完成评论区 hydration
+     */
+    shouldHydrateReviewsFromViewport(target) {
+        if (!target) {
+            return false;
+        }
+
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top <= viewportHeight * 1.18 && rect.bottom >= -viewportHeight * 0.2;
+    }
+
+    /**
+     * isReviewsRevealTargetReady(target) - 判断评论区是否已进入更早的 reveal 视口带
+     * @param {HTMLElement|null} target - 待检查的评论区节点
+     * @returns {boolean} - 是否应立即显现评论区外层
+     */
+    isReviewsRevealTargetReady(target) {
+        if (!target) {
+            return false;
+        }
+
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top < viewportHeight * 0.96 && rect.bottom > viewportHeight * 0.06;
+    }
+
+    /**
+     * syncReviewsViewportState() - 根据当前视口位置预热评论区 hydration，并在需要时补齐外层 reveal
+     * @returns {boolean} - 本次是否触发了评论区 reveal
+     */
+    syncReviewsViewportState() {
+        const reviewsTarget = this.spotReviewsHeading || this.reviewsStage || this.reviewsSection;
+        if (this.shouldHydrateReviewsFromViewport(reviewsTarget)) {
+            this.deferredReviewsHydration?.run?.();
+        }
+
+        const shouldReveal = this.getReviewsRevealTargets()
+            .some((target) => this.isReviewsRevealTargetReady(target));
+        if (!shouldReveal) {
+            return false;
+        }
+
+        this.reviewsRevealObserver?.disconnect();
+        if (
+            !this.spotReviewsHeading?.classList.contains('is-visible')
+            || !this.reviewsStage?.classList.contains('is-visible')
+            || !this.reviewsSection?.classList.contains('is-visible')
+        ) {
+            this.markReviewsVisible();
+        }
+
+        return true;
+    }
+
+    /**
      * setupReviewsReveal() - 监听评论区进入视口后，再让“用户评价”标题、引导区和评论卡按层次显现。
      * 这样用户先知道自己在读别人的回声，再进入具体评论，而不是一整段内容同时挤出来。
      * @returns {void} - 无返回值，直接注册评论区显现逻辑
@@ -10049,12 +10112,11 @@ class DetailPage {
                     return;
                 }
 
-                this.markReviewsVisible();
-                this.reviewsRevealObserver?.disconnect();
+                this.syncReviewsViewportState();
             });
         }, {
-            threshold: 0.08,
-            rootMargin: '0px 0px -6% 0px'
+            threshold: 0.01,
+            rootMargin: '0px 0px 14% 0px'
         });
 
         targets.forEach((target) => {
@@ -10077,11 +10139,7 @@ class DetailPage {
         this.resetReviewGalleryPhotoReveal();
 
         this.setupReviewsReveal();
-
-        if (this.getReviewsRevealTargets().some((target) => this.isReviewsRevealTargetInView(target))) {
-            this.markReviewsVisible();
-            this.reviewsRevealObserver?.disconnect();
-        }
+        this.syncReviewsViewportState();
     }
 
     // 详情弹层模板：分别生成评论详情层和套餐详情层的完整 DOM 字符串。
@@ -10685,6 +10743,182 @@ class DetailPage {
         }, 1500);
     }
 
+    cancelPackageModalConfirmScrollMotion() {
+        if (this.packageModalConfirmScrollFrame) {
+            window.cancelAnimationFrame(this.packageModalConfirmScrollFrame);
+            this.packageModalConfirmScrollFrame = 0;
+        }
+        if (this.packageModalConfirmFocusTimer) {
+            window.clearTimeout(this.packageModalConfirmFocusTimer);
+            this.packageModalConfirmFocusTimer = 0;
+        }
+
+        this.bookingModal
+            ?.querySelector('.booking-modal-content')
+            ?.classList.remove('is-confirm-scrolling');
+    }
+
+    animatePackageModalScroll(modalContent, targetTop, duration = 1380) {
+        if (!(modalContent instanceof HTMLElement)) {
+            return 0;
+        }
+
+        this.cancelPackageModalConfirmScrollMotion();
+
+        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+        const startTop = modalContent.scrollTop;
+        const nextTop = Math.max(0, targetTop);
+        const distance = nextTop - startTop;
+        if (Math.abs(distance) < 2) {
+            modalContent.scrollTop = nextTop;
+            return 0;
+        }
+
+        const maxScrollTop = Math.max(0, modalContent.scrollHeight - modalContent.clientHeight);
+        const clampedTop = Math.min(nextTop, maxScrollTop);
+        const totalDistance = clampedTop - startTop;
+        let animatedStartTop = startTop;
+        if (!reducedMotion && Math.abs(totalDistance) > 80) {
+            const initialNudge = Math.min(32, Math.max(16, Math.abs(totalDistance) * 0.018));
+            animatedStartTop = startTop + (Math.sign(totalDistance) * initialNudge);
+            modalContent.scrollTop = animatedStartTop;
+        }
+        const travelDistance = clampedTop - animatedStartTop;
+        const adaptiveDuration = reducedMotion
+            ? Math.min(980, Math.max(540, 460 + (Math.abs(totalDistance) * 0.12)))
+            : Math.min(2240, Math.max(duration, 980 + (Math.abs(totalDistance) * 0.24)));
+        const startTime = performance.now();
+        const dragPhaseTime = reducedMotion ? 0.42 : 0.36;
+        const dragPhaseDistance = reducedMotion ? 0.72 : 0.62;
+        const glidePhaseTime = reducedMotion ? 0.8 : 0.76;
+        const glidePhaseDistance = reducedMotion ? 0.92 : 0.88;
+        const dragEase = (value) => 1 - Math.pow(1 - value, 1.16);
+        const glideEase = (value) => 1 - Math.pow(1 - value, 1.55);
+        const settleEase = (value) => 1 - Math.pow(1 - value, 1.42);
+        const mapProgress = (value) => {
+            if (value <= 0) {
+                return 0;
+            }
+            if (value >= 1) {
+                return 1;
+            }
+            if (value <= dragPhaseTime) {
+                return dragPhaseDistance * dragEase(value / dragPhaseTime);
+            }
+
+            if (value <= glidePhaseTime) {
+                const glideProgress = (value - dragPhaseTime) / (glidePhaseTime - dragPhaseTime);
+                return dragPhaseDistance + ((glidePhaseDistance - dragPhaseDistance) * glideEase(glideProgress));
+            }
+
+            const settleProgress = (value - glidePhaseTime) / (1 - glidePhaseTime);
+            return glidePhaseDistance + ((1 - glidePhaseDistance) * settleEase(settleProgress));
+        };
+
+        modalContent.classList.add('is-confirm-scrolling');
+
+        const step = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / adaptiveDuration);
+            modalContent.scrollTop = animatedStartTop + (travelDistance * mapProgress(progress));
+
+            if (progress < 1) {
+                this.packageModalConfirmScrollFrame = window.requestAnimationFrame(step);
+                return;
+            }
+
+            modalContent.scrollTop = clampedTop;
+            this.packageModalConfirmScrollFrame = 0;
+            modalContent.classList.remove('is-confirm-scrolling');
+        };
+
+        this.packageModalConfirmScrollFrame = window.requestAnimationFrame(step);
+        return adaptiveDuration;
+    }
+
+    scrollPackageModalToConfirmArea(packageId) {
+        if (!this.bookingModal) {
+            return;
+        }
+
+        const packageKey = String(packageId || this.selectedPackageId || '');
+        if (!packageKey) {
+            return;
+        }
+
+        const editorDomParts = this.getPackageModalEditorDomParts(packageKey);
+        if (editorDomParts) {
+            this.cancelPackageModalEditorStateMotion();
+            if (this.packageModalPriceOpenTimer) {
+                window.clearTimeout(this.packageModalPriceOpenTimer);
+                this.packageModalPriceOpenTimer = 0;
+            }
+            this.syncPackageModalEditorMotionClasses(editorDomParts);
+        }
+
+        const modalContent = this.bookingModal.querySelector('.booking-modal-content');
+        const confirmAnchor = this.bookingModal.querySelector(`[data-package-confirm-anchor="${packageKey}"]`);
+        const confirmActions = this.bookingModal.querySelector(`[data-package-confirm-actions="${packageKey}"]`);
+        if (!modalContent || (!confirmAnchor && !confirmActions)) {
+            return;
+        }
+
+        const modalRect = modalContent.getBoundingClientRect();
+        const maxScrollTop = Math.max(0, modalContent.scrollHeight - modalContent.clientHeight);
+        let targetTop = 0;
+        if (confirmActions) {
+            const actionBottom = confirmActions.getBoundingClientRect().bottom - modalRect.top + modalContent.scrollTop;
+            targetTop = Math.min(
+                maxScrollTop,
+                Math.max(0, actionBottom - modalContent.clientHeight + 42)
+            );
+        } else if (confirmAnchor) {
+            targetTop = confirmAnchor.getBoundingClientRect().top
+                - modalRect.top
+                + modalContent.scrollTop
+                - 28;
+        }
+
+        const scrollDuration = this.animatePackageModalScroll(modalContent, targetTop);
+
+        confirmAnchor?.classList.remove('is-guided-focus');
+        confirmActions?.classList.remove('is-guided-focus');
+
+        const focusTarget = confirmActions?.querySelector('.package-modal-primary')
+            || confirmAnchor?.querySelector('h3')
+            || confirmActions
+            || confirmAnchor;
+        if (!(focusTarget instanceof HTMLElement)) {
+            return;
+        }
+
+        const previousTabIndex = focusTarget.getAttribute('tabindex');
+        const focusDelay = scrollDuration > 0
+            ? Math.max(720, scrollDuration + 140)
+            : 180;
+        this.packageModalConfirmFocusTimer = window.setTimeout(() => {
+            confirmAnchor?.classList.remove('is-guided-focus');
+            confirmActions?.classList.remove('is-guided-focus');
+            void (confirmActions || confirmAnchor)?.offsetWidth;
+            confirmAnchor?.classList.add('is-guided-focus');
+            confirmActions?.classList.add('is-guided-focus');
+            focusTarget.setAttribute('tabindex', '-1');
+            focusTarget.focus({ preventScroll: true });
+
+            window.setTimeout(() => {
+                confirmAnchor?.classList.remove('is-guided-focus');
+                confirmActions?.classList.remove('is-guided-focus');
+                if (previousTabIndex === null) {
+                    focusTarget.removeAttribute('tabindex');
+                    return;
+                }
+
+                focusTarget.setAttribute('tabindex', previousTabIndex);
+            }, 1200);
+            this.packageModalConfirmFocusTimer = 0;
+        }, focusDelay);
+    }
+
     getPackageModalEditorDomParts(packageId) {
         if (!this.bookingModal) {
             return null;
@@ -10711,7 +10945,8 @@ class DetailPage {
             price,
             toggle,
             editor,
-            aside: signal.querySelector('.package-modal-signal-aside')
+            aside: signal.querySelector('.package-modal-signal-aside'),
+            editorCta: signal.querySelector('[data-package-editor-cta]')
         };
     }
 
@@ -10797,7 +11032,8 @@ class DetailPage {
             signal,
             price,
             toggle,
-            editor
+            editor,
+            editorCta
         } = domParts;
         const editorState = isEditorOpen ? 'open' : 'closed';
         const layoutState = isEditorOpen ? 'expanded' : 'compact';
@@ -10821,6 +11057,11 @@ class DetailPage {
         editor.setAttribute('aria-hidden', String(!isEditorOpen));
         editor.dataset.packagePriceEditorState = editorState;
 
+        if (editorCta) {
+            editorCta.classList.toggle('is-visible', Boolean(isEditorOpen));
+            editorCta.setAttribute('aria-hidden', String(!isEditorOpen));
+        }
+
         modalContent.dataset.packagePriceEditorState = editorState;
         modalContent.classList.toggle('has-package-price-editor-open', Boolean(isEditorOpen));
 
@@ -10843,7 +11084,8 @@ class DetailPage {
             signal,
             price,
             editor,
-            aside
+            aside,
+            editorCta
         } = domParts;
         const motion = [];
 
@@ -10878,6 +11120,18 @@ class DetailPage {
             ], {
                 duration: 420,
                 delay: 18,
+                easing: 'cubic-bezier(0.18, 0.8, 0.22, 1)',
+                fill: 'both'
+            }));
+        }
+
+        if (editorCta?.animate) {
+            motion.push(editorCta.animate([
+                { opacity: 0, transform: 'translate3d(0, 14px, 0)', filter: 'blur(4px)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0)', filter: 'blur(0px)' }
+            ], {
+                duration: 440,
+                delay: 78,
                 easing: 'cubic-bezier(0.18, 0.8, 0.22, 1)',
                 fill: 'both'
             }));
@@ -10939,7 +11193,8 @@ class DetailPage {
         this.syncPackageModalEditorMotionClasses(domParts, 'closing');
         const {
             editor,
-            aside
+            aside,
+            editorCta
         } = domParts;
         const closeMotion = [];
 
@@ -10950,6 +11205,17 @@ class DetailPage {
             ], {
                 duration: 300,
                 easing: 'cubic-bezier(0.22, 0.76, 0.2, 1)',
+                fill: 'both'
+            }));
+        }
+
+        if (editorCta?.animate) {
+            closeMotion.push(editorCta.animate([
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+                { opacity: 0, transform: 'translate3d(0, 8px, 0)' }
+            ], {
+                duration: 240,
+                easing: 'cubic-bezier(0.24, 0.72, 0.24, 1)',
                 fill: 'both'
             }));
         }
@@ -11184,6 +11450,7 @@ class DetailPage {
         if (!pkg || !this.bookingModalBody) {
             return;
         }
+        this.cancelPackageModalConfirmScrollMotion();
         const modalState = this.getPackageModalViewState(pkg);
 
         const {
@@ -11790,6 +12057,8 @@ class DetailPage {
             : '改一改节奏，打开节奏调整面板';
         const sanitizedPackageId = String(pkg.id || 'package').replace(/[^a-zA-Z0-9_-]/g, '');
         const priceEditorId = `packageModalPriceEditor-${sanitizedPackageId || 'current'}`;
+        const confirmAreaId = `packageModalConfirmArea-${sanitizedPackageId || 'current'}`;
+        const confirmActionsId = `packageModalConfirmActions-${sanitizedPackageId || 'current'}`;
         const priceSummaryFootnote = focusCopy || '';
         const priceSummaryItems = [
             {
@@ -12076,6 +12345,20 @@ class DetailPage {
                                 </div>
                                             </div>
                                         </div>
+                                        <div
+                                            class="package-modal-editor-cta ${modalState?.isEditorOpen ? 'is-visible' : ''}"
+                                            data-package-editor-cta="${escapeHtml(pkg.id)}"
+                                            aria-hidden="${String(!modalState?.isEditorOpen)}"
+                                        >
+                                            <button
+                                                type="button"
+                                                class="package-modal-primary package-modal-editor-cta-button"
+                                                data-package-scroll-confirm="${escapeHtml(pkg.id)}"
+                                                aria-controls="${escapeHtml(confirmActionsId)}"
+                                                aria-label="确认预订，并前往底部确认区"
+                                            >确认预订</button>
+                                            <p class="package-modal-editor-cta-note">下一步会带你滑到底部确认区，再把这一程真正收进海图里。</p>
+                                        </div>
                                     </div>
                             </section>
 
@@ -12189,7 +12472,11 @@ class DetailPage {
                         </div>
                     </section>
 
-                    <div class="package-modal-grid">
+                    <div
+                        class="package-modal-grid"
+                        id="${escapeHtml(confirmAreaId)}"
+                        data-package-confirm-anchor="${escapeHtml(pkg.id)}"
+                    >
                         <section class="package-modal-section package-modal-motion" style="--package-modal-enter-order: ${includesOrder}">
                             <h3>包含内容</h3>
                             <ul>
@@ -12227,7 +12514,12 @@ class DetailPage {
                     </div>
                 </div>
 
-                <div class="package-modal-actions package-modal-motion" style="--package-modal-enter-order: ${actionsOrder}">
+                <div
+                    class="package-modal-actions package-modal-motion"
+                    id="${escapeHtml(confirmActionsId)}"
+                    data-package-confirm-actions="${escapeHtml(pkg.id)}"
+                    style="--package-modal-enter-order: ${actionsOrder}"
+                >
                     <button type="button" class="package-modal-secondary">再想想</button>
                     <button type="button" class="package-modal-primary" data-package-id="${pkg.id}">确认预订</button>
                 </div>
@@ -12734,6 +13026,7 @@ class DetailPage {
         }
         this.packageModalEditorTransitioning = false;
         this.cancelPackageModalEditorStateMotion();
+        this.cancelPackageModalConfirmScrollMotion();
 
         if (!this.bookingModal.classList.contains('active') && !this.bookingModal.classList.contains('is-closing')) {
             this.bookingModal.setAttribute('aria-hidden', 'true');
@@ -13992,6 +14285,15 @@ class DetailPage {
         }
 
         if (this.bookingModal) {
+            this.bookingModal.addEventListener('pointerdown', (event) => {
+                const scrollConfirmButton = event.target.closest?.('[data-package-scroll-confirm]');
+                if (!scrollConfirmButton) {
+                    return;
+                }
+
+                event.preventDefault();
+            });
+
             this.bookingModal.addEventListener('click', (event) => {
                 if (event.target === this.bookingModal || event.target.closest('.modal-close') || event.target.closest('.package-modal-secondary')) {
                     this.closeBookingModal();
@@ -14194,6 +14496,18 @@ class DetailPage {
                     }
 
                     this.applyPackageModalCustomPeople(packageId);
+                    return;
+                }
+
+                const scrollConfirmButton = event.target.closest('[data-package-scroll-confirm]');
+                if (scrollConfirmButton) {
+                    const packageId = scrollConfirmButton.dataset.packageScrollConfirm || this.selectedPackageId;
+                    if (!packageId) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    this.scrollPackageModalToConfirmArea(packageId);
                     return;
                 }
 
@@ -14884,9 +15198,12 @@ class DetailPage {
         }
 
         const direction = targetId > this.spotId ? 'forward' : 'backward';
+        const currentDepth = window.DepthManager && typeof window.DepthManager.getCurrentDepth === 'function'
+            ? window.DepthManager.getCurrentDepth()
+            : -54;
         this.resetRelatedSwapClasses();
         writeDetailSwapState(this.spotId, targetId, direction);
-        sessionStorage.setItem('yanqi_depth_current', '-50');
+        sessionStorage.setItem('yanqi_depth_current', String(Math.round(currentDepth)));
         this.playRelatedSwapAnimation('detail-swap-exit', direction);
 
         this.relatedTransitionTimer = window.setTimeout(() => {

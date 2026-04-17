@@ -1815,3 +1815,79 @@ body.page-transition-active .login-stage-hud {
     }
 }
 
+/* 登录页高对比度保护层：保持门厅品牌文案、弱化链接和第三方入口在深色背景上仍然可读。 */
+@media (forced-colors: active) {
+    .login-page :is(
+        .side-kicker,
+        .form-kicker,
+        .social-text,
+        .divider
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    .login-page :is(
+        .side-title,
+        .form-title
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .login-page :is(
+        .side-quote,
+        .side-meta,
+        .form-subtitle
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-copy);
+        -webkit-text-fill-color: var(--yanqi-forced-copy);
+    }
+
+    .login-page :is(
+        .link-forgot,
+        .link-guest,
+        .social-btn
+    ),
+    .login-page :is(
+        .link-forgot,
+        .link-guest,
+        .social-btn
+    ):visited,
+    .login-page :is(
+        .link-forgot,
+        .link-guest,
+        .social-btn
+    ):hover,
+    .login-page :is(
+        .link-forgot,
+        .link-guest,
+        .social-btn
+    ):focus-visible,
+    .login-page :is(
+        .link-forgot,
+        .link-guest,
+        .social-btn
+    ):active {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-link);
+        -webkit-text-fill-color: var(--yanqi-forced-link);
+    }
+
+    .login-page .social-btn {
+        border-color: var(--yanqi-forced-border);
+    }
+
+    .login-page :is(
+        .link-forgot,
+        .link-guest,
+        .social-btn
+    ):focus-visible {
+        outline: 2px solid var(--yanqi-forced-ring);
+        outline-offset: 3px;
+    }
+}
+

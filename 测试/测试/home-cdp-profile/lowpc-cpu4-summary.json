@@ -1,5 +1,5 @@
 ﻿{
-    "generatedAt":  "2026-04-16T15:12:16",
+    "generatedAt":  "2026-04-16T22:57:32",
     "scenarioLabel":  "lowpc-cpu4",
     "targetUrl":  "http://127.0.0.1:8000/site/home.html",
     "viewport":  {
@@ -8,19 +8,19 @@
                  },
     "cpuThrottlingRate":  4,
     "metricsAfterLoad":  {
-                             "Timestamp":  3345.895391,
+                             "Timestamp":  8504.905673,
                              "AudioHandlers":  0,
                              "AudioWorkletProcessors":  0,
                              "Documents":  4,
                              "Frames":  4,
-                             "JSEventListeners":  113,
-                             "LayoutObjects":  1302,
+                             "JSEventListeners":  117,
+                             "LayoutObjects":  1305,
                              "MediaKeySessions":  0,
                              "MediaKeys":  0,
-                             "Nodes":  2469,
-                             "Resources":  67,
-                             "ContextLifecycleStateObservers":  11,
-                             "V8PerContextDatas":  3,
+                             "Nodes":  2473,
+                             "Resources":  68,
+                             "ContextLifecycleStateObservers":  12,
+                             "V8PerContextDatas":  2,
                              "WorkerGlobalScopes":  0,
                              "UACSSResources":  0,
                              "RTCPeerConnections":  0,
@@ -29,67 +29,67 @@
                              "DetachedScriptStates":  1,
                              "ArrayBufferContents":  0,
                              "LayoutCount":  16,
-                             "RecalcStyleCount":  27,
-                             "LayoutDuration":  1.461904,
-                             "RecalcStyleDuration":  0.903417,
-                             "DevToolsCommandDuration":  0.000392,
-                             "ScriptDuration":  0.248137,
-                             "V8CompileDuration":  0.002251,
-                             "TaskDuration":  3.514929,
-                             "TaskOtherDuration":  0.898828,
-                             "ThreadTime":  0.983595,
-                             "ProcessTime":  4.672828,
-                             "JSHeapUsedSize":  2535244,
+                             "RecalcStyleCount":  31,
+                             "LayoutDuration":  1.338686,
+                             "RecalcStyleDuration":  0.915842,
+                             "DevToolsCommandDuration":  0.000017,
+                             "ScriptDuration":  0.189596,
+                             "V8CompileDuration":  0.001254,
+                             "TaskDuration":  3.19519,
+                             "TaskOtherDuration":  0.749795,
+                             "ThreadTime":  0.797389,
+                             "ProcessTime":  4.744935,
+                             "JSHeapUsedSize":  2317092,
                              "JSHeapTotalSize":  3407872,
                              "FirstMeaningfulPaint":  0,
-                             "DomContentLoaded":  3343.89068,
-                             "NavigationStart":  3342.336831
+                             "DomContentLoaded":  8503.049032,
+                             "NavigationStart":  8501.676416
                          },
     "metricsAfterScroll":  {
-                               "Timestamp":  3351.612669,
+                               "Timestamp":  8510.740932,
                                "AudioHandlers":  0,
                                "AudioWorkletProcessors":  0,
                                "Documents":  1,
                                "Frames":  1,
-                               "JSEventListeners":  122,
-                               "LayoutObjects":  1720,
+                               "JSEventListeners":  127,
+                               "LayoutObjects":  2346,
                                "MediaKeySessions":  0,
                                "MediaKeys":  0,
-                               "Nodes":  2847,
-                               "Resources":  65,
+                               "Nodes":  3446,
+                               "Resources":  68,
                                "ContextLifecycleStateObservers":  7,
-                               "V8PerContextDatas":  2,
+                               "V8PerContextDatas":  1,
                                "WorkerGlobalScopes":  0,
                                "UACSSResources":  0,
                                "RTCPeerConnections":  0,
                                "ResourceFetchers":  1,
                                "AdSubframes":  0,
-                               "DetachedScriptStates":  1,
+                               "DetachedScriptStates":  0,
                                "ArrayBufferContents":  0,
-                               "LayoutCount":  42,
-                               "RecalcStyleCount":  120,
-                               "LayoutDuration":  1.933184,
-                               "RecalcStyleDuration":  3.778853,
-                               "DevToolsCommandDuration":  0.011785,
-                               "ScriptDuration":  0.411633,
-                               "V8CompileDuration":  0.002251,
-                               "TaskDuration":  9.197617,
-                               "TaskOtherDuration":  3.059911,
-                               "ThreadTime":  2.406373,
-                               "ProcessTime":  12.004925,
-                               "JSHeapUsedSize":  1817832,
-                               "JSHeapTotalSize":  2883584,
+                               "LayoutCount":  40,
+                               "RecalcStyleCount":  122,
+                               "LayoutDuration":  1.906913,
+                               "RecalcStyleDuration":  3.873662,
+                               "DevToolsCommandDuration":  0.015911,
+                               "ScriptDuration":  0.367217,
+                               "V8CompileDuration":  0.001254,
+                               "TaskDuration":  8.993613,
+                               "TaskOtherDuration":  2.828656,
+                               "ThreadTime":  2.179917,
+                               "ProcessTime":  14.155767,
+                               "JSHeapUsedSize":  1576660,
+                               "JSHeapTotalSize":  2621440,
                                "FirstMeaningfulPaint":  0,
-                               "DomContentLoaded":  3343.89068,
-                               "NavigationStart":  3342.336831
+                               "DomContentLoaded":  8503.049032,
+                               "NavigationStart":  8501.676416
                            },
     "pageSummaryAfterLoad":  {
                                  "title":  "盐憩 - 首页",
                                  "homePerformanceMode":  "full",
                                  "browserContext":  {
-                                                        "userAgent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
-                                                        "deviceMemory":  8,
-                                                        "hardwareConcurrency":  8,
+                                                        "userAgent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                                                        "deviceMemory":  16,
+                                                        "hardwareConcurrency":  16,
                                                         "maxTouchPoints":  10,
                                                         "viewportWidth":  1440,
                                                         "viewportHeight":  1200,
@@ -106,9 +106,9 @@
                                                              "lowEnd":  false,
                                                              "lite":  false
                                                          },
-                                 "domNodeCount":  967,
+                                 "domNodeCount":  968,
                                  "imageCount":  47,
-                                 "scriptCount":  10,
+                                 "scriptCount":  11,
                                  "stageAnimatedCount":  10,
                                  "sectionCounts":  {
                                                        "bambooCards":  42,
@@ -117,131 +117,131 @@
                                                        "diveMatchCards":  0
                                                    },
                                  "nav":  {
-                                             "domInteractive":  1553.5,
-                                             "domContentLoadedEnd":  1559.2000000001863,
-                                             "loadEventEnd":  1565.6000000000931,
-                                             "transferSize":  24747,
-                                             "encodedBodySize":  24447,
-                                             "decodedBodySize":  24447
+                                             "domInteractive":  1372.2999999988824,
+                                             "domContentLoadedEnd":  1376.5999999996275,
+                                             "loadEventEnd":  1378.0999999996275,
+                                             "transferSize":  25165,
+                                             "encodedBodySize":  24865,
+                                             "decodedBodySize":  24865
                                          },
                                  "paints":  [
                                                 {
                                                     "name":  "first-paint",
-                                                    "startTime":  128
+                                                    "startTime":  1252
                                                 },
                                                 {
                                                     "name":  "first-contentful-paint",
-                                                    "startTime":  1164
+                                                    "startTime":  1252
                                                 }
                                             ],
                                  "resources":  {
-                                                   "count":  27,
-                                                   "transferSize":  2649440,
-                                                   "encodedBodySize":  2641340,
-                                                   "decodedBodySize":  2641340,
+                                                   "count":  28,
+                                                   "transferSize":  2725918,
+                                                   "encodedBodySize":  2717518,
+                                                   "decodedBodySize":  2717518,
                                                    "slowest":  [
                                                                    {
-                                                                       "name":  "http://127.0.0.1:8000/site/js/home.js?v=20260414-profile-motion-3",
+                                                                       "name":  "http://127.0.0.1:8000/site/js/home.js?v=20260416-scroll-stability-1",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  69.10000000009313,
-                                                                       "transferSize":  246810,
-                                                                       "encodedBodySize":  246510,
-                                                                       "decodedBodySize":  246510
-                                                                   },
-                                                                   {
-                                                                       "name":  "http://127.0.0.1:8000/site/js/avatar-return.js",
-                                                                       "initiatorType":  "script",
-                                                                       "duration":  68.5,
-                                                                       "transferSize":  11604,
-                                                                       "encodedBodySize":  11304,
-                                                                       "decodedBodySize":  11304
+                                                                       "duration":  65,
+                                                                       "transferSize":  282889,
+                                                                       "encodedBodySize":  282589,
+                                                                       "decodedBodySize":  282589
                                                                    },
                                                                    {
                                                                        "name":  "http://127.0.0.1:8000/site/js/price-config.js",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  67.20000000018626,
+                                                                       "duration":  63.90000000037253,
                                                                        "transferSize":  5393,
                                                                        "encodedBodySize":  5093,
                                                                        "decodedBodySize":  5093
                                                                    },
                                                                    {
-                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-spot-window-config.js",
+                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-showcase-state.js",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  64.20000000018626,
-                                                                       "transferSize":  12096,
-                                                                       "encodedBodySize":  11796,
-                                                                       "decodedBodySize":  11796
+                                                                       "duration":  63,
+                                                                       "transferSize":  9955,
+                                                                       "encodedBodySize":  9655,
+                                                                       "decodedBodySize":  9655
                                                                    },
                                                                    {
                                                                        "name":  "http://127.0.0.1:8000/site/js/yanqi-diver-profile.js",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  63,
-                                                                       "transferSize":  18841,
-                                                                       "encodedBodySize":  18541,
-                                                                       "decodedBodySize":  18541
+                                                                       "duration":  62.80000000074506,
+                                                                       "transferSize":  18868,
+                                                                       "encodedBodySize":  18568,
+                                                                       "decodedBodySize":  18568
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/home-guide-jump-custom.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  62.59999999962747,
+                                                                       "transferSize":  17478,
+                                                                       "encodedBodySize":  17178,
+                                                                       "decodedBodySize":  17178
                                                                    },
                                                                    {
                                                                        "name":  "http://127.0.0.1:8000/site/js/yanqi-spot-catalog.js",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  62.5,
+                                                                       "duration":  62.09999999962747,
                                                                        "transferSize":  4001,
                                                                        "encodedBodySize":  3701,
                                                                        "decodedBodySize":  3701
                                                                    },
                                                                    {
-                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-showcase-state.js",
+                                                                       "name":  "http://127.0.0.1:8000/site/js/yanqi-spot-window-config.js",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  62.200000000186265,
-                                                                       "transferSize":  10384,
-                                                                       "encodedBodySize":  10084,
-                                                                       "decodedBodySize":  10084
+                                                                       "duration":  60.29999999888241,
+                                                                       "transferSize":  12096,
+                                                                       "encodedBodySize":  11796,
+                                                                       "decodedBodySize":  11796
+                                                                   },
+                                                                   {
+                                                                       "name":  "http://127.0.0.1:8000/site/js/avatar-return.js",
+                                                                       "initiatorType":  "script",
+                                                                       "duration":  60.29999999888241,
+                                                                       "transferSize":  11604,
+                                                                       "encodedBodySize":  11304,
+                                                                       "decodedBodySize":  11304
                                                                    },
                                                                    {
                                                                        "name":  "http://127.0.0.1:8000/site/js/yanqi-brand-config.js",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  53.10000000009313,
-                                                                       "transferSize":  7990,
-                                                                       "encodedBodySize":  7690,
-                                                                       "decodedBodySize":  7690
+                                                                       "duration":  41.5,
+                                                                       "transferSize":  8067,
+                                                                       "encodedBodySize":  7767,
+                                                                       "decodedBodySize":  7767
                                                                    },
                                                                    {
                                                                        "name":  "http://127.0.0.1:8000/site/js/depth-manager.js",
                                                                        "initiatorType":  "script",
-                                                                       "duration":  46,
-                                                                       "transferSize":  161387,
-                                                                       "encodedBodySize":  161087,
-                                                                       "decodedBodySize":  161087
+                                                                       "duration":  33,
+                                                                       "transferSize":  171610,
+                                                                       "encodedBodySize":  171310,
+                                                                       "decodedBodySize":  171310
                                                                    },
                                                                    {
-                                                                       "name":  "http://127.0.0.1:8000/site/css/home.css?v=20260414-profile-motion-3",
-                                                                       "initiatorType":  "link",
-                                                                       "duration":  9.900000000372529,
-                                                                       "transferSize":  211228,
-                                                                       "encodedBodySize":  210928,
-                                                                       "decodedBodySize":  210928
-                                                                   },
-                                                                   {
-                                                                       "name":  "http://127.0.0.1:8000/site/assets/images/avatar.png",
+                                                                       "name":  "http://127.0.0.1:8000/site/assets/images/home/palau.webp",
                                                                        "initiatorType":  "img",
-                                                                       "duration":  9.300000000279397,
-                                                                       "transferSize":  60725,
-                                                                       "encodedBodySize":  60425,
-                                                                       "decodedBodySize":  60425
+                                                                       "duration":  12.5,
+                                                                       "transferSize":  448886,
+                                                                       "encodedBodySize":  448586,
+                                                                       "decodedBodySize":  448586
                                                                    },
                                                                    {
-                                                                       "name":  "http://127.0.0.1:8000/site/js/ocean-scroll.js",
-                                                                       "initiatorType":  "script",
-                                                                       "duration":  8.899999999906868,
-                                                                       "transferSize":  12911,
-                                                                       "encodedBodySize":  12611,
-                                                                       "decodedBodySize":  12611
+                                                                       "name":  "http://127.0.0.1:8000/site/assets/images/home/sipadan.webp",
+                                                                       "initiatorType":  "img",
+                                                                       "duration":  11.099999999627471,
+                                                                       "transferSize":  85410,
+                                                                       "encodedBodySize":  85110,
+                                                                       "decodedBodySize":  85110
                                                                    }
                                                                ],
                                                    "heaviest":  [
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/palau.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  8.399999999906868,
+                                                                        "duration":  12.5,
                                                                         "transferSize":  448886,
                                                                         "encodedBodySize":  448586,
                                                                         "decodedBodySize":  448586
@@ -249,7 +249,7 @@
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/palau.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  4.399999999906868,
+                                                                        "duration":  5.699999999254942,
                                                                         "transferSize":  448886,
                                                                         "encodedBodySize":  448586,
                                                                         "decodedBodySize":  448586
@@ -257,31 +257,31 @@
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/redang.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  8.599999999627471,
+                                                                        "duration":  8.299999998882413,
                                                                         "transferSize":  299596,
                                                                         "encodedBodySize":  299296,
                                                                         "decodedBodySize":  299296
                                                                     },
                                                                     {
-                                                                        "name":  "http://127.0.0.1:8000/site/js/home.js?v=20260414-profile-motion-3",
+                                                                        "name":  "http://127.0.0.1:8000/site/js/home.js?v=20260416-scroll-stability-1",
                                                                         "initiatorType":  "script",
-                                                                        "duration":  69.10000000009313,
-                                                                        "transferSize":  246810,
-                                                                        "encodedBodySize":  246510,
-                                                                        "decodedBodySize":  246510
+                                                                        "duration":  65,
+                                                                        "transferSize":  282889,
+                                                                        "encodedBodySize":  282589,
+                                                                        "decodedBodySize":  282589
                                                                     },
                                                                     {
-                                                                        "name":  "http://127.0.0.1:8000/site/css/home.css?v=20260414-profile-motion-3",
+                                                                        "name":  "http://127.0.0.1:8000/site/css/home.css?v=20260416-scroll-stability-1",
                                                                         "initiatorType":  "link",
-                                                                        "duration":  9.900000000372529,
-                                                                        "transferSize":  211228,
-                                                                        "encodedBodySize":  210928,
-                                                                        "decodedBodySize":  210928
+                                                                        "duration":  8.099999999627471,
+                                                                        "transferSize":  222698,
+                                                                        "encodedBodySize":  222398,
+                                                                        "decodedBodySize":  222398
                                                                     },
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/maldives-liveaboard.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  5.199999999720603,
+                                                                        "duration":  8.299999998882413,
                                                                         "transferSize":  174022,
                                                                         "encodedBodySize":  173722,
                                                                         "decodedBodySize":  173722
@@ -289,15 +289,15 @@
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/js/depth-manager.js",
                                                                         "initiatorType":  "script",
-                                                                        "duration":  46,
-                                                                        "transferSize":  161387,
-                                                                        "encodedBodySize":  161087,
-                                                                        "decodedBodySize":  161087
+                                                                        "duration":  33,
+                                                                        "transferSize":  171610,
+                                                                        "encodedBodySize":  171310,
+                                                                        "decodedBodySize":  171310
                                                                     },
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/bohol.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  5.600000000093132,
+                                                                        "duration":  7.5,
                                                                         "transferSize":  101230,
                                                                         "encodedBodySize":  100930,
                                                                         "decodedBodySize":  100930
@@ -305,7 +305,7 @@
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/coron-review-1-island-chain.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  6.100000000093132,
+                                                                        "duration":  7.099999999627471,
                                                                         "transferSize":  86474,
                                                                         "encodedBodySize":  86174,
                                                                         "decodedBodySize":  86174
@@ -313,7 +313,7 @@
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/sipadan.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  6.2000000001862645,
+                                                                        "duration":  11.099999999627471,
                                                                         "transferSize":  85410,
                                                                         "encodedBodySize":  85110,
                                                                         "decodedBodySize":  85110
@@ -321,7 +321,7 @@
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/home/sipadan.webp",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  4.2000000001862645,
+                                                                        "duration":  6.699999999254942,
                                                                         "transferSize":  85410,
                                                                         "encodedBodySize":  85110,
                                                                         "decodedBodySize":  85110
@@ -329,7 +329,7 @@
                                                                     {
                                                                         "name":  "http://127.0.0.1:8000/site/assets/images/avatar.png",
                                                                         "initiatorType":  "img",
-                                                                        "duration":  9.300000000279397,
+                                                                        "duration":  9.800000000745058,
                                                                         "transferSize":  60725,
                                                                         "encodedBodySize":  60425,
                                                                         "decodedBodySize":  60425
@@ -339,214 +339,194 @@
                                  "perfObserver":  {
                                                       "longTasks":  [
                                                                         {
-                                                                            "startTime":  133,
-                                                                            "duration":  967,
+                                                                            "startTime":  108.90000000037253,
+                                                                            "duration":  956,
+                                                                            "name":  "self",
+                                                                            "containerType":  "window"
+                                                                        },
+                                                                        {
+                                                                            "startTime":  1065.199999999255,
+                                                                            "duration":  66,
+                                                                            "name":  "self",
+                                                                            "containerType":  "window"
+                                                                        },
+                                                                        {
+                                                                            "startTime":  1274.5,
+                                                                            "duration":  74,
+                                                                            "name":  "self",
+                                                                            "containerType":  "window"
+                                                                        },
+                                                                        {
+                                                                            "startTime":  1424.5,
+                                                                            "duration":  330,
                                                                             "name":  "unknown",
                                                                             "containerType":  "window"
                                                                         },
                                                                         {
-                                                                            "startTime":  1108,
-                                                                            "duration":  167,
+                                                                            "startTime":  1764.5999999996275,
+                                                                            "duration":  160,
                                                                             "name":  "self",
                                                                             "containerType":  "window"
                                                                         },
                                                                         {
-                                                                            "startTime":  1275.8000000002794,
-                                                                            "duration":  79,
+                                                                            "startTime":  1949.9000000003725,
+                                                                            "duration":  144,
                                                                             "name":  "self",
                                                                             "containerType":  "window"
                                                                         },
                                                                         {
-                                                                            "startTime":  1414.6000000000931,
-                                                                            "duration":  117,
+                                                                            "startTime":  2105.2999999988824,
+                                                                            "duration":  152,
                                                                             "name":  "self",
                                                                             "containerType":  "window"
                                                                         },
                                                                         {
-                                                                            "startTime":  1608.8000000002794,
-                                                                            "duration":  522,
-                                                                            "name":  "unknown",
-                                                                            "containerType":  "window"
-                                                                        },
-                                                                        {
-                                                                            "startTime":  2132.100000000093,
-                                                                            "duration":  173,
+                                                                            "startTime":  2261.4000000003725,
+                                                                            "duration":  268,
                                                                             "name":  "self",
                                                                             "containerType":  "window"
                                                                         },
                                                                         {
-                                                                            "startTime":  2360.3000000002794,
-                                                                            "duration":  177,
+                                                                            "startTime":  2533,
+                                                                            "duration":  195,
                                                                             "name":  "self",
                                                                             "containerType":  "window"
                                                                         },
                                                                         {
-                                                                            "startTime":  2553.100000000093,
-                                                                            "duration":  168,
+                                                                            "startTime":  2743,
+                                                                            "duration":  289,
                                                                             "name":  "self",
                                                                             "containerType":  "window"
                                                                         },
                                                                         {
-                                                                            "startTime":  2750.7000000001863,
-                                                                            "duration":  172,
-                                                                            "name":  "self",
-                                                                            "containerType":  "window"
-                                                                        },
-                                                                        {
-                                                                            "startTime":  2933,
-                                                                            "duration":  270,
-                                                                            "name":  "self",
-                                                                            "containerType":  "window"
-                                                                        },
-                                                                        {
-                                                                            "startTime":  3220.399999999907,
-                                                                            "duration":  335,
-                                                                            "name":  "self",
-                                                                            "containerType":  "window"
-                                                                        },
-                                                                        {
-                                                                            "startTime":  3566,
-                                                                            "duration":  71,
+                                                                            "startTime":  3038.4000000003725,
+                                                                            "duration":  61,
                                                                             "name":  "self",
                                                                             "containerType":  "window"
                                                                         }
                                                                     ],
                                                       "lcpCandidates":  [
                                                                             {
-                                                                                "startTime":  1164,
-                                                                                "renderTime":  1164,
+                                                                                "startTime":  1252,
+                                                                                "renderTime":  1252,
                                                                                 "loadTime":  0,
-                                                                                "size":  1449,
-                                                                                "url":  ""
-                                                                            },
-                                                                            {
-                                                                                "startTime":  1380,
-                                                                                "renderTime":  1380,
-                                                                                "loadTime":  0,
-                                                                                "size":  2295,
+                                                                                "size":  2256,
                                                                                 "url":  ""
                                                                             }
                                                                         ],
                                                       "layoutShifts":  [
                                                                            {
-                                                                               "startTime":  2202.8000000002794,
-                                                                               "value":  0.14516666666666667
+                                                                               "startTime":  1871.5999999996275,
+                                                                               "value":  0.143536736087913
                                                                            },
                                                                            {
-                                                                               "startTime":  3137.600000000093,
-                                                                               "value":  0.00009065755208333334
+                                                                               "startTime":  2702.7999999988824,
+                                                                               "value":  0.00008899490468665618
                                                                            }
                                                                        ],
-                                                      "cls":  0.14525732421875
+                                                      "cls":  0.14362573099259968
                                                   }
                              },
     "pageSummaryAfterScroll":  {
-                                   "scrollY":  3672,
+                                   "scrollY":  3663.030029296875,
                                    "currentHomeLayer":  "match",
                                    "guideVisible":  true,
                                    "guideDeep":  true,
                                    "curatedMounted":  0,
                                    "diveMatchMounted":  11,
-                                   "longTaskCount":  32,
+                                   "longTaskCount":  26,
                                    "topLongTasks":  [
                                                         {
-                                                            "startTime":  133,
-                                                            "duration":  967,
+                                                            "startTime":  108.90000000037253,
+                                                            "duration":  956,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  4607.5999999996275,
+                                                            "duration":  535,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  6593.199999999255,
+                                                            "duration":  530,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  3591,
+                                                            "duration":  470,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  5174.799999998882,
+                                                            "duration":  467,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  4145.5999999996275,
+                                                            "duration":  461,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  5735.699999999255,
+                                                            "duration":  422,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  6173.199999999255,
+                                                            "duration":  397,
+                                                            "name":  "self",
+                                                            "containerType":  "window"
+                                                        },
+                                                        {
+                                                            "startTime":  1424.5,
+                                                            "duration":  330,
                                                             "name":  "unknown",
                                                             "containerType":  "window"
                                                         },
                                                         {
-                                                            "startTime":  1608.8000000002794,
-                                                            "duration":  522,
-                                                            "name":  "unknown",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  6932.800000000279,
-                                                            "duration":  490,
+                                                            "startTime":  2743,
+                                                            "duration":  289,
                                                             "name":  "self",
                                                             "containerType":  "window"
                                                         },
                                                         {
-                                                            "startTime":  5855.700000000186,
-                                                            "duration":  477,
+                                                            "startTime":  2261.4000000003725,
+                                                            "duration":  268,
                                                             "name":  "self",
                                                             "containerType":  "window"
                                                         },
                                                         {
-                                                            "startTime":  5234.600000000093,
-                                                            "duration":  453,
-                                                            "name":  "self",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  6389.600000000093,
-                                                            "duration":  395,
-                                                            "name":  "self",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  4458.700000000186,
-                                                            "duration":  387,
-                                                            "name":  "self",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  4007.8000000002794,
-                                                            "duration":  378,
-                                                            "name":  "self",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  4846.800000000279,
-                                                            "duration":  366,
-                                                            "name":  "self",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  3220.399999999907,
-                                                            "duration":  335,
-                                                            "name":  "self",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  2933,
-                                                            "duration":  270,
-                                                            "name":  "self",
-                                                            "containerType":  "window"
-                                                        },
-                                                        {
-                                                            "startTime":  7483,
-                                                            "duration":  222,
+                                                            "startTime":  3304.5,
+                                                            "duration":  260,
                                                             "name":  "self",
                                                             "containerType":  "window"
                                                         }
                                                     ],
-                                   "cls":  0.1521805193865741,
-                                   "layoutShiftCount":  5,
+                                   "cls":  0.14383642194983604,
+                                   "layoutShiftCount":  3,
                                    "lcpCandidates":  [
                                                          {
-                                                             "startTime":  5728,
-                                                             "renderTime":  5728,
-                                                             "loadTime":  3560.7000000001863,
-                                                             "size":  279946,
+                                                             "startTime":  5804,
+                                                             "renderTime":  5804,
+                                                             "loadTime":  3037.7999999988824,
+                                                             "size":  287743,
                                                              "url":  "http://127.0.0.1:8000/site/assets/images/home/racha.webp"
                                                          },
                                                          {
-                                                             "startTime":  1380,
-                                                             "renderTime":  1380,
+                                                             "startTime":  1252,
+                                                             "renderTime":  1252,
                                                              "loadTime":  0,
-                                                             "size":  2295,
-                                                             "url":  ""
-                                                         },
-                                                         {
-                                                             "startTime":  1164,
-                                                             "renderTime":  1164,
-                                                             "loadTime":  0,
-                                                             "size":  1449,
+                                                             "size":  2256,
                                                              "url":  ""
                                                          }
                                                      ]
                                },
-    "tracePath":  "tools\\qa\\out\\home-cdp-profile\\lowpc-cpu4-trace.json"
+    "tracePath":  "测试\\测试\\home-cdp-profile\\lowpc-cpu4-trace.json"
 }

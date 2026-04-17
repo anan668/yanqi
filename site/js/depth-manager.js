@@ -34,6 +34,13 @@
         { selector: '#why-yanqi', depth: -36 },
         { selector: '.footer', depth: -42 }
     ]);
+    const HOME_HASH_ENTRY_DEPTH_MAP = Object.freeze({
+        '#hero-home': PAGE_DEPTH_MAP.home,
+        '#featured-destinations': PAGE_DEPTH_MAP.home,
+        '#dive-match': -28,
+        '#why-yanqi': -36,
+        '#homeFooter': -42
+    });
     const HOME_DIVE_MATCH_SEMANTIC_RANGE = 6;
     const HOME_DIVE_MATCH_SECTION_PUSH_MAX = 3;
 
@@ -999,6 +1006,23 @@
     }
 
     /**
+     * resolveHomeHashEntryDepth(targetLike) - 根据首页 hash 解析应优先承接的稳定入场深度
+     * @param {URL|Location|string|null} targetLike - 目标 URL、location 或 hash 字符串
+     * @returns {number|null} - 对应的首页稳定入场深度；没有匹配时返回 null
+     */
+    function resolveHomeHashEntryDepth(targetLike) {
+        const hash = typeof targetLike === 'string'
+            ? targetLike
+            : (typeof targetLike?.hash === 'string' ? targetLike.hash : '');
+
+        if (!hash || !Object.prototype.hasOwnProperty.call(HOME_HASH_ENTRY_DEPTH_MAP, hash)) {
+            return null;
+        }
+
+        return clamp(HOME_HASH_ENTRY_DEPTH_MAP[hash], MIN_DEPTH, MAX_DEPTH);
+    }
+
+    /**
      * readIncomingDetailSwapState() - 判断当前详情页是否正承接相关推荐切页进入
      * @returns {{fromId:number,toId:number,at:number}|null} - 当前详情页可用的相关推荐切页状态
      */
@@ -1119,7 +1143,12 @@
             this.pageScrollManagedMinIntervalMs = this.pageId === 'home' ? 120 : 96;
             this.pageScrollLastQueuedAt = 0;
             this.pageScrollLastQueuedScrollY = this.pageScrollLastScrollY;
-            this.pageScrollHomeMinIntervalMs = this.pageId === 'home' ? 56 : 0;
+            this.pageScrollLastInputAt = 0;
+            this.pageScrollHomeMinIntervalMs = this.pageId === 'home' ? 24 : 0;
+            this.lastGlideTapeRenderAt = 0;
+            this.lastGlideTapeDepth = null;
+            this.lastGlideOverlayRenderAt = 0;
+            this.lastGlideOverlayDepth = null;
             this.pageScrollManagedResumeEnabled = false;
             this.pageScrollManagedFinishTimerId = 0;
             this.pageScrollResumeBlockedUntil = 0;
@@ -1158,6 +1187,14 @@
             this.refreshDetailGaugeViewportLayout();
             this.setupGaugeViewportSync();
 
+            const navigationEntryType = getNavigationEntryType();
+            const shouldRestoreScrollDepthOnEntry = navigationEntryType === 'back_forward'
+                && this.hasScrollDepthConfig();
+
+            if (shouldRestoreScrollDepthOnEntry) {
+                this.setupPageScrollDepth();
+            }
+
             const incomingState = this.consumeIncomingNavState();
             if (incomingState && incomingState.specialTransition === SPECIAL_TRANSITION_LOGIN_HOME) {
                 this.currentDepth = incomingState.toDepth;
@@ -1169,20 +1206,24 @@
                     this.schedulePageScrollDepthSync(LOGIN_HOME_SPECIAL.entryMs + 200);
                 }
             } else if (incomingState && incomingState.animatedOnSource) {
+                const entryTargetDepth = this.resolveEntryTargetDepth({
+                    fallbackDepth: incomingState.toDepth,
+                    targetUrl: window.location
+                });
                 const shouldContinueDepthOnEntry = Boolean(
                     incomingState.continueDepthOnEntry
-                    && Math.abs(incomingState.entryStartDepth - incomingState.toDepth) > 0.05
+                    && Math.abs(incomingState.entryStartDepth - entryTargetDepth) > 0.05
                 );
                 this.currentDepth = shouldContinueDepthOnEntry
                     ? incomingState.entryStartDepth
-                    : incomingState.toDepth;
+                    : entryTargetDepth;
                 this.overlayBoost = incomingState.overlayBoost;
                 this.renderDepth(this.currentDepth);
                 this.startEntryTransition(incomingState.visualDirection, {
                     animateDepth: shouldContinueDepthOnEntry,
                     entryClass: incomingState.entryClass,
                     startDepth: incomingState.entryStartDepth,
-                    targetDepth: incomingState.toDepth,
+                    targetDepth: entryTargetDepth,
                     overlayBoostStart: incomingState.overlayBoost,
                     duration: incomingState.entryDuration,
                     depthDuration: incomingState.depthDuration
@@ -1201,7 +1242,7 @@
                     this.currentDepth = initialLoginDepth;
                     this.renderDepth(initialLoginDepth);
                     this.animateDepth(initialLoginDepth, this.targetDepth, 860);
-                } else if (this.pageId === 'home') {
+                } else if (this.pageId === 'home' && !shouldRestoreScrollDepthOnEntry) {
                     const initialHomeDepth = 0;
                     this.currentDepth = initialHomeDepth;
                     this.renderDepth(initialHomeDepth);
@@ -1217,23 +1258,32 @@
                 } else if (incomingDetailSwapState && getNavigationEntryType() === 'navigate') {
                     const storedDepth = readNumber(sessionStorage.getItem(STORAGE_KEY_CURRENT));
                     const startDepth = clamp(storedDepth ?? MIN_DEPTH, MIN_DEPTH, MAX_DEPTH);
+                    const entryTargetDepth = this.resolveEntryTargetDepth({
+                        fallbackDepth: this.targetDepth,
+                        targetUrl: window.location
+                    });
 
-                    if (Math.abs(startDepth - this.targetDepth) > 0.05) {
+                    if (Math.abs(startDepth - entryTargetDepth) > 0.05) {
                         this.currentDepth = startDepth;
                         this.renderDepth(startDepth);
-                        this.animateDepth(startDepth, this.targetDepth, 860);
+                        this.animateDepth(startDepth, entryTargetDepth, 860);
 
                         if (this.hasScrollDepthConfig()) {
                             this.schedulePageScrollDepthSync(1040);
                         }
                     } else {
-                        this.finishDepth(this.targetDepth);
+                        this.finishDepth(entryTargetDepth);
                         if (this.hasScrollDepthConfig()) {
                             this.schedulePageScrollDepthSync(140);
                         }
                     }
                 } else {
-                    this.finishDepth(this.targetDepth);
+                    const entryTargetDepth = this.resolveEntryTargetDepth({
+                        fallbackDepth: this.targetDepth,
+                        targetUrl: window.location,
+                        preferCurrentScroll: shouldRestoreScrollDepthOnEntry
+                    });
+                    this.finishDepth(entryTargetDepth);
                     if (this.hasScrollDepthConfig()) {
                         this.schedulePageScrollDepthSync(140);
                     }
@@ -1248,13 +1298,23 @@
 
             if (this.pageId === 'home') {
                 this.handleHomeInteractionChange = (event) => {
-                    if (event?.detail?.scrollTraveling) {
+                    const scrollMode = typeof event?.detail?.scrollMode === 'string'
+                        ? event.detail.scrollMode
+                        : 'normal';
+
+                    if (scrollMode === 'glide') {
+                        this.resetHomeGlideRenderCaches({ preserveText: true });
                         return;
                     }
 
-                    this.homeTravelingGaugeDepth = null;
+                    if (scrollMode === 'traveling' || scrollMode === 'settling') {
+                        this.resetHomeGlideRenderCaches({ preserveText: true });
+                        return;
+                    }
+
+                    this.resetHomeGlideRenderCaches();
                     this.lastRenderedDepthText = '';
-                    this.renderDepth(this.currentDepth);
+                    this.renderDepth(this.currentDepth, { forceFull: true });
                 };
                 window.addEventListener('homeinteractionchange', this.handleHomeInteractionChange);
             }
@@ -1553,6 +1613,40 @@
             }
 
             return navState;
+        }
+
+        /**
+         * resolveEntryTargetDepth(options) - 统一解析当前这次进入页面时深度计应该承接到的目标深度
+         * @param {{fallbackDepth?:number,targetUrl?:URL|Location|string|null,preferCurrentScroll?:boolean,explicitDepth?:number|null}} [options={}] - 入场目标解析选项
+         * @returns {number} - 当前页面本次应使用的稳定入场深度
+         */
+        resolveEntryTargetDepth(options = {}) {
+            const fallbackDepth = clamp(
+                readNumber(options.fallbackDepth) ?? this.targetDepth,
+                MIN_DEPTH,
+                MAX_DEPTH
+            );
+            const explicitDepth = readNumber(options.explicitDepth);
+            if (explicitDepth !== null) {
+                return clamp(explicitDepth, MIN_DEPTH, MAX_DEPTH);
+            }
+
+            if (
+                options.preferCurrentScroll
+                && this.hasScrollDepthConfig()
+                && this.pageScrollDepthStops.length > 0
+            ) {
+                return clamp(this.computePageScrollDepth(), MIN_DEPTH, MAX_DEPTH);
+            }
+
+            if (this.pageId === 'home') {
+                const homeHashDepth = resolveHomeHashEntryDepth(options.targetUrl || window.location);
+                if (homeHashDepth !== null) {
+                    return homeHashDepth;
+                }
+            }
+
+            return fallbackDepth;
         }
 
         // 刻度渲染：按 0 到最深层的步长生成刻度线和数字标签。
@@ -2001,12 +2095,41 @@
             );
         }
 
-        isHomeTravelingFastPathActive() {
-            return this.pageId === 'home' && (
+        resolveHomeScrollRenderMode() {
+            if (this.pageId !== 'home') {
+                return 'normal';
+            }
+
+            if (
                 Boolean(this.body?.classList.contains('home-scroll-traveling'))
                 || Boolean(this.body?.classList.contains('home-guide-custom-travel-active'))
+                || Boolean(window.isHomeScrollSettlingActive?.())
                 || this.isHomeGuideVirtualTravelActive()
-            );
+            ) {
+                return 'traveling';
+            }
+
+            if (Boolean(window.isHomeScrollGlideActive?.())) {
+                return 'glide';
+            }
+
+            return 'normal';
+        }
+
+        isHomeTravelingFastPathActive() {
+            return this.resolveHomeScrollRenderMode() === 'traveling';
+        }
+
+        resetHomeGlideRenderCaches(options = {}) {
+            this.homeTravelingGaugeDepth = null;
+            this.lastGlideTapeRenderAt = 0;
+            this.lastGlideTapeDepth = null;
+            this.lastGlideOverlayRenderAt = 0;
+            this.lastGlideOverlayDepth = null;
+
+            if (!options.preserveText) {
+                this.lastRenderedDepthText = '';
+            }
         }
 
         /**
@@ -2032,26 +2155,14 @@
             const depthProgress = clamp(Math.abs(overlayDepth) / Math.abs(MIN_DEPTH), 0, 1);
             const baseOpacity = getAmbientOverlayOpacity(overlayDepth);
             const extraOpacity = overlayBoost;
-            const surfaceOpacity = clamp((1 - depthProgress) * 0.16 + extraOpacity * 0.06, 0, 0.2);
-            const particleOpacity = clamp(0.035 + depthProgress * 0.08 + extraOpacity * 0.08, 0.035, 0.16);
-            const hazeOpacity = clamp(0.02 + depthProgress * 0.11 + extraOpacity * 0.12, 0.02, 0.2);
-            const visibility = clamp(0.98 - depthProgress * 0.04 - extraOpacity * 0.04, 0.9, 1);
             const gaugeCompression = clamp(1 + depthProgress * (homeTraveling ? 0.05 : 0.08), 1, homeTraveling ? 1.06 : 1.1);
             const gaugeShift = clamp(depthProgress * (homeTraveling ? 7 : 10), 0, homeTraveling ? 7 : 10);
             const gaugePulse = clamp(1 + extraOpacity * (homeTraveling ? 0.08 : 0.12) + depthProgress * 0.02, 1, homeTraveling ? 1.08 : 1.12);
-            const mediumBlur = homeTraveling
-                ? clamp(3.2 + depthProgress * 2.4 + extraOpacity * 2.8, 3.2, 6.4)
-                : clamp(4 + depthProgress * 4 + extraOpacity * 6, 4, 9);
             const gaugeVariableTarget = this.body || this.rootElement;
             const nextOverlayState = {
                 oceanBaseOpacity: baseOpacity.toFixed(2),
                 oceanCoverOpacity: extraOpacity.toFixed(2),
                 oceanDepthProgress: depthProgress.toFixed(2),
-                oceanSurfaceGlowOpacity: surfaceOpacity.toFixed(2),
-                oceanParticleOpacity: particleOpacity.toFixed(2),
-                oceanHazeOpacity: hazeOpacity.toFixed(2),
-                oceanVisibility: visibility.toFixed(2),
-                oceanMediumBlur: `${mediumBlur.toFixed(1)}px`,
                 depthGaugeCompression: gaugeCompression.toFixed(2),
                 depthGaugeShift: `${gaugeShift.toFixed(1)}px`,
                 depthGaugeCurrentScale: gaugePulse.toFixed(2)
@@ -2066,21 +2177,6 @@
             }
             if (previousOverlayState.oceanDepthProgress !== nextOverlayState.oceanDepthProgress) {
                 this.rootElement.style.setProperty('--ocean-depth-progress', nextOverlayState.oceanDepthProgress);
-            }
-            if (previousOverlayState.oceanSurfaceGlowOpacity !== nextOverlayState.oceanSurfaceGlowOpacity) {
-                this.rootElement.style.setProperty('--ocean-surface-glow-opacity', nextOverlayState.oceanSurfaceGlowOpacity);
-            }
-            if (previousOverlayState.oceanParticleOpacity !== nextOverlayState.oceanParticleOpacity) {
-                this.rootElement.style.setProperty('--ocean-particle-opacity', nextOverlayState.oceanParticleOpacity);
-            }
-            if (previousOverlayState.oceanHazeOpacity !== nextOverlayState.oceanHazeOpacity) {
-                this.rootElement.style.setProperty('--ocean-haze-opacity', nextOverlayState.oceanHazeOpacity);
-            }
-            if (previousOverlayState.oceanVisibility !== nextOverlayState.oceanVisibility) {
-                this.rootElement.style.setProperty('--ocean-visibility', nextOverlayState.oceanVisibility);
-            }
-            if (previousOverlayState.oceanMediumBlur !== nextOverlayState.oceanMediumBlur) {
-                this.rootElement.style.setProperty('--ocean-medium-blur', nextOverlayState.oceanMediumBlur);
             }
             if (previousOverlayState.depthGaugeCompression !== nextOverlayState.depthGaugeCompression) {
                 gaugeVariableTarget.style.setProperty('--depth-gauge-compression', nextOverlayState.depthGaugeCompression);
@@ -2100,30 +2196,60 @@
          * @param {number} depth - 当前深度值
          * @returns {void} - 无返回值，直接更新深度显示
          */
-        renderDepth(depth) {
+        renderDepth(depth, options = {}) {
             const safeDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
-            const homeTraveling = this.isHomeTravelingFastPathActive();
+            const homeRenderMode = this.resolveHomeScrollRenderMode();
+            const homeTraveling = homeRenderMode === 'traveling';
+            const homeGlide = homeRenderMode === 'glide';
+            const forceFull = Boolean(options.forceFull);
             const renderedGaugeDepth = this.getRenderedGaugeDepth(safeDepth);
             const gaugeDepthForRender = homeTraveling
                 ? Math.round(renderedGaugeDepth)
                 : renderedGaugeDepth;
             const depthText = formatDepth(gaugeDepthForRender);
+            const now = performance.now();
 
-            if (this.leftCurrent && this.lastRenderedDepthText !== depthText) {
+            if (this.leftCurrent && (forceFull || this.lastRenderedDepthText !== depthText)) {
                 this.leftCurrent.textContent = depthText;
             }
 
-            if (this.rightCurrent && this.lastRenderedDepthText !== depthText) {
+            if (this.rightCurrent && (forceFull || this.lastRenderedDepthText !== depthText)) {
                 this.rightCurrent.textContent = depthText;
             }
 
             this.lastRenderedDepthText = depthText;
-            if (!homeTraveling || this.homeTravelingGaugeDepth !== gaugeDepthForRender) {
+
+            if (homeGlide) {
+                const previousGaugeDepth = Number.isFinite(this.homeTravelingGaugeDepth)
+                    ? this.homeTravelingGaugeDepth
+                    : null;
+                const markerDepthChanged = !Number.isFinite(previousGaugeDepth)
+                    || Math.round(previousGaugeDepth) !== Math.round(gaugeDepthForRender);
+
+                if (forceFull || markerDepthChanged) {
+                    this.updateMarkersForContainer(this.leftMarkersContainer, gaugeDepthForRender);
+                    this.updateMarkersForContainer(this.rightMarkersContainer, gaugeDepthForRender);
+                }
+
+                this.updateDetailGaugeTapePosition(this.leftMarkersContainer, gaugeDepthForRender);
+                this.updateDetailGaugeTapePosition(this.rightMarkersContainer, gaugeDepthForRender);
+                this.setOverlayState(safeDepth, this.overlayBoost);
+                this.lastGlideTapeRenderAt = now;
+                this.lastGlideTapeDepth = gaugeDepthForRender;
+                this.lastGlideOverlayRenderAt = now;
+                this.lastGlideOverlayDepth = safeDepth;
+
+                this.homeTravelingGaugeDepth = gaugeDepthForRender;
+                return;
+            }
+
+            if (forceFull || !homeTraveling || this.homeTravelingGaugeDepth !== gaugeDepthForRender) {
                 this.updateMarkersForContainer(this.leftMarkersContainer, gaugeDepthForRender);
                 this.updateMarkersForContainer(this.rightMarkersContainer, gaugeDepthForRender);
                 this.updateDetailGaugeTapePosition(this.leftMarkersContainer, gaugeDepthForRender);
                 this.updateDetailGaugeTapePosition(this.rightMarkersContainer, gaugeDepthForRender);
             }
+
             this.homeTravelingGaugeDepth = homeTraveling ? gaugeDepthForRender : null;
             this.setOverlayState(homeTraveling ? gaugeDepthForRender : safeDepth, this.overlayBoost);
         }
@@ -2847,6 +2973,10 @@
                 return;
             }
 
+            if (this.pageScrollDepthStops.length > 0) {
+                return;
+            }
+
             // 把 selector 配置解析成真实 DOM，后续计算时直接使用元素位置。
             this.pageScrollDepthStops = getScrollDepthStopConfig(this.pageId)
                 .map((stop) => {
@@ -2954,19 +3084,33 @@
                 }
             }
 
+            const isManaged = this.isPageScrollManagedActive();
+            const homeScrollRenderMode = this.pageId === 'home'
+                ? this.resolveHomeScrollRenderMode()
+                : 'normal';
+            const isHomeScrollTraveling = homeScrollRenderMode === 'traveling';
+            const isHomeScrollGlide = homeScrollRenderMode === 'glide';
+            const now = performance.now();
+            const currentScrollY = window.scrollY || window.pageYOffset || 0;
+            this.pageScrollLastInputAt = now;
+
             if (this.pageScrollFrameId) {
                 return;
             }
 
-            const isManaged = this.isPageScrollManagedActive();
-            const now = performance.now();
-            const currentScrollY = window.scrollY || window.pageYOffset || 0;
             const minIntervalMs = isManaged
                 ? this.pageScrollManagedMinIntervalMs
-                : this.pageScrollHomeMinIntervalMs;
+                : (isHomeScrollTraveling
+                    ? Math.max(this.pageScrollHomeMinIntervalMs, 96)
+                    : isHomeScrollGlide
+                    ? 12
+                    : this.pageScrollHomeMinIntervalMs);
             if (!force && minIntervalMs > 0) {
                 const largeDelta = Math.abs(currentScrollY - this.pageScrollLastQueuedScrollY)
-                    >= Math.max((window.innerHeight || 0) * 0.16, 120);
+                    >= Math.max(
+                        (window.innerHeight || 0) * (isHomeScrollTraveling ? 0.24 : isHomeScrollGlide ? 0.08 : 0.16),
+                        isHomeScrollTraveling ? 160 : isHomeScrollGlide ? 56 : 120
+                    );
                 if (!largeDelta && now - this.pageScrollLastQueuedAt < minIntervalMs) {
                     return;
                 }
@@ -3133,20 +3277,29 @@
             }
 
             const managedScroll = Boolean(options.managedScroll) || this.isPageScrollManagedActive();
+            const homeScrollRenderMode = this.pageId === 'home'
+                ? this.resolveHomeScrollRenderMode()
+                : 'normal';
+            const isHomeScrollTraveling = homeScrollRenderMode === 'traveling';
+            const isHomeScrollGlide = homeScrollRenderMode === 'glide';
 
             const scrollY = window.scrollY || window.pageYOffset || 0;
             const now = performance.now();
+            const hasRecentHomeGlideInput = isHomeScrollGlide
+                && (now - Math.max(this.pageScrollLastInputAt, this.pageScrollLastQueuedAt)) <= 96;
             const scrollDeltaPx = Math.abs(scrollY - this.pageScrollLastScrollY);
             const elapsedMs = this.pageScrollLastScrollAt > 0
                 ? Math.max(now - this.pageScrollLastScrollAt, 1)
                 : 16;
             const jumpThreshold = managedScroll
                 ? Math.max(window.innerHeight * 0.18, 180)
+                : isHomeScrollTraveling
+                ? Math.max(window.innerHeight * 0.22, 180)
                 : Math.max(window.innerHeight * 0.32, 260);
 
             this.pageScrollLastDeltaPx = scrollDeltaPx;
             this.pageScrollLastDeltaMs = elapsedMs;
-            this.pageScrollShouldSnap = scrollDeltaPx >= jumpThreshold;
+            this.pageScrollShouldSnap = !isHomeScrollGlide && scrollDeltaPx >= jumpThreshold;
             this.pageScrollLastScrollY = scrollY;
             this.pageScrollLastScrollAt = now;
 
@@ -3155,7 +3308,9 @@
             this.pageScrollTargetDepth = targetDepth;
             const delta = targetDepth - this.currentDepth;
             const deltaMagnitude = Math.abs(delta);
-            const shouldSnapToTarget = this.pageScrollShouldSnap && deltaMagnitude >= (managedScroll ? 0.55 : 0.85);
+            const shouldSnapToTarget = !isHomeScrollGlide
+                && this.pageScrollShouldSnap
+                && deltaMagnitude >= (managedScroll ? 0.55 : 0.85);
 
             if (shouldSnapToTarget) {
                 this.pageScrollShouldSnap = false;
@@ -3165,8 +3320,12 @@
                 return;
             }
 
-            const settleThreshold = this.pageId === 'detail' ? 0.035 : 0.05;
-            if (deltaMagnitude <= settleThreshold) {
+            const settleThreshold = this.pageId === 'detail'
+                ? 0.035
+                : isHomeScrollGlide
+                ? 0.012
+                : 0.05;
+            if (deltaMagnitude <= settleThreshold && !hasRecentHomeGlideInput) {
                 this.currentDepth = targetDepth;
                 this.renderDepth(targetDepth);
                 this.persistCurrentDepth(targetDepth, true);
@@ -3175,19 +3334,39 @@
 
             const baseResponseFactor = managedScroll
                 ? (this.pageId === 'detail' ? 0.24 : 0.22)
+                : isHomeScrollGlide
+                ? 0.26
+                : isHomeScrollTraveling
+                ? 0.14
                 : (this.pageId === 'detail' ? 0.14 : 0.1);
             const maxResponseFactor = managedScroll
                 ? (this.pageId === 'detail' ? 0.64 : 0.6)
+                : isHomeScrollGlide
+                ? 0.58
+                : isHomeScrollTraveling
+                ? 0.48
                 : (this.pageId === 'detail' ? 0.46 : 0.42);
-            const deltaBoost = clamp(deltaMagnitude * 0.02, 0, 0.2);
+            const deltaBoost = isHomeScrollGlide
+                ? clamp(deltaMagnitude * 0.016, 0, 0.12)
+                : clamp(deltaMagnitude * 0.02, 0, 0.2);
             const scrollVelocity = this.pageScrollLastDeltaPx / Math.max(this.pageScrollLastDeltaMs, 1);
-            const velocityBoost = clamp(scrollVelocity * (managedScroll ? 0.02 : 0.045), 0, managedScroll ? 0.08 : 0.12);
+            const velocityBoost = isHomeScrollGlide
+                ? clamp(scrollVelocity * 0.018, 0, 0.14)
+                : clamp(scrollVelocity * (managedScroll ? 0.02 : 0.045), 0, managedScroll ? 0.08 : 0.12);
             const responseFactor = clamp(
                 baseResponseFactor + deltaBoost + velocityBoost,
                 baseResponseFactor,
                 maxResponseFactor
             );
-            const nextDepth = this.currentDepth + delta * responseFactor;
+            const rawDepthStep = delta * responseFactor;
+            const minimumGlideStep = hasRecentHomeGlideInput ? 0.01 : 0;
+            const adjustedDepthStep = isHomeScrollGlide
+                ? Math.sign(delta || 0) * Math.min(
+                    deltaMagnitude,
+                    Math.max(Math.abs(rawDepthStep), minimumGlideStep)
+                )
+                : rawDepthStep;
+            const nextDepth = this.currentDepth + adjustedDepthStep;
             this.currentDepth = clamp(nextDepth, MIN_DEPTH, MAX_DEPTH);
             this.renderDepth(this.currentDepth);
             this.persistCurrentDepth(this.currentDepth);
@@ -3841,7 +4020,8 @@
 
             const fromDepth = this.getCurrentDepth();
             const pendingHomeEntryDepth = consumePendingHomeEntryDepth(parsedUrl);
-            const toDepth = pendingHomeEntryDepth ?? this.getTargetDepth(toPage);
+            const homeHashEntryDepth = resolveHomeHashEntryDepth(parsedUrl);
+            const toDepth = pendingHomeEntryDepth ?? homeHashEntryDepth ?? this.getTargetDepth(toPage);
             // 目标页面先被翻译成一个“目标深度”，再根据深浅判断是继续下潜还是缓慢上浮。
             const visualDirection = getVisualDirection(fromDepth, toDepth);
 
@@ -3916,7 +4096,8 @@
          */
         setupPageShowHandler() {
             window.addEventListener('pageshow', (event) => {
-                if (!event.persisted) {
+                const isBackForwardRestore = getNavigationEntryType() === 'back_forward';
+                if (!event.persisted && !isBackForwardRestore) {
                     return;
                 }
 
@@ -3930,13 +4111,28 @@
                 }
 
                 const storedDepth = readNumber(sessionStorage.getItem(STORAGE_KEY_CURRENT));
-                const startDepth = clamp(storedDepth ?? this.targetDepth, MIN_DEPTH, MAX_DEPTH);
-                const visualDirection = getVisualDirection(startDepth, this.targetDepth);
+                const restoredDepth = this.resolveEntryTargetDepth({
+                    fallbackDepth: this.targetDepth,
+                    targetUrl: window.location,
+                    preferCurrentScroll: this.hasScrollDepthConfig()
+                });
+
+                if (isBackForwardRestore && !event.persisted) {
+                    this.overlayBoost = 0;
+                    this.finishDepth(restoredDepth);
+                    if (this.hasScrollDepthConfig()) {
+                        this.schedulePageScrollDepthSync(0);
+                    }
+                    return;
+                }
+
+                const startDepth = clamp(storedDepth ?? restoredDepth, MIN_DEPTH, MAX_DEPTH);
+                const visualDirection = getVisualDirection(startDepth, restoredDepth);
                 const pageshowConfig = getPageshowTransitionConfig(this.pageId, visualDirection);
 
                 if (visualDirection === 'none') {
                     this.overlayBoost = 0;
-                    this.finishDepth(this.targetDepth);
+                    this.finishDepth(restoredDepth);
                     if (this.hasScrollDepthConfig()) {
                         this.schedulePageScrollDepthSync(0);
                     }
@@ -3949,7 +4145,7 @@
                 this.startEntryTransition(visualDirection, {
                     animateDepth: true,
                     startDepth: startDepth,
-                    targetDepth: this.targetDepth,
+                    targetDepth: restoredDepth,
                     overlayBoostStart: pageshowConfig.overlayBoostStart,
                     entryClass: pageshowConfig.entryClass,
                     duration: pageshowConfig.entryDuration,

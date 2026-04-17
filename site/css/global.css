@@ -992,3 +992,102 @@ body.has-avatar-return-open {
         right: 20px;
     }
 }
+
+/* 高对比度保护层：锁住整站共享深色品牌面的文字，不让导航与共享浮层退回系统黑字或链接蓝。 */
+@media (forced-colors: active) {
+    :root {
+        --yanqi-forced-title: #f5fbff;
+        --yanqi-forced-copy: rgba(232, 242, 248, 0.9);
+        --yanqi-forced-muted: rgba(214, 231, 240, 0.82);
+        --yanqi-forced-kicker: rgba(201, 224, 236, 0.72);
+        --yanqi-forced-link: #f4fbff;
+        --yanqi-forced-border: rgba(204, 231, 243, 0.28);
+        --yanqi-forced-ring: rgba(236, 247, 253, 0.96);
+    }
+
+    :is(
+        .stage-debug-toggle,
+        .stage-debug-toggle-label,
+        .stage-debug-toggle-state,
+        .showcase-reset-btn,
+        .showcase-reset-btn-kicker,
+        .showcase-reset-btn-label,
+        .logo,
+        .nav-link,
+        .avatar-return-kicker,
+        .avatar-return-title,
+        .avatar-return-copy,
+        .avatar-return-primary,
+        .avatar-return-secondary
+    ) {
+        forced-color-adjust: none;
+    }
+
+    .logo,
+    .logo:visited,
+    .logo:hover,
+    .logo:focus-visible,
+    .logo:active {
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .nav-link,
+    .nav-link:visited {
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    .nav-link:hover,
+    .nav-link.active,
+    .nav-link:focus-visible,
+    .nav-link:active {
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .nav-link.active::after {
+        forced-color-adjust: none;
+        background: linear-gradient(90deg, rgba(182, 220, 241, 0), rgba(214, 238, 250, 0.92), rgba(182, 220, 241, 0));
+        box-shadow: 0 0 12px rgba(180, 221, 241, 0.18);
+    }
+
+    .stage-debug-toggle,
+    .showcase-reset-btn,
+    .avatar-return-primary,
+    .avatar-return-secondary {
+        color: var(--yanqi-forced-link);
+        -webkit-text-fill-color: var(--yanqi-forced-link);
+        border-color: var(--yanqi-forced-border);
+    }
+
+    .stage-debug-toggle-state,
+    .showcase-reset-btn-kicker,
+    .avatar-return-kicker {
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    .showcase-reset-btn-label,
+    .avatar-return-title {
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .avatar-return-copy {
+        color: var(--yanqi-forced-copy);
+        -webkit-text-fill-color: var(--yanqi-forced-copy);
+    }
+
+    :is(
+        .logo,
+        .nav-link,
+        .stage-debug-toggle,
+        .showcase-reset-btn,
+        .avatar-return-primary,
+        .avatar-return-secondary
+    ):focus-visible {
+        outline: 2px solid var(--yanqi-forced-ring);
+        outline-offset: 3px;
+    }
+}

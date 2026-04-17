@@ -89,6 +89,7 @@
 
             window.__YANQI_DETAIL_BOOTSTRAP__ = bootstrapPayload;
             document.title = `盐憩 - ${bootstrapPayload.name}`;
+            document.documentElement.dataset.detailSpotId = String(spotId);
             document.documentElement.dataset.detailHeroBootstrap = 'pending';
             document.documentElement.dataset.detailSidebarBootstrap = 'pending';
 

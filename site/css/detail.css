@@ -489,6 +489,16 @@ body.has-overlay-lock {
         0 2px 10px rgba(0, 0, 0, 0.24);
 }
 
+/* 详情页首屏副标题沿用 bootstrap spot 标记锁住浅色旁白，避免高对比度环境把它回收到系统黑字。 */
+html[data-detail-spot-id] #spotTagline,
+html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
+.detail-page #spotTagline,
+.detail-page #spotTagline .detail-subtitle-line {
+    color: rgba(231, 242, 249, 0.94);
+    -webkit-text-fill-color: rgba(231, 242, 249, 0.94);
+    forced-color-adjust: none;
+}
+
 /* 副标题作为整句旁白更轻地显形，避免和主标题一起抢第一眼 */
 .detail-subtitle-line {
     display: block;
@@ -1293,7 +1303,7 @@ body.has-overlay-lock {
     --sea-map-route-soft: rgba(183, 229, 240, 0.24);
     --sea-map-route-main: rgba(235, 250, 255, 0.9);
     width: 100%;
-    min-height: 940px;
+    min-height: clamp(780px, 82vh, 900px);
     display: flex;
     align-items: stretch;
     justify-content: center;
@@ -1373,7 +1383,7 @@ body.has-overlay-lock {
     --sea-atlas-shell-shift-x: 0px;
     position: relative;
     width: 100%;
-    min-height: 860px;
+    min-height: clamp(720px, 76vh, 840px);
     margin: 0 auto;
     flex: 0 1 auto;
     isolation: isolate;
@@ -1756,7 +1766,7 @@ body.has-overlay-lock {
 .sea-atlas-stage {
     position: relative;
     z-index: 1;
-    min-height: 860px;
+    min-height: clamp(720px, 74vh, 820px);
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: none;
@@ -1814,7 +1824,7 @@ body.has-overlay-lock {
         inset: auto;
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto;
-        gap: 22px;
+        gap: 18px;
         margin-bottom: 18px;
     }
 
@@ -1823,12 +1833,12 @@ body.has-overlay-lock {
     }
 
     .sea-atlas-visual {
-        min-height: 600px;
+        min-height: clamp(480px, 54vh, 540px);
     }
 
     .sea-atlas-dossier {
         min-height: auto;
-        padding: 28px 24px 26px;
+        padding: 24px 22px 22px;
     }
 }
 
@@ -1949,6 +1959,17 @@ body.has-overlay-lock {
         0 24px 44px rgba(2, 14, 24, 0.24),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: visible;
+}
+
+@container (max-width: 920px) {
+    .sea-atlas-visual {
+        min-height: clamp(480px, 54vh, 540px);
+    }
+
+    .sea-atlas-dossier {
+        min-height: auto;
+        padding: 24px 22px 22px;
+    }
 }
 
 /* 控制 .sea-atlas-card-title 的布局、视觉和状态表现 */
@@ -9212,6 +9233,20 @@ body.has-overlay-lock {
         visibility 0s linear 0s;
 }
 
+.booking-modal-content.is-confirm-scrolling {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow:
+        0 22px 48px rgba(4, 20, 34, 0.2),
+        0 0 18px rgba(126, 198, 222, 0.05),
+        inset 0 1px 0 rgba(243, 249, 252, 0.1);
+}
+
+.booking-modal-content.is-confirm-scrolling .package-modal-actions.is-guided-focus,
+.booking-modal-content.is-confirm-scrolling .package-modal-grid.is-guided-focus {
+    animation: none;
+}
+
 .booking-modal.active .booking-modal-content.is-morphing {
     visibility: visible;
     opacity: 1;
@@ -9958,6 +9993,58 @@ body.has-overlay-lock {
     color: rgba(187, 224, 236, 0.68);
     font-size: 0.8rem;
     line-height: 1.72;
+}
+
+.package-modal-editor-cta {
+    display: grid;
+    gap: 8px;
+    padding-top: 0;
+    margin-top: 0;
+    border-top: 1px solid transparent;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translate3d(0, -10px, 0);
+    filter: blur(4px);
+    transition:
+        max-height 420ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        opacity 260ms ease,
+        transform 420ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 260ms ease,
+        padding-top 260ms ease,
+        margin-top 260ms ease,
+        border-color 260ms ease;
+}
+
+.package-modal-editor-cta.is-visible {
+    max-height: 160px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+    padding-top: 14px;
+    margin-top: 2px;
+    border-top-color: rgba(180, 223, 237, 0.12);
+}
+
+.package-modal-editor-cta-button {
+    justify-self: start;
+}
+
+.package-modal-editor-cta-note {
+    margin: 0;
+    color: rgba(192, 229, 240, 0.68);
+    font-size: 0.78rem;
+    line-height: 1.68;
+}
+
+.package-modal-grid {
+    position: relative;
+}
+
+.package-modal-grid.is-guided-focus {
+    animation: packageModalConfirmAreaGlow 920ms cubic-bezier(0.18, 0.78, 0.22, 1);
 }
 
 .package-modal-summary-block {
@@ -11038,6 +11125,25 @@ body.has-overlay-lock {
     }
 }
 
+@keyframes packageModalConfirmAreaGlow {
+    0% {
+        box-shadow: 0 0 0 rgba(118, 186, 213, 0);
+        transform: translate3d(0, 14px, 0);
+    }
+
+    38% {
+        box-shadow:
+            0 0 0 1px rgba(188, 228, 241, 0.18),
+            0 18px 42px rgba(31, 92, 121, 0.18);
+        transform: translate3d(0, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(118, 186, 213, 0);
+        transform: translate3d(0, 0, 0);
+    }
+}
+
 @keyframes packageModalToggleLabelOutV26 {
     0% {
         opacity: 0.88;
@@ -11179,6 +11285,7 @@ body.has-overlay-lock {
 .package-modal-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
     gap: 14px;
 }
 
@@ -11252,10 +11359,15 @@ body.has-overlay-lock {
 
 /* 控制 .package-modal-actions 的布局、视觉和状态表现 */
 .package-modal-actions {
+    position: relative;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     padding-top: 4px;
+}
+
+.package-modal-actions.is-guided-focus {
+    animation: packageModalConfirmAreaGlow 920ms cubic-bezier(0.18, 0.78, 0.22, 1);
 }
 
 /* 控制 .package-modal-secondary, 的布局、视觉和状态表现 */
@@ -11929,6 +12041,10 @@ body.has-overlay-lock {
         min-height: 0;
     }
 
+    .sea-atlas-shell {
+        min-height: 860px;
+    }
+
 /* 控制 .sea-atlas-stage 的布局、视觉和状态表现 */
     .sea-atlas-stage {
         min-height: 0;
@@ -12551,6 +12667,11 @@ body.has-overlay-lock {
     .package-card-action {
         width: 100%;
         justify-content: space-between;
+    }
+
+    .package-modal-editor-cta-button {
+        width: 100%;
+        justify-content: center;
     }
 
 /* 控制 .review-card 的布局、视觉和状态表现 */
@@ -13373,5 +13494,99 @@ body.page-transition-active .booking-match-floating-confirm {
 @media (max-width: 900px) {
     .package-modal-personal-panel {
         grid-template-columns: 1fr;
+    }
+}
+
+/* 详情页高对比度保护层：统一守住 hero 文案、信息标签和 footer 里的深海品牌文字。 */
+@media (forced-colors: active) {
+    .detail-page :is(
+        .detail-title,
+        .detail-title-unit,
+        .detail-footer-title,
+        .detail-footer-explore-title,
+        .detail-footer-group-title,
+        .detail-footer-next-name
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .detail-page :is(
+        .detail-subtitle,
+        .detail-subtitle-line,
+        .detail-footer-lead,
+        .detail-footer-murmur,
+        .detail-footer-explore-copy,
+        .detail-footer-next-copy
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-copy);
+        -webkit-text-fill-color: var(--yanqi-forced-copy);
+    }
+
+    .detail-page :is(
+        .tag,
+        .tag strong,
+        .detail-footer-overline,
+        .detail-footer-next-kicker,
+        .detail-footer-next-label,
+        .detail-footer-bottom p
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    .detail-page :is(
+        .detail-footer-chip,
+        .detail-footer-link,
+        .detail-footer-link-button,
+        .detail-footer-next-card
+    ),
+    .detail-page :is(
+        .detail-footer-chip,
+        .detail-footer-link,
+        .detail-footer-link-button,
+        .detail-footer-next-card
+    ):visited,
+    .detail-page :is(
+        .detail-footer-chip,
+        .detail-footer-link,
+        .detail-footer-link-button,
+        .detail-footer-next-card
+    ):hover,
+    .detail-page :is(
+        .detail-footer-chip,
+        .detail-footer-link,
+        .detail-footer-link-button,
+        .detail-footer-next-card
+    ):focus-visible,
+    .detail-page :is(
+        .detail-footer-chip,
+        .detail-footer-link,
+        .detail-footer-link-button,
+        .detail-footer-next-card
+    ):active {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-link);
+        -webkit-text-fill-color: var(--yanqi-forced-link);
+    }
+
+    .detail-page :is(
+        .detail-footer-chip,
+        .detail-footer-next-card
+    ) {
+        border-color: var(--yanqi-forced-border);
+    }
+
+    .detail-page :is(
+        .detail-footer-chip,
+        .detail-footer-link,
+        .detail-footer-link-button,
+        .detail-footer-next-card
+    ):focus-visible {
+        outline: 2px solid var(--yanqi-forced-ring);
+        outline-offset: 3px;
     }
 }

@@ -1008,3 +1008,136 @@ body.info-page.is-entered .info-reveal-delay-3 {
     }
 }
 
+/* 信息页高对比度保护层：让说明页的标题、说明文字、侧导航和深色玻璃按钮保持同一套浅色品牌层次。 */
+@media (forced-colors: active) {
+    .info-page :is(
+        .info-overline,
+        .info-nav-kicker,
+        .contact-card-kicker,
+        .contact-status-kicker,
+        .contact-status-item-label,
+        .info-footer-kicker,
+        .info-footer-group-title
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    .info-page :is(
+        .info-title,
+        .info-section-title,
+        .policy-block-title,
+        .contact-card-title,
+        .contact-status-title,
+        .info-footer-title
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .info-page :is(
+        .info-copy,
+        .info-section-copy,
+        .policy-block p,
+        .policy-block li,
+        .contact-card-copy,
+        .contact-form-copy,
+        .contact-status-copy,
+        .info-footer-copy
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-copy);
+        -webkit-text-fill-color: var(--yanqi-forced-copy);
+    }
+
+    .info-page :is(
+        .info-nav-link,
+        .contact-card-action,
+        .contact-link-button,
+        .policy-link,
+        .info-footer-link,
+        .contact-submit,
+        .contact-secondary,
+        .contact-memory-clear
+    ),
+    .info-page :is(
+        .info-nav-link,
+        .contact-card-action,
+        .contact-link-button,
+        .policy-link,
+        .info-footer-link,
+        .contact-submit,
+        .contact-secondary,
+        .contact-memory-clear
+    ):visited,
+    .info-page :is(
+        .info-nav-link,
+        .contact-card-action,
+        .contact-link-button,
+        .policy-link,
+        .info-footer-link,
+        .contact-submit,
+        .contact-secondary,
+        .contact-memory-clear
+    ):hover,
+    .info-page :is(
+        .info-nav-link,
+        .contact-card-action,
+        .contact-link-button,
+        .policy-link,
+        .info-footer-link,
+        .contact-submit,
+        .contact-secondary,
+        .contact-memory-clear
+    ):focus-visible,
+    .info-page :is(
+        .info-nav-link,
+        .contact-card-action,
+        .contact-link-button,
+        .policy-link,
+        .info-footer-link,
+        .contact-submit,
+        .contact-secondary,
+        .contact-memory-clear
+    ):active {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-link);
+        -webkit-text-fill-color: var(--yanqi-forced-link);
+    }
+
+    .info-page :is(
+        .contact-card-action,
+        .contact-link-button,
+        .policy-link,
+        .info-footer-link,
+        .contact-submit,
+        .contact-secondary,
+        .contact-memory-clear,
+        .info-nav-link
+    ) {
+        border-color: var(--yanqi-forced-border);
+    }
+
+    .info-page .info-nav-link::after {
+        forced-color-adjust: none;
+        background: rgba(201, 240, 252, 0.85);
+        box-shadow: 0 0 0 6px rgba(168, 220, 241, 0.18);
+    }
+
+    .info-page :is(
+        .info-nav-link,
+        .contact-card-action,
+        .contact-link-button,
+        .policy-link,
+        .info-footer-link,
+        .contact-submit,
+        .contact-secondary,
+        .contact-memory-clear
+    ):focus-visible {
+        outline: 2px solid var(--yanqi-forced-ring);
+        outline-offset: 3px;
+    }
+}
+

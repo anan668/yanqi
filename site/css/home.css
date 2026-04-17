@@ -94,7 +94,7 @@ body[data-home-interaction='locked'] .hero-ocean-wave-two,
 body[data-home-interaction='locked'] .hero-plankton,
 body[data-home-interaction='locked'] .home-page.hero-awakened .today-sea-card,
 body[data-home-interaction='locked'] .scroll-arrow,
-body[data-home-interaction='locked'] .dive-match.is-stage-visible .dive-match-surface.is-resting,
+body[data-home-interaction='locked'] .dive-match.is-display-visible .dive-match-surface.is-resting,
 body[data-home-interaction='locked'] .story-river-glow,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger,
 body.home-guide-custom-travel-active .hero-ocean-glow-one,
@@ -104,7 +104,7 @@ body.home-guide-custom-travel-active .hero-ocean-wave-two,
 body.home-guide-custom-travel-active .hero-plankton,
 body.home-guide-custom-travel-active .home-page.hero-awakened .today-sea-card,
 body.home-guide-custom-travel-active .scroll-arrow,
-body.home-guide-custom-travel-active .dive-match.is-stage-visible .dive-match-surface.is-resting,
+body.home-guide-custom-travel-active .dive-match.is-display-visible .dive-match-surface.is-resting,
 body.home-guide-custom-travel-active .story-river-glow,
 body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger {
     animation-play-state: paused !important;
@@ -121,8 +121,8 @@ body.home-scroll-traveling .curated-display-media::after,
 body.home-guide-custom-travel-active .curated-display-media::after,
 body.home-scroll-traveling .curated-nav-rail.is-cycling .curated-nav-refresh::after,
 body.home-guide-custom-travel-active .curated-nav-rail.is-cycling .curated-nav-refresh::after,
-body.home-scroll-traveling .dive-match.is-stage-visible .dive-match-surface.is-resting,
-body.home-guide-custom-travel-active .dive-match.is-stage-visible .dive-match-surface.is-resting,
+body.home-scroll-traveling .dive-match.is-display-visible .dive-match-surface.is-resting,
+body.home-guide-custom-travel-active .dive-match.is-display-visible .dive-match-surface.is-resting,
 body.home-scroll-traveling .story-river-glow,
 body.home-guide-custom-travel-active .story-river-glow,
 body.home-scroll-traveling .sea-guide-home.is-visible .sea-guide-trigger,
@@ -1104,6 +1104,7 @@ body[data-home-performance='lite'] .hero-section::after {
     min-height: 0;
     position: relative;
     isolation: isolate;
+    contain: layout paint;
 }
 
 /* 压低轨道内边距，避免 首屏 内卡片显得太松散 */
@@ -2345,6 +2346,7 @@ body[data-home-performance='lite'] .hero-section::after {
     position: relative;
     user-select: none;
     z-index: 1;
+    contain: layout paint;
 }
 
 /* 设置热门潜点卡片的外观、层次和悬停反馈 */
@@ -4656,7 +4658,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
     transition-delay: 80ms;
 }
 
-.dive-match.is-stage-visible .dive-match-stage > .dive-match-display {
+.dive-match.is-display-visible .dive-match-stage > .dive-match-display {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
@@ -5435,7 +5437,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 /* 当前激活内容层进入稳定状态，但要等舞台真正进入视口后再开始。 */
-.dive-match.is-stage-visible .dive-match-surface.is-active {
+.dive-match.is-display-visible .dive-match-surface.is-active {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
@@ -5456,7 +5458,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 /* 内容稳定后做极轻的呼吸浮动，也延后到用户真正看到这层海时。 */
-.dive-match.is-stage-visible .dive-match-surface.is-resting {
+.dive-match.is-display-visible .dive-match-surface.is-resting {
     animation: dive-match-surface-breathe 10s ease-in-out infinite;
 }
 
@@ -5522,20 +5524,20 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 /* 当前层被激活后，焦点卡先稳住，再把海雾和微光推开。 */
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-card {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
     transition-delay: 60ms;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card::before {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-card::before {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
     transition-delay: 110ms;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-card::after {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-card::after {
     opacity: 0.78;
     transform: translate3d(0, 0, 0);
     transition-delay: 160ms;
@@ -5590,38 +5592,38 @@ body[data-home-performance='lite'] .bamboo-card-content {
     line-height: 1.76;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-group,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-head,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-audience,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-guidance,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-note,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-depth {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-group,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-head,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-audience,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-guidance,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-note,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-depth {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-group {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-group {
     transition-delay: 120ms;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-head {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-head {
     transition-delay: 180ms;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-depth {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-depth {
     transition-delay: 230ms;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-audience {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-audience {
     transition-delay: 260ms;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-guidance {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-guidance {
     transition-delay: 320ms;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-note {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-note {
     transition-delay: 380ms;
 }
 
@@ -5697,6 +5699,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
     gap: 18px;
     align-content: start;
     perspective: 1000px;
+    min-height: clamp(340px, 23vw, 430px);
 }
 
 .dive-match-card:nth-child(1) {
@@ -5746,7 +5749,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 /* 当前激活的推荐卡片依次浮现，像一组被慢慢翻开的海域档案。 */
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card {
     opacity: 1;
     transform: translate3d(0, 0, 0);
 }
@@ -5881,50 +5884,50 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 /* 每张卡激活后，文案和标签按卡片自己的节奏跟进。 */
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-kicker,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-name,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-reason,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tags,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag,
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-action {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-kicker,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-name,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-reason,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-tags,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-tag,
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-action {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-kicker {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-kicker {
     transition-delay: calc(var(--card-delay, 0ms) + 50ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-name {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-name {
     transition-delay: calc(var(--card-delay, 0ms) + 100ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-reason {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-reason {
     transition-delay: calc(var(--card-delay, 0ms) + 150ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tags {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-tags {
     transition-delay: calc(var(--card-delay, 0ms) + 210ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(1) {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(1) {
     transition-delay: calc(var(--card-delay, 0ms) + 250ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(2) {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(2) {
     transition-delay: calc(var(--card-delay, 0ms) + 290ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(3) {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(3) {
     transition-delay: calc(var(--card-delay, 0ms) + 330ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(4) {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-tag:nth-child(4) {
     transition-delay: calc(var(--card-delay, 0ms) + 370ms);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card-action {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card-action {
     transition-delay:
         0ms,
         0ms,
@@ -6244,6 +6247,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .home-page {
     --home-layer-progress: 0;
     --home-layer-index: 0;
+    --home-featured-layer-overlap: 10px;
     --home-story-overlap-top: clamp(24px, 3vw, 38px);
     --home-story-overlap-bottom: clamp(30px, 4vw, 52px);
 }
@@ -6273,8 +6277,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .featured-destinations.is-home-current {
-    margin-bottom: calc(-10px - var(--home-layer-progress, 0) * 18px);
-    padding-bottom: calc(clamp(92px, 9vw, 140px) + 10px + var(--home-layer-progress, 0) * 18px);
+    margin-bottom: calc(var(--home-featured-layer-overlap) * -1);
+    padding-bottom: calc(clamp(92px, 9vw, 140px) + var(--home-featured-layer-overlap));
 }
 
 .featured-destinations.is-home-current .curated-waters-stage {
@@ -6286,8 +6290,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .featured-destinations.is-home-passed {
-    margin-bottom: -28px;
-    padding-bottom: calc(clamp(92px, 9vw, 140px) + 28px);
+    margin-bottom: calc(var(--home-featured-layer-overlap) * -1);
+    padding-bottom: calc(clamp(92px, 9vw, 140px) + var(--home-featured-layer-overlap));
 }
 
 .featured-destinations.is-home-passed .curated-waters-intro {
@@ -6424,7 +6428,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
         filter 0.54s ease;
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-focus-ritual {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-focus-ritual {
     opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
@@ -6439,23 +6443,23 @@ body[data-home-performance='lite'] .bamboo-card-content {
     transform: translate3d(0, 14px, 0) rotateX(7deg);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(1) {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card:nth-child(1) {
     transform: translate3d(0, 0, 0) rotateY(-3deg);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(2) {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card:nth-child(2) {
     transform: translate3d(0, -2px, 0) rotateY(0deg);
 }
 
-.dive-match.is-stage-visible .dive-match-surface.is-active .dive-match-card:nth-child(3) {
+.dive-match.is-display-visible .dive-match-surface.is-active .dive-match-card:nth-child(3) {
     transform: translate3d(0, 1px, 0) rotateY(3deg);
 }
 
 .why-yanqi.is-home-current {
     margin-top: calc(var(--home-story-overlap-top) * -1);
     padding-top: calc(var(--spacing-2xl) + var(--home-story-overlap-top));
-    margin-bottom: calc((var(--home-story-overlap-bottom) + var(--home-layer-progress, 0) * 16px) * -1);
-    padding-bottom: calc(var(--spacing-2xl) + var(--home-story-overlap-bottom) + var(--home-layer-progress, 0) * 16px);
+    margin-bottom: calc(var(--home-story-overlap-bottom) * -1);
+    padding-bottom: calc(var(--spacing-2xl) + var(--home-story-overlap-bottom));
     filter: saturate(1.04) brightness(1.03);
 }
 
@@ -7659,5 +7663,137 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel {
 
     .sea-guide-home .sea-guide-entry {
         padding: 13px 14px;
+    }
+}
+
+/* 首页与共享页脚的高对比度保护层：保持品牌标题、深色按钮和页脚导航在高对比度环境里仍是浅色。 */
+@media (forced-colors: active) {
+    .home-page :is(
+        .hero-title,
+        .hero-hotspots-title,
+        .curated-waters-title,
+        .dive-match-title,
+        .story-title
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    .home-page :is(
+        .hero-subtitle,
+        .hero-hotspots-subtitle,
+        .curated-waters-subtitle,
+        .curated-waters-lead,
+        .dive-match-subtitle,
+        .story-lead
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-copy);
+        -webkit-text-fill-color: var(--yanqi-forced-copy);
+    }
+
+    .home-page :is(
+        .hero-hotspots-kicker,
+        .curated-waters-kicker,
+        .dive-match-kicker,
+        .story-kicker,
+        .hero-hotspots-stage-hud-label,
+        .hero-hotspots-stage-hud-hint
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    .home-page .hero-hotspots-stage-hud-value {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    :is(.home-page, .trip-page) :is(
+        .footer-overline,
+        .footer-social-mark
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-kicker);
+        -webkit-text-fill-color: var(--yanqi-forced-kicker);
+    }
+
+    :is(.home-page, .trip-page) :is(
+        .footer-brand,
+        .footer-whisper,
+        .footer-nav-title,
+        .footer-companion-title
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-title);
+        -webkit-text-fill-color: var(--yanqi-forced-title);
+    }
+
+    :is(.home-page, .trip-page) :is(
+        .footer-murmur,
+        .footer-companion-copy,
+        .footer-bottom p
+    ) {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-copy);
+        -webkit-text-fill-color: var(--yanqi-forced-copy);
+    }
+
+    :is(.home-page, .trip-page) :is(
+        .sea-action,
+        .hero-hotspots-stage-reset,
+        .footer-link,
+        .footer-social-link
+    ),
+    :is(.home-page, .trip-page) :is(
+        .sea-action,
+        .hero-hotspots-stage-reset,
+        .footer-link,
+        .footer-social-link
+    ):visited,
+    :is(.home-page, .trip-page) :is(
+        .sea-action,
+        .hero-hotspots-stage-reset,
+        .footer-link,
+        .footer-social-link
+    ):hover,
+    :is(.home-page, .trip-page) :is(
+        .sea-action,
+        .hero-hotspots-stage-reset,
+        .footer-link,
+        .footer-social-link
+    ):focus-visible,
+    :is(.home-page, .trip-page) :is(
+        .sea-action,
+        .hero-hotspots-stage-reset,
+        .footer-link,
+        .footer-social-link
+    ):active {
+        forced-color-adjust: none;
+        color: var(--yanqi-forced-link);
+        -webkit-text-fill-color: var(--yanqi-forced-link);
+    }
+
+    .home-page .hero-hotspots-stage-reset,
+    :is(.home-page, .trip-page) :is(.sea-action, .footer-social-link) {
+        border-color: var(--yanqi-forced-border);
+    }
+
+    .home-page .footer-link::after {
+        forced-color-adjust: none;
+        background: linear-gradient(90deg, rgba(236, 247, 253, 0.88), rgba(236, 247, 253, 0));
+    }
+
+    :is(.home-page, .trip-page) :is(
+        .sea-action,
+        .footer-link,
+        .footer-social-link
+    ):focus-visible,
+    .home-page .hero-hotspots-stage-reset:focus-visible {
+        outline: 2px solid var(--yanqi-forced-ring);
+        outline-offset: 3px;
     }
 }
