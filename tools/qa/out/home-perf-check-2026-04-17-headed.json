@@ -1,0 +1,152 @@
+{
+  "capturedAt": "2026-04-17T08:30:29.875Z",
+  "url": "http://127.0.0.1:8000/site/home.html?perfCheck2=1776414600497",
+  "viewport": {
+    "width": 1440,
+    "height": 1200
+  },
+  "pageErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (File not found)"
+  ],
+  "results": [
+    {
+      "label": "ambient_home",
+      "durationMs": 1811,
+      "rafSamples": 126,
+      "avgRafDeltaMs": 14.333333333333334,
+      "p95RafDeltaMs": 18.299999999999727,
+      "maxRafDeltaMs": 24.300000000000182,
+      "framesOver20Ms": 3,
+      "framesOver33Ms": 0,
+      "framesOver50Ms": 0,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "longTaskTotalMs": 0,
+      "modesSeen": {
+        "normal": 127
+      },
+      "modeTransitions": 0,
+      "flags": {
+        "glideSeen": false,
+        "travelingSeen": false,
+        "settlingSeen": false,
+        "lockedSeen": false
+      },
+      "sampleCount": 127,
+      "glideSampleRatio": 0,
+      "tapeChanges": 0,
+      "maxTapeStepPx": 0,
+      "shiftChanges": 0,
+      "maxShiftStepPx": 0,
+      "depthTextChanges": 0,
+      "finalScrollY": 0,
+      "finalDepthText": "-12m"
+    },
+    {
+      "label": "guide_jump_sequence",
+      "durationMs": 8046.5999999996275,
+      "rafSamples": 742,
+      "avgRafDeltaMs": 10.830458221024259,
+      "p95RafDeltaMs": 30.299999999999272,
+      "maxRafDeltaMs": 121.20000000000073,
+      "framesOver20Ms": 69,
+      "framesOver33Ms": 26,
+      "framesOver50Ms": 8,
+      "longTaskCount": 1,
+      "maxLongTaskMs": 55,
+      "longTaskTotalMs": 55,
+      "modesSeen": {
+        "normal": 540,
+        "traveling": 155,
+        "settling": 17,
+        "glide": 31
+      },
+      "modeTransitions": 7,
+      "flags": {
+        "glideSeen": true,
+        "travelingSeen": true,
+        "settlingSeen": true,
+        "lockedSeen": true
+      },
+      "sampleCount": 743,
+      "glideSampleRatio": 0.04172274562584118,
+      "tapeChanges": 57,
+      "maxTapeStepPx": 107.90000000000003,
+      "shiftChanges": 51,
+      "maxShiftStepPx": 2.0999999999999996,
+      "depthTextChanges": 45,
+      "finalScrollY": 2492.12109375,
+      "finalDepthText": "-28m"
+    },
+    {
+      "label": "scroll_burst",
+      "durationMs": 3755.0999999996275,
+      "rafSamples": 227,
+      "avgRafDeltaMs": 16.393392070484577,
+      "p95RafDeltaMs": 30.399999999999636,
+      "maxRafDeltaMs": 266.59999999999854,
+      "framesOver20Ms": 27,
+      "framesOver33Ms": 8,
+      "framesOver50Ms": 6,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "longTaskTotalMs": 0,
+      "modesSeen": {
+        "normal": 158,
+        "traveling": 55,
+        "settling": 15
+      },
+      "modeTransitions": 3,
+      "flags": {
+        "glideSeen": false,
+        "travelingSeen": true,
+        "settlingSeen": true,
+        "lockedSeen": false
+      },
+      "sampleCount": 228,
+      "glideSampleRatio": 0,
+      "tapeChanges": 0,
+      "maxTapeStepPx": 0,
+      "shiftChanges": 0,
+      "maxShiftStepPx": 0,
+      "depthTextChanges": 0,
+      "finalScrollY": 2199.999755859375,
+      "finalDepthText": "-28m"
+    },
+    {
+      "label": "slow_glide_depth",
+      "durationMs": 9057.799999998882,
+      "rafSamples": 238,
+      "avgRafDeltaMs": 37.94201680672269,
+      "p95RafDeltaMs": 248.5,
+      "maxRafDeltaMs": 266.8000000000029,
+      "framesOver20Ms": 96,
+      "framesOver33Ms": 47,
+      "framesOver50Ms": 31,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "longTaskTotalMs": 0,
+      "modesSeen": {
+        "normal": 171,
+        "glide": 68
+      },
+      "modeTransitions": 4,
+      "flags": {
+        "glideSeen": true,
+        "travelingSeen": false,
+        "settlingSeen": false,
+        "lockedSeen": false
+      },
+      "sampleCount": 239,
+      "glideSampleRatio": 0.28451882845188287,
+      "tapeChanges": 0,
+      "maxTapeStepPx": 0,
+      "shiftChanges": 0,
+      "maxShiftStepPx": 0,
+      "depthTextChanges": 0,
+      "finalScrollY": 2015.7574462890625,
+      "finalDepthText": "-28m"
+    }
+  ]
+}

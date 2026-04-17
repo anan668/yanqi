@@ -1,0 +1,181 @@
+{
+  "capturedAt": "2026-04-17T08:39:19.759Z",
+  "pageUrl": "http://127.0.0.1:8000/site/home.html?glideRerun=1776415149835",
+  "snapshots": [
+    {
+      "y": 0,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-12m"
+    },
+    {
+      "y": 47.8787841796875,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-12m"
+    },
+    {
+      "y": 95.757568359375,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-12m"
+    },
+    {
+      "y": 144.24241638183594,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-12m"
+    },
+    {
+      "y": 192.12120056152344,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-13m"
+    },
+    {
+      "y": 239.99998474121094,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-13m"
+    },
+    {
+      "y": 287.8787841796875,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-13m"
+    },
+    {
+      "y": 335.757568359375,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-13m"
+    },
+    {
+      "y": 384.2424011230469,
+      "mode": "glide",
+      "glide": true,
+      "settling": false,
+      "depth": "-14m"
+    },
+    {
+      "y": 432.1211853027344,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-15m"
+    },
+    {
+      "y": 479.9999694824219,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-15m"
+    },
+    {
+      "y": 527.8787841796875,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-16m"
+    },
+    {
+      "y": 575.757568359375,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-16m"
+    },
+    {
+      "y": 624.2423706054688,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-17m"
+    },
+    {
+      "y": 672.1211547851562,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-17m"
+    },
+    {
+      "y": 719.9999389648438,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-17m"
+    },
+    {
+      "y": 767.8787231445312,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-18m"
+    },
+    {
+      "y": 815.7575073242188,
+      "mode": "glide",
+      "glide": true,
+      "settling": false,
+      "depth": "-18m"
+    },
+    {
+      "y": 864.2423706054688,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-19m"
+    },
+    {
+      "y": 912.1211547851562,
+      "mode": "normal",
+      "glide": false,
+      "settling": false,
+      "depth": "-19m"
+    },
+    {
+      "y": 1007.8787231445312,
+      "mode": "glide",
+      "glide": true,
+      "settling": false,
+      "depth": "-20m"
+    },
+    {
+      "y": 1055.757568359375,
+      "mode": "glide",
+      "glide": true,
+      "settling": false,
+      "depth": "-20m"
+    },
+    {
+      "y": 1104.2423095703125,
+      "mode": "glide",
+      "glide": true,
+      "settling": false,
+      "depth": "-20m"
+    },
+    {
+      "y": 1152.12109375,
+      "mode": "glide",
+      "glide": true,
+      "settling": false,
+      "depth": "-21m"
+    }
+  ],
+  "tail": {
+    "y": 1152.12109375,
+    "mode": "normal",
+    "glide": false,
+    "settling": false,
+    "depth": "-20m"
+  }
+}

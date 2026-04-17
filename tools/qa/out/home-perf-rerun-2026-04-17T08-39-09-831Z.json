@@ -1,0 +1,105 @@
+{
+  "capturedAt": "2026-04-17T08:39:29.154Z",
+  "url": "http://127.0.0.1:8000/site/home.html?rerun=1776415149831",
+  "viewport": {
+    "width": 1440,
+    "height": 1200
+  },
+  "pageErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (File not found)"
+  ],
+  "results": [
+    {
+      "label": "ambient_home",
+      "durationMs": 1810.9000000003725,
+      "rafSamples": 122,
+      "avgRafDeltaMs": 14.703278688524591,
+      "p95RafDeltaMs": 18.40000000000009,
+      "maxRafDeltaMs": 24.5,
+      "framesOver20Ms": 6,
+      "framesOver33Ms": 0,
+      "framesOver50Ms": 0,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "longTaskTotalMs": 0,
+      "modesSeen": {
+        "normal": 123
+      },
+      "modeTransitions": 0,
+      "flags": {
+        "glideSeen": false,
+        "travelingSeen": false,
+        "settlingSeen": false,
+        "lockedSeen": false
+      },
+      "sampleCount": 123,
+      "glideSampleRatio": 0,
+      "depthTextChanges": 0,
+      "finalScrollY": 0,
+      "finalDepthText": "-12m"
+    },
+    {
+      "label": "guide_jump_sequence",
+      "durationMs": 8040.0999999996275,
+      "rafSamples": 832,
+      "avgRafDeltaMs": 9.6515625,
+      "p95RafDeltaMs": 24.199999999999818,
+      "maxRafDeltaMs": 145.39999999999964,
+      "framesOver20Ms": 47,
+      "framesOver33Ms": 23,
+      "framesOver50Ms": 8,
+      "longTaskCount": 1,
+      "maxLongTaskMs": 62,
+      "longTaskTotalMs": 62,
+      "modesSeen": {
+        "normal": 622,
+        "traveling": 156,
+        "glide": 55
+      },
+      "modeTransitions": 6,
+      "flags": {
+        "glideSeen": true,
+        "travelingSeen": true,
+        "settlingSeen": false,
+        "lockedSeen": true
+      },
+      "sampleCount": 833,
+      "glideSampleRatio": 0.06602641056422569,
+      "depthTextChanges": 39,
+      "finalScrollY": 2492.12109375,
+      "finalDepthText": "-28m"
+    },
+    {
+      "label": "scroll_burst",
+      "durationMs": 3713.9000000003725,
+      "rafSamples": 315,
+      "avgRafDeltaMs": 11.755555555555556,
+      "p95RafDeltaMs": 24.100000000002183,
+      "maxRafDeltaMs": 254.60000000000036,
+      "framesOver20Ms": 16,
+      "framesOver33Ms": 7,
+      "framesOver50Ms": 4,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "longTaskTotalMs": 0,
+      "modesSeen": {
+        "normal": 212,
+        "traveling": 74,
+        "settling": 30
+      },
+      "modeTransitions": 3,
+      "flags": {
+        "glideSeen": false,
+        "travelingSeen": true,
+        "settlingSeen": true,
+        "lockedSeen": false
+      },
+      "sampleCount": 316,
+      "glideSampleRatio": 0,
+      "depthTextChanges": 0,
+      "finalScrollY": 2199.999755859375,
+      "finalDepthText": "-28m"
+    }
+  ]
+}
