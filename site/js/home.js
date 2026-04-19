@@ -2673,7 +2673,6 @@ class BambooScroll {
         this.autoStepDurationMin = this.performanceProfile.lite ? 1.08 : 1.02;
         this.autoStepDurationMax = this.performanceProfile.lite ? 1.24 : 1.18;
         this.motionLiteVelocityThreshold = 900;
-        this.isMotionLite = false;
 
         this.shakeEnergy = 0;
 
@@ -2721,7 +2720,6 @@ class BambooScroll {
             this.measure();
             this.centerOnSpotId(getHomeHeroInitialSpotId());
             this.updateTrackPosition(true);
-            this.syncMotionLiteState(true);
             this.scheduleAutoStep();
         });
     }
@@ -2984,7 +2982,6 @@ class BambooScroll {
         this.trackPositionDirty = false;
 
         this.wrapper.classList.add('is-dragging');
-        this.syncMotionLiteState(true);
         this.ensureFrameLoop();
 
         if (this.wrapper.setPointerCapture) {
@@ -3113,8 +3110,6 @@ class BambooScroll {
             this.trackVelocity = 0;
             this.inertia.active = false;
         }
-
-        this.syncMotionLiteState(true);
 
         if (this.enableAutoStep && !HOME_INTERACTION_STATE.scrollTraveling) {
             this.scheduleAutoStep();
@@ -3407,13 +3402,11 @@ class BambooScroll {
         }
 
         if (isHomeInteractionLocked() && !this.isDragging) {
-            this.syncMotionLiteState(true);
             this.stopFrameLoop();
             return;
         }
 
         if (isSettling && !this.isDragging) {
-            this.syncMotionLiteState(true);
             this.stopFrameLoop();
             return;
         }
@@ -3422,35 +3415,7 @@ class BambooScroll {
             this.scheduleAutoStep();
         }
 
-        this.syncMotionLiteState(true);
         this.ensureFrameLoop();
-    }
-
-    shouldUseMotionLite() {
-        return this.isDragging
-            || HOME_INTERACTION_STATE.scrollTraveling
-            || this.isPageScrollSettlingActive()
-            || Math.abs(this.trackVelocity) >= this.motionLiteVelocityThreshold;
-    }
-
-    syncMotionLiteState(force = false) {
-        const nextMotionLite = this.shouldUseMotionLite();
-        if (!force && nextMotionLite === this.isMotionLite) {
-            return;
-        }
-
-        this.isMotionLite = nextMotionLite;
-        this.wrapper.classList.toggle('is-motion-lite', nextMotionLite);
-
-        if (!nextMotionLite) {
-            return;
-        }
-
-        this.shakeEnergy = 0;
-        this.lastActivePhysicsRange = null;
-        this.cardPhysics.forEach((_, index) => {
-            this.resetCardPhysicsState(index);
-        });
     }
 
     /**
@@ -3537,7 +3502,6 @@ class BambooScroll {
             this.updateTrackPosition();
             this.trackPositionDirty = false;
         }
-        this.syncMotionLiteState();
         this.updateCardPhysics(dt, timestamp / 1000);
         this.syncHoverWhileTrackMoves(timestamp);
 
@@ -3615,10 +3579,6 @@ class BambooScroll {
             return;
         }
 
-        if (this.isMotionLite) {
-            return;
-        }
-
         const energyDecay = this.isDragging ? 0.985 : 0.965;
         this.shakeEnergy *= Math.pow(energyDecay, dt * 60);
         if (this.shakeEnergy < 0.01) {
@@ -3677,10 +3637,6 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接更新抖动能量
      */
     injectShake(speedPxPerSecond) {
-        if (this.shouldUseMotionLite()) {
-            return;
-        }
-
         const normalized = this.clamp(speedPxPerSecond / 1600, 0, 1);
         this.shakeEnergy = this.clamp(this.shakeEnergy + 0.22 + normalized * 0.82, 0, 1.28);
 
@@ -3699,10 +3655,6 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接更新回弹参数
      */
     applyDragRecoil(velocity, accel) {
-        if (this.shouldUseMotionLite()) {
-            return;
-        }
-
         if (Math.abs(velocity) < 25 && Math.abs(accel) < 650) {
             return;
         }
@@ -3885,10 +3837,6 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接修改轨道速度
      */
     applyStepBrakeImpulse(direction) {
-        if (this.shouldUseMotionLite()) {
-            return;
-        }
-
         const brakeDirection = -Math.sign(direction || 1);
         this.shakeEnergy = this.clamp(this.shakeEnergy + 0.08, 0, 1.12);
 

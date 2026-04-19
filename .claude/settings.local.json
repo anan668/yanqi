@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" log --oneline --decorate -n 20 -- site/js/home.js site/css/home.css site/home.html)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" log -p -n 5 -- site/js/home.js site/css/home.css site/home.html)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" log --oneline -G \"is-motion-lite|motionLiteVelocityThreshold|cloneSets|enableInertia|applyDragRecoil|injectShake|baseAmplitude|lagScale|dragBackScale\" -- site/js/home.js site/css/home.css)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" show --stat --oneline b3e3286 -- site/js/home.js site/css/home.css site/home.html)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" show --stat --oneline ecde368 -- site/js/home.js site/css/home.css site/home.html)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" show --stat --oneline a312ac1 -- site/js/home.js site/css/home.css site/home.html)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" show b3e3286:site/js/home.js)",
+      "Bash(python -c \"import sys; data=sys.stdin.read\\(\\).splitlines\\(\\); start=2600; end=3910; [print\\(f'{i+1}\\\\t{line}'\\) for i,line in enumerate\\(data[start-1:end]\\)]\")",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" show a312ac1:site/js/home.js)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" show eab1a44 -- site/js/home.js site/css/home.css --unified=40)",
+      "Bash(python -c 'import sys; data=sys.stdin.read\\(\\).splitlines\\(\\); keys=\\('\\\\''is-motion-lite'\\\\'','\\\\''motionLiteVelocityThreshold'\\\\'','\\\\''enableInertia'\\\\'','\\\\''cloneSets'\\\\'','\\\\''updateCardPhysics'\\\\'','\\\\''injectShake'\\\\'','\\\\''applyDragRecoil'\\\\'','\\\\''shouldUseMotionLite'\\\\'','\\\\''trackVelocity *= Math.pow\\(0.94'\\\\'','\\\\''physicsRangeRadius'\\\\''\\); *)",
+      "Bash(git -C \"/c/Users/桉桉/Desktop/盐憩\" show 3a49e1b -- site/js/home.js site/css/home.css --unified=30)",
+      "Bash(findstr /n \"dragSpringStiffness lagScale dragBackScale recoilScale\" \"c:\\\\Users\\\\桉桉\\\\Desktop\\\\盐憩\\\\site\\\\js\\\\home.js\")"
     ]
   }
 }
