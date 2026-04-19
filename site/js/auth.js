@@ -15,7 +15,7 @@ const TAB_SWITCH_MS = 560;
 const TAB_LEAVE_MS = 320;
 const FEEDBACK_RESET_MS = 4200;
 const LOGIN_STORAGE_KEYS = Object.freeze({
-    email: 'yanqi_email',
+    phone: 'yanqi_phone',
     password: 'yanqi_password',
     accounts: 'yanqi_accounts'
 });
@@ -255,10 +255,6 @@ function startGuestVoyage(feedbackNode, sourceLabel = '游客入口', options = 
     }, 420);
 }
 
-/**
- * safeReadAccounts() - 从本地存储读取已注册账户列表
- * @returns {Array<object>} - 已注册账户数组；读取失败时返回空数组
- */
 function safeReadAccounts() {
     try {
         const raw = localStorage.getItem(LOGIN_STORAGE_KEYS.accounts);
@@ -269,11 +265,6 @@ function safeReadAccounts() {
     }
 }
 
-/**
- * safeSaveAccounts(accounts) - 将注册账户列表写回本地存储
- * @param {Array<object>} accounts - 需要保存的账户数组
- * @returns {boolean} - 是否保存成功
- */
 function safeSaveAccounts(accounts) {
     try {
         localStorage.setItem(LOGIN_STORAGE_KEYS.accounts, JSON.stringify(accounts));
@@ -283,55 +274,17 @@ function safeSaveAccounts(accounts) {
     }
 }
 
-/**
- * normalizeEmail(value) - 统一邮箱比较格式，避免大小写差异导致同一账户匹配失败
- * @param {string} value - 原始邮箱文本
- * @returns {string} - 归一化后的邮箱
- */
-function normalizeEmail(value) {
-    return String(value || '').trim().toLowerCase();
-}
-
-/**
- * normalizePhone(value) - 统一手机号比较格式，忽略空格和短横线
- * @param {string} value - 原始手机号文本
- * @returns {string} - 归一化后的手机号
- */
 function normalizePhone(value) {
     return String(value || '').trim().replace(/[\s-]+/g, '');
 }
 
-/**
- * normalizeLoginIdentity(value) - 把登录输入统一成可比较的邮箱或手机号
- * @param {string} value - 登录输入框里的文本
- * @returns {string} - 可用于匹配的身份值
- */
-function normalizeLoginIdentity(value) {
-    const trimmed = String(value || '').trim();
-    if (!trimmed) {
-        return '';
-    }
-
-    return trimmed.includes('@') ? normalizeEmail(trimmed) : normalizePhone(trimmed);
-}
-
-/**
- * findAccountByLoginIdentity(accounts, identity) - 通过邮箱或手机号查找已注册账户
- * @param {Array<object>} accounts - 已注册账户列表
- * @param {string} identity - 登录输入的邮箱或手机号
- * @returns {object|null} - 命中的账户对象；未找到时返回 null
- */
-function findAccountByLoginIdentity(accounts, identity) {
-    const normalizedIdentity = normalizeLoginIdentity(identity);
-    if (!normalizedIdentity) {
+function findAccountByPhone(accounts, phone) {
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone) {
         return null;
     }
 
-    return accounts.find((account) => {
-        const emailMatched = normalizeEmail(account?.email) === normalizedIdentity;
-        const phoneMatched = normalizePhone(account?.phone) === normalizedIdentity;
-        return emailMatched || phoneMatched;
-    }) || null;
+    return accounts.find((account) => normalizePhone(account?.phone) === normalizedPhone) || null;
 }
 
 /**
@@ -624,23 +577,12 @@ function validateRequiredInputs(inputs) {
     return { isValid, firstEmptyInput };
 }
 
-/**
- * formatTabAnimationDelays(tabName) - 为不同认证模式返回分层出现的延迟节奏
- * @param {string} tabName - 当前认证模式，login 或 register
- * @returns {number[]} - 该模式下字段动画的延迟列表
- */
 function formatTabAnimationDelays(tabName) {
     return tabName === 'login'
         ? [0.16, 0.3, 0.42, 0.56]
-        : [0.16, 0.3, 0.44, 0.58, 0.72, 0.86];
+        : [0.16, 0.3, 0.44, 0.58, 0.72];
 }
 
-/**
- * replayTabAnimations(tabName, refs) - 按当前模式重播品牌区、表单区和社交区的浮现节奏
- * @param {string} tabName - 当前认证模式
- * @param {object} refs - 页面关键 DOM 引用集合
- * @returns {void}
- */
 function replayTabAnimations(tabName, refs) {
     const { formBrand, tabSection, footerLinks, socialLogin, activeContent } = refs;
     const delays = formatTabAnimationDelays(tabName);
@@ -652,18 +594,10 @@ function replayTabAnimations(tabName, refs) {
         restartFadeIn(item, delays[index] ?? (0.16 + index * 0.14));
     });
 
-    restartFadeIn(footerLinks, tabName === 'login' ? 0.72 : 0.98);
-    restartFadeIn(socialLogin, tabName === 'login' ? 0.84 : 1.1);
+    restartFadeIn(footerLinks, tabName === 'login' ? 0.72 : 0.92);
+    restartFadeIn(socialLogin, tabName === 'login' ? 0.84 : 1.02);
 }
 
-/**
- * updateFormHeight(targetContent, authForm, immediate, fromContent) - 平滑更新表单容器高度，避免切换时跳动
- * @param {HTMLElement|null} targetContent - 目标内容容器
- * @param {HTMLElement|null} authForm - 表单包裹容器
- * @param {boolean} immediate - 是否立即同步高度
- * @param {HTMLElement|null} fromContent - 离场内容容器
- * @returns {void}
- */
 function updateFormHeight(targetContent, authForm, immediate = false, fromContent = null) {
     if (!targetContent || !authForm) {
         return;
@@ -685,13 +619,6 @@ function updateFormHeight(targetContent, authForm, immediate = false, fromConten
     });
 }
 
-/**
- * switchToTab(tabName, options, refs) - 切换登录与注册面板，并同步外层状态类、动画与深度反馈
- * @param {string} tabName - 目标模式，login 或 register
- * @param {object} options - 额外配置，如 immediate
- * @param {object} refs - 需要用到的 DOM 引用集合
- * @returns {void}
- */
 function switchToTab(tabName, options, refs) {
     const { immediate = false } = options || {};
     const { authForm, tabBtns, tabContents, feedbackNode, glassCard, formBrand, tabSection, footerLinks, socialLogin } = refs;
@@ -777,20 +704,15 @@ function switchToTab(tabName, options, refs) {
     triggerDepthResponse(1.06);
 }
 
-/**
- * restoreRememberedAccount(nodes) - 恢复“记住我”和最近一次注册的账户信息
- * @param {object} nodes - 登录页常用字段节点
- * @returns {void}
- */
 function restoreRememberedAccount(nodes) {
-    const { rememberCheckbox, loginEmailInput, loginPasswordInput, registerEmailInput, registerPhoneInput } = nodes;
+    const { rememberCheckbox, loginPhoneInput, loginPasswordInput, registerPhoneInput } = nodes;
 
     try {
-        const savedEmail = localStorage.getItem(LOGIN_STORAGE_KEYS.email);
+        const savedPhone = localStorage.getItem(LOGIN_STORAGE_KEYS.phone) || localStorage.getItem('yanqi_email');
         const savedPassword = localStorage.getItem(LOGIN_STORAGE_KEYS.password);
 
-        if (savedEmail && savedPassword) {
-            loginEmailInput.value = savedEmail;
+        if (savedPhone && savedPassword) {
+            loginPhoneInput.value = savedPhone;
             loginPasswordInput.value = savedPassword;
             rememberCheckbox.checked = true;
         }
@@ -801,25 +723,20 @@ function restoreRememberedAccount(nodes) {
     const accounts = safeReadAccounts();
     if (accounts.length > 0) {
         const lastAccount = accounts[accounts.length - 1];
-        registerEmailInput.value = lastAccount.email || '';
         registerPhoneInput.value = lastAccount.phone || '';
     }
 }
 
-/**
- * syncRememberMeStorage(nodes) - 按“记住我”状态同步保存或移除本地登录信息
- * @param {object} nodes - 登录字段与复选框节点集合
- * @returns {void}
- */
 function syncRememberMeStorage(nodes) {
-    const { rememberCheckbox, loginEmailInput, loginPasswordInput } = nodes;
+    const { rememberCheckbox, loginPhoneInput, loginPasswordInput } = nodes;
 
     try {
         if (rememberCheckbox.checked) {
-            localStorage.setItem(LOGIN_STORAGE_KEYS.email, loginEmailInput.value.trim());
+            localStorage.setItem(LOGIN_STORAGE_KEYS.phone, normalizePhone(loginPhoneInput.value));
             localStorage.setItem(LOGIN_STORAGE_KEYS.password, loginPasswordInput.value);
         } else {
-            localStorage.removeItem(LOGIN_STORAGE_KEYS.email);
+            localStorage.removeItem(LOGIN_STORAGE_KEYS.phone);
+            localStorage.removeItem('yanqi_email');
             localStorage.removeItem(LOGIN_STORAGE_KEYS.password);
         }
     } catch (error) {
@@ -827,20 +744,15 @@ function syncRememberMeStorage(nodes) {
     }
 }
 
-/**
- * bindRememberMe(nodes) - 绑定“记住我”相关的字段更新与初始回填
- * @param {object} nodes - 登录与注册字段节点集合
- * @returns {void}
- */
 function bindRememberMe(nodes) {
-    const { rememberCheckbox, loginEmailInput, loginPasswordInput } = nodes;
+    const { rememberCheckbox, loginPhoneInput, loginPasswordInput } = nodes;
     restoreRememberedAccount(nodes);
 
     rememberCheckbox.addEventListener('change', () => {
         syncRememberMeStorage(nodes);
     });
 
-    [loginEmailInput, loginPasswordInput].forEach((input) => {
+    [loginPhoneInput, loginPasswordInput].forEach((input) => {
         input.addEventListener('input', () => {
             if (rememberCheckbox.checked) {
                 syncRememberMeStorage(nodes);
@@ -849,35 +761,17 @@ function bindRememberMe(nodes) {
     });
 }
 
-/**
- * buildAccount(nodes) - 从注册表单构建新的账户对象
- * @param {object} nodes - 注册字段节点集合
- * @returns {object} - 用于写入本地存储的新账户数据
- */
 function buildAccount(nodes) {
     return {
-        email: nodes.registerEmailInput.value.trim(),
-        phone: nodes.registerPhoneInput.value.trim(),
+        phone: normalizePhone(nodes.registerPhoneInput.value),
         password: nodes.registerPasswordInput.value,
         registeredAt: new Date().toISOString()
     };
 }
 
-/**
- * isAccountDuplicated(accounts, nextAccount) - 检查邮箱或手机号是否已经注册过
- * @param {Array<object>} accounts - 当前已注册账户列表
- * @param {object} nextAccount - 待注册的新账户
- * @returns {boolean} - 已存在相同邮箱或手机号时返回 true
- */
 function isAccountDuplicated(accounts, nextAccount) {
-    const nextEmail = normalizeEmail(nextAccount?.email);
     const nextPhone = normalizePhone(nextAccount?.phone);
-
-    return accounts.some((account) => {
-        const emailDuplicated = nextEmail && normalizeEmail(account?.email) === nextEmail;
-        const phoneDuplicated = nextPhone && normalizePhone(account?.phone) === nextPhone;
-        return emailDuplicated || phoneDuplicated;
-    });
+    return accounts.some((account) => nextPhone && normalizePhone(account?.phone) === nextPhone);
 }
 
 /**
@@ -965,15 +859,9 @@ function bindInteractiveFeedback(nodes, feedbackNode) {
     });
 }
 
-/**
- * handleLoginSubmit(nodes, feedbackNode) - 处理登录模式的表单提交与本地校验
- * @param {object} nodes - 登录页节点集合
- * @param {HTMLElement|null} feedbackNode - 反馈节点
- * @returns {boolean} - 校验通过时返回 true
- */
 function handleLoginSubmit(nodes, feedbackNode) {
-    const { loginEmailInput, loginPasswordInput } = nodes;
-    const requiredInputs = [loginEmailInput, loginPasswordInput];
+    const { loginPhoneInput, loginPasswordInput } = nodes;
+    const requiredInputs = [loginPhoneInput, loginPasswordInput];
     const validation = validateRequiredInputs(requiredInputs);
 
     if (!validation.isValid) {
@@ -988,46 +876,39 @@ function handleLoginSubmit(nodes, feedbackNode) {
 
     const accounts = safeReadAccounts();
     if (accounts.length === 0) {
-        updateInvalidState(loginEmailInput, true);
+        updateInvalidState(loginPhoneInput, true);
         updateInvalidState(loginPasswordInput, false);
-        shakeEmptyField(loginEmailInput);
-        showFeedback(feedbackNode, '这层静水里还没有留下账户记录，先注册，再回来登录。', 'error');
+        shakeEmptyField(loginPhoneInput);
+        showFeedback(feedbackNode, '这层静水里还没有留下号码记录，先注册，再回来登录。', 'error');
         return false;
     }
 
-    const matchedAccount = findAccountByLoginIdentity(accounts, loginEmailInput.value);
+    const matchedAccount = findAccountByPhone(accounts, loginPhoneInput.value);
     if (!matchedAccount) {
-        updateInvalidState(loginEmailInput, true);
+        updateInvalidState(loginPhoneInput, true);
         updateInvalidState(loginPasswordInput, false);
-        shakeEmptyField(loginEmailInput);
-        showFeedback(feedbackNode, '没有找到这处入口对应的账户，检查邮箱或手机号，或者先注册。', 'error');
+        shakeEmptyField(loginPhoneInput);
+        showFeedback(feedbackNode, '没有找到这串号码对应的入口，检查一下手机号，或者先注册。', 'error');
         return false;
     }
 
     if (matchedAccount.password !== loginPasswordInput.value) {
-        updateInvalidState(loginEmailInput, false);
+        updateInvalidState(loginPhoneInput, false);
         updateInvalidState(loginPasswordInput, true);
         shakeEmptyField(loginPasswordInput);
-        showFeedback(feedbackNode, '这把密钥和本地记录还没对上，再轻轻确认一次。', 'error');
+        showFeedback(feedbackNode, '这把密钥和号码记录还没对上，再轻轻确认一次。', 'error');
         return false;
     }
 
-    updateInvalidState(loginEmailInput, false);
+    updateInvalidState(loginPhoneInput, false);
     updateInvalidState(loginPasswordInput, false);
     syncRememberMeStorage(nodes);
     showFeedback(feedbackNode, '入口已经替你打开，接下来会慢慢回到海面那一层。', 'success');
     return true;
 }
 
-/**
- * handleRegisterSubmit(nodes, feedbackNode) - 处理注册模式的本地校验与账户写入
- * @param {object} nodes - 注册页字段集合
- * @param {HTMLElement|null} feedbackNode - 反馈节点
- * @returns {boolean} - 注册成功时返回 true
- */
 function handleRegisterSubmit(nodes, feedbackNode) {
     const {
-        registerEmailInput,
         registerPhoneInput,
         registerPasswordInput,
         registerConfirmInput,
@@ -1035,7 +916,6 @@ function handleRegisterSubmit(nodes, feedbackNode) {
     } = nodes;
 
     const requiredInputs = [
-        registerEmailInput,
         registerPhoneInput,
         registerPasswordInput,
         registerConfirmInput,
@@ -1070,7 +950,7 @@ function handleRegisterSubmit(nodes, feedbackNode) {
     const accounts = safeReadAccounts();
 
     if (isAccountDuplicated(accounts, nextAccount)) {
-        showFeedback(feedbackNode, '这层静水已经记住过这个邮箱或手机号了，换一个入口更稳。', 'error');
+        showFeedback(feedbackNode, '这层静水已经记住过这串号码了，换一个入口更稳。', 'error');
         return false;
     }
 
@@ -1080,7 +960,7 @@ function handleRegisterSubmit(nodes, feedbackNode) {
         return false;
     }
 
-    showFeedback(feedbackNode, '盐憩已经记住你了，接下来可以慢慢进入第一层海。', 'success');
+    showFeedback(feedbackNode, '盐憩已经记住这串号码了，接下来可以慢慢进入第一层海。', 'success');
     return true;
 }
 
@@ -1124,12 +1004,6 @@ function bindGuestEntries(nodes, feedbackNode) {
     });
 }
 
-/**
- * bindFormSubmit(nodes, feedbackNode) - 绑定登录与注册表单提交逻辑
- * @param {object} nodes - 页面节点集合
- * @param {HTMLElement|null} feedbackNode - 反馈节点
- * @returns {void}
- */
 function bindFormSubmit(nodes, feedbackNode) {
     const { authForm } = nodes;
     if (!authForm) {
@@ -1160,12 +1034,6 @@ function bindFormSubmit(nodes, feedbackNode) {
     });
 }
 
-/**
- * bindTabSwitching(nodes, feedbackNode) - 绑定登录/注册模式切换按钮
- * @param {object} nodes - 页面节点集合
- * @param {HTMLElement|null} feedbackNode - 反馈节点
- * @returns {void}
- */
 function bindTabSwitching(nodes, feedbackNode) {
     const { authForm, tabButtons, tabContents, formBrand, tabSection, footerLinks, socialLogin, glassCard } = nodes;
 
@@ -1461,9 +1329,8 @@ function collectAuthNodes() {
         loginStageShell: document.getElementById('loginStageShell'),
         resizeHandles: Array.from(document.querySelectorAll('.login-stage-resize-handle')),
         allInputs: Array.from(document.querySelectorAll('#authForm input')),
-        loginEmailInput: document.getElementById('login-email'),
+        loginPhoneInput: document.getElementById('login-phone'),
         loginPasswordInput: document.getElementById('login-password'),
-        registerEmailInput: document.getElementById('register-email'),
         registerPhoneInput: document.getElementById('register-phone'),
         registerPasswordInput: document.getElementById('register-password'),
         registerConfirmInput: document.getElementById('register-confirm'),
