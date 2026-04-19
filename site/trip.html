@@ -239,7 +239,7 @@
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    max="99"
+                                                    max="12"
                                                     step="1"
                                                     inputmode="numeric"
                                                     class="planner-custom-people-input"
@@ -250,7 +250,7 @@
                                                     写进行程
                                                 </button>
                                             </div>
-                                            <p class="planner-custom-people-note">适合人数不在预设选项里的小团或同行安排。</p>
+                                            <p class="planner-custom-people-note" id="plannerCustomPeopleNote" aria-live="polite">适合人数不在预设选项里的小团或同行安排。</p>
                                         </div>
                                     </div>
                                     <input id="plannerPeople" type="hidden" value="">
@@ -388,6 +388,48 @@
                                 <p id="plannerSummarySwitchLive" class="sr-only" aria-live="polite" aria-atomic="true"></p>
                             </div>
 
+                            <section class="trip-proof-flow" id="tripProofFlow" aria-labelledby="tripProofTitle">
+                                <div class="trip-proof-flow-head">
+                                    <div class="trip-proof-flow-heading">
+                                        <p class="trip-proof-flow-kicker">Interaction Proof</p>
+                                        <h2 class="trip-proof-flow-title" id="tripProofTitle">这一层会把状态流讲得更清楚</h2>
+                                    </div>
+                                    <p class="trip-proof-flow-intro" id="tripProofFlowIntro">
+                                        这里能依次看到：入口如何被选定，行程怎样写进本地，以及回执怎样围绕当前这一条慢慢亮起来。
+                                    </p>
+                                </div>
+                                <div class="trip-proof-flow-status" id="tripProofFlowStatus" aria-live="polite">
+                                    <span class="trip-proof-flow-status-badge" id="tripProofFlowStatusBadge">当前入口</span>
+                                    <p class="trip-proof-flow-status-copy" id="tripProofFlowStatusCopy">还没有新的演示轨迹，先从首页或 detail 进入也可以。</p>
+                                </div>
+                                <ol class="trip-proof-flow-list">
+                                    <li class="trip-proof-flow-step" data-proof-step="choose">
+                                        <span class="trip-proof-flow-step-index">01</span>
+                                        <div class="trip-proof-flow-step-copy">
+                                            <strong>把入口先选定</strong>
+                                            <p>首页会带你空白进入，detail 会把具体海域和套餐一起收进这一层。</p>
+                                        </div>
+                                        <span class="trip-proof-flow-step-state" data-proof-step-state="choose">等待进入</span>
+                                    </li>
+                                    <li class="trip-proof-flow-step" data-proof-step="store">
+                                        <span class="trip-proof-flow-step-index">02</span>
+                                        <div class="trip-proof-flow-step-copy">
+                                            <strong>把状态写进本地</strong>
+                                            <p>行程草稿、已收进行程和当前激活项都会留在浏览器里，刷新后仍能回显。</p>
+                                        </div>
+                                        <span class="trip-proof-flow-step-state" data-proof-step-state="store">待写入</span>
+                                    </li>
+                                    <li class="trip-proof-flow-step" data-proof-step="receipt">
+                                        <span class="trip-proof-flow-step-index">03</span>
+                                        <div class="trip-proof-flow-step-copy">
+                                            <strong>让回执围绕这一条亮起</strong>
+                                            <p>当前高亮的安排会继续对准 Sea Brief，方便讲清楚状态流如何被收成最终回执。</p>
+                                        </div>
+                                        <span class="trip-proof-flow-step-state" data-proof-step-state="receipt">等待高亮</span>
+                                    </li>
+                                </ol>
+                            </section>
+
                             <!-- 已收进行程：显示在行程页确认过的套餐，让行程页像一份被慢慢收住的行程档案。 -->
                             <section class="confirmed-bookings-stage" id="confirmedBookingsStage" aria-labelledby="confirmedBookingsTitle">
                                 <div class="confirmed-bookings-head">
@@ -403,6 +445,16 @@
                                         换一批
                                     </button>
                                 </div>
+                                <p class="confirmed-bookings-active-note" id="confirmedBookingsActiveNote" aria-live="polite">
+                                    当前被高亮的这一程，会在这里说明它为什么正在对准回执。
+                                </p>
+                                <div class="confirmed-bookings-echo" id="confirmedBookingsEcho" aria-live="polite">
+                                    <div class="confirmed-bookings-echo-copy">
+                                        <p class="confirmed-bookings-echo-kicker">Local Echo</p>
+                                        <p class="confirmed-bookings-echo-line" id="confirmedBookingsEchoCopy">还没有检测到本地写入的行程。</p>
+                                    </div>
+                                    <div class="confirmed-bookings-echo-meta" id="confirmedBookingsEchoMeta"></div>
+                                </div>
 
                                 <div class="confirmed-bookings-empty" id="confirmedBookingsEmpty">
                                     还没有哪一片海被正式收进行程。等你在详情页慢慢确认以后，它会停在这里。
@@ -416,7 +468,7 @@
                                     <div class="sea-brief-copy">
                                         <p class="sea-brief-kicker">Sea Brief</p>
                                         <h2 class="sea-brief-title" id="seaBriefTitle">这一潜的最终回执</h2>
-                                        <p class="sea-brief-intro">当一套安排真正被收进行程以后，这里会把海域、窗口、适配判断和准备节奏一起写成一张可以带走的桌面档案。</p>
+                                        <p class="sea-brief-intro">当一套安排真正被收进行程以后，这里会把海域、窗口、适配判断和准备节奏一起写成一张可以带走的桌面档案，也让“当前高亮的是哪一程”这件事讲得更清楚。</p>
                                     </div>
                                 </div>
                                 <div class="sea-brief-empty" id="seaBriefEmpty">还没有哪一套安排被写成最终回执。等你在详情页确认套餐以后，它会慢慢停在这里。</div>

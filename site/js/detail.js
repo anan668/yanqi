@@ -24,6 +24,7 @@ const sharedShowcaseState = window.YanqiShowcaseState || null;
 const PRICE_DISPLAY_VERSION = sharedPriceTools?.PRICE_DISPLAY_VERSION || '';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
+const DEMO_FLOW_STORAGE_KEY = 'YANQI_DEMO_FLOW_STATE';
 const PACKAGE_MODAL_DURATION_MIN_DAYS = 2;
 const PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS = 6;
 const PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS = 12;
@@ -112,6 +113,42 @@ function stripStageDebugQueryFromUrl() {
         window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
     } catch (error) {
         // URL 处理失败时保留当前地址，不影响主流程。
+    }
+}
+
+function getBookingPendingFieldLabels(booking) {
+    const labels = [];
+    if (!String(booking?.selectedDate || '').trim()) {
+        labels.push('日期');
+    }
+    if (!String(booking?.selectedPeople || '').trim()) {
+        labels.push('同行');
+    }
+    return labels;
+}
+
+function buildBookingPendingProofCopy(booking) {
+    const pendingLabels = getBookingPendingFieldLabels(booking);
+    if (!pendingLabels.length) {
+        return '日期与同行也已经一起写进这一条安排里了。';
+    }
+    return `待补齐：${pendingLabels.join('、')}，稍后去“我的行程”还能继续慢慢补。`;
+}
+
+function writeDetailDemoFlowState(source, action, targetAnchor) {
+    const rawTargetAnchor = String(targetAnchor || '').trim() || '#seaBriefStage';
+    const hashIndex = rawTargetAnchor.indexOf('#');
+    const normalizedTargetAnchor = hashIndex >= 0 ? rawTargetAnchor.slice(hashIndex) : rawTargetAnchor;
+
+    try {
+        sessionStorage.setItem(DEMO_FLOW_STORAGE_KEY, JSON.stringify({
+            source: String(source || '').trim() || 'detail',
+            action: String(action || '').trim() || 'booking-confirmed',
+            targetAnchor: normalizedTargetAnchor || '#seaBriefStage',
+            updatedAt: new Date().toISOString()
+        }));
+    } catch (error) {
+        // sessionStorage 不可用时静默降级，避免打断详情页确认流程。
     }
 }
 
@@ -13244,17 +13281,21 @@ class DetailPage {
 
         const dateCopy = booking.selectedDateLabel || '仍在等一段合适的潮汐';
         const peopleCopy = booking.selectedPeopleLabel || '同行节奏还没写进这一潜';
+        const pendingCopy = buildBookingPendingProofCopy(booking);
+        const targetLabel = booking?.briefId ? 'Sea Brief 回执区' : '已收进行程区';
 
         this.bookingNote.classList.add('is-success');
         const nextHref = booking?.briefId ? 'trip.html#seaBriefStage' : 'trip.html#confirmedBookingsStage';
         this.bookingNote.innerHTML = `
             <div class="booking-note-feedback">
                 <div class="booking-note-feedback-inner">
-                    <span class="booking-note-state">这片海已经慢慢收进行程了</span>
-                    <p>${booking.packageTitle} 已替你停进这次安排里。接下来，可以直接去看这一潜已经对准的回执，再继续整理日期、同行与准备判断。</p>
+                    <span class="booking-note-state">已写入本地行程</span>
+                    <p>${escapeHtml(booking.packageTitle || '这套安排')} 已替你停进这次安排里。跳到“我的行程”以后，${escapeHtml(targetLabel)}会先把这一条高亮出来。</p>
+                    <p class="booking-note-pending">${escapeHtml(pendingCopy)}</p>
                     <div class="booking-note-meta">
-                        <span>日期：${dateCopy}</span>
-                        <span>同行：${peopleCopy}</span>
+                        <span>日期：${escapeHtml(dateCopy)}</span>
+                        <span>同行：${escapeHtml(peopleCopy)}</span>
+                        <span>下一站：${escapeHtml(targetLabel)}</span>
                     </div>
                 </div>
                 <a class="booking-note-link" href="${nextHref}">继续看回执</a>
@@ -13270,6 +13311,7 @@ class DetailPage {
     renderBookingConfirmedMeta(booking) {
         const dateCopy = booking.selectedDateLabel || '仍在等一段合适的潮汐';
         const peopleCopy = booking.selectedPeopleLabel || '同行节奏还没写进这一潜';
+        const pendingLabels = getBookingPendingFieldLabels(booking);
 
         return `
             <span class="booking-confirm-chip">${escapeHtml(booking.spotName || '未命名海域')}</span>
@@ -13279,6 +13321,9 @@ class DetailPage {
             ${booking.windowLabel ? `<span class="booking-confirm-chip">${escapeHtml(booking.windowLabel)}</span>` : ''}
             <span class="booking-confirm-chip">潮汐：${escapeHtml(dateCopy)}</span>
             <span class="booking-confirm-chip">同行：${escapeHtml(peopleCopy)}</span>
+            ${pendingLabels.length
+                ? `<span class="booking-confirm-chip is-pending">待补齐：${escapeHtml(pendingLabels.join('、'))}</span>`
+                : '<span class="booking-confirm-chip">回执已经可以直接展开</span>'}
         `;
     }
 
@@ -13294,7 +13339,7 @@ class DetailPage {
 
         window.clearTimeout(this.bookingConfirmCloseTimer);
         this.bookingConfirmFeedback.classList.remove('is-closing');
-        this.bookingConfirmCopy.textContent = '你可以继续留在这里看这片海，也可以去“我的行程”直接查看这一潜已经对准的回执、准备判断和已收进行程。';
+        this.bookingConfirmCopy.textContent = `这条安排已经写进本地行程了。跳去“我的行程”以后，回执区会先高亮这一条。${buildBookingPendingProofCopy(savedBooking)}`;
         this.bookingConfirmMeta.innerHTML = this.renderBookingConfirmedMeta(savedBooking);
         if (this.bookingConfirmGoTrip) {
             this.bookingConfirmGoTrip.href = savedBooking?.briefId
@@ -13359,6 +13404,7 @@ class DetailPage {
         if (booking?.entryId && typeof this.tripStore.saveActiveBookingId === 'function') {
             this.tripStore.saveActiveBookingId(booking.entryId);
         }
+        writeDetailDemoFlowState('detail', 'booking-confirmed', booking?.briefId ? '#seaBriefStage' : '#confirmedBookingsStage');
         this.selectedPackageId = pkg.id;
         this.bookedPackageIds = this.getBookedPackageIdsForCurrentSpot();
         this.applyPackageCardSelectionState(pkg.id);
@@ -14258,6 +14304,7 @@ class DetailPage {
                 }
 
                 event.preventDefault();
+                writeDetailDemoFlowState('detail', 'booking-confirmed', confirmLink.getAttribute('href'));
                 navigateWithDepth(confirmLink.getAttribute('href'));
             });
         }
@@ -14267,6 +14314,7 @@ class DetailPage {
                 const goTripLink = event.target.closest('#bookingConfirmGoTrip[href]');
                 if (goTripLink) {
                     event.preventDefault();
+                    writeDetailDemoFlowState('detail', 'booking-confirmed', goTripLink.getAttribute('href'));
                     this.hideBookingConfirmedFeedback({ immediate: true });
                     window.requestAnimationFrame(() => {
                         navigateWithDepth(goTripLink.getAttribute('href'));

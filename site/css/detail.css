@@ -13136,6 +13136,10 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     margin: 0;
 }
 
+.booking-note-pending {
+    color: #4b6f88;
+}
+
 .booking-note-meta {
     display: flex;
     flex-wrap: wrap;
@@ -13162,6 +13166,12 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transform: translateY(-2px);
     border-color: rgba(129, 189, 219, 0.36);
     background: rgba(26, 92, 133, 0.14);
+}
+
+.booking-confirm-chip.is-pending {
+    background: rgba(247, 198, 138, 0.14);
+    border-color: rgba(246, 191, 124, 0.24);
+    color: rgba(252, 229, 200, 0.94);
 }
 
 .booking-confirm-feedback {

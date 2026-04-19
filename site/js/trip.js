@@ -61,6 +61,8 @@ const PREP_CONTENT = Object.freeze({
 
 const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HOME_ENTRY_DEPTH_STORAGE_KEY = 'YANQI_HOME_ENTRY_DEPTH';
+const TRIP_DEMO_FLOW_STORAGE_KEY = 'YANQI_DEMO_FLOW_STATE';
+const TRIP_DEMO_SCROLL_DELAY_MS = 180;
 
 function resolveTripSpotId(value) {
     const rawValue = String(value || '').trim();
@@ -599,6 +601,7 @@ function setupPlannerSummary() {
     const customPeopleBox = document.getElementById('plannerCustomPeople');
     const customPeopleInput = document.getElementById('plannerCustomPeopleInput');
     const customPeopleApply = document.getElementById('plannerCustomPeopleApply');
+    const customPeopleNote = document.getElementById('plannerCustomPeopleNote');
 
     const calendarMonth = document.getElementById('plannerCalendarMonth');
     const calendarGrid = document.getElementById('plannerCalendarGrid');
@@ -646,6 +649,7 @@ function setupPlannerSummary() {
         !customPeopleBox ||
         !customPeopleInput ||
         !customPeopleApply ||
+        !customPeopleNote ||
         !calendarMonth ||
         !calendarGrid ||
         !calendarPrev ||
@@ -921,6 +925,7 @@ function setupPlannerSummary() {
     const defaultSummaryActiveCompanion = readInitialSummaryDeckText('active-companion', '\u540c\u884c\u8282\u594f\u5f85\u5b9a');
     const defaultSummaryNeighborStatus = readInitialSummaryNeighborText(summaryPrevNeighbor, 'status', '\u65f6\u95f4\u4e0e\u540c\u884c\u5f85\u6536\u62e2');
     const defaultPlannerSwitcherNote = plannerBookingSwitcherNote.textContent.trim() || '\u5f53\u524d\u53ea\u6574\u7406\u4e00\u6761\u4e0b\u6f5c\u8282\u594f';
+    const defaultCustomPeopleNote = customPeopleNote.textContent.trim() || '适合人数不在预设选项里的小团或同行安排。';
     const SUMMARY_SWITCH_DURATION_MS = 780;
     const SUMMARY_SWIPE_TRIGGER_DISTANCE = 58;
     const SUMMARY_SWIPE_CLAIM_DISTANCE = 18;
@@ -1113,6 +1118,46 @@ function setupPlannerSummary() {
         const nextLabel = buildPlannerSubmitActionLabel();
         submitButton.dataset.baseLabel = nextLabel;
         submitButtonLabel.textContent = nextLabel;
+    }
+
+    function setCustomPeopleNote(message, state = 'default') {
+        const safeMessage = String(message || '').trim() || defaultCustomPeopleNote;
+        customPeopleNote.textContent = safeMessage;
+        customPeopleNote.classList.toggle('is-error', state === 'error');
+    }
+
+    function getPlannerFirstIncompleteFieldKey() {
+        return PROGRESSIVE_ORDER.find((fieldKey) => !isFieldComplete(fieldKey)) || '';
+    }
+
+    function buildPlannerValidationFeedback(fieldKey) {
+        switch (fieldKey) {
+        case 'date':
+            return {
+                button: '还差出发潮汐',
+                status: '海域已经落位了，接下来还差一段更合适的出发时间。'
+            };
+        case 'people':
+            return {
+                button: '还差同行节奏',
+                status: '海域和出发时间都已经靠近，最后把同行人数写进这一程。'
+            };
+        case 'spot':
+        default:
+            return {
+                button: '还差一片海',
+                status: '先把想去的海域写下来，这一程才会真正开始收束。'
+            };
+        }
+    }
+
+    function focusPlannerField(fieldKey) {
+        const targetFieldKey = resolvePlannerFieldKey(fieldKey);
+        scrollToSection('#plannerDeskControl', 1320);
+        window.setTimeout(() => {
+            openPanel(targetFieldKey);
+            fieldMap[targetFieldKey]?.trigger?.focus({ preventScroll: true });
+        }, 180);
     }
 
     function getPlannerSummaryStage(hasSpot, hasDate, hasPeople) {
@@ -1708,13 +1753,35 @@ function setupPlannerSummary() {
         submitButton.disabled = false;
         submitButton.removeAttribute('aria-busy');
         submitButton.removeAttribute('aria-label');
-        submitButton.classList.remove('is-feedback', 'is-feedback-confirmed');
+        submitButton.classList.remove('is-feedback', 'is-feedback-confirmed', 'is-feedback-warning');
         summaryRoot.classList.remove('is-submit-feedback');
         syncPlannerSubmitActionLabel();
 
         if (shouldSyncSummary) {
             updatePlannerSummary();
         }
+    }
+
+    function triggerPlannerValidationFeedback(fieldKey) {
+        const feedbackCopy = buildPlannerValidationFeedback(fieldKey);
+
+        resetPlannerSubmitFeedback({ syncSummary: false });
+
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-busy', 'true');
+        submitButton.classList.add('is-feedback', 'is-feedback-warning');
+        submitButtonLabel.textContent = feedbackCopy.button;
+        submitButton.setAttribute('aria-label', feedbackCopy.button);
+        attachPlannerSubmitFeedbackInterruption();
+
+        restartTransientClassAnimation(summaryRoot, 'is-submit-feedback');
+        setPlannerSummaryStatusOverride(feedbackCopy.status);
+
+        submitFeedbackResetTimer = window.setTimeout(() => {
+            submitFeedbackResetTimer = 0;
+            resetPlannerSubmitFeedback();
+            focusPlannerField(fieldKey);
+        }, 1160);
     }
 
     function triggerPlannerSubmitFeedback() {
@@ -2572,6 +2639,8 @@ function setupPlannerSummary() {
     function hideCustomPeopleEditor() {
         customPeopleBox.hidden = true;
         customPeopleInput.value = '';
+        customPeopleInput.removeAttribute('aria-invalid');
+        setCustomPeopleNote(defaultCustomPeopleNote);
     }
 
     /**
@@ -2582,6 +2651,8 @@ function setupPlannerSummary() {
     function showCustomPeopleEditor(prefillValue) {
         customPeopleBox.hidden = false;
         customPeopleInput.value = prefillValue || '';
+        customPeopleInput.removeAttribute('aria-invalid');
+        setCustomPeopleNote(defaultCustomPeopleNote);
         window.requestAnimationFrame(() => {
             requestPanelPositionMeasure();
             customPeopleInput.focus();
@@ -2595,10 +2666,32 @@ function setupPlannerSummary() {
      */
     function applyCustomPeopleValue() {
         const customValue = String(customPeopleInput.value || '').trim();
-        const parsed = Number.parseInt(customValue, 10);
-        if (!Number.isFinite(parsed) || parsed < 1) {
+        if (!customValue) {
+            customPeopleInput.setAttribute('aria-invalid', 'true');
+            setCustomPeopleNote('先写一个同行人数，这一潜才会有清楚的队形。', 'error');
+            customPeopleInput.focus();
             return;
         }
+
+        if (!/^\d+$/.test(customValue)) {
+            customPeopleInput.setAttribute('aria-invalid', 'true');
+            setCustomPeopleNote('这里只收数字人数，例如 2、4 或 8。', 'error');
+            customPeopleInput.focus();
+            customPeopleInput.select();
+            return;
+        }
+
+        const parsed = Number.parseInt(customValue, 10);
+        if (!Number.isFinite(parsed) || parsed < 1 || parsed > 12) {
+            customPeopleInput.setAttribute('aria-invalid', 'true');
+            setCustomPeopleNote('同行人数先收在 1 到 12 人之间，会更像这次行程的节奏。', 'error');
+            customPeopleInput.focus();
+            customPeopleInput.select();
+            return;
+        }
+
+        customPeopleInput.removeAttribute('aria-invalid');
+        setCustomPeopleNote(`已按 ${parsed} 人的同行节奏收住这一潜。`);
 
         const customOption = peoplePanel.querySelector('.planner-option[data-option-group="people"][data-value="custom"]');
         if (!customOption) {
@@ -2913,6 +3006,8 @@ function setupPlannerSummary() {
             store.savePlannerDraft(buildPlannerDraftPayload());
         }
 
+        syncTripProofFlowState();
+
         return state;
     }
 
@@ -3045,6 +3140,14 @@ function setupPlannerSummary() {
             peopleValue: peopleInput.value,
             peopleLabel: peopleInput.dataset.label || COPY.people.emptyLabel
         });
+
+        if (activeBooking?.entryId) {
+            writeTripDemoFlowState({
+                source: 'trip',
+                action: 'planner-draft',
+                targetAnchor: '#confirmedBookingsStage'
+            });
+        }
 
         renderConfirmedBookings();
         window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated'));
@@ -3396,8 +3499,32 @@ function setupPlannerSummary() {
         event.preventDefault();
         clearPendingAutoAdvance();
         persistPlannerDraft();
-        commitPlannerDeskSelection();
         closeActivePanel();
+
+        const missingFieldKey = getPlannerFirstIncompleteFieldKey();
+        if (missingFieldKey) {
+            if (getActiveBooking()?.entryId) {
+                commitPlannerDeskSelection();
+            } else {
+                writeTripDemoFlowState({
+                    source: 'trip',
+                    action: 'planner-draft',
+                    targetAnchor: '#plannerDeskControl'
+                });
+            }
+            triggerPlannerValidationFeedback(missingFieldKey);
+            return;
+        }
+
+        if (getActiveBooking()?.entryId) {
+            commitPlannerDeskSelection();
+        } else {
+            writeTripDemoFlowState({
+                source: 'trip',
+                action: 'planner-draft',
+                targetAnchor: '#plannerSummary'
+            });
+        }
         triggerPlannerSubmitFeedback();
     });
 
@@ -3626,6 +3753,232 @@ function getActiveConfirmedBooking(bookings = []) {
     return safeBookings.find((booking) => String(booking?.entryId || '').trim() === activeEntryId)
         || safeBookings[0]
         || null;
+}
+
+function readTripDemoFlowState() {
+    try {
+        const raw = sessionStorage.getItem(TRIP_DEMO_FLOW_STORAGE_KEY);
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') {
+            return null;
+        }
+
+        return {
+            source: String(parsed.source || '').trim(),
+            action: String(parsed.action || '').trim(),
+            targetAnchor: String(parsed.targetAnchor || '').trim(),
+            updatedAt: String(parsed.updatedAt || '').trim()
+        };
+    } catch (error) {
+        return null;
+    }
+}
+
+function writeTripDemoFlowState(nextState = {}) {
+    const normalized = {
+        source: String(nextState.source || '').trim() || 'trip',
+        action: String(nextState.action || '').trim() || 'planner-draft',
+        targetAnchor: String(nextState.targetAnchor || '').trim() || '#plannerSummary',
+        updatedAt: new Date().toISOString()
+    };
+
+    try {
+        sessionStorage.setItem(TRIP_DEMO_FLOW_STORAGE_KEY, JSON.stringify(normalized));
+        return normalized;
+    } catch (error) {
+        return null;
+    }
+}
+
+function getTripNavigationType() {
+    const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0];
+    return String(navigationEntry?.type || '').trim();
+}
+
+function getTripDemoSourceLabel(source) {
+    switch (String(source || '').trim()) {
+    case 'detail':
+        return 'detail 页';
+    case 'home':
+        return '首页入口';
+    case 'trip':
+        return 'trip planner';
+    default:
+        return '';
+    }
+}
+
+function getTripDraftFilledCount(draft) {
+    const safeDraft = draft && typeof draft === 'object' ? draft : {};
+    return [
+        safeDraft.spot || safeDraft.spotValue,
+        safeDraft.date || safeDraft.dateValue,
+        safeDraft.people || safeDraft.peopleValue
+    ].filter((value) => String(value || '').trim()).length;
+}
+
+function syncTripProofFlowState() {
+    const statusBadge = document.getElementById('tripProofFlowStatusBadge');
+    const statusCopy = document.getElementById('tripProofFlowStatusCopy');
+    const introCopy = document.getElementById('tripProofFlowIntro');
+    const activeNote = document.getElementById('confirmedBookingsActiveNote');
+    const echoCopy = document.getElementById('confirmedBookingsEchoCopy');
+    const echoMeta = document.getElementById('confirmedBookingsEchoMeta');
+    if (!statusBadge || !statusCopy || !introCopy || !activeNote || !echoCopy || !echoMeta) {
+        return;
+    }
+
+    const store = getTripStore();
+    const bookings = sortConfirmedBookings(store?.getConfirmedBookings?.() || []);
+    const activeBooking = getActiveConfirmedBooking(bookings);
+    const draft = store?.getPlannerDraft?.() || {};
+    const draftFilledCount = getTripDraftFilledCount(draft);
+    const marker = readTripDemoFlowState();
+    const navigationType = getTripNavigationType();
+    const isReload = navigationType === 'reload';
+    const targetAnchor = String(window.location.hash || marker?.targetAnchor || '').trim();
+    const sourceLabel = getTripDemoSourceLabel(marker?.source);
+
+    let activeStep = 'choose';
+    if (targetAnchor === '#seaBriefStage' && activeBooking) {
+        activeStep = 'receipt';
+    } else if (bookings.length || targetAnchor === '#confirmedBookingsStage' || marker?.action === 'booking-confirmed') {
+        activeStep = 'store';
+    }
+
+    const stepStates = {
+        choose: {
+            complete: Boolean(marker?.source) || draftFilledCount > 0 || bookings.length > 0,
+            label: activeStep === 'choose'
+                ? (draftFilledCount > 0 ? '正在整理' : '当前入口')
+                : ((draftFilledCount > 0 || bookings.length > 0 || marker?.source) ? '入口已落位' : '等待进入')
+        },
+        store: {
+            complete: bookings.length > 0,
+            label: activeStep === 'store'
+                ? (bookings.length > 0 ? '当前高亮' : '准备写入')
+                : (bookings.length > 0 ? '已写入本地' : '待写入')
+        },
+        receipt: {
+            complete: Boolean(activeBooking),
+            label: activeStep === 'receipt'
+                ? '正在对准回执'
+                : (activeBooking ? '已可展开' : '等待高亮')
+        }
+    };
+
+    document.querySelectorAll('.trip-proof-flow-step[data-proof-step]').forEach((stepNode) => {
+        const stepKey = String(stepNode.dataset.proofStep || '').trim();
+        const state = stepStates[stepKey];
+        if (!state) {
+            return;
+        }
+
+        stepNode.classList.toggle('is-active', stepKey === activeStep);
+        stepNode.classList.toggle('is-complete', Boolean(state.complete));
+        const stateNode = stepNode.querySelector(`[data-proof-step-state="${stepKey}"]`);
+        if (stateNode) {
+            stateNode.textContent = state.label;
+        }
+    });
+
+    if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
+        statusBadge.textContent = '本地回声已恢复';
+        statusCopy.textContent = activeBooking
+            ? `上一条安排已经从本地回声里浮回来了，当前高亮的是 ${activeBooking.spotName || '这一程'}。`
+            : '上一轮草稿已经从本地回声里浮回来了，你可以继续接着整理。';
+        introCopy.textContent = '这一次会先演示：页面刷新以后，本地状态怎样继续回显，并把当前这一条重新收回到桌面上。';
+    } else if (marker?.source === 'detail' && marker?.action === 'booking-confirmed') {
+        statusBadge.textContent = 'detail -> trip';
+        statusCopy.textContent = activeBooking
+            ? `刚刚从 detail 把 ${activeBooking.spotName || '这片海'} 写进了本地行程，回执区会先围绕这一条亮起来。`
+            : '刚刚从 detail 收进了一条安排，下面会先展示它如何写入本地。';
+        introCopy.textContent = '这一次会先演示：detail 怎样把一条安排写进本地，再让已收进行程和 Sea Brief 一起围绕它联动。';
+    } else if (marker?.source === 'home') {
+        statusBadge.textContent = 'home -> trip';
+        statusCopy.textContent = '这是从首页直接下来的空白入口，先在 Trip Console 里把海域、潮汐和同行节奏慢慢写齐。';
+        introCopy.textContent = '这一次会先从首页空白进入，让 Trip Console 自己把草稿慢慢收出来，再讲清楚状态是怎么一路往下带的。';
+    } else if (marker?.source === 'trip') {
+        statusBadge.textContent = 'trip planner';
+        statusCopy.textContent = bookings.length > 0
+            ? '最近一次更新来自 Trip Console，本地行程和当前高亮会继续跟着这一程一起收束。'
+            : '最近一次动作来自 Trip Console，草稿会先留在这一层，等你继续往下收。';
+        introCopy.textContent = '这一次会先演示：Trip Console 怎样修改草稿、回写本地状态，再把结果推给后面的回执区。';
+    } else if (bookings.length > 0) {
+        statusBadge.textContent = '本地已检测到';
+        statusCopy.textContent = activeBooking
+            ? `当前已经检测到 ${bookings.length} 条本地行程，${activeBooking.spotName || '这一程'} 正在作为回执中心。`
+            : `当前已经检测到 ${bookings.length} 条本地行程。`;
+        introCopy.textContent = '这里会依次看到：入口如何被选定，状态怎样写进本地，以及回执怎样围绕当前这一条慢慢亮起来。';
+    } else {
+        statusBadge.textContent = '当前入口';
+        statusCopy.textContent = '还没有新的演示轨迹，先从首页或 detail 进入也可以。';
+        introCopy.textContent = '这里会依次看到：入口如何被选定，行程怎样写进本地，以及回执怎样围绕当前这一条慢慢亮起来。';
+    }
+
+    if (activeBooking) {
+        activeNote.textContent = `当前高亮的是 ${activeBooking.spotName || '这一程'} · ${activeBooking.packageTitle || '当前套餐'}。Sea Brief 会围绕这一条继续整理。`;
+    } else if (bookings.length > 0) {
+        activeNote.textContent = '已经检测到本地行程，但当前还没有一条被明确对准为回执中心。';
+    } else {
+        activeNote.textContent = '当前还没有被高亮的这一程，先从 detail 写入一条安排，它会在这里被说明。';
+    }
+
+    if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
+        echoCopy.textContent = activeBooking
+            ? `上一条安排已经从本地回声里浮回来了，当前高亮的是 ${activeBooking.spotName || '这一程'}。`
+            : '上一轮草稿已经从本地回声里浮回来了。';
+    } else if (bookings.length > 0 && marker?.source === 'detail') {
+        echoCopy.textContent = '最近一次写入来自 detail 页，已收进行程和最终回执会围绕当前这一条一起联动。';
+    } else if (bookings.length > 0 && marker?.source === 'trip') {
+        echoCopy.textContent = '最近一次更新来自 trip planner，日期或同行的改动已经回写进本地。';
+    } else if (bookings.length > 0) {
+        echoCopy.textContent = `本地已经收住 ${bookings.length} 条安排，当前高亮会继续带着 Sea Brief 对准这一程。`;
+    } else if (draftFilledCount > 0) {
+        echoCopy.textContent = '本地只有草稿层的回声，还没有来自 detail 的已收进行程。';
+    } else {
+        echoCopy.textContent = '还没有检测到本地写入的行程。';
+    }
+
+    const echoChips = [];
+    if (bookings.length > 0) {
+        echoChips.push(`已收进行程 ${bookings.length} 条`);
+    } else {
+        echoChips.push(`草稿进度 ${draftFilledCount} / 3`);
+    }
+    if (sourceLabel) {
+        echoChips.push(`最近写入：${sourceLabel}`);
+    }
+    if (activeBooking?.spotName) {
+        echoChips.push(`当前高亮：${activeBooking.spotName}`);
+    }
+    echoMeta.innerHTML = echoChips
+        .map((chip) => `<span class="confirmed-bookings-echo-chip">${escapeHtml(chip)}</span>`)
+        .join('');
+}
+
+function queueTripDemoArrivalGuide() {
+    const marker = readTripDemoFlowState();
+    const navigationType = getTripNavigationType();
+    if (navigationType === 'reload') {
+        syncTripProofFlowState();
+        return;
+    }
+
+    const targetAnchor = String(window.location.hash || marker?.targetAnchor || '').trim();
+    if (!targetAnchor) {
+        syncTripProofFlowState();
+        return;
+    }
+
+    window.setTimeout(() => {
+        scrollToSection(targetAnchor, targetAnchor === '#seaBriefStage' ? 1480 : 1340);
+        syncTripProofFlowState();
+    }, TRIP_DEMO_SCROLL_DELAY_MS);
 }
 
 function scrollToSeaBriefStage() {
@@ -4723,6 +5076,7 @@ function renderConfirmedBookings() {
         if (switchButton) {
             switchButton.hidden = true;
         }
+        syncTripProofFlowState();
         return;
     }
 
@@ -4767,6 +5121,7 @@ function renderConfirmedBookings() {
     }
 
     renderSeaBrief(bookings);
+    syncTripProofFlowState();
 }
 
 /**
@@ -4831,6 +5186,11 @@ function setupConfirmedBookingsStage() {
             const entryId = String(briefButton.dataset.bookingEntryId || '').trim();
             if (entryId) {
                 store?.saveActiveBookingId?.(entryId);
+                writeTripDemoFlowState({
+                    source: 'trip',
+                    action: 'planner-draft',
+                    targetAnchor: '#seaBriefStage'
+                });
                 renderConfirmedBookings();
                 window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated'));
                 scrollToSeaBriefStage();
@@ -4897,6 +5257,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.body.dataset.scrollMood) {
         document.body.dataset.scrollMood = 'midwater';
     }
+
+    queueTripDemoArrivalGuide();
+    syncTripProofFlowState();
 
     window.YanqiAvatarReturn?.bind({
         targetUrl: 'index.html'

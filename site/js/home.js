@@ -6887,6 +6887,17 @@ function setupHeroActions() {
                 return;
             }
 
+            try {
+                sessionStorage.setItem('YANQI_DEMO_FLOW_STATE', JSON.stringify({
+                    source: 'home',
+                    action: 'planner-draft',
+                    targetAnchor: '#plannerDeskControl',
+                    updatedAt: new Date().toISOString()
+                }));
+            } catch (error) {
+                // sessionStorage 不可用时静默降级，不打断首页离场。
+            }
+
             runHeroDeparture(() => {
                 navigateWithDepth(url);
             }, { shouldReset: false, callbackDelay: HERO_ROUTE_READY_DELAY });
