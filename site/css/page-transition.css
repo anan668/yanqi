@@ -19,12 +19,17 @@
     --ocean-cover-opacity: 0;
     --ocean-depth-progress: 0;
     --login-home-blue-opacity: 0;
+    /* 过渡 token 兼容桥：
+       优先复用 global.css 的共享节奏；若某页没带全局 token，再回退到原始时长。 */
     --page-exit-duration: 1000ms;
     --page-enter-duration: 760ms;
     --page-ocean-exit-duration: 1200ms;
     --page-ocean-enter-duration: 1040ms;
     --page-stage-translation: 76vh;
     --page-ocean-translation: 24vh;
+    --page-ocean-swim-shift: 3vw;
+    --page-ocean-swim-drift-y: 0.24vh;
+    --page-ocean-swim-direction: 1;
 }
 
 /* 控制页面过渡遮罩、气泡层和海洋切换特效 */
@@ -130,7 +135,8 @@ body.page-login-home-bubbles .page-transition-bubble {
 /* 控制顶部导航的布局、透明度和当前页状态反馈 */
 body.home-page > .navbar,
 body.detail-page > .navbar,
-body.trip-page > .navbar {
+body.trip-page > .navbar,
+body.info-page > .navbar {
     transform: translate3d(0, 0, 0);
     opacity: 1;
     filter: none;
@@ -147,7 +153,8 @@ body.page-transition-active {
 body.page-transition-active .page-stage,
 body.page-transition-active.home-page > .navbar,
 body.page-transition-active.detail-page > .navbar,
-body.page-transition-active.trip-page > .navbar {
+body.page-transition-active.trip-page > .navbar,
+body.page-transition-active.info-page > .navbar {
     pointer-events: none;
     user-select: none;
     will-change: transform, opacity;
@@ -163,7 +170,8 @@ body.page-transition-active .sea-guide {
 /* 控制页面过渡遮罩、气泡层和海洋切换特效 */
 body.page-transition-active.home-page > .navbar,
 body.page-transition-active.detail-page > .navbar,
-body.page-transition-active.trip-page > .navbar {
+body.page-transition-active.trip-page > .navbar,
+body.page-transition-active.info-page > .navbar {
     z-index: 760;
 }
 
@@ -171,40 +179,45 @@ body.page-transition-active.trip-page > .navbar {
 body.page-exit-up .page-stage,
 body.home-page.page-exit-up > .navbar,
 body.detail-page.page-exit-up > .navbar,
-body.trip-page.page-exit-up > .navbar {
-    animation: page-exit-up var(--page-exit-duration) cubic-bezier(0.22, 0.74, 0.18, 1) forwards;
+body.trip-page.page-exit-up > .navbar,
+body.info-page.page-exit-up > .navbar {
+    animation: page-exit-up var(--motion-depth-exit, var(--page-exit-duration) cubic-bezier(0.22, 0.74, 0.18, 1)) forwards;
 }
 
 /* 控制顶部导航的布局、透明度和当前页状态反馈 */
 body.page-exit-down .page-stage,
 body.home-page.page-exit-down > .navbar,
 body.detail-page.page-exit-down > .navbar,
-body.trip-page.page-exit-down > .navbar {
-    animation: page-exit-down var(--page-exit-duration) cubic-bezier(0.22, 0.74, 0.18, 1) forwards;
+body.trip-page.page-exit-down > .navbar,
+body.info-page.page-exit-down > .navbar {
+    animation: page-exit-down var(--motion-depth-exit, var(--page-exit-duration) cubic-bezier(0.22, 0.74, 0.18, 1)) forwards;
 }
 
 /* body.page-enter-from-bottom .page-stage, body.home-page.page-enter-from-bottom > .nav... 的主要视觉与布局效果 */
 body.page-enter-from-bottom .page-stage,
 body.home-page.page-enter-from-bottom > .navbar,
 body.detail-page.page-enter-from-bottom > .navbar,
-body.trip-page.page-enter-from-bottom > .navbar {
-    animation: page-enter-from-bottom var(--page-enter-duration) cubic-bezier(0.14, 0.86, 0.2, 1) both;
+body.trip-page.page-enter-from-bottom > .navbar,
+body.info-page.page-enter-from-bottom > .navbar {
+    animation: page-enter-from-bottom var(--motion-depth-enter, var(--page-enter-duration) cubic-bezier(0.14, 0.86, 0.2, 1)) both;
 }
 
 /* 控制顶部导航的布局、透明度和当前页状态反馈 */
 body.page-enter-from-top .page-stage,
 body.home-page.page-enter-from-top > .navbar,
 body.detail-page.page-enter-from-top > .navbar,
-body.trip-page.page-enter-from-top > .navbar {
-    animation: page-enter-from-top var(--page-enter-duration) cubic-bezier(0.14, 0.86, 0.2, 1) both;
+body.trip-page.page-enter-from-top > .navbar,
+body.info-page.page-enter-from-top > .navbar {
+    animation: page-enter-from-top var(--motion-depth-enter, var(--page-enter-duration) cubic-bezier(0.14, 0.86, 0.2, 1)) both;
 }
 
 /* 控制顶部导航的布局、透明度和当前页状态反馈 */
 body.page-ocean-dive-exit .page-stage,
 body.home-page.page-ocean-dive-exit > .navbar,
 body.detail-page.page-ocean-dive-exit > .navbar,
-body.trip-page.page-ocean-dive-exit > .navbar {
-    animation: page-ocean-dive-exit var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.8, 0.2, 1) forwards;
+body.trip-page.page-ocean-dive-exit > .navbar,
+body.info-page.page-ocean-dive-exit > .navbar {
+    animation: page-ocean-dive-exit var(--motion-ocean-exit, var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.8, 0.2, 1)) forwards;
 }
 
 body.page-ocean-dive-exit .page-stage,
@@ -216,16 +229,18 @@ body.page-ocean-dive-enter .page-stage {
 body.page-ocean-dive-enter .page-stage,
 body.home-page.page-ocean-dive-enter > .navbar,
 body.detail-page.page-ocean-dive-enter > .navbar,
-body.trip-page.page-ocean-dive-enter > .navbar {
-    animation: page-ocean-dive-enter var(--page-ocean-enter-duration) cubic-bezier(0.16, 0.84, 0.18, 1) both;
+body.trip-page.page-ocean-dive-enter > .navbar,
+body.info-page.page-ocean-dive-enter > .navbar {
+    animation: page-ocean-dive-enter var(--motion-ocean-enter, var(--page-ocean-enter-duration) cubic-bezier(0.16, 0.84, 0.18, 1)) both;
 }
 
 /* body.page-ocean-surface-exit .page-stage, body.home-page.page-ocean-surface-exit > .n... 的主要视觉与布局效果 */
 body.page-ocean-surface-exit .page-stage,
 body.home-page.page-ocean-surface-exit > .navbar,
 body.detail-page.page-ocean-surface-exit > .navbar,
-body.trip-page.page-ocean-surface-exit > .navbar {
-    animation: page-ocean-surface-exit var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.76, 0.24, 1) forwards;
+body.trip-page.page-ocean-surface-exit > .navbar,
+body.info-page.page-ocean-surface-exit > .navbar {
+    animation: page-ocean-surface-exit var(--motion-ocean-exit, var(--page-ocean-exit-duration) cubic-bezier(0.16, 0.76, 0.24, 1)) forwards;
 }
 
 body.page-ocean-surface-exit .page-stage,
@@ -237,8 +252,26 @@ body.page-ocean-surface-enter .page-stage {
 body.page-ocean-surface-enter .page-stage,
 body.home-page.page-ocean-surface-enter > .navbar,
 body.detail-page.page-ocean-surface-enter > .navbar,
-body.trip-page.page-ocean-surface-enter > .navbar {
-    animation: page-ocean-surface-enter var(--page-ocean-enter-duration) cubic-bezier(0.12, 0.84, 0.18, 1) both;
+body.trip-page.page-ocean-surface-enter > .navbar,
+body.info-page.page-ocean-surface-enter > .navbar {
+    animation: page-ocean-surface-enter var(--motion-ocean-enter, var(--page-ocean-enter-duration) cubic-bezier(0.12, 0.84, 0.18, 1)) both;
+}
+
+/* 同层潜游：用于同深度页面之间的平移过渡，例如详情页之间的海域切换。 */
+body.page-ocean-swim-exit .page-stage,
+body.home-page.page-ocean-swim-exit > .navbar,
+body.detail-page.page-ocean-swim-exit > .navbar,
+body.trip-page.page-ocean-swim-exit > .navbar,
+body.info-page.page-ocean-swim-exit > .navbar {
+    animation: page-ocean-swim-exit var(--motion-ocean-exit, var(--page-ocean-exit-duration) cubic-bezier(0.18, 0.8, 0.22, 1)) forwards;
+}
+
+body.page-ocean-swim-enter .page-stage,
+body.home-page.page-ocean-swim-enter > .navbar,
+body.detail-page.page-ocean-swim-enter > .navbar,
+body.trip-page.page-ocean-swim-enter > .navbar,
+body.info-page.page-ocean-swim-enter > .navbar {
+    animation: page-ocean-swim-enter var(--motion-ocean-enter, var(--page-ocean-enter-duration) cubic-bezier(0.12, 0.84, 0.18, 1)) both;
 }
 
 /* 定义 page-exit-up 动画的关键帧 */
@@ -391,6 +424,60 @@ body.trip-page.page-ocean-surface-enter > .navbar {
 /* 控制动画在 68% 阶段的状态 */
     68% {
         opacity: 0.9;
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* 定义 page-ocean-swim-exit 动画的关键帧 */
+@keyframes page-ocean-swim-exit {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+    }
+/* 控制动画在 48% 阶段的状态 */
+    48% {
+        transform: translate3d(
+            calc(var(--page-ocean-swim-shift) * var(--page-ocean-swim-direction) * 0.56),
+            calc(var(--page-ocean-swim-drift-y) * -1),
+            0
+        ) scale(0.992);
+        opacity: 0.62;
+    }
+/* 控制动画在 100% 阶段的状态 */
+    100% {
+        transform: translate3d(
+            calc(var(--page-ocean-swim-shift) * var(--page-ocean-swim-direction)),
+            calc(var(--page-ocean-swim-drift-y) * -1.4),
+            0
+        ) scale(0.982);
+        opacity: 0.14;
+    }
+}
+
+/* 定义 page-ocean-swim-enter 动画的关键帧 */
+@keyframes page-ocean-swim-enter {
+/* 控制动画在 0% 阶段的状态 */
+    0% {
+        transform: translate3d(
+            calc(var(--page-ocean-swim-shift) * var(--page-ocean-swim-direction) * -1),
+            var(--page-ocean-swim-drift-y),
+            0
+        ) scale(1.012);
+        opacity: 0.08;
+    }
+/* 控制动画在 52% 阶段的状态 */
+    52% {
+        transform: translate3d(
+            calc(var(--page-ocean-swim-shift) * var(--page-ocean-swim-direction) * -0.34),
+            calc(var(--page-ocean-swim-drift-y) * 0.24),
+            0
+        ) scale(1.004);
+        opacity: 0.74;
     }
 /* 控制动画在 100% 阶段的状态 */
     100% {

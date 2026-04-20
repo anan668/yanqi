@@ -1511,7 +1511,7 @@ const divingSpotsData = withHomeImageDescriptors(convertSpotCardPrices(injectCat
         id: 6,
         name: '布纳肯',
         tagline: '在海墙与海龟之间整理呼吸',
-        image: 'assets/images/timor.jpg',
+        image: 'assets/images/bunaken.jpg',
         price: getSpotBasePriceText(6, '¥3,680'),
         rating: '4.7',
         difficulty: '★★'
@@ -1670,7 +1670,7 @@ const destinationsData = withHomeImageDescriptors(injectCatalogIdentityForHomeLi
     {
         id: 6,
         name: '布纳肯',
-        image: 'assets/images/timor.jpg',
+        image: 'assets/images/bunaken.jpg',
         englishName: 'Bunaken',
         atmosphere: '海墙、海龟与清澈蓝水在这里保持着很舒服的平衡，适合把一次下潜留给更明亮、更从容的热带海。',
         level: 'OW / AOW',

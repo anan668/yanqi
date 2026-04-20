@@ -1,8 +1,8 @@
 ﻿<!DOCTYPE html>
 <!--
     联系页 / contact.html
-    这一页是盐憩里更浅、更静的一层联络水域，负责承接联络状态说明、合作入口和演示留言台。
-    阅读顺序建议：首屏 -> 三张联络卡 -> 联络状态 -> 渠道明细 -> 演示留言台 -> 页脚收束。
+    这一页是盐憩里更浅、更静的一层联络水域，负责承接联络状态说明、合作入口和站内留言台。
+    阅读顺序建议：首屏 -> 三张联络卡 -> 联络状态 -> 渠道明细 -> 站内留言台 -> 页脚收束。
 -->
 <html lang="zh-CN">
 <head>
@@ -52,11 +52,31 @@
                 <h1 class="info-title">联系我们</h1>
                 <p class="info-copy">
                     如果你想问一片海、一次出发，或只是想把某个念头慢慢留下，都可以从这里靠近盐憩。
-                    真实联络渠道还在整理中，这一页会先把状态说明和一块站内演示留言台安静地放在这里。
+                    真实联络渠道还在整理中，这一页会先把状态说明和一块站内留言台安静地放在这里。
                 </p>
+                <div class="info-layer-map" aria-label="联系页当前阅读顺序">
+                    <div class="info-layer-map-list">
+                        <span class="info-layer-map-item"><strong>01</strong><small>联络卡</small></span>
+                        <span class="info-layer-map-item"><strong>02</strong><small>联络状态</small></span>
+                        <span class="info-layer-map-item"><strong>03</strong><small>留言台</small></span>
+                        <span class="info-layer-map-item"><strong>04</strong><small>Local Echoes</small></span>
+                    </div>
+                    <p class="info-layer-map-note">这层联络水域会先让你决定靠近方式，再说明状态，最后把留言收成当前浏览器里的本地回声。</p>
+                </div>
             </header>
 
             <div class="info-shell info-reveal info-reveal-delay-1">
+                <div class="info-shell-head">
+                    <div class="info-shell-lead">
+                        <p class="info-shell-kicker">Contact Flow</p>
+                        <h2 class="info-shell-title">先决定要把哪一种靠近方式放进这层海流</h2>
+                        <p class="info-shell-copy">这里不急着把你送去客服或站外渠道，而是先通过联络卡确定语气，再顺着状态说明和留言台慢慢往下走。</p>
+                    </div>
+                    <div class="info-shell-badge" aria-label="当前联络层级">
+                        <span class="info-shell-badge-label">Current Layer</span>
+                        <strong class="info-shell-badge-value">浅层联络水域</strong>
+                    </div>
+                </div>
                 <div class="contact-stage">
                     <article class="contact-card">
                         <p class="contact-card-kicker">Trip Inquiry</p>
@@ -82,10 +102,10 @@
             <div class="info-shell info-reveal info-reveal-delay-2" id="contactStatusSection">
                 <section class="info-section">
                     <h2 class="info-section-title">联络状态</h2>
-                    <p class="info-section-copy">邮箱、微信 / 公众号、小红书和微博目前都还未开放。这一层先保留为联络状态说明，不把还没整理好的渠道伪装成可用系统；如果你只是想把方向先留在这里，可以继续去下方演示留言台。</p>
+                    <p class="info-section-copy">邮箱、微信 / 公众号、小红书和微博目前都还未开放。这一层先保留为联络状态说明，不把还没整理好的渠道伪装成可用系统；如果你只是想把方向先留在这里，可以继续去下方站内留言台。</p>
                     <div class="contact-status-board" id="contactStatusBoard"></div>
                     <div class="contact-status-actions">
-                        <button type="button" class="contact-link-button" data-info-scroll="#contactFormSection">继续去演示留言台</button>
+                        <button type="button" class="contact-link-button" data-info-scroll="#contactFormSection">继续去留言台</button>
                         <button type="button" class="contact-link-button is-secondary" data-info-scroll="#contactMethodsSection">再看渠道明细</button>
                     </div>
                 </section>
@@ -101,8 +121,8 @@
 
             <div class="info-shell info-reveal info-reveal-delay-3" id="contactFormSection">
                 <section class="contact-form-shell">
-                    <h2 class="info-section-title">演示留言台</h2>
-                    <p class="contact-form-copy">这块留言台只会把内容留在当前浏览器里，不会发往真实邮箱、社媒或客服系统。发送以后，它会继续停在下方的回看水域，作为这次展示里的站内本地回声。</p>
+                    <h2 class="info-section-title">站内留言台</h2>
+                    <p class="contact-form-copy">这块留言台只会把内容留在当前浏览器里，不会发往真实邮箱、社媒或客服系统。发送以后，它会继续停在下方的回看水域，作为这一层里暂时留住的本地回声。</p>
                     <p class="contact-draft-state" id="contactDraftState" aria-live="polite">这段草稿会先停在当前浏览器里，等你决定什么时候把它轻轻留下。</p>
 
                     <form id="contactForm" novalidate>
@@ -131,7 +151,7 @@
                         </div>
 
                         <div class="contact-form-actions">
-                            <button type="submit" class="contact-submit">把这条演示回声轻轻留下</button>
+                            <button type="submit" class="contact-submit">把这条回声轻轻留下</button>
                             <a href="home.html" class="contact-secondary">回到首页</a>
                         </div>
                     </form>
@@ -142,9 +162,9 @@
                         <div class="contact-memory-head">
                             <div>
                                 <p class="contact-memory-kicker">Local Echoes</p>
-                                <h3 class="contact-memory-title" id="contactMemoryTitle">本地演示回声</h3>
+                                <h3 class="contact-memory-title" id="contactMemoryTitle">本地回声</h3>
                             </div>
-                            <button type="button" class="contact-memory-clear" id="contactMemoryClear">清空演示回声</button>
+                            <button type="button" class="contact-memory-clear" id="contactMemoryClear">清空回声</button>
                         </div>
                         <p class="contact-memory-copy" id="contactMessagesMeta">这片水域会先替你安静收着已经留下的站内回声。</p>
                         <div class="contact-memory-list" id="contactMessagesList"></div>
@@ -158,6 +178,7 @@
                         <p class="info-footer-kicker">Surface Return</p>
                         <h2 class="info-footer-title">让这层联络水域，慢慢把你送回主线</h2>
                         <p class="info-footer-copy">如果这段想法已经停稳，可以回到首页继续看海，去我的行程继续往下排，或者再潜进一片具体海域。这里更像一段缓慢收束，而不是突然结束。</p>
+                        <p class="info-footer-return-note">联络卡、状态说明、留言与回声已经在这里收成一小片浅海，接下来可以继续横移，也可以缓慢上浮。</p>
                     </div>
 
                     <div class="info-footer-column">

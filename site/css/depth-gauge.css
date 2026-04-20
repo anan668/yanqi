@@ -23,6 +23,8 @@ body {
     --depth-gauge-compression: 1;
     --depth-gauge-shift: 0px;
     --depth-gauge-current-scale: 1;
+    --depth-gauge-shell-bg: rgba(10, 60, 96, 0.52);
+    --depth-gauge-shell-border: rgba(255, 255, 255, 0.45);
 }
 
 /* 深度计外层：用 fixed 固定在视口两边，让它始终像整站海层语言，而不是某个 section 内部组件。 */
@@ -39,6 +41,11 @@ body {
     z-index: 1200;
     opacity: calc(0.66 + var(--ocean-depth-progress) * 0.26);
     transform: translate3d(0, calc(var(--depth-gauge-shift) * -0.08), 0);
+    filter: blur(0);
+    transition:
+        opacity 360ms ease,
+        transform 520ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 420ms ease;
 }
 
 .depth-gauge::before,
@@ -96,8 +103,8 @@ body {
     min-width: 58px;
     padding: 4px 10px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    background: rgba(10, 60, 96, 0.52);
+    border: 1px solid var(--depth-gauge-shell-border);
+    background: var(--depth-gauge-shell-bg);
     color: rgba(255, 255, 255, 0.95);
     font-size: 14px;
     font-weight: 700;
@@ -308,6 +315,12 @@ body.depth-gauge-interactive .depth-marker.is-current {
 
 body.depth-gauge-interactive .depth-marker.is-current .depth-marker-line {
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.42);
+}
+
+body.page-transition-active .depth-gauge {
+    opacity: 0 !important;
+    transform: translate3d(0, calc((var(--depth-gauge-shift) * -0.08) - 12px), 0);
+    filter: blur(6px);
 }
 
 /* 定义 gauge-current-drift 动画的关键帧 */

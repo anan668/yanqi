@@ -57,6 +57,26 @@
                         <p class="trip-hero-kicker">Planner Desk</p>
                         <h1 class="trip-hero-title">我的行程</h1>
                         <p class="trip-hero-subtitle">把出发时间、同行人数与想去的海域，安静地放进这一层海流里。规划不必像填表，更像为一次下潜预留合适的潮汐与呼吸。</p>
+                        <div class="trip-hero-current">
+                            <div class="trip-hero-current-head">
+                                <p class="trip-hero-current-kicker">Current Descent</p>
+                                <p class="trip-hero-current-copy">这一层会先把下一潜写成桌面草稿，再沉到本地回声，最后收成一张可以慢慢回看的 Sea Brief。</p>
+                            </div>
+                            <div class="trip-hero-current-track" aria-hidden="true">
+                                <span class="trip-hero-current-step is-current">
+                                    <strong>01</strong>
+                                    <small>Live Draft</small>
+                                </span>
+                                <span class="trip-hero-current-step">
+                                    <strong>02</strong>
+                                    <small>Booked Waters</small>
+                                </span>
+                                <span class="trip-hero-current-step">
+                                    <strong>03</strong>
+                                    <small>Sea Brief</small>
+                                </span>
+                            </div>
+                        </div>
 
                         <div class="trip-hero-actions">
                             <button type="button" class="sea-action sea-action-primary" data-scroll-target="#plannerDeskControl">继续安排行程</button>
@@ -281,6 +301,7 @@
                                 <p class="planner-summary-intro" id="plannerSummaryIntro">
                                     这里会贴着操作台，继续回看当前这一潜已经写到哪一层。
                                 </p>
+                                <p class="planner-summary-stage-note">01 · 先把草稿贴着桌面收住，再继续向下一层潜去。</p>
 
                                 <div class="planner-summary-meter" aria-hidden="true">
                                     <div class="planner-summary-meter-track">
@@ -353,12 +374,26 @@
                             </div>
 
                             <div class="trip-brief-deck">
+                                <div class="trip-brief-order" aria-label="行程桌面的当前顺序">
+                                    <div class="trip-brief-order-copy">
+                                        <p class="trip-brief-order-kicker">Desk Sequence</p>
+                                        <h2 class="trip-brief-order-title">先回看草稿，再确认已收进行程，最后把这一潜收成 Sea Brief</h2>
+                                        <p class="trip-brief-order-intro">这一层不再像普通列表。左侧是本地已收进来的海，右侧会把当前被点亮的那一程，压成更完整的一张 Sea Brief。</p>
+                                    </div>
+                                    <div class="trip-brief-order-track" aria-hidden="true">
+                                        <span class="trip-brief-order-step is-complete"><strong>01</strong><small>Live Draft</small></span>
+                                        <span class="trip-brief-order-step is-current"><strong>02</strong><small>Booked Waters</small></span>
+                                        <span class="trip-brief-order-step"><strong>03</strong><small>Sea Brief</small></span>
+                                    </div>
+                                </div>
+
                                 <!-- 已收进行程：改成侧边轨道，让它只负责切换当前这条海域安排。 -->
                                 <section class="confirmed-bookings-stage" id="confirmedBookingsStage" aria-labelledby="confirmedBookingsTitle">
                                     <div class="confirmed-bookings-head">
                                         <div class="confirmed-bookings-copy">
                                             <p class="confirmed-bookings-kicker">Booked Waters</p>
                                             <h2 class="confirmed-bookings-title" id="confirmedBookingsTitle">已收进行程</h2>
+                                            <p class="confirmed-bookings-intro">这一列只负责收住已经确认过的海域与套餐。当前亮起的那一程，会继续把状态往右侧 Sea Brief 里送。</p>
                                         </div>
 
                                         <button type="button" class="confirmed-bookings-switch" id="confirmedBookingsSwitch" hidden>
@@ -367,7 +402,14 @@
                                     </div>
 
                                     <div class="confirmed-bookings-empty" id="confirmedBookingsEmpty">
-                                        还没有哪一片海被正式收进行程。等你在详情页慢慢确认以后，它会停在这里。
+                                        <p class="confirmed-bookings-empty-kicker">Booked Waters Pending</p>
+                                        <h3 class="confirmed-bookings-empty-title">这里还没有被正式收进来的海</h3>
+                                        <p class="confirmed-bookings-empty-copy">等你在详情页慢慢确认套餐以后，这里会开始出现已经靠岸的行程卡。它们不会像商品清单，更像一组已经被潮水收住的海域回声。</p>
+                                        <div class="confirmed-bookings-empty-tags" aria-hidden="true">
+                                            <span>来自 detail 的确认</span>
+                                            <span>会继续留在本地</span>
+                                            <span>再向右汇入 Sea Brief</span>
+                                        </div>
                                     </div>
 
                                     <div class="confirmed-bookings-list" id="confirmedBookingsList"></div>
@@ -377,7 +419,7 @@
                                             <span class="confirmed-bookings-echo-dock-kicker" id="confirmedBookingsEchoBadge">Local Echo</span>
                                             <span class="confirmed-bookings-echo-dock-state" id="confirmedBookingsEchoState">等待写入</span>
                                         </div>
-                                        <p class="confirmed-bookings-echo-dock-copy" id="confirmedBookingsEchoCopy">还没有检测到本地写入的行程。</p>
+                                        <p class="confirmed-bookings-echo-dock-copy" id="confirmedBookingsEchoCopy">这层水域还没有收进新的行程。</p>
                                         <div class="confirmed-bookings-echo-dock-meta" id="confirmedBookingsEchoMeta"></div>
                                     </div>
                                 </section>
@@ -386,24 +428,25 @@
                                     <div class="sea-brief-head">
                                         <div class="sea-brief-copy">
                                             <p class="sea-brief-kicker">Sea Brief</p>
-                                            <h2 class="sea-brief-title" id="seaBriefTitle">这一潜的最终回执</h2>
-                                            <p class="sea-brief-intro">这一舱会把状态流收成最终桌面。左侧切换当前哪一程，右侧把来源、本地写入与最后回执都压进同一片更深的海里。</p>
+                                            <h2 class="sea-brief-title" id="seaBriefTitle">这一潜的 Sea Brief</h2>
+                                            <p class="sea-brief-intro">这一舱会把当前这程慢慢收成更清楚的桌面摘要。左侧切换哪一片海，右侧就把来源、已收进行程与准备节奏压进同一层更稳的蓝里。</p>
+                                            <p class="sea-brief-stage-note">03 · 当左侧已有一程被点亮，这里会把它整理成一张更清楚的下潜摘要。</p>
                                         </div>
 
                                         <div class="sea-brief-proof-shell" id="tripProofFlow" aria-labelledby="tripProofTitle">
                                             <div class="sea-brief-proof-head">
                                                 <div class="sea-brief-proof-heading">
-                                                    <p class="trip-proof-flow-kicker">Interaction Proof</p>
-                                                    <h3 class="trip-proof-flow-title" id="tripProofTitle">状态证明信号</h3>
+                                                    <p class="trip-proof-flow-kicker">Current Flow</p>
+                                                    <h3 class="trip-proof-flow-title" id="tripProofTitle">当前潮线</h3>
                                                 </div>
                                                 <p class="trip-proof-flow-intro" id="tripProofFlowIntro">
-                                                    这里会先说明入口来自哪里，再把写入本地与回执高亮压成一条更清楚的状态流。
+                                                    这里会先说明这程海从哪里被带进来，再把本地收纳与 Sea Brief 的焦点慢慢排成一条潮线。
                                                 </p>
                                             </div>
 
                                             <div class="trip-proof-flow-status" id="tripProofFlowStatus" aria-live="polite">
                                                 <span class="trip-proof-flow-status-badge" id="tripProofFlowStatusBadge">当前入口</span>
-                                                <p class="trip-proof-flow-status-copy" id="tripProofFlowStatusCopy">还没有新的演示轨迹，先从首页或 detail 进入也可以。</p>
+                                                <p class="trip-proof-flow-status-copy" id="tripProofFlowStatusCopy">还没有新的来路，先从首页或 detail 带一片海下来也可以。</p>
                                                 <div class="trip-proof-flow-meta" id="tripProofFlowMeta"></div>
                                             </div>
 
@@ -427,8 +470,8 @@
                                                 <li class="trip-proof-flow-step" data-proof-step="receipt">
                                                     <span class="trip-proof-flow-step-index">03</span>
                                                     <div class="trip-proof-flow-step-copy">
-                                                        <strong>Receipt</strong>
-                                                        <p>当前被选中的这一程会继续在 Sea Brief 里被整理成完整回执。</p>
+                                                        <strong>Brief</strong>
+                                                        <p>当前被选中的这一程会继续在 Sea Brief 里被整理成完整摘要。</p>
                                                     </div>
                                                     <span class="trip-proof-flow-step-state" data-proof-step-state="receipt">等待高亮</span>
                                                 </li>
@@ -436,7 +479,16 @@
                                         </div>
                                     </div>
 
-                                    <div class="sea-brief-empty" id="seaBriefEmpty">还没有哪一套安排被写成最终回执。等你在详情页确认套餐以后，它会慢慢停在这里。</div>
+                                    <div class="sea-brief-empty" id="seaBriefEmpty">
+                                        <p class="sea-brief-empty-kicker">Sea Brief Pending</p>
+                                        <h3 class="sea-brief-empty-title">Sea Brief 还没有浮出这一层</h3>
+                                        <p class="sea-brief-empty-copy">当左侧出现至少一条已收进行程，并被切到当前项时，这里会把海域、套餐、窗口与准备提示收成一张更完整的桌面摘要。</p>
+                                        <div class="sea-brief-empty-signals" aria-hidden="true">
+                                            <span>先确认一程海</span>
+                                            <span>再切到当前项</span>
+                                            <span>摘要会在这里亮起</span>
+                                        </div>
+                                    </div>
                                     <article class="sea-brief-card" id="seaBriefCard" hidden>
                                         <div class="sea-brief-card-head">
                                             <div>
@@ -450,8 +502,8 @@
                                         <div class="sea-brief-prep" id="seaBriefPrep"></div>
                                         <div class="sea-brief-divider" aria-hidden="true"></div>
                                         <div class="sea-brief-actions" id="seaBriefActions">
-                                            <button type="button" class="sea-brief-action" id="seaBriefCopy">复制回执</button>
-                                            <button type="button" class="sea-brief-action" id="seaBriefPrint">打印回执</button>
+                                            <button type="button" class="sea-brief-action" id="seaBriefCopy">复制摘要</button>
+                                            <button type="button" class="sea-brief-action" id="seaBriefPrint">打印摘要</button>
                                             <button type="button" class="sea-brief-action sea-brief-action-primary" id="seaBriefBackToDetail">回到详情</button>
                                         </div>
                                     </article>

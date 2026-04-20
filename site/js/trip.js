@@ -3327,11 +3327,11 @@ function getTripNavigationType() {
 function getTripDemoSourceLabel(source) {
     switch (String(source || '').trim()) {
     case 'detail':
-        return 'detail 页';
+        return 'detail 带入';
     case 'home':
-        return '首页入口';
+        return '海面入口';
     case 'trip':
-        return 'trip planner';
+        return '当前桌面';
     default:
         return '';
     }
@@ -3393,7 +3393,7 @@ function syncTripProofFlowState() {
         receipt: {
             complete: Boolean(activeBooking),
             label: activeStep === 'receipt'
-                ? '正在对准回执'
+                ? '正在对准摘要'
                 : (activeBooking ? '已可展开' : '等待高亮')
         }
     };
@@ -3414,37 +3414,37 @@ function syncTripProofFlowState() {
     });
 
     if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
-        statusBadge.textContent = '本地回声已恢复';
+        statusBadge.textContent = '本地回声已接上';
         statusCopy.textContent = activeBooking
             ? `上一条安排已经从本地回声里浮回来了，当前高亮的是 ${activeBooking.spotName || '这一程'}。`
             : '上一轮草稿已经从本地回声里浮回来了，你可以继续接着整理。';
-        introCopy.textContent = '这一次会先演示：页面刷新以后，本地状态怎样继续回显，并把当前这一条重新收回到桌面上。';
+        introCopy.textContent = '页面刷新以后，这里的草稿、已收进行程和 Sea Brief 会继续接着上一层往下收。';
     } else if (marker?.source === 'detail' && marker?.action === 'booking-confirmed') {
-        statusBadge.textContent = 'detail -> trip';
+        statusBadge.textContent = 'detail 带入';
         statusCopy.textContent = activeBooking
-            ? `刚刚从 detail 把 ${activeBooking.spotName || '这片海'} 写进了本地行程，回执区会先围绕这一条亮起来。`
+            ? `刚刚从 detail 把 ${activeBooking.spotName || '这片海'} 写进了本地行程，Sea Brief 会先围绕这一条亮起来。`
             : '刚刚从 detail 收进了一条安排，下面会先展示它如何写入本地。';
-        introCopy.textContent = '这一次会先演示：detail 怎样把一条安排写进本地，再让已收进行程和 Sea Brief 一起围绕它联动。';
+        introCopy.textContent = 'detail 会把一条安排收进本地，再让已收进行程和 Sea Brief 一起围绕它展开。';
     } else if (marker?.source === 'home') {
-        statusBadge.textContent = 'home -> trip';
+        statusBadge.textContent = 'home 下潜';
         statusCopy.textContent = '这是从首页直接下来的空白入口，先在 Trip Console 里把海域、潮汐和同行节奏慢慢写齐。';
-        introCopy.textContent = '这一次会先从首页空白进入，让 Trip Console 自己把草稿慢慢收出来，再讲清楚状态是怎么一路往下带的。';
+        introCopy.textContent = '从首页直接下潜以后，Trip Console 会先把草稿慢慢收出来，再把这一程往后带。';
     } else if (marker?.source === 'trip') {
-        statusBadge.textContent = 'trip planner';
+        statusBadge.textContent = '当前桌面';
         statusCopy.textContent = bookings.length > 0
             ? '最近一次更新来自 Trip Console，本地行程和当前高亮会继续跟着这一程一起收束。'
             : '最近一次动作来自 Trip Console，草稿会先留在这一层，等你继续往下收。';
-        introCopy.textContent = '这一次会先演示：Trip Console 怎样修改草稿、回写本地状态，再把结果推给后面的回执区。';
+        introCopy.textContent = 'Trip Console 会先修改草稿、回写本地状态，再把结果慢慢送到后面的 Sea Brief。';
     } else if (bookings.length > 0) {
-        statusBadge.textContent = '本地已检测到';
+        statusBadge.textContent = '本地已收住';
         statusCopy.textContent = activeBooking
-            ? `当前已经检测到 ${bookings.length} 条本地行程，${activeBooking.spotName || '这一程'} 正在作为回执中心。`
-            : `当前已经检测到 ${bookings.length} 条本地行程。`;
-        introCopy.textContent = '这里会依次看到：入口如何被选定，状态怎样写进本地，以及回执怎样围绕当前这一条慢慢亮起来。';
+            ? `当前已经收着 ${bookings.length} 条本地行程，${activeBooking.spotName || '这一程'} 正在作为当前摘要中心。`
+            : `当前已经收着 ${bookings.length} 条本地行程。`;
+        introCopy.textContent = '这里会依次看到：入口如何被选定，行程怎样写进本地，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
     } else {
         statusBadge.textContent = '当前入口';
-        statusCopy.textContent = '还没有新的演示轨迹，先从首页或 detail 进入也可以。';
-        introCopy.textContent = '这里会依次看到：入口如何被选定，行程怎样写进本地，以及回执怎样围绕当前这一条慢慢亮起来。';
+        statusCopy.textContent = '还没有新的来路，先从首页或 detail 进入也可以。';
+        introCopy.textContent = '这里会依次看到：入口如何被选定，行程怎样写进本地，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
     }
 
     const echoChips = [];
@@ -3460,9 +3460,9 @@ function syncTripProofFlowState() {
         echoChips.push(`当前高亮：${activeBooking.spotName}`);
     }
     if (activeBooking?.packageTitle) {
-        echoChips.push(`回执中心：${activeBooking.packageTitle}`);
+        echoChips.push(`当前摘要：${activeBooking.packageTitle}`);
     } else if (bookings.length > 0) {
-        echoChips.push('回执中心待对准');
+        echoChips.push('Sea Brief 待对准');
     }
     proofMeta.innerHTML = echoChips
         .map((chip) => `<span class="trip-proof-flow-meta-chip">${escapeHtml(chip)}</span>`)
@@ -3476,9 +3476,9 @@ function syncTripProofFlowState() {
         if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
             echoState.textContent = '刷新后已恢复';
         } else if (activeBooking) {
-            echoState.textContent = '当前回执已对准';
+            echoState.textContent = '当前摘要已对准';
         } else if (bookings.length > 0) {
-            echoState.textContent = '本地写入已收住';
+            echoState.textContent = '本地行程已收住';
         } else if (draftFilledCount > 0) {
             echoState.textContent = '草稿正在回显';
         } else {
@@ -3487,7 +3487,7 @@ function syncTripProofFlowState() {
     }
 
     if (echoCopy) {
-        echoCopy.textContent = statusCopy.textContent || '还没有检测到本地写入的行程。';
+        echoCopy.textContent = statusCopy.textContent || '这层水域还没有收进新的行程。';
     }
 
     if (echoMeta) {
@@ -3746,7 +3746,7 @@ function setupSeaBriefActions() {
     copyButton.addEventListener('click', async () => {
         const summaryText = String(card.dataset.summaryText || '').trim();
         if (!summaryText) {
-            setSeaBriefLiveMessage('当前还没有可复制的桌面回执。');
+            setSeaBriefLiveMessage('当前还没有可复制的 Sea Brief 摘要。');
             return;
         }
 
@@ -3754,13 +3754,13 @@ function setupSeaBriefActions() {
         setSeaBriefLiveMessage(
             copied
                 ? 'Sea Brief 已复制到剪贴板。'
-                : '回执复制没有完成，可以先手动复制这段摘要。'
+                : '摘要复制没有完成，可以先手动复制这段内容。'
         );
     });
 
     printButton.addEventListener('click', () => {
         if (!String(card.dataset.entryId || '').trim()) {
-            setSeaBriefLiveMessage('当前还没有可打印的桌面回执。');
+            setSeaBriefLiveMessage('当前还没有可打印的 Sea Brief 摘要。');
             return;
         }
 
@@ -3771,7 +3771,7 @@ function setupSeaBriefActions() {
     detailButton.addEventListener('click', () => {
         const detailHref = String(card.dataset.detailHref || '').trim();
         if (!detailHref) {
-            setSeaBriefLiveMessage('当前回执还没有对应的海域详情页。');
+            setSeaBriefLiveMessage('当前摘要还没有对应的海域详情页。');
             return;
         }
 
@@ -4550,7 +4550,7 @@ function buildConfirmedBookingCardMarkup(booking) {
 
             <div class="confirmed-booking-actions">
                 <button type="button" class="confirmed-booking-brief" data-booking-entry-id="${escapeHtml(entryId)}" aria-pressed="${String(isActive)}">
-                    ${isActive ? '回执已对准' : '查看回执'}
+                    ${isActive ? '摘要已对准' : '查看摘要'}
                 </button>
                 <button
                     type="button"
@@ -4692,7 +4692,7 @@ function setupConfirmedBookingsStage() {
         renderConfirmedBookings();
         window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated'));
         if (nextBooking?.spotName) {
-            setSeaBriefLiveMessage(`已切到 ${nextBooking.spotName} 的桌面回执。`);
+            setSeaBriefLiveMessage(`已切到 ${nextBooking.spotName} 的 Sea Brief。`);
         }
     });
 
@@ -4735,7 +4735,7 @@ function setupConfirmedBookingsStage() {
                 scrollToSeaBriefStage();
                 const activeBooking = getActiveConfirmedBooking(store?.getConfirmedBookings?.() || []);
                 if (activeBooking?.spotName) {
-                    setSeaBriefLiveMessage(`已对准 ${activeBooking.spotName} 的桌面回执。`);
+                    setSeaBriefLiveMessage(`已对准 ${activeBooking.spotName} 的 Sea Brief。`);
                 }
             }
             return;

@@ -5863,6 +5863,297 @@ body.trip-planner-submerge-active .planner-capsule > .trip-search-bar {
 
 
 
+/* 第二组增强：
+   在不重做结构的前提下，把 Trip 首屏、摘要到回执的顺序感和空态完成度再收紧一层。 */
+.trip-hero-current {
+    display: grid;
+    gap: 14px;
+    margin: 0 0 26px;
+    padding: 16px 18px 18px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 12% 0%, rgba(212, 239, 250, 0.12), rgba(212, 239, 250, 0) 32%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(146, 188, 209, 0.04)),
+        rgba(8, 29, 43, 0.42);
+    border: 1px solid rgba(203, 231, 243, 0.12);
+    box-shadow:
+        0 18px 32px rgba(4, 16, 25, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    filter: blur(10px);
+    animation: trip-hero-copy-rise 820ms cubic-bezier(0.16, 0.82, 0.2, 1) 470ms forwards;
+}
+
+.trip-hero-current-head {
+    display: grid;
+    gap: 8px;
+}
+
+.trip-hero-current-kicker,
+.trip-hero-current-copy {
+    margin: 0;
+}
+
+.trip-hero-current-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(196, 223, 240, 0.52);
+}
+
+.trip-hero-current-copy {
+    max-width: 60ch;
+    line-height: 1.74;
+    color: rgba(217, 232, 240, 0.76);
+}
+
+.trip-hero-current-track {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.trip-hero-current-step {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    padding: 14px 14px 13px;
+    border-radius: 18px;
+    border: 1px solid rgba(203, 231, 243, 0.08);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(10, 31, 45, 0.84)),
+        rgba(9, 26, 39, 0.58);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 10px 18px rgba(3, 12, 20, 0.16);
+}
+
+.trip-hero-current-step strong,
+.trip-hero-current-step small {
+    display: block;
+}
+
+.trip-hero-current-step strong {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    color: rgba(240, 248, 253, 0.9);
+}
+
+.trip-hero-current-step small {
+    font-size: 0.82rem;
+    color: rgba(206, 225, 235, 0.68);
+}
+
+.trip-hero-current-step.is-current {
+    border-color: rgba(197, 232, 246, 0.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 14px 24px rgba(3, 12, 20, 0.2),
+        0 0 18px rgba(110, 190, 223, 0.08);
+}
+
+.planner-summary-stage-note {
+    margin: -4px 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(191, 218, 232, 0.44);
+}
+
+.trip-brief-deck {
+    grid-template-columns: minmax(280px, 0.74fr) minmax(0, 1.26fr);
+    align-items: stretch;
+}
+
+.trip-brief-order {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+    gap: 18px;
+    padding: 18px 20px 20px;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at 14% 0%, rgba(205, 235, 247, 0.12), rgba(205, 235, 247, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(119, 161, 184, 0.03)),
+        rgba(6, 21, 33, 0.52);
+    border: 1px solid rgba(202, 228, 240, 0.1);
+    box-shadow:
+        0 20px 34px rgba(3, 12, 20, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.trip-brief-order-copy {
+    display: grid;
+    gap: 8px;
+}
+
+.trip-brief-order-kicker,
+.trip-brief-order-title,
+.trip-brief-order-intro {
+    margin: 0;
+}
+
+.trip-brief-order-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(190, 219, 233, 0.5);
+}
+
+.trip-brief-order-title {
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.18rem, 1.9vw, 1.52rem);
+    line-height: 1.48;
+    color: rgba(243, 250, 254, 0.94);
+}
+
+.trip-brief-order-intro {
+    max-width: 68ch;
+    line-height: 1.78;
+    color: rgba(208, 226, 236, 0.72);
+}
+
+.trip-brief-order-track {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-self: end;
+}
+
+.trip-brief-order-step {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    min-height: 100%;
+    padding: 16px 14px 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(201, 228, 240, 0.08);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(9, 28, 43, 0.82)),
+        rgba(7, 21, 34, 0.58);
+}
+
+.trip-brief-order-step strong,
+.trip-brief-order-step small {
+    display: block;
+}
+
+.trip-brief-order-step strong {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    color: rgba(240, 247, 252, 0.9);
+}
+
+.trip-brief-order-step small {
+    font-size: 0.82rem;
+    color: rgba(205, 224, 234, 0.68);
+}
+
+.trip-brief-order-step.is-complete,
+.trip-brief-order-step.is-current {
+    border-color: rgba(196, 230, 244, 0.16);
+}
+
+.trip-brief-order-step.is-current {
+    box-shadow:
+        0 14px 24px rgba(3, 12, 20, 0.18),
+        0 0 16px rgba(104, 178, 210, 0.08);
+}
+
+.confirmed-bookings-empty,
+.sea-brief-empty {
+    display: grid;
+    gap: 10px;
+}
+
+.confirmed-bookings-empty-kicker,
+.confirmed-bookings-empty-title,
+.confirmed-bookings-empty-copy,
+.sea-brief-empty-kicker,
+.sea-brief-empty-title,
+.sea-brief-empty-copy {
+    margin: 0;
+}
+
+.confirmed-bookings-empty-kicker,
+.sea-brief-empty-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(193, 220, 235, 0.5);
+}
+
+.confirmed-bookings-empty-title,
+.sea-brief-empty-title {
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.02rem, 1.6vw, 1.3rem);
+    line-height: 1.5;
+    color: rgba(240, 248, 252, 0.92);
+}
+
+.confirmed-bookings-empty-copy,
+.sea-brief-empty-copy {
+    max-width: 62ch;
+    line-height: 1.8;
+    color: rgba(211, 228, 237, 0.68);
+}
+
+.confirmed-bookings-empty-tags,
+.sea-brief-empty-signals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.confirmed-bookings-empty-tags span,
+.sea-brief-empty-signals span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(194, 227, 240, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(228, 241, 248, 0.76);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+}
+
+.sea-brief-stage-note {
+    margin: 12px 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(191, 219, 233, 0.48);
+}
+
+@media (max-width: 980px) {
+    .trip-hero-current-track,
+    .trip-brief-order-track {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-brief-order {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .trip-hero-current {
+        padding: 14px;
+        border-radius: 20px;
+    }
+
+    .trip-brief-order {
+        padding: 16px;
+        border-radius: 22px;
+    }
+}
+
 /* 行程页高对比度保护层：锁住规划层首屏、控制台和关键区块标题的浅色阅读层次。 */
 @media (forced-colors: active) {
     .trip-page :is(

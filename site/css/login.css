@@ -16,12 +16,17 @@
 /* 登录页整体背景与页面框架 */
 .login-page {
     --login-stage-safe-gap-y: clamp(10px, 1.8vh, 18px);
+    --login-stage-accent: rgba(175, 226, 245, 0.88);
+    --login-stage-accent-soft: rgba(153, 206, 227, 0.34);
+    --login-stage-border: rgba(211, 236, 247, 0.18);
+    --login-stage-fog: rgba(11, 35, 54, 0.72);
+    --login-stage-sheen: rgba(244, 250, 254, 0.12);
     --login-stage-min-height: min(
-        572px,
+        524px,
         calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(14px, 2vw, 28px) * 2))
     );
     --login-stage-min-height-tablet: min(
-        548px,
+        500px,
         calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(12px, 1.8vw, 22px) * 2))
     );
     min-height: 100vh;
@@ -60,7 +65,7 @@
     /* `min(920px, 62vw)`：理想宽度上限是 920px。
        如果屏幕没有这么宽，就退到视口宽度的 62%，避免舞台显得又满又硬。*/
     /* 登录舞台的目标宽度最多到 920px，同时只占视口约 62%，避免整页像普通居中登录框。*/
-    padding: clamp(14px, 2vw, 28px); /* 小屏收紧，大屏舒展，避免外层安全留白忽大忽小 */
+    padding: clamp(12px, 1.6vw, 22px); /* 小屏收紧，大屏舒展，避免外层安全留白忽大忽小 */
     margin: 0;
     animation: login-shell-rise 0.78s cubic-bezier(0.2, 0.9, 0.24, 1) both;
 }
@@ -78,14 +83,14 @@
    这层是整块“潜前门厅”的可调舞台。
    用户拖拽边缘时，我们只改这层的宽高，内部玻璃卡和表单布局继续按既有规则重排。 */
 .login-stage-shell {
-    --login-stage-width: min(920px, 62vw);
+    --login-stage-width: min(860px, 58vw);
     --login-stage-height: auto;
     --login-stage-shift-x: 0px;
     --login-stage-shift-y: 0px;
     position: relative;
     width: var(--login-stage-width);
     max-width: min(1240px, calc(100vw - clamp(40px, 8vw, 160px)));
-    min-width: 760px;
+    min-width: 720px;
     height: var(--login-stage-height);
     min-height: var(--login-stage-min-height);
     margin: 0 auto;
@@ -269,11 +274,11 @@ body.page-transition-active .login-stage-hud {
     inset: -16px -20px -22px;
     border-radius: 38px;
     background:
-        radial-gradient(circle at 18% 18%, rgba(171, 217, 234, 0.12), transparent 28%),
-        radial-gradient(circle at 82% 74%, rgba(111, 178, 208, 0.1), transparent 24%),
-        radial-gradient(circle at 50% 100%, rgba(12, 46, 70, 0.18), transparent 52%);
-    filter: blur(24px);
-    opacity: 0.72;
+        radial-gradient(circle at 12% 18%, rgba(189, 229, 241, 0.22), transparent 30%),
+        radial-gradient(circle at 84% 70%, rgba(111, 178, 208, 0.16), transparent 26%),
+        radial-gradient(circle at 48% 100%, rgba(12, 46, 70, 0.24), transparent 54%);
+    filter: blur(30px);
+    opacity: 0.88;
     pointer-events: none;
     z-index: 0;
 }
@@ -457,6 +462,24 @@ body.page-transition-active .login-stage-hud {
     animation: glass-card-breathe 5.6s ease-in-out 1s infinite alternate;
 }
 
+.login-stage-divider {
+    position: absolute;
+    inset: 20px auto 20px 35%;
+    width: 1px;
+    background: linear-gradient(
+        180deg,
+        rgba(225, 242, 249, 0) 0%,
+        rgba(225, 242, 249, 0.2) 20%,
+        rgba(145, 199, 221, 0.18) 52%,
+        rgba(225, 242, 249, 0) 100%
+    );
+    box-shadow: 0 0 24px rgba(136, 197, 223, 0.08);
+    opacity: 0.82;
+    pointer-events: none;
+    transform: translateX(-0.5px);
+    z-index: 1;
+}
+
 /* .glass-card::before：前置高光层，给观察舱加一层缓慢扫过的冷白雾光。*/
 .glass-card::before {
     content: "";
@@ -493,7 +516,7 @@ body.page-transition-active .login-stage-hud {
     position: relative;
     z-index: 1;
     display: grid;
-    grid-template-columns: minmax(205px, 31%) minmax(0, 69%);
+    grid-template-columns: minmax(270px, 35%) minmax(0, 65%);
     /* 左侧至少保留 205px 给品牌门厅，右侧把更多空间留给表单，避免变成平均分栏。*/
     min-height: var(--login-stage-min-height);
     height: 100%;
@@ -519,13 +542,13 @@ body.page-transition-active .login-stage-hud {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: clamp(20px, 2.4vw, 34px);
-    border-right: 1px solid rgba(255, 255, 255, 0.16);
+    padding: clamp(20px, 2.3vw, 32px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
     background:
-        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 48%),
-        linear-gradient(160deg, rgba(12, 39, 61, 0.48), rgba(9, 29, 47, 0.42));
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+        radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 48%),
+        linear-gradient(160deg, rgba(12, 39, 61, 0.56), rgba(8, 26, 41, 0.46));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 /* .login-side::after：品牌区上的轻雾覆盖层，用来压住背景亮度并统一色调。*/
@@ -533,8 +556,48 @@ body.page-transition-active .login-stage-hud {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+        linear-gradient(135deg, rgba(163, 209, 229, 0.04), transparent 38%);
     pointer-events: none;
+}
+
+.login-side-atmosphere {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.login-side-orbit {
+    position: absolute;
+    border-radius: 999px;
+    border: 1px solid rgba(211, 238, 247, 0.1);
+    opacity: 0.26;
+}
+
+.orbit-a {
+    top: 10%;
+    right: -22%;
+    width: 280px;
+    height: 280px;
+    animation: ripple-pulse 18s ease-out infinite;
+}
+
+.orbit-b {
+    bottom: 18%;
+    left: -18%;
+    width: 200px;
+    height: 200px;
+    animation: ripple-pulse 14s ease-out infinite 2.5s;
+}
+
+.orbit-c {
+    top: 52%;
+    right: 8%;
+    width: 120px;
+    height: 120px;
+    animation: ripple-pulse 12s ease-out infinite 4s;
 }
 
 /* login-brand-copy：
@@ -544,8 +607,28 @@ body.page-transition-active .login-stage-hud {
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    width: min(320px, 100%);
+    gap: 14px;
+    width: min(352px, 100%);
+}
+
+.side-depth-tag {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin: -4px 0 2px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(209, 235, 246, 0.16);
+    background:
+        linear-gradient(180deg, rgba(244, 250, 254, 0.08), rgba(138, 194, 220, 0.04)),
+        rgba(8, 31, 48, 0.28);
+    color: rgba(222, 239, 246, 0.76);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    box-shadow:
+        0 12px 24px rgba(3, 14, 25, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* side-kicker：
@@ -555,7 +638,7 @@ body.page-transition-active .login-stage-hud {
     font-size: 0.7rem;
     letter-spacing: 0.34em;
     text-transform: uppercase;
-    color: rgba(229, 238, 245, 0.44);
+    color: rgba(229, 238, 245, 0.52);
 }
 
 /* .side-title：左侧品牌主标题，是整页唯一明确的品牌锚点。*/
@@ -578,29 +661,166 @@ body.page-transition-active .login-stage-hud {
 /* side-quote：
    这是品牌区最明确的一句引导，语气更稳、权重高于补充文案。 */
 .side-quote {
-    margin: 4px 0 0;
+    margin: 2px 0 0;
     max-width: 13em;
-    font-size: clamp(1.02rem, 1.1vw, 1.14rem);
-    line-height: 1.7;
-    color: rgba(244, 248, 252, 0.88);
+    font-size: clamp(1rem, 1.06vw, 1.12rem);
+    line-height: 1.72;
+    color: rgba(244, 248, 252, 0.92);
 }
 
 /* side-meta：
    最后一层补充文案只保留一句，帮助用户把岸上的节奏放下。 */
 .side-meta {
     margin: 2px 0 0;
-    max-width: 16em;
-    font-size: 0.92rem;
+    max-width: 18em;
+    font-size: 0.9rem;
     line-height: 1.72;
-    color: rgba(220, 231, 239, 0.66);
+    color: rgba(224, 236, 243, 0.78);
+}
+
+.side-observatory {
+    margin-top: 2px;
+    padding: 14px 16px 12px;
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(161, 202, 221, 0.04)),
+        rgba(8, 31, 49, 0.34);
+    border: 1px solid rgba(211, 238, 247, 0.12);
+    box-shadow:
+        0 18px 34px rgba(2, 12, 21, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.side-observatory-title {
+    margin: 0 0 10px;
+    color: rgba(239, 248, 252, 0.86);
+    font-size: 0.9rem;
+    line-height: 1.64;
+}
+
+.side-observatory-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.side-observatory-item {
+    margin: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.side-observatory-label {
+    color: rgba(194, 223, 234, 0.56);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.side-observatory-item strong {
+    color: rgba(241, 249, 252, 0.86);
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.side-waterline {
+    margin-top: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.side-waterline-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.side-waterline-label {
+    color: rgba(195, 224, 235, 0.56);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.side-waterline-value {
+    color: rgba(232, 246, 252, 0.82);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+}
+
+.side-waterline-track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(212, 238, 247, 0.06);
+    border: 1px solid rgba(212, 238, 247, 0.08);
+    transition: border-color 220ms ease, box-shadow 320ms ease, background-color 220ms ease;
+}
+
+.side-waterline-fill {
+    position: absolute;
+    inset: 1px;
+    width: var(--waterline-progress, 0%);
+    border-radius: inherit;
+    background:
+        linear-gradient(90deg, rgba(226, 244, 250, 0.64), rgba(148, 206, 227, 0.3)),
+        rgba(161, 216, 237, 0.22);
+    box-shadow: 0 0 18px rgba(164, 221, 239, 0.18);
+    opacity: 0.92;
+    transform-origin: left center;
+    transition:
+        width 420ms cubic-bezier(0.2, 0.86, 0.24, 1),
+        opacity 220ms ease,
+        box-shadow 320ms ease,
+        background 320ms ease;
+}
+
+.side-waterline-status {
+    margin: 0;
+    color: rgba(217, 235, 244, 0.72);
+    font-size: 0.82rem;
+    line-height: 1.58;
+    min-height: 2.5em;
+    transition: color 220ms ease;
+}
+
+.login-page[data-auth-progress-state="active"] .side-waterline-track {
+    border-color: rgba(188, 228, 242, 0.18);
+    box-shadow:
+        0 0 0 1px rgba(214, 238, 247, 0.03),
+        0 0 20px rgba(125, 197, 224, 0.08);
+}
+
+.login-page[data-auth-progress-state="complete"] .side-waterline-track {
+    border-color: rgba(214, 239, 247, 0.24);
+    box-shadow:
+        0 0 0 1px rgba(224, 243, 250, 0.05),
+        0 0 24px rgba(160, 222, 243, 0.12);
+}
+
+.login-page[data-auth-progress-state="complete"] .side-waterline-fill {
+    background:
+        linear-gradient(90deg, rgba(236, 248, 252, 0.84), rgba(150, 213, 235, 0.42)),
+        rgba(167, 222, 240, 0.28);
+    box-shadow:
+        0 0 20px rgba(179, 232, 248, 0.26),
+        0 0 36px rgba(101, 177, 209, 0.12);
+}
+
+.login-page[data-auth-progress-state="complete"] .side-waterline-status {
+    color: rgba(231, 244, 250, 0.82);
 }
 
 /* 左侧四层文案分开出现。
    先看见门厅标识，再看见品牌名，最后才是呼吸提示。*/
 .login-side .side-kicker,
+.login-side .side-depth-tag,
 .login-side .side-title,
 .login-side .side-quote,
-.login-side .side-meta {
+.login-side .side-meta,
+.login-side .side-observatory,
+.login-side .side-waterline {
     opacity: 0;
     animation: content-rise-in 0.72s cubic-bezier(0.2, 0.86, 0.24, 1) forwards;
 }
@@ -609,41 +829,117 @@ body.page-transition-active .login-stage-hud {
     animation-delay: 0.12s;
 }
 
+.login-side .side-depth-tag {
+    animation-delay: 0.18s;
+}
+
 .login-side .side-title {
-    animation-delay: 0.24s;
+    animation-delay: 0.28s;
 }
 
 .login-side .side-quote {
-    animation-delay: 0.4s;
+    animation-delay: 0.42s;
 }
 
 .login-side .side-meta {
-    animation-delay: 0.54s;
+    animation-delay: 0.56s;
+}
+
+.login-side .side-observatory {
+    animation-delay: 0.7s;
+}
+
+.login-side .side-waterline {
+    animation-delay: 0.82s;
 }
 
 /* 右侧认证区：
    承接登录 / 注册交互，但视觉上仍然保持“静水里的控制台”感。*/
 .form-side {
-    padding: clamp(22px, 3vw, 36px) clamp(22px, 3vw, 36px) 4px;
+    position: relative;
+    padding: clamp(18px, 2.2vw, 28px) clamp(18px, 2.2vw, 28px) 4px;
 }
 
 /* 登录模式下的表单区：多给一点底部空间，避免按钮和底链显得太挤。*/
 .login-page[data-auth-mode="login"] .form-side {
-    padding-bottom: clamp(32px, 4.8vw, 46px);
+    padding-bottom: clamp(16px, 2.8vw, 24px);
+}
+
+.auth-panel-shell {
+    position: relative;
+    padding: 14px;
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(164, 205, 223, 0.03)),
+        rgba(5, 24, 38, 0.18);
+    border: 1px solid rgba(212, 238, 247, 0.08);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 24px 46px rgba(3, 14, 23, 0.18);
+}
+
+.auth-panel-glass {
+    position: absolute;
+    inset: 8px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 84% 14%, rgba(255, 255, 255, 0.08), transparent 26%),
+        linear-gradient(180deg, rgba(17, 45, 65, 0.34), rgba(8, 26, 39, 0.18));
+    opacity: 0.94;
+    pointer-events: none;
+}
+
+.auth-panel-inner {
+    position: relative;
+    z-index: 1;
+    padding: 4px;
+}
+
+.auth-waterline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(211, 236, 247, 0.12);
+    background:
+        linear-gradient(180deg, rgba(244, 250, 254, 0.08), rgba(138, 194, 220, 0.03)),
+        rgba(8, 29, 45, 0.34);
+    box-shadow:
+        0 12px 22px rgba(2, 12, 21, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.auth-waterline-kicker,
+.auth-waterline-copy {
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.auth-waterline-kicker {
+    color: rgba(220, 239, 246, 0.74);
+}
+
+.auth-waterline-copy {
+    color: rgba(189, 223, 236, 0.46);
 }
 
 /* .form-brand：承接右侧标题、小字和说明文案的整体容器。*/
 .form-brand {
-    margin-bottom: 18px;
+    margin-bottom: 8px;
 }
 
 /* .form-kicker：右侧认证区的小标题，用来建立“进入动作”层级。*/
 .form-kicker {
-    margin: 0 0 10px;
+    margin: 0 0 6px;
     font-size: 0.72rem;
     letter-spacing: 0.34em;
     text-transform: uppercase;
-    color: rgba(245, 245, 245, 0.52);
+    color: rgba(245, 245, 245, 0.46);
 }
 
 /* .form-copy：登录态和注册态各自的说明文案容器。*/
@@ -661,7 +957,7 @@ body.page-transition-active .login-stage-hud {
 .form-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+    font-size: clamp(1.56rem, 2.3vw, 2rem);
     font-weight: 600;
     line-height: 1.2;
     color: #f5f5f5;
@@ -671,10 +967,11 @@ body.page-transition-active .login-stage-hud {
 
 /* .form-subtitle：右侧的辅助说明，负责把“进入盐憩”说得更柔和。*/
 .form-subtitle {
-    margin: 12px 0 0;
-    font-size: 0.95rem;
-    line-height: 1.65;
-    color: rgba(226, 236, 244, 0.74);
+    margin: 8px 0 0;
+    max-width: 34em;
+    font-size: 0.9rem;
+    line-height: 1.68;
+    color: rgba(226, 236, 244, 0.7);
 }
 
 /* ============================================
@@ -689,13 +986,137 @@ body.page-transition-active .login-stage-hud {
     pointer-events: none;
 }
 
+.login-atmosphere {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.atmosphere-haze,
+.atmosphere-wave,
+.atmosphere-current,
+.atmosphere-ripple {
+    position: absolute;
+    display: block;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.atmosphere-haze {
+    filter: blur(26px);
+    opacity: 0.48;
+}
+
+.atmosphere-haze.haze-a {
+    top: 8%;
+    left: -10%;
+    width: 44vw;
+    height: 24vh;
+    background: radial-gradient(circle at 50% 50%, rgba(181, 223, 240, 0.22), transparent 70%);
+    animation: atmosphere-drift-a 18s ease-in-out infinite;
+}
+
+.atmosphere-haze.haze-b {
+    right: -12%;
+    bottom: 6%;
+    width: 42vw;
+    height: 28vh;
+    background: radial-gradient(circle at 50% 50%, rgba(102, 167, 199, 0.18), transparent 72%);
+    animation: atmosphere-drift-b 22s ease-in-out infinite;
+}
+
+.atmosphere-wave {
+    left: 50%;
+    width: 120vw;
+    height: 26vh;
+    border: 1px solid rgba(203, 235, 248, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent);
+    filter: blur(1px);
+    opacity: 0.48;
+}
+
+.wave-a {
+    top: 10vh;
+    transform: translateX(-52%) rotate(-5deg);
+    animation: atmosphere-wave-float 20s linear infinite;
+}
+
+.wave-b {
+    top: 34vh;
+    transform: translateX(-48%) rotate(3deg);
+    opacity: 0.32;
+    animation: atmosphere-wave-float 24s linear infinite reverse;
+}
+
+.wave-c {
+    bottom: 10vh;
+    transform: translateX(-50%) rotate(-2deg);
+    opacity: 0.24;
+    animation: atmosphere-wave-float 28s linear infinite;
+}
+
+.atmosphere-current {
+    width: clamp(220px, 24vw, 360px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(214, 239, 247, 0.18), transparent);
+    box-shadow: 0 0 16px rgba(174, 219, 237, 0.08);
+    opacity: 0.44;
+}
+
+.current-a {
+    --current-angle: -12deg;
+    top: 22%;
+    left: 10%;
+    transform: rotate(-12deg);
+    animation: current-drift 12s ease-in-out infinite;
+}
+
+.current-b {
+    --current-angle: 8deg;
+    top: 48%;
+    right: 8%;
+    transform: rotate(8deg);
+    animation: current-drift 14s ease-in-out infinite reverse;
+}
+
+.current-c {
+    --current-angle: -6deg;
+    bottom: 18%;
+    left: 26%;
+    transform: rotate(-6deg);
+    animation: current-drift 16s ease-in-out infinite;
+}
+
+.atmosphere-ripple {
+    border: 1px solid rgba(223, 241, 248, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    opacity: 0.24;
+}
+
+.ripple-a {
+    top: 16%;
+    right: 14%;
+    width: 240px;
+    height: 240px;
+    animation: ripple-pulse 14s ease-out infinite;
+}
+
+.ripple-b {
+    bottom: 8%;
+    left: 6%;
+    width: 320px;
+    height: 320px;
+    animation: ripple-pulse 18s ease-out infinite 3s;
+}
+
 /* 背景主水体层：用纵向渐变和顶部微光打出“海面下第一层静水”的底色。*/
 .gradient-bg {
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(180deg, rgba(6, 24, 38, 0.28) 0%, rgba(13, 43, 68, 0.68) 48%, rgba(7, 28, 45, 0.88) 100%),
-        radial-gradient(circle at 50% -8%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 34%);
+        radial-gradient(circle at 50% -10%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 32%),
+        radial-gradient(circle at 20% 14%, rgba(128, 193, 223, 0.1), transparent 28%),
+        linear-gradient(180deg, rgba(6, 24, 38, 0.26) 0%, rgba(13, 43, 68, 0.66) 46%, rgba(7, 28, 45, 0.9) 100%);
     animation: gradient-shift 14s ease-in-out infinite;
 }
 
@@ -705,10 +1126,10 @@ body.page-transition-active .login-stage-hud {
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(180deg, rgba(2, 14, 24, 0.18) 0%, rgba(4, 24, 40, 0.32) 38%, rgba(7, 31, 50, 0.62) 100%),
+        linear-gradient(180deg, rgba(2, 14, 24, 0.18) 0%, rgba(4, 24, 40, 0.34) 32%, rgba(7, 31, 50, 0.72) 100%),
         url("../assets/images/sipadan.jpg") center center / cover no-repeat;
     transform: scale(1.05);
-    filter: saturate(0.52) contrast(0.98) brightness(0.48);
+    filter: saturate(0.48) contrast(0.96) brightness(0.42);
 }
 
 /* .gradient-bg::after：顶部水光层，补一层很弱的海面折射感。*/
@@ -717,8 +1138,8 @@ body.page-transition-active .login-stage-hud {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 16%),
-        linear-gradient(180deg, rgba(116, 177, 214, 0.08), rgba(5, 35, 62, 0.1));
+        radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 16%),
+        linear-gradient(180deg, rgba(116, 177, 214, 0.06), rgba(5, 35, 62, 0.12));
     opacity: 0.92;
     mix-blend-mode: screen;
     animation: sea-light-sweep 18s ease-in-out infinite;
@@ -898,56 +1319,86 @@ body.page-transition-active .login-stage-hud {
 
 /* .tab-section：包住登录 / 注册切换器的外层。 */
 .tab-section {
-    margin-bottom: 12px;
+    margin-bottom: 2px;
 }
 
 /* .tabs：登录 / 注册分段控制器的整体玻璃底板。*/
 .tabs {
+    position: relative;
+    isolation: isolate;
     display: flex;
     gap: 8px;
-    padding: 8px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 4px;
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(178, 213, 229, 0.04)),
+        rgba(7, 29, 45, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 8px 20px rgba(8, 37, 63, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 10px 22px rgba(8, 37, 63, 0.12);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 /* 登录 / 注册切换按钮：控制分段按钮的外观、边界和状态过渡。 */
 .tab-btn {
     flex: 1;
-    border: none;
-    border-radius: 10px;
+    position: relative;
+    z-index: 1;
+    border: 1px solid transparent;
+    border-radius: 15px;
+    min-height: 52px;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(229, 239, 247, 0.8);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(122, 174, 198, 0.02)),
+        rgba(255, 255, 255, 0.01);
+    color: rgba(229, 239, 247, 0.74);
     font-weight: 600;
     font-size: 0.95rem;
-    transition: all var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast);
+    cursor: pointer;
 }
 
 /* .tab-btn:hover：鼠标移入时轻微提亮，提示可以切换。*/
 .tab-btn:hover {
-    color: #f6fbff;
-    background: rgba(255, 255, 255, 0.09);
+    color: rgba(244, 250, 253, 0.92);
+    border-color: rgba(202, 232, 244, 0.12);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(154, 206, 228, 0.05)),
+        rgba(255, 255, 255, 0.03);
 }
 
-/* .tab-btn.active：当前入口被选中时，用更亮的玻璃层托住它。*/
-.tab-btn.active {
-    background: linear-gradient(135deg, rgba(245, 247, 248, 0.92), rgba(223, 235, 244, 0.88));
-    color: #0d2b44;
+.tab-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(96, 180, 220, 0.16);
+}
+
+/* 当前入口被选中时，不做纯白分段块，而像静水层被轻轻推开。*/
+.tab-btn.active,
+.tab-btn[aria-selected="true"] {
+    background:
+        linear-gradient(180deg, rgba(247, 251, 253, 0.2), rgba(156, 207, 229, 0.14)),
+        rgba(228, 243, 249, 0.08);
+    color: rgba(246, 251, 253, 0.96);
+    border-color: rgba(220, 240, 248, 0.24);
     box-shadow:
-        0 8px 20px rgba(10, 62, 103, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        0 12px 24px rgba(6, 31, 51, 0.18),
+        0 0 18px rgba(130, 199, 225, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transform: translate3d(0, -1px, 0);
 }
 
 /* .auth-form：表单总容器，负责承接登录 / 注册两层内容和高度变化。*/
 .auth-form {
     position: relative;
-    margin-bottom: 12px;
+    margin-top: -2px;
+    margin-bottom: 6px;
     transition: min-height 0.56s cubic-bezier(0.2, 0.9, 0.24, 1);
     /* 登录和注册字段数量不同，这里只过渡 min-height，让卡片高度变化更平滑。*/
 }
@@ -1033,7 +1484,7 @@ body.page-transition-active .login-stage-hud {
     visibility: hidden;
     pointer-events: none; /* 隐藏的表单层不能接收点击或参与输入。*/
     opacity: 0;
-    transform: translate3d(0, 24px, 0) scale(0.985);
+    transform: translate3d(0, 16px, 0) scale(0.985);
     filter: blur(6px);
 }
 
@@ -1066,7 +1517,7 @@ body.page-transition-active .login-stage-hud {
 /* tab-content-enter 。0%：新表单从略微下沉和模糊的状态开始靠近。*/
     0% {
         opacity: 0;
-        transform: translate3d(0, 28px, 0) scale(0.987);
+        transform: translate3d(0, 18px, 0) scale(0.987);
         filter: blur(8px);
     }
 /* tab-content-enter 。100%：新表单回到清晰、稳定的阅读位置*/
@@ -1088,22 +1539,22 @@ body.page-transition-active .login-stage-hud {
 /* tab-content-leave 。100%：旧表单上移并模糊，像退回同一层静水后方。*/
     100% {
         opacity: 0;
-        transform: translate3d(0, -16px, 0) scale(0.982);
+        transform: translate3d(0, -10px, 0) scale(0.982);
         filter: blur(7px);
     }
 }
 
 /* .input-group：单个输入项容器，负责 label、输入框和状态过渡。*/
 .input-group {
-    margin-bottom: 12px;
-    transition: transform 0.3s ease, filter 0.3s ease;
+    margin-bottom: 10px;
+    transition: transform 0.24s ease;
 }
 
 /* 输入项标签：控制字段标题的字重、颜色和上下间距。*/
 .input-group label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
+    margin-bottom: 6px;
+    font-size: 0.86rem;
     font-weight: 600;
     color: rgba(238, 245, 250, 0.84);
     transition: color 0.3s ease, letter-spacing 0.3s ease;
@@ -1117,10 +1568,15 @@ body.page-transition-active .login-stage-hud {
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(201, 225, 241, 0.08)),
         rgba(144, 177, 198, 0.08);
-    padding: 12px 14px;
+    padding: 11px 13px;
     color: #f5f5f5;
-    font-size: 0.95rem;
-    transition: all var(--transition-fast);
+    font-size: 0.92rem;
+    transition:
+        transform var(--transition-fast),
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        color var(--transition-fast);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.16),
         0 10px 20px rgba(3, 15, 26, 0.12);
@@ -1128,6 +1584,38 @@ body.page-transition-active .login-stage-hud {
     -webkit-backdrop-filter: blur(12px);
     transform: translate3d(0, 0, 0);
     will-change: transform, box-shadow, border-color;
+    transform-origin: center center;
+    backface-visibility: hidden;
+}
+
+.input-group.is-filled input {
+    border-color: rgba(196, 228, 241, 0.18);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(201, 225, 241, 0.09)),
+        rgba(126, 165, 190, 0.11);
+}
+
+.input-group.is-complete input {
+    border-color: rgba(162, 220, 243, 0.4);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 0 0 1px rgba(165, 221, 240, 0.08),
+        0 14px 24px rgba(4, 17, 28, 0.16);
+}
+
+.input-group.is-complete label {
+    color: rgba(234, 246, 251, 0.94);
+}
+
+.input-group input.is-invalid {
+    border-color: rgba(255, 170, 170, 0.42);
+    box-shadow:
+        0 0 0 3px rgba(201, 111, 111, 0.12),
+        0 14px 24px rgba(30, 10, 14, 0.18);
+}
+
+.input-group.is-invalid label {
+    color: rgba(248, 229, 234, 0.92);
 }
 
 /* .input-group:focus-within：字段被聚焦时，整组内容轻微上提。*/
@@ -1167,66 +1655,225 @@ body.page-transition-active .login-stage-hud {
     opacity: 0.45;
 }
 
-/* .input-group.is-shaking, .checkbox-group.is-shaking 空字段提交时的左右提。*/
-.input-group.is-shaking,
-.checkbox-group.is-shaking {
-    animation: field-shake 0.38s ease;
+.input-group.is-invaliding input {
+    animation: field-invalid-jolt 320ms cubic-bezier(0.34, 0.84, 0.28, 1);
+}
+
+.input-group.is-invaliding label {
+    animation: invalid-label-drift 300ms cubic-bezier(0.34, 0.84, 0.28, 1);
 }
 
 /* 复选区域：控制“记住我 / 协议”这一行的横向排布和间距。*/
 .checkbox-group {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 6px 0 14px;
+    gap: 12px;
+    margin: 4px 0 12px;
+    transition: transform 0.24s ease;
+}
+
+.checkbox-group:focus-within {
+    transform: translate3d(0, -1px, 0);
 }
 
 /* 原生复选框：这里只保留点击能力和基础尺寸，视觉重点交给整行文案。*/
 .checkbox-group input[type="checkbox"] {
-    width: 17px;
-    height: 17px;
-    accent-color: #0d6db2;
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(211, 236, 247, 0.22);
+    background:
+        linear-gradient(180deg, rgba(248, 251, 253, 0.12), rgba(140, 194, 216, 0.05)),
+        rgba(7, 27, 42, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 8px 18px rgba(3, 14, 23, 0.12);
+    cursor: pointer;
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background 220ms ease,
+        box-shadow 220ms ease;
+    transform-origin: center center;
+    backface-visibility: hidden;
+}
+
+.checkbox-group input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: inherit;
+    background:
+        linear-gradient(180deg, rgba(247, 251, 253, 0.14), rgba(149, 205, 228, 0.03)),
+        rgba(10, 33, 51, 0.36);
+    opacity: 0.92;
+    transition: opacity 220ms ease, background 220ms ease;
+}
+
+.checkbox-group input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(232, 247, 252, 0.88);
+    box-shadow: 0 0 14px rgba(176, 230, 247, 0.28);
+    transform: translate3d(0, -50%, 0);
+    transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease;
+}
+
+.checkbox-group input[type="checkbox"]:hover,
+.checkbox-group input[type="checkbox"]:focus-visible {
+    border-color: rgba(186, 228, 243, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 3px rgba(110, 194, 229, 0.12),
+        0 10px 22px rgba(3, 14, 23, 0.14);
+}
+
+.checkbox-group input[type="checkbox"]:focus-visible {
+    outline: none;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+    border-color: rgba(190, 232, 246, 0.38);
+    background:
+        linear-gradient(180deg, rgba(242, 250, 253, 0.22), rgba(152, 210, 232, 0.16)),
+        rgba(69, 132, 163, 0.34);
+}
+
+.checkbox-group input[type="checkbox"]:checked::before {
+    background:
+        linear-gradient(180deg, rgba(245, 252, 254, 0.2), rgba(158, 214, 236, 0.08)),
+        rgba(45, 101, 132, 0.38);
+}
+
+.checkbox-group input[type="checkbox"]:checked::after {
+    transform: translate3d(12px, -50%, 0);
+    background: rgba(246, 251, 253, 0.96);
+    box-shadow:
+        0 0 16px rgba(188, 236, 249, 0.34),
+        0 2px 8px rgba(8, 30, 47, 0.18);
+}
+
+.checkbox-group input[type="checkbox"].is-invalid {
+    outline: 2px solid rgba(255, 177, 177, 0.36);
+    outline-offset: 2px;
 }
 
 /* .checkbox-label：显示复选项说明文字，避免这一行显得像系统表单。*/
 .checkbox-label {
-    font-size: 0.9rem;
-    color: rgba(229, 239, 247, 0.62);
+    font-size: 0.86rem;
+    color: rgba(229, 239, 247, 0.68);
     user-select: none;
+    line-height: 1.48;
+    transition: color 220ms ease;
+}
+
+.checkbox-group.is-invalid .checkbox-label {
+    color: rgba(248, 231, 236, 0.9);
+}
+
+.checkbox-group.is-invaliding input[type="checkbox"] {
+    animation: checkbox-invalid-jolt 280ms cubic-bezier(0.34, 0.84, 0.28, 1);
+}
+
+.checkbox-group.is-invaliding .checkbox-label {
+    animation: invalid-label-drift 280ms cubic-bezier(0.34, 0.84, 0.28, 1);
+}
+
+.checkbox-group.is-complete .checkbox-label {
+    color: rgba(236, 246, 251, 0.84);
 }
 
 /* .checkbox-label a：弱化的辅助链接，用于协议等次级入口。*/
 .checkbox-label a {
-    color: #ff8c42;
+    color: rgba(176, 224, 242, 0.9);
+}
+
+.auth-feedback {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 18px;
+    border: 1px solid rgba(211, 236, 247, 0.08);
+    background:
+        linear-gradient(180deg, rgba(244, 250, 254, 0.06), rgba(138, 194, 220, 0.03)),
+        rgba(8, 29, 45, 0.28);
+    color: rgba(226, 236, 244, 0.84);
+    font-size: 0.86rem;
+    line-height: 1.62;
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+    filter: blur(8px);
+    pointer-events: none;
+    transition:
+        opacity 280ms ease,
+        transform 420ms cubic-bezier(0.2, 0.86, 0.24, 1),
+        filter 420ms ease,
+        border-color 220ms ease,
+        color 220ms ease;
+}
+
+.auth-feedback.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+}
+
+.auth-feedback.is-error {
+    border-color: rgba(243, 170, 170, 0.18);
+    color: rgba(255, 224, 224, 0.92);
+}
+
+.auth-feedback.is-success {
+    border-color: rgba(189, 235, 212, 0.18);
+    color: rgba(224, 250, 236, 0.94);
 }
 
 /* ============================================
-   Login Button (Uiverse Inspired)
+   Login Button
    ============================================ */
 
 /* 主按钮：承担“进入下一层海”的动作，不做普通实心系统按钮。*/
-.button,
-.submit-btn {
+.auth-cta {
     position: relative;
     width: 100%;
-    min-height: clamp(44px, 5vw, 50px);
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    padding-block: 0.5rem;
+    min-height: clamp(42px, 4.6vw, 46px);
+    transition:
+        transform 0.3s ease-in-out,
+        box-shadow 0.3s ease-in-out,
+        border-color 0.3s ease-in-out,
+        background-color 0.3s ease-in-out;
+    box-shadow:
+        0 18px 32px rgba(2, 12, 21, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    padding-block: 0.42rem;
     padding-inline: 1.25rem;
-    background-color: rgb(0 107 179);
+    background:
+        linear-gradient(135deg, rgba(215, 243, 250, 0.92), rgba(140, 204, 228, 0.54)),
+        rgba(0, 107, 179, 0.72);
     border-radius: 9999px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #fff;
-    gap: 10px;
+    color: #072033;
+    gap: 8px;
     font-weight: 700;
-    border: 3px solid #ffffff4d;
+    border: 1px solid rgba(241, 250, 254, 0.28);
     outline: none;
     overflow: hidden;
-    font-size: clamp(14px, 2vw, 15px);
+    font-size: clamp(13px, 1.8vw, 14px);
+    letter-spacing: 0.08em;
 }
 
 /* .icon：按钮里的轻量箭头图标，hover 时会配合轻微前移。*/
@@ -1237,26 +1884,27 @@ body.page-transition-active .login-stage-hud {
 }
 
 /* 主按钮 hover：轻微放大并提亮边框，像开始往下一层海推进。*/
-.button:hover,
-.submit-btn:hover {
-    transform: scale(1.03);
-    border-color: #fff9;
+.auth-cta:hover {
+    transform: translate3d(0, -2px, 0) scale(1.01);
+    border-color: rgba(255, 255, 255, 0.42);
+    box-shadow:
+        0 22px 38px rgba(2, 12, 21, 0.22),
+        0 0 24px rgba(164, 221, 239, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 /* 按钮 hover 时箭头轻轻前移，增强进入感。*/
-.button:hover .icon {
+.auth-cta:hover .icon {
     transform: translateX(4px);
 }
 
-/* .button:hover::before / .submit-btn:hover::before：hover 时启动按钮表面的扫光。*/
-.button:hover::before,
-.submit-btn:hover::before {
+/* hover 时启动按钮表面的扫光。*/
+.auth-cta:hover::before {
     animation: shine 1.5s ease-out infinite;
 }
 
-/* .button::before / .submit-btn::before：按钮内部的细长高光片，用来制造缓慢掠过的光感。*/
-.button::before,
-.submit-btn::before {
+/* 按钮内部的细长高光片，用来制造缓慢掠过的光感。*/
+.auth-cta::before {
     content: "";
     position: absolute;
     width: 100px;
@@ -1285,10 +1933,12 @@ body.page-transition-active .login-stage-hud {
     }
 }
 
-/* .submit-btn：主提交流程按钮的补充样式。*/
-.submit-btn {
-    border: 3px solid #ffffff4d;
-    outline: none;
+/* 主按钮 focus-visible：保留键盘可见焦点。*/
+.auth-cta:focus-visible {
+    box-shadow:
+        0 22px 38px rgba(2, 12, 21, 0.22),
+        0 0 0 4px rgba(115, 200, 233, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 /* ============================================
@@ -1297,19 +1947,34 @@ body.page-transition-active .login-stage-hud {
 
 /* .footer-links：底部辅助链接区，承接忘记密码和游客进入等次级入口。*/
 .footer-links {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    padding: 4px 0 1px;
-    margin-bottom: 1px;
+    display: grid;
+    gap: 8px;
+    padding: 4px 0 0;
+    margin-bottom: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* 登录模式下的 footer-links：给底链更多留白，让首屏结尾更从容。*/
 .login-page[data-auth-mode="login"] .footer-links {
-    padding: 22px 0 10px;
-    margin-bottom: 18px;
+    padding: 10px 0 2px;
+    margin-bottom: 0;
+}
+
+.footer-links-label {
+    margin: 0;
+    color: rgba(202, 227, 237, 0.46);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.footer-links-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
 /* .link-forgot / .link-guest：弱化的底部辅助入口。*/
@@ -1320,14 +1985,15 @@ body.page-transition-active .login-stage-hud {
     text-decoration: none;
     border: none;
     background: transparent;
-    transition: color var(--transition-fast);
+    transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
 /* 底部辅助链接 hover：只做轻微提亮和下划线，不抢主按钮存在感。*/
 .link-forgot:hover,
 .link-guest:hover {
-    color: #ffb073;
+    color: rgba(223, 243, 250, 0.96);
     text-decoration: underline;
+    transform: translate3d(0, -1px, 0);
 }
 
 /* .divider：分隔底部两个辅助链接。*/
@@ -1335,26 +2001,15 @@ body.page-transition-active .login-stage-hud {
     color: rgba(229, 239, 247, 0.32);
 }
 
-/* .social-login：第三方登录区的总容器。*/
-.social-login {
-    text-align: center;
-    margin-top: -1px;
-}
-
-/* 登录模式下的社交入口：上边距更紧，和主表单更自然衔接。*/
-.login-page[data-auth-mode="login"] .social-login {
-    margin-top: 0;
-}
-
 @media (max-height: 860px) and (min-width: 769px) {
     .login-page {
         --login-stage-safe-gap-y: clamp(12px, 2.1vh, 20px);
         --login-stage-min-height: min(
-            552px,
+            512px,
             calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(12px, 1.8vw, 22px) * 2))
         );
         --login-stage-min-height-tablet: min(
-            532px,
+            488px,
             calc(100dvh - (var(--login-stage-safe-gap-y) * 2) - (clamp(12px, 1.6vw, 20px) * 2))
         );
     }
@@ -1400,7 +2055,7 @@ body.page-transition-active .login-stage-hud {
     }
 
     .form-brand {
-        margin-bottom: 14px;
+        margin-bottom: 10px;
     }
 
     .form-kicker {
@@ -1419,15 +2074,16 @@ body.page-transition-active .login-stage-hud {
     }
 
     .tab-section {
-        margin-bottom: 10px;
+        margin-bottom: 4px;
     }
 
     .tabs {
         gap: 6px;
-        padding: 6px;
+        padding: 4px;
     }
 
     .tab-btn {
+        min-height: 48px;
         padding: 8px 10px;
         font-size: 0.9rem;
     }
@@ -1474,8 +2130,7 @@ body.page-transition-active .login-stage-hud {
         line-height: 1.45;
     }
 
-    .button,
-    .submit-btn {
+    .auth-cta {
         min-height: 44px;
         padding-block: 0.4rem;
     }
@@ -1485,8 +2140,8 @@ body.page-transition-active .login-stage-hud {
     }
 
     .login-page[data-auth-mode="login"] .footer-links {
-        padding: 14px 0 6px;
-        margin-bottom: 10px;
+        padding: 8px 0 2px;
+        margin-bottom: 0;
     }
 
     .footer-links {
@@ -1495,137 +2150,78 @@ body.page-transition-active .login-stage-hud {
         margin-bottom: 0;
     }
 
-    .social-text {
-        font-size: 0.84rem;
-        margin-bottom: 8px;
-    }
-
-    .login-page[data-auth-mode="login"] .social-text {
-        margin-bottom: 10px;
-    }
-
-    .social-buttons {
-        gap: 10px;
-    }
-
-    .social-btn {
-        min-width: 54px;
-        height: 40px;
-    }
 }
 
-/* .social-text：第三方入口的轻提示文案。*/
-.social-text {
-    color: rgba(226, 236, 244, 0.64);
-    font-size: 0.9rem;
-    line-height: 1.2;
-    margin-bottom: 1px;
-}
-
-/* 登录模式下让社交提示文字多一点呼吸空间。*/
-.login-page[data-auth-mode="login"] .social-text {
-    line-height: 1.4;
-    margin-bottom: 14px;
-}
-
-/* .social-buttons：第三方按钮组的横向排布。*/
-.social-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-}
-
-/* 登录模式下放宽社交按钮间距，避免显得太像工具按钮排排站。*/
-.login-page[data-auth-mode="login"] .social-buttons {
-    gap: 14px;
-}
-
-/* .social-btn：第三方登录按钮的玻璃外观和悬停反馈。*/
-.social-btn {
-    min-width: 56px;
-    height: 42px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(184, 210, 228, 0.08)),
-        rgba(130, 162, 184, 0.08);
-    padding: 0 12px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    transition:
-        transform 0.26s ease,
-        box-shadow 0.26s ease,
-        background-color 0.26s ease,
-        border-color 0.26s ease;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 8px 18px rgba(7, 29, 46, 0.14);
-}
-
-/* .social-btn span：控制按钮内文字或图标的轻微位移动画。*/
-.social-btn span {
-    display: inline-block;
-    transition: transform 0.24s ease, opacity 0.24s ease;
-}
-
-/* .social-btn:hover：鼠标移入时轻微上浮并提亮。*/
-.social-btn:hover {
-    transform: translateY(-2px);
-    border-color: rgba(170, 223, 255, 0.28);
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(184, 210, 228, 0.1)),
-        rgba(130, 162, 184, 0.12);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        0 12px 22px rgba(16, 80, 128, 0.18);
-}
-
-/* .social-btn:hover span：hover 时让按钮内部内容有一点点跟随。*/
-.social-btn:hover span {
-    transform: scale(1.06) translateY(-1px);
-    opacity: 0.96;
-}
-
-/* .social-btn:active：按下时触发轻微水波式点击反馈。*/
-.social-btn:active {
-    animation: social-water-tap 0.24s ease-out;
-}
-
-/* 定义 social-water-tap 动画的关键帧 */
-@keyframes social-water-tap {
-/* social-water-tap 。0%：从正常位置开始，准备给社交按钮一点水波式回弹。*/
-    0% {
-        transform: translate3d(0, -1px, 0) scale(1);
-    }
-/* social-water-tap 。35%：先轻微偏向一侧，模拟水里点按反馈。*/
-    35% {
-        transform: translate3d(1px, 0, 0) scale(0.985);
-    }
-/* social-water-tap 。65%：再反向回摆一点，让点击不显得机械。*/
-    65% {
-        transform: translate3d(-1px, 1px, 0) scale(0.992);
-    }
-/* social-water-tap 在 100%：回到稳定状态。 */
+@keyframes atmosphere-drift-a {
+    0%,
     100% {
         transform: translate3d(0, 0, 0) scale(1);
     }
+    50% {
+        transform: translate3d(4%, 8%, 0) scale(1.06);
+    }
 }
 
-/* 微信入口：保留平台识别色，但只作为轻提示。*/
-.social-btn.wechat {
-    color: #09b83e;
+@keyframes atmosphere-drift-b {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+        transform: translate3d(-6%, -4%, 0) scale(1.08);
+    }
 }
 
-/* QQ 入口：保留平台识别色，但不让它盖过整体气质。*/
-.social-btn.qq {
-    color: #1296db;
+@keyframes atmosphere-wave-float {
+    0% {
+        transform: translateX(-52%) translateY(0) rotate(-4deg);
+    }
+    50% {
+        transform: translateX(-49%) translateY(8px) rotate(2deg);
+    }
+    100% {
+        transform: translateX(-52%) translateY(0) rotate(-4deg);
+    }
 }
 
-/* Google 入口：同样只保留轻量识别，不做强品牌块。*/
-.social-btn.google {
-    color: #ea4335;
+@keyframes current-drift {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) rotate(var(--current-angle, 0deg));
+        opacity: 0.26;
+    }
+    50% {
+        transform: translate3d(10px, -10px, 0) rotate(calc(var(--current-angle, 0deg) + 2deg));
+        opacity: 0.46;
+    }
+}
+
+@keyframes ripple-pulse {
+    0% {
+        transform: scale(0.94);
+        opacity: 0;
+    }
+    18% {
+        opacity: 0.22;
+    }
+    100% {
+        transform: scale(1.18);
+        opacity: 0;
+    }
+}
+
+.login-page.is-field-focus .glass-card {
+    box-shadow:
+        0 30px 68px rgba(3, 12, 21, 0.34),
+        0 16px 28px rgba(5, 20, 34, 0.18),
+        0 0 32px rgba(128, 197, 225, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.login-page.is-switching .login-stage-divider {
+    opacity: 1;
+    box-shadow: 0 0 28px rgba(136, 197, 223, 0.12);
 }
 
 /* ============================================
@@ -1720,28 +2316,64 @@ body.page-transition-active .login-stage-hud {
     }
 }
 
-/* 定义 field-shake 动画的关键帧 */
-@keyframes field-shake {
-/* field-shake 。0% 。100%：空字段最终都要回到原位。*/
+/* 定义 field-invalid-jolt 动画的关键帧 */
+@keyframes field-invalid-jolt {
+/* field-invalid-jolt 在 0% 和 100%：保持原位，不触发淡出或模糊。 */
     0%,
     100% {
         transform: translate3d(0, 0, 0);
     }
-/* field-shake 。20%：先向左小幅晃动，提醒用户这里还没填。*/
+/* 先向左轻推，同时稍微压缩，像静水被打断一下。 */
+    18% {
+        transform: translate3d(-7px, 0, 0) scaleX(0.996);
+    }
+/* 再向右回摆，但控制在很小幅度内。 */
+    42% {
+        transform: translate3d(5px, 0, 0) scaleX(0.998);
+    }
+/* 开始收住，避免变成系统级抖动。 */
+    66% {
+        transform: translate3d(-3px, 0, 0) scaleX(0.999);
+    }
+/* 最后一次轻微回摆，再回到稳定状态。 */
+    84% {
+        transform: translate3d(2px, 0, 0) scaleX(1);
+    }
+}
+
+/* 定义 checkbox-invalid-jolt 动画的关键帧 */
+@keyframes checkbox-invalid-jolt {
+/* 复选框错误时只做更小幅度的点状回摆。 */
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    24% {
+        transform: translate3d(-4px, 0, 0) scale(0.97);
+    }
+    52% {
+        transform: translate3d(3px, 0, 0) scale(1.02);
+    }
+    78% {
+        transform: translate3d(-1px, 0, 0) scale(0.99);
+    }
+}
+
+/* 定义 invalid-label-drift 动画的关键帧 */
+@keyframes invalid-label-drift {
+/* 标签只做微弱跟随，不参与模糊或显隐。 */
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
     20% {
-        transform: translate3d(-6px, 0, 0);
+        transform: translate3d(-3px, 0, 0);
     }
-/* field-shake 。40%：再向右回摆，形成清楚但克制的提醒。*/
-    40% {
-        transform: translate3d(5px, 0, 0);
+    44% {
+        transform: translate3d(2px, 0, 0);
     }
-/* field-shake 。60%：幅度开始收小，避免提示动作过重。*/
-    60% {
-        transform: translate3d(-4px, 0, 0);
-    }
-/* field-shake 。80%：最后一次轻摆，准备回到静止状态。*/
-    80% {
-        transform: translate3d(3px, 0, 0);
+    72% {
+        transform: translate3d(-1px, 0, 0);
     }
 }
 
@@ -1788,13 +2420,21 @@ body.page-transition-active .login-stage-hud {
 
 /* 左右双栏在平板下仍保留，但比例继续偏向表单区。*/
     .card-layout {
-        grid-template-columns: 30% 70%;
+        grid-template-columns: 34% 66%;
         min-height: var(--login-stage-min-height-tablet);
+    }
+
+    .login-stage-divider {
+        left: 34%;
     }
 
 /* 品牌标题在平板下适当缩小，避免压住表单。*/
     .side-title {
         font-size: clamp(2.3rem, 5vw, 4rem);
+    }
+
+    .side-observatory {
+        padding: 16px 16px 14px;
     }
 }
 
@@ -1829,9 +2469,43 @@ body.page-transition-active .login-stage-hud {
         height: auto;
     }
 
-/* 手机端隐藏左侧品牌门厅，把空间留给输入和按钮。*/
-    .login-side {
+    .login-stage-divider {
         display: none;
+    }
+
+/* 手机端保留品牌门厅，但把它收成顶部静水层，不退回普通登录框。*/
+    .login-side {
+        display: block;
+        padding: 22px 20px 18px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .login-brand-copy {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .side-quote,
+    .side-meta {
+        max-width: none;
+    }
+
+    .side-observatory {
+        padding: 14px;
+        border-radius: 20px;
+    }
+
+    .side-observatory-grid {
+        gap: 8px;
+    }
+
+    .side-waterline {
+        gap: 8px;
+    }
+
+    .form-side {
+        padding-top: 18px;
     }
 
     .login-stage-resize-layer {
@@ -1846,6 +2520,26 @@ body.page-transition-active .login-stage-hud {
     .side-title {
         letter-spacing: 0.1em;
         font-size: clamp(2rem, 9vw, 3.2rem);
+    }
+
+    .auth-panel-shell {
+        padding: 14px;
+        border-radius: 24px;
+    }
+
+    .auth-panel-glass {
+        inset: 8px;
+        border-radius: 18px;
+    }
+
+    .auth-panel-inner {
+        padding: 4px;
+    }
+
+    .auth-waterline {
+        flex-direction: column;
+        align-items: flex-start;
+        border-radius: 18px;
     }
 }
 
@@ -1870,7 +2564,7 @@ body.page-transition-active .login-stage-hud {
 
 /* 超窄屏下收紧表单区内边距，给输入区和按钮留出更合理比例。*/
     .form-side {
-        padding: 18px 14px 4px;
+        padding: 16px 14px 4px;
     }
 
 /* 登录模式下给表单区多留一点底部空间，避免按钮和底链显得太挤。*/
@@ -1880,13 +2574,14 @@ body.page-transition-active .login-stage-hud {
 
 /* 超窄屏下收紧 tabs 的内边距，保证登录 / 注册切换仍能放在一行为*/
     .tabs {
-        padding: 6px;
+        padding: 4px;
     }
 
 /* 超窄屏下同步缩小登录 / 注册切换按钮，保持一行可读。*/
     .tab-btn {
         font-size: 0.88rem;
-        padding: 9px 10px;
+        min-height: 46px;
+        padding: 8px 10px;
     }
 
 /* 超窄屏下缩小底部辅助链接的间距，避免页脚区域换行过散。*/
@@ -1894,16 +2589,12 @@ body.page-transition-active .login-stage-hud {
         gap: 8px;
     }
 
-/* 超窄屏下同步收紧社交登录按钮组的间距。*/
-    .social-buttons {
+    .footer-links-row {
         gap: 8px;
     }
 
-/* 超窄屏下缩小单个社交按钮的尺寸，避免按钮组把表单挤乱。*/
-    .social-btn {
-        min-width: 52px;
-        height: 40px;
-        padding: 0 10px;
+    .side-observatory-item strong {
+        font-size: 0.88rem;
     }
 }
 
@@ -1912,7 +2603,6 @@ body.page-transition-active .login-stage-hud {
     .login-page :is(
         .side-kicker,
         .form-kicker,
-        .social-text,
         .divider
     ) {
         forced-color-adjust: none;
@@ -1941,42 +2631,32 @@ body.page-transition-active .login-stage-hud {
 
     .login-page :is(
         .link-forgot,
-        .link-guest,
-        .social-btn
+        .link-guest
     ),
     .login-page :is(
         .link-forgot,
-        .link-guest,
-        .social-btn
+        .link-guest
     ):visited,
     .login-page :is(
         .link-forgot,
-        .link-guest,
-        .social-btn
+        .link-guest
     ):hover,
     .login-page :is(
         .link-forgot,
-        .link-guest,
-        .social-btn
+        .link-guest
     ):focus-visible,
     .login-page :is(
         .link-forgot,
-        .link-guest,
-        .social-btn
+        .link-guest
     ):active {
         forced-color-adjust: none;
         color: var(--yanqi-forced-link);
         -webkit-text-fill-color: var(--yanqi-forced-link);
     }
 
-    .login-page .social-btn {
-        border-color: var(--yanqi-forced-border);
-    }
-
     .login-page :is(
         .link-forgot,
-        .link-guest,
-        .social-btn
+        .link-guest
     ):focus-visible {
         outline: 2px solid var(--yanqi-forced-ring);
         outline-offset: 3px;

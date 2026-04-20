@@ -33,6 +33,35 @@
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-backdrop: blur(20px);
     
+    /* 共享海面材质 token：
+       这是给 index/home/trip/detail/info 共用的轻量底盘，不绑定任何单页结构。 */
+    --surface-glass-soft:
+        linear-gradient(180deg, rgba(245, 251, 255, 0.08), rgba(151, 198, 221, 0.04)),
+        rgba(8, 28, 41, 0.48);
+    --surface-glass-strong:
+        linear-gradient(180deg, rgba(244, 251, 255, 0.14) 0%, rgba(129, 185, 213, 0.08) 100%),
+        rgba(8, 34, 50, 0.64);
+    --surface-border-soft: rgba(197, 224, 238, 0.1);
+    --surface-border-strong: rgba(192, 235, 248, 0.28);
+    --surface-shadow-soft:
+        0 10px 18px rgba(4, 16, 25, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --surface-shadow-strong:
+        0 16px 28px rgba(4, 16, 25, 0.16),
+        0 0 20px rgba(126, 200, 230, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    --surface-glow-soft: 0 0 16px rgba(114, 180, 209, 0.05);
+    --surface-glow-strong: 0 0 20px rgba(126, 200, 230, 0.08);
+    --surface-backdrop-soft: blur(12px) saturate(122%);
+    --surface-backdrop-strong: blur(16px) saturate(130%);
+
+    /* 焦点 token：给共享交互元素一套统一而克制的可访问焦点。 */
+    --focus-ring-color: rgba(214, 238, 250, 0.92);
+    --focus-ring-shadow:
+        0 0 0 1px rgba(10, 30, 42, 0.72),
+        0 0 0 4px rgba(144, 212, 238, 0.2);
+    --focus-ring-offset: 3px;
+    
     /* 间距 */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
@@ -54,9 +83,17 @@
     --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
     
     /* 过渡 */
-    --transition-fast: 0.15s ease-in-out;
-    --transition-normal: 0.3s ease-in-out;
-    --transition-slow: 0.6s ease-in-out;
+    --motion-fast: 0.15s ease-in-out;
+    --motion-normal: 0.3s ease-in-out;
+    --motion-slow: 0.6s ease-in-out;
+    --motion-breathe: 0.42s cubic-bezier(0.22, 0.74, 0.18, 1);
+    --motion-depth-enter: 760ms cubic-bezier(0.14, 0.86, 0.2, 1);
+    --motion-depth-exit: 1000ms cubic-bezier(0.22, 0.74, 0.18, 1);
+    --motion-ocean-enter: 1040ms cubic-bezier(0.16, 0.84, 0.18, 1);
+    --motion-ocean-exit: 1200ms cubic-bezier(0.16, 0.8, 0.2, 1);
+    --transition-fast: var(--motion-fast);
+    --transition-normal: var(--motion-normal);
+    --transition-slow: var(--motion-slow);
     
     /* 字体 */
     --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
@@ -122,6 +159,14 @@ body::-webkit-scrollbar {
     height: 0;
 }
 
+/* 共享焦点环：
+   只补可访问性底盘，不覆盖各页面已存在的专属海层交互。 */
+:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 1px solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow: var(--focus-ring-shadow);
+}
+
 /* 舞台调试开关：收进导航右侧，让调试入口留在页面框架里，
    不再像悬浮工具一样压在海面内容之上。 */
 .stage-debug-toggle {
@@ -137,15 +182,11 @@ body::-webkit-scrollbar {
     font: inherit;
     color: rgba(225, 239, 247, 0.88);
     border-radius: 999px;
-    background:
-        linear-gradient(180deg, rgba(244, 251, 255, 0.08) 0%, rgba(164, 201, 221, 0.04) 100%),
-        rgba(8, 28, 41, 0.42);
-    border: 1px solid rgba(197, 224, 238, 0.1);
-    box-shadow:
-        0 10px 18px rgba(4, 16, 25, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(12px) saturate(122%);
-    -webkit-backdrop-filter: blur(12px) saturate(122%);
+    background: var(--surface-glass-soft);
+    border: 1px solid var(--surface-border-soft);
+    box-shadow: var(--surface-shadow-soft);
+    backdrop-filter: var(--surface-backdrop-soft);
+    -webkit-backdrop-filter: var(--surface-backdrop-soft);
     transition:
         opacity 220ms ease,
         transform 220ms ease,
@@ -153,6 +194,17 @@ body::-webkit-scrollbar {
         box-shadow 220ms ease,
         background-color 220ms ease,
         padding 220ms ease;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, -6px, 0);
+}
+
+:is(html, body).yanqi-stage-debug .stage-debug-toggle {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0);
 }
 
 .stage-debug-toggle:hover,
@@ -161,7 +213,7 @@ body::-webkit-scrollbar {
     border-color: rgba(214, 236, 246, 0.18);
     box-shadow:
         0 14px 24px rgba(4, 16, 25, 0.12),
-        0 0 16px rgba(114, 180, 209, 0.05),
+        var(--surface-glow-soft),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -174,14 +226,9 @@ body::-webkit-scrollbar {
 }
 
 .stage-debug-toggle.is-active {
-    border-color: rgba(192, 235, 248, 0.28);
-    background:
-        linear-gradient(180deg, rgba(244, 251, 255, 0.14) 0%, rgba(129, 185, 213, 0.08) 100%),
-        rgba(8, 34, 50, 0.64);
-    box-shadow:
-        0 16px 28px rgba(4, 16, 25, 0.16),
-        0 0 20px rgba(126, 200, 230, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    border-color: var(--surface-border-strong);
+    background: var(--surface-glass-strong);
+    box-shadow: var(--surface-shadow-strong);
 }
 
 .stage-debug-toggle-dot {
@@ -436,11 +483,9 @@ img {
     gap: 2px;
     min-height: 40px;
     padding: 8px 14px 8px 12px;
-    border: 1px solid rgba(198, 228, 242, 0.12);
+    border: 1px solid var(--surface-border-soft);
     border-radius: 999px;
-    background:
-        linear-gradient(180deg, rgba(245, 251, 255, 0.08), rgba(151, 198, 221, 0.04)),
-        rgba(8, 28, 41, 0.48);
+    background: var(--surface-glass-soft);
     box-shadow:
         0 12px 22px rgba(4, 16, 25, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -448,8 +493,8 @@ img {
     cursor: pointer;
     text-align: left;
     font: inherit;
-    backdrop-filter: blur(14px) saturate(124%);
-    -webkit-backdrop-filter: blur(14px) saturate(124%);
+    backdrop-filter: var(--surface-backdrop-soft);
+    -webkit-backdrop-filter: var(--surface-backdrop-soft);
     transition:
         transform 220ms ease,
         border-color 220ms ease,
@@ -695,6 +740,11 @@ body.has-avatar-return-open {
 /* ============================================
    通用组件样式
    ============================================ */
+
+/* 旧通用组件边界：
+   `.card` / `.btn*` 属于早期共享帮助类，保留给信息页和低风险通用块使用。
+   home / trip / detail / index 的海洋叙事模块不要再直接依赖它们搭主结构，
+   否则会把页面气质拉回普通站点组件感。 */
 
 /* 卡片 */
 /* .card 的主要视觉与布局效果 */

@@ -1,38 +1,45 @@
 /* ============================================
    旧版过渡兼容桥 - transition.js
    ============================================
-   职责：
-   1. 保留旧版全局入口，避免历史模板和旧 onclick 直接失效。
-   2. 把旧入口统一转发给 `DepthManager`。
-   3. 让新旧页面都走同一套“海层切换”导航逻辑。
+   历史兼容层：
+   1. 保留旧的全局入口，避免历史模板和旧 onclick 直接失效。
+   2. 把旧入口统一转发给当前 `DepthManager`。
+   3. 不承担新的过渡编排；新逻辑应直接接入 `DepthManager`。
    阅读顺序：
    1. `getDepthManager`
-   2. `navigateWithDepthManager`
-   3. 兼容类与旧函数导出
+   2. `warnLegacyTransitionUsage`
+   3. `navigateWithDepthManager`
+   4. 兼容类与旧函数导出
 */
 (function attachLegacyTransitionBridge(window) {
     const DEFAULT_TARGET_URL = 'home.html';
+    let hasWarnedLegacyUsage = false;
 
-    /**
-     * getDepthManager() - 安全读取当前页面已挂载的 DepthManager 实例
-     * @returns {Object|null} - 可用的深度导航管理器；没有则返回 null
-     */
     function getDepthManager() {
         return window.DepthManager && typeof window.DepthManager.navigateTo === 'function'
             ? window.DepthManager
             : null;
     }
 
-    /**
-     * navigateWithDepthManager(targetUrl) - 优先复用 DepthManager 执行站内跳转
-     * @param {string} targetUrl - 目标页面地址
-     * @returns {void} - 无返回值，直接执行跳转
-     */
-    function navigateWithDepthManager(targetUrl) {
+    function warnLegacyTransitionUsage(entryPoint) {
+        if (hasWarnedLegacyUsage || !window.console || typeof window.console.warn !== 'function') {
+            return;
+        }
+
+        hasWarnedLegacyUsage = true;
+        window.console.warn(
+            '[transition.js] `%s` is a legacy compatibility entry. Prefer wiring new page transitions through DepthManager directly.',
+            entryPoint
+        );
+    }
+
+    function navigateWithDepthManager(targetUrl, entryPoint) {
         const nextUrl = typeof targetUrl === 'string' && targetUrl.trim()
             ? targetUrl.trim()
             : DEFAULT_TARGET_URL;
         const manager = getDepthManager();
+
+        warnLegacyTransitionUsage(entryPoint || 'legacy-transition');
 
         if (manager) {
             manager.navigateTo(nextUrl);
@@ -42,51 +49,29 @@
         window.location.href = nextUrl;
     }
 
-    /**
-     * LegacyDepthGaugeTransitionCompat - 旧类名兼容外壳，仅保留转发能力
-     */
     class LegacyDepthGaugeTransitionCompat {
-        /**
-         * constructor() - 初始化兼容壳的简单状态位
-         */
         constructor() {
             this.isTransitioning = false;
         }
 
-        /**
-         * startTransition(targetUrl) - 兼容旧调用方式，统一交给 DepthManager
-         * @param {string} targetUrl - 目标页面地址；省略时默认回首页
-         * @returns {void} - 无返回值，直接触发统一过渡
-         */
         startTransition(targetUrl = DEFAULT_TARGET_URL) {
             if (this.isTransitioning) {
                 return;
             }
 
             this.isTransitioning = true;
-            navigateWithDepthManager(targetUrl);
+            navigateWithDepthManager(targetUrl, 'DepthGaugeTransition.startTransition');
         }
     }
 
-    /**
-     * transitionToPage(pageUrl) - 旧版页面过渡入口，现统一交给 DepthManager
-     * @param {string} pageUrl - 目标页面地址
-     * @returns {void} - 无返回值，直接执行统一过渡
-     */
     function transitionToPage(pageUrl = DEFAULT_TARGET_URL) {
-        navigateWithDepthManager(pageUrl);
+        navigateWithDepthManager(pageUrl, 'transitionToPage');
     }
 
-    /**
-     * triggerDepthGaugeTransition(pageUrl) - 旧版登录下潜入口，现统一交给 DepthManager
-     * @param {string} pageUrl - 目标页面地址
-     * @returns {void} - 无返回值，直接执行统一过渡
-     */
     function triggerDepthGaugeTransition(pageUrl = DEFAULT_TARGET_URL) {
-        navigateWithDepthManager(pageUrl);
+        navigateWithDepthManager(pageUrl, 'triggerDepthGaugeTransition');
     }
 
-    // 继续向 window 暴露旧名称，这样历史模板和旧 onclick 不需要一起重写。
     window.DepthGaugeTransition = LegacyDepthGaugeTransitionCompat;
     window.transitionToPage = transitionToPage;
     window.triggerDepthGaugeTransition = triggerDepthGaugeTransition;

@@ -14,6 +14,7 @@
 const TAB_SWITCH_MS = 560;
 const TAB_LEAVE_MS = 320;
 const FEEDBACK_RESET_MS = 4200;
+const MAINLAND_CHINA_PHONE_PATTERN = /^1[3-9]\d{9}$/;
 const LOGIN_STORAGE_KEYS = Object.freeze({
     phone: 'yanqi_phone',
     password: 'yanqi_password',
@@ -278,6 +279,21 @@ function normalizePhone(value) {
     return String(value || '').trim().replace(/[\s-]+/g, '');
 }
 
+function isValidMainlandChinaPhone(value) {
+    return MAINLAND_CHINA_PHONE_PATTERN.test(normalizePhone(value));
+}
+
+function sanitizePhoneInputValue(input) {
+    if (!(input instanceof HTMLInputElement)) {
+        return;
+    }
+
+    const digitsOnly = String(input.value || '').replace(/\D+/g, '').slice(0, 11);
+    if (input.value !== digitsOnly) {
+        input.value = digitsOnly;
+    }
+}
+
 function findAccountByPhone(accounts, phone) {
     const normalizedPhone = normalizePhone(phone);
     if (!normalizedPhone) {
@@ -432,6 +448,8 @@ function ensureFeedbackNode(panelInner) {
     feedback.className = 'auth-feedback';
     feedback.id = 'authFeedback';
     feedback.setAttribute('aria-live', 'polite');
+    feedback.setAttribute('aria-atomic', 'true');
+    feedback.setAttribute('role', 'status');
 
     const form = panelInner.querySelector('#authForm');
     if (form && form.parentNode === panelInner) {
@@ -457,6 +475,7 @@ function showFeedback(feedbackNode, message, type = 'info') {
 
     feedbackNode.textContent = message;
     feedbackNode.classList.remove('is-error', 'is-success', 'is-visible');
+    feedbackNode.setAttribute('role', type === 'error' ? 'alert' : 'status');
 
     if (type === 'error') {
         feedbackNode.classList.add('is-error');
@@ -496,6 +515,7 @@ function clearFeedback(feedbackNode) {
     }
 
     feedbackNode.classList.remove('is-visible', 'is-error', 'is-success');
+    feedbackNode.setAttribute('role', 'status');
 }
 
 /**
@@ -528,11 +548,23 @@ function updateInvalidState(input, isInvalid) {
         return;
     }
 
-    input.classList.toggle('is-invalid', Boolean(isInvalid));
+    const group = input.closest('.input-group, .checkbox-group');
+    const nextInvalid = Boolean(isInvalid);
+    input.classList.toggle('is-invalid', nextInvalid);
+    group?.classList.toggle('is-invalid', nextInvalid);
+
+    if (nextInvalid) {
+        group?.classList.remove('is-complete');
+        input.classList.remove('is-complete');
+        return;
+    }
+
+    input.classList.remove('is-invaliding');
+    group?.classList.remove('is-invaliding');
 }
 
 /**
- * shakeEmptyField(input) - 让未填写字段所在分组左右轻晃
+ * shakeEmptyField(input) - 给当前错误字段触发一次轻量错误回摆
  * @param {HTMLInputElement|null} input - 当前未填写的输入框或复选框
  * @returns {void}
  */
@@ -543,15 +575,17 @@ function shakeEmptyField(input) {
 
     const group = input.closest('.input-group, .checkbox-group');
     if (group) {
-        group.classList.remove('is-shaking');
-        void group.offsetWidth;
-        group.classList.add('is-shaking');
+        group.classList.remove('is-invaliding');
+        input.classList.remove('is-invaliding');
+        void input.offsetWidth;
+        group.classList.add('is-invaliding');
+        input.classList.add('is-invaliding');
 
         window.setTimeout(() => {
-            group.classList.remove('is-shaking');
+            group.classList.remove('is-invaliding');
+            input.classList.remove('is-invaliding');
         }, 420);
     }
-
 }
 
 /**
@@ -577,6 +611,53 @@ function validateRequiredInputs(inputs) {
     return { isValid, firstEmptyInput };
 }
 
+function syncPhoneValidationOnSubmit(phoneInput) {
+    if (!(phoneInput instanceof HTMLInputElement)) {
+        return {
+            hasValue: false,
+            isValid: false
+        };
+    }
+
+    const hasValue = Boolean(phoneInput.value.trim());
+    const isValid = isValidMainlandChinaPhone(phoneInput.value);
+
+    updateInvalidState(phoneInput, hasValue && !isValid);
+
+    return {
+        hasValue,
+        isValid
+    };
+}
+
+function getFirstIncompleteFieldMessage(input) {
+    if (!(input instanceof HTMLInputElement)) {
+        return '';
+    }
+
+    if (input.id === 'login-phone' || input.id === 'register-phone') {
+        return '先把手机号写稳，让这层静水先认出你。';
+    }
+
+    if (input.id === 'login-password') {
+        return '还差一把通行密钥，入口才会继续向前打开。';
+    }
+
+    if (input.id === 'register-password') {
+        return '还差一把进入这片海的钥匙，先轻轻写下来。';
+    }
+
+    if (input.id === 'register-confirm') {
+        return '再确认一次密钥，让这条入口慢慢收稳。';
+    }
+
+    if (input.id === 'agree-terms') {
+        return '在继续之前，请先看看这份约定。还差一步：请先阅读并同意用户协议与隐私政策。';
+    }
+
+    return '';
+}
+
 function formatTabAnimationDelays(tabName) {
     return tabName === 'login'
         ? [0.16, 0.3, 0.42, 0.56]
@@ -584,7 +665,7 @@ function formatTabAnimationDelays(tabName) {
 }
 
 function replayTabAnimations(tabName, refs) {
-    const { formBrand, tabSection, footerLinks, socialLogin, activeContent } = refs;
+    const { formBrand, tabSection, footerLinks, activeContent } = refs;
     const delays = formatTabAnimationDelays(tabName);
 
     restartFadeIn(formBrand, 0.06);
@@ -595,7 +676,6 @@ function replayTabAnimations(tabName, refs) {
     });
 
     restartFadeIn(footerLinks, tabName === 'login' ? 0.72 : 0.92);
-    restartFadeIn(socialLogin, tabName === 'login' ? 0.84 : 1.02);
 }
 
 function updateFormHeight(targetContent, authForm, immediate = false, fromContent = null) {
@@ -621,7 +701,7 @@ function updateFormHeight(targetContent, authForm, immediate = false, fromConten
 
 function switchToTab(tabName, options, refs) {
     const { immediate = false } = options || {};
-    const { authForm, tabBtns, tabContents, feedbackNode, glassCard, formBrand, tabSection, footerLinks, socialLogin } = refs;
+    const { authForm, tabBtns, tabContents, feedbackNode, glassCard, formBrand, tabSection, footerLinks, nodes } = refs;
 
     const targetContent = document.getElementById(tabName);
     const currentContent = document.querySelector('.tab-content.active');
@@ -633,17 +713,26 @@ function switchToTab(tabName, options, refs) {
     document.body.classList.toggle('is-auth-login', tabName === 'login');
     document.body.classList.toggle('is-auth-register', tabName === 'register');
     document.body.classList.toggle('is-switching', !immediate);
+    authForm?.setAttribute(
+        'aria-describedby',
+        tabName === 'login' ? 'authModeSummaryLogin' : 'authModeSummaryRegister'
+    );
     clearFeedback(feedbackNode);
 
     tabBtns.forEach((btn) => {
         const isActive = btn.getAttribute('data-tab') === tabName;
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-selected', String(isActive));
+        btn.setAttribute('tabindex', isActive ? '0' : '-1');
     });
 
     tabContents.forEach((content) => {
         const isTarget = content === targetContent;
         const isLeaving = !isTarget && content === currentContent && !immediate;
+        const shouldBeVisible = isTarget || isLeaving;
+
+        content.hidden = !shouldBeVisible;
+        content.setAttribute('aria-hidden', String(!isTarget));
 
         content.querySelectorAll('input').forEach((input) => {
             input.disabled = !isTarget;
@@ -660,6 +749,8 @@ function switchToTab(tabName, options, refs) {
     if (immediate || !currentContent || currentContent === targetContent) {
         targetContent.classList.remove('is-leaving');
         targetContent.classList.add('active', 'is-entering');
+        targetContent.hidden = false;
+        targetContent.setAttribute('aria-hidden', 'false');
         updateFormHeight(targetContent, authForm, true);
 
         requestAnimationFrame(() => {
@@ -667,8 +758,9 @@ function switchToTab(tabName, options, refs) {
             document.body.classList.remove('is-switching');
         });
 
-        replayTabAnimations(tabName, { formBrand, tabSection, footerLinks, socialLogin, activeContent: targetContent });
+        replayTabAnimations(tabName, { formBrand, tabSection, footerLinks, activeContent: targetContent });
         triggerDepthResponse(0.86);
+        updateHallProgress(nodes);
         if (glassCard) {
             glassCard.classList.remove('is-rippled');
         }
@@ -683,11 +775,17 @@ function switchToTab(tabName, options, refs) {
 
     currentContent.leaveTimerId = window.setTimeout(() => {
         currentContent.classList.remove('is-leaving');
+        if (!currentContent.classList.contains('active')) {
+            currentContent.hidden = true;
+            currentContent.setAttribute('aria-hidden', 'true');
+        }
         currentContent.leaveTimerId = 0;
     }, TAB_LEAVE_MS + 40);
 
     targetContent.classList.remove('is-leaving');
     targetContent.classList.add('active', 'is-entering');
+    targetContent.hidden = false;
+    targetContent.setAttribute('aria-hidden', 'false');
     updateFormHeight(targetContent, authForm, false, currentContent);
 
     requestAnimationFrame(() => {
@@ -700,8 +798,18 @@ function switchToTab(tabName, options, refs) {
         document.body.classList.remove('is-switching');
     }, TAB_SWITCH_MS);
 
-    replayTabAnimations(tabName, { formBrand, tabSection, footerLinks, socialLogin, activeContent: targetContent });
+    replayTabAnimations(tabName, { formBrand, tabSection, footerLinks, activeContent: targetContent });
     triggerDepthResponse(1.06);
+    updateHallProgress(nodes);
+
+    const firstInput = targetContent.querySelector('input:not([disabled])');
+    if (firstInput instanceof HTMLInputElement) {
+        window.setTimeout(() => {
+            if (document.activeElement && document.activeElement.classList?.contains('tab-btn')) {
+                firstInput.focus({ preventScroll: true });
+            }
+        }, 140);
+    }
 }
 
 function restoreRememberedAccount(nodes) {
@@ -747,6 +855,7 @@ function syncRememberMeStorage(nodes) {
 function bindRememberMe(nodes) {
     const { rememberCheckbox, loginPhoneInput, loginPasswordInput } = nodes;
     restoreRememberedAccount(nodes);
+    updateHallProgress(nodes);
 
     rememberCheckbox.addEventListener('change', () => {
         syncRememberMeStorage(nodes);
@@ -759,6 +868,264 @@ function bindRememberMe(nodes) {
             }
         });
     });
+}
+
+function bindPhoneInputSanitizer(nodes) {
+    const phoneInputs = [nodes.loginPhoneInput, nodes.registerPhoneInput];
+
+    phoneInputs.forEach((input) => {
+        if (!(input instanceof HTMLInputElement)) {
+            return;
+        }
+
+        input.addEventListener('input', () => {
+            sanitizePhoneInputValue(input);
+        });
+    });
+}
+
+function getDigitLength(value) {
+    return String(value || '').replace(/\D+/g, '').length;
+}
+
+function getInputLength(value) {
+    return String(value || '').trim().length;
+}
+
+function getLinearProgress(length, maxLength) {
+    if (maxLength <= 0) {
+        return 0;
+    }
+
+    return Math.min(Math.max(length / maxLength, 0), 1);
+}
+
+function isFieldComplete(input, nodes) {
+    if (!(input instanceof HTMLInputElement)) {
+        return false;
+    }
+
+    if (input.type === 'checkbox') {
+        return input.checked;
+    }
+
+    const value = input.value.trim();
+    if (!value) {
+        return false;
+    }
+
+    if (input === nodes.loginPhoneInput || input === nodes.registerPhoneInput) {
+        return isValidMainlandChinaPhone(value);
+    }
+
+    if (input === nodes.registerConfirmInput) {
+        return value === String(nodes.registerPasswordInput?.value || '').trim();
+    }
+
+    return !input.classList.contains('is-invalid');
+}
+
+function syncFieldState(input, nodes) {
+    if (!(input instanceof HTMLInputElement)) {
+        return;
+    }
+
+    const group = input.closest('.input-group, .checkbox-group');
+    if (!group) {
+        return;
+    }
+
+    const isFilled = input.type === 'checkbox'
+        ? input.checked
+        : Boolean(input.value.trim());
+    const isComplete = isFilled && isFieldComplete(input, nodes);
+
+    group.classList.toggle('is-filled', isFilled);
+    group.classList.toggle('is-complete', isComplete);
+    input.classList.toggle('is-filled', isFilled);
+    input.classList.toggle('is-complete', isComplete);
+}
+
+function syncAllFieldStates(nodes) {
+    nodes.allInputs.forEach((input) => {
+        syncFieldState(input, nodes);
+    });
+}
+
+function bindFieldStateTracking(nodes) {
+    nodes.allInputs.forEach((input) => {
+        if (!(input instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const eventName = input.type === 'checkbox' ? 'change' : 'input';
+        input.addEventListener(eventName, () => {
+            syncFieldState(input, nodes);
+
+            if (input === nodes.registerPasswordInput) {
+                syncFieldState(nodes.registerConfirmInput, nodes);
+            }
+        });
+    });
+
+    syncAllFieldStates(nodes);
+}
+
+function getAuthProgressState(nodes) {
+    const activeMode = document.body.dataset.authMode || 'login';
+
+    if (activeMode === 'register') {
+        const phoneDigits = getDigitLength(nodes.registerPhoneInput?.value);
+        const passwordLength = getInputLength(nodes.registerPasswordInput?.value);
+        const confirmLength = getInputLength(nodes.registerConfirmInput?.value);
+        const confirmTargetLength = Math.max(passwordLength, 8);
+        const isPhoneReady = isValidMainlandChinaPhone(nodes.registerPhoneInput?.value);
+        const isPasswordReady = passwordLength > 0;
+        const isConfirmReady = Boolean(nodes.registerConfirmInput?.value.trim())
+            && nodes.registerConfirmInput?.value === nodes.registerPasswordInput?.value;
+        const hasAgreed = Boolean(nodes.agreeTermsInput?.checked);
+        const registerChecks = [isPhoneReady, isPasswordReady, isConfirmReady, hasAgreed];
+        const percent = Math.round(
+            getLinearProgress(phoneDigits, 11) * 30
+            + getLinearProgress(passwordLength, 8) * 26
+            + getLinearProgress(confirmLength, confirmTargetLength) * 26
+            + (hasAgreed ? 18 : 0)
+        );
+
+        return {
+            mode: activeMode,
+            percent,
+            completed: registerChecks.filter(Boolean).length,
+            total: registerChecks.length,
+            phoneDigits,
+            passwordLength,
+            confirmLength,
+            isPhoneReady,
+            isPasswordReady,
+            isConfirmReady,
+            hasAgreed,
+            isReady: registerChecks.every(Boolean)
+        };
+    }
+
+    const phoneDigits = getDigitLength(nodes.loginPhoneInput?.value);
+    const passwordLength = getInputLength(nodes.loginPasswordInput?.value);
+    const isPhoneReady = isValidMainlandChinaPhone(nodes.loginPhoneInput?.value);
+    const isPasswordReady = passwordLength > 0;
+    const shouldRemember = Boolean(nodes.rememberCheckbox?.checked);
+    const loginChecks = [isPhoneReady, isPasswordReady];
+    const basePercent = Math.round(
+        getLinearProgress(phoneDigits, 11) * 56
+        + getLinearProgress(passwordLength, 6) * 44
+    );
+
+    return {
+        mode: activeMode,
+        percent: shouldRemember && basePercent > 0 ? Math.min(100, basePercent + 6) : basePercent,
+        completed: loginChecks.filter(Boolean).length,
+        total: loginChecks.length,
+        phoneDigits,
+        passwordLength,
+        shouldRemember,
+        isPhoneReady,
+        isPasswordReady,
+        isReady: loginChecks.every(Boolean)
+    };
+}
+
+function updateHallProgress(nodes) {
+    const { sideWaterlineTrack, sideWaterlineFill, sideWaterlineValue, sideWaterlineStatus } = nodes;
+    if (!sideWaterlineTrack || !sideWaterlineFill || !sideWaterlineValue || !sideWaterlineStatus) {
+        return;
+    }
+
+    const progressState = getAuthProgressState(nodes);
+    const {
+        mode,
+        percent,
+        completed,
+        total,
+        phoneDigits,
+        passwordLength,
+        confirmLength,
+        shouldRemember,
+        isPhoneReady,
+        isPasswordReady,
+        isConfirmReady,
+        hasAgreed,
+        isReady
+    } = progressState;
+    const waterlineState = percent <= 0 ? 'idle' : (isReady ? 'complete' : 'active');
+
+    sideWaterlineFill.style.setProperty('--waterline-progress', `${percent}%`);
+    sideWaterlineTrack.setAttribute('aria-valuenow', String(percent));
+    sideWaterlineTrack.dataset.progressState = waterlineState;
+    sideWaterlineTrack.dataset.progressMode = mode;
+    sideWaterlineValue.textContent = `${percent}%`;
+    document.body.dataset.authProgressMode = mode;
+    document.body.dataset.authProgressState = waterlineState;
+
+    if (mode === 'register') {
+        if (percent === 0) {
+            sideWaterlineStatus.textContent = '这一层还在等你慢慢写下第一段登记。';
+        } else if (!isPhoneReady) {
+            sideWaterlineStatus.textContent = phoneDigits > 0
+                ? `号码已经写下 ${phoneDigits} 位，还差一点，入口就会浮出水面。`
+                : '先从手机号开始，让这条登记入口慢慢出现。';
+        } else if (!isPasswordReady) {
+            sideWaterlineStatus.textContent = '号码已经落稳，再替自己留下一把进入这片海的钥匙。';
+        } else if (confirmLength === 0) {
+            sideWaterlineStatus.textContent = '密钥已经写下了，再确认一次，让入口慢慢收稳。';
+        } else if (!isConfirmReady) {
+            sideWaterlineStatus.textContent = '两次密钥还没完全对齐，收一收，再轻轻写一次。';
+        } else if (!hasAgreed) {
+            sideWaterlineStatus.textContent = '这条登记入口已经成形，最后看一眼约定，就能继续进入。';
+        } else {
+            sideWaterlineStatus.textContent = '这条登记入口已经写稳了，继续往第一层海面进入。';
+        }
+    } else if (percent === 0) {
+        sideWaterlineStatus.textContent = '这一层还在等你慢慢写下第一个入口。';
+    } else if (!isPhoneReady) {
+        sideWaterlineStatus.textContent = phoneDigits > 0
+            ? `号码已经写下 ${phoneDigits} 位，还差一点，静水就会认出你。`
+            : '先把号码写稳，让入口先慢慢浮出来。';
+    } else if (!isPasswordReady) {
+        sideWaterlineStatus.textContent = passwordLength > 0
+            ? '通行密钥正在写入静水，入口快要成形了。'
+            : '号码已经落稳，再把通行密钥轻轻写进来。';
+    } else if (shouldRemember) {
+        sideWaterlineStatus.textContent = '入口已经对齐，这层静水会替你把号码稳稳留住。';
+    } else {
+        sideWaterlineStatus.textContent = completed >= total
+            ? '入口已经成形，再往前一点，就能回到海面那层。'
+            : '这条入口已经写下了一半，再补完剩下的静水信息。';
+    }
+
+    sideWaterlineTrack.setAttribute('aria-valuetext', sideWaterlineStatus.textContent);
+}
+
+function bindHallProgress(nodes) {
+    const watchedInputs = [
+        nodes.loginPhoneInput,
+        nodes.loginPasswordInput,
+        nodes.rememberCheckbox,
+        nodes.registerPhoneInput,
+        nodes.registerPasswordInput,
+        nodes.registerConfirmInput,
+        nodes.agreeTermsInput
+    ];
+
+    watchedInputs.forEach((input) => {
+        if (!(input instanceof HTMLInputElement)) {
+            return;
+        }
+
+        input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
+            updateHallProgress(nodes);
+        });
+    });
+
+    updateHallProgress(nodes);
 }
 
 function buildAccount(nodes) {
@@ -790,8 +1157,7 @@ function markInteractiveFieldState(isFocused) {
  */
 function syncFieldInteractiveState() {
     const shouldActivate = Boolean(
-        document.querySelector('.input-group:focus-within') ||
-        document.querySelector('.social-btn:hover') ||
+        document.querySelector('.input-group:focus-within, .checkbox-group:focus-within') ||
         document.querySelector('.glass-card:hover')
     );
 
@@ -799,13 +1165,13 @@ function syncFieldInteractiveState() {
 }
 
 /**
- * bindInteractiveFeedback(nodes, feedbackNode) - 绑定输入框、玻璃舞台和社交入口的轻反馈行为
+ * bindInteractiveFeedback(nodes, feedbackNode) - 绑定输入框与玻璃舞台的轻反馈行为
  * @param {object} nodes - 页面节点集合
  * @param {HTMLElement|null} feedbackNode - 反馈节点
  * @returns {void}
  */
 function bindInteractiveFeedback(nodes, feedbackNode) {
-    const { glassCard, socialButtons, allInputs } = nodes;
+    const { glassCard, allInputs } = nodes;
 
     allInputs.forEach((input) => {
         input.addEventListener('focus', () => {
@@ -830,39 +1196,13 @@ function bindInteractiveFeedback(nodes, feedbackNode) {
             window.setTimeout(syncFieldInteractiveState, 0);
         });
     }
-
-    socialButtons.forEach((button) => {
-        button.addEventListener('mouseenter', () => {
-            triggerDepthResponse(1.02);
-            markInteractiveFieldState(true);
-        });
-
-        button.addEventListener('mouseleave', () => {
-            window.setTimeout(syncFieldInteractiveState, 0);
-        });
-
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            if (glassCard) {
-                glassCard.classList.remove('is-rippled');
-                void glassCard.offsetWidth;
-                glassCard.classList.add('is-rippled');
-                window.setTimeout(() => {
-                    glassCard.classList.remove('is-rippled');
-                }, 360);
-            }
-            triggerDepthResponse(1.18);
-            startGuestVoyage(feedbackNode, `${button.textContent.trim() || '社交入口'}入口`, {
-                mode: 'social'
-            });
-        });
-    });
 }
 
 function handleLoginSubmit(nodes, feedbackNode) {
     const { loginPhoneInput, loginPasswordInput } = nodes;
     const requiredInputs = [loginPhoneInput, loginPasswordInput];
     const validation = validateRequiredInputs(requiredInputs);
+    const phoneState = syncPhoneValidationOnSubmit(loginPhoneInput);
 
     if (!validation.isValid) {
         requiredInputs.forEach((input) => {
@@ -871,6 +1211,25 @@ function handleLoginSubmit(nodes, feedbackNode) {
                 shakeEmptyField(input);
             }
         });
+
+        if (phoneState.hasValue && !phoneState.isValid) {
+            shakeEmptyField(loginPhoneInput);
+            showFeedback(feedbackNode, '手机号需要是 11 位中国大陆手机号。', 'error');
+            return false;
+        }
+
+        const firstMessage = getFirstIncompleteFieldMessage(validation.firstEmptyInput);
+        if (firstMessage) {
+            showFeedback(feedbackNode, firstMessage, 'error');
+        }
+        return false;
+    }
+
+    if (!phoneState.isValid) {
+        updateInvalidState(loginPhoneInput, true);
+        updateInvalidState(loginPasswordInput, false);
+        shakeEmptyField(loginPhoneInput);
+        showFeedback(feedbackNode, '手机号需要是 11 位中国大陆手机号。', 'error');
         return false;
     }
 
@@ -923,6 +1282,7 @@ function handleRegisterSubmit(nodes, feedbackNode) {
     ];
 
     const validation = validateRequiredInputs(requiredInputs);
+    const phoneState = syncPhoneValidationOnSubmit(registerPhoneInput);
     if (!validation.isValid) {
         requiredInputs.forEach((input) => {
             const empty = input.type === 'checkbox' ? !input.checked : !input.value.trim();
@@ -931,10 +1291,26 @@ function handleRegisterSubmit(nodes, feedbackNode) {
             }
         });
 
-        if (!agreeTermsInput.checked) {
-            showFeedback(feedbackNode, '在继续之前，请先看看这份约定。还差一步：请先阅读并同意用户协议与隐私政策。', 'error');
+        if (phoneState.hasValue && !phoneState.isValid) {
+            shakeEmptyField(registerPhoneInput);
+            showFeedback(feedbackNode, '手机号需要是 11 位中国大陆手机号。', 'error');
+            return false;
         }
 
+        const firstMessage = getFirstIncompleteFieldMessage(validation.firstEmptyInput);
+        if (firstMessage) {
+            showFeedback(feedbackNode, firstMessage, 'error');
+        }
+
+        return false;
+    }
+
+    if (!phoneState.isValid) {
+        updateInvalidState(registerPhoneInput, true);
+        updateInvalidState(registerPasswordInput, false);
+        updateInvalidState(registerConfirmInput, false);
+        shakeEmptyField(registerPhoneInput);
+        showFeedback(feedbackNode, '手机号需要是 11 位中国大陆手机号。', 'error');
         return false;
     }
 
@@ -970,7 +1346,7 @@ function handleRegisterSubmit(nodes, feedbackNode) {
  * @returns {void}
  */
 function bindGuestEntries(nodes, feedbackNode) {
-    const { guestButton, guestLoginButton, demoVoyageButton, forgotLink } = nodes;
+    const { guestButton, demoVoyageButton, forgotLink } = nodes;
 
     demoVoyageButton?.addEventListener('click', (event) => {
         event.preventDefault();
@@ -983,14 +1359,6 @@ function bindGuestEntries(nodes, feedbackNode) {
             event.preventDefault();
             triggerDepthResponse(0.96);
             startGuestVoyage(feedbackNode);
-        });
-    }
-
-    if (guestLoginButton) {
-        guestLoginButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            triggerDepthResponse(0.96);
-            startGuestVoyage(feedbackNode, '辅助游客入口');
         });
     }
 
@@ -1035,7 +1403,7 @@ function bindFormSubmit(nodes, feedbackNode) {
 }
 
 function bindTabSwitching(nodes, feedbackNode) {
-    const { authForm, tabButtons, tabContents, formBrand, tabSection, footerLinks, socialLogin, glassCard } = nodes;
+    const { authForm, tabButtons, tabContents, formBrand, tabSection, footerLinks, glassCard } = nodes;
 
     const refs = {
         authForm,
@@ -1046,13 +1414,44 @@ function bindTabSwitching(nodes, feedbackNode) {
         formBrand,
         tabSection,
         footerLinks,
-        socialLogin
+        nodes
     };
 
     tabButtons.forEach((button) => {
         button.addEventListener('click', () => {
             const tabName = button.getAttribute('data-tab');
             switchToTab(tabName, { immediate: false }, refs);
+        });
+
+        button.addEventListener('keydown', (event) => {
+            const currentIndex = tabButtons.indexOf(button);
+            if (currentIndex < 0) {
+                return;
+            }
+
+            let nextIndex = currentIndex;
+
+            if (event.key === 'ArrowRight') {
+                nextIndex = (currentIndex + 1) % tabButtons.length;
+            } else if (event.key === 'ArrowLeft') {
+                nextIndex = (currentIndex - 1 + tabButtons.length) % tabButtons.length;
+            } else if (event.key === 'Home') {
+                nextIndex = 0;
+            } else if (event.key === 'End') {
+                nextIndex = tabButtons.length - 1;
+            } else {
+                return;
+            }
+
+            event.preventDefault();
+            const nextButton = tabButtons[nextIndex];
+            const nextTabName = nextButton?.getAttribute('data-tab');
+            if (!nextButton || !nextTabName) {
+                return;
+            }
+
+            nextButton.focus();
+            switchToTab(nextTabName, { immediate: false }, refs);
         });
     });
 
@@ -1322,8 +1721,6 @@ function collectAuthNodes() {
         formBrand: document.querySelector('.form-brand'),
         tabSection: document.querySelector('.tab-section'),
         footerLinks: document.querySelector('.footer-links'),
-        socialLogin: document.querySelector('.social-login'),
-        socialButtons: Array.from(document.querySelectorAll('.social-btn')),
         glassCard: document.querySelector('.glass-card'),
         panelInner: document.querySelector('.auth-panel-inner'),
         loginStageShell: document.getElementById('loginStageShell'),
@@ -1336,10 +1733,13 @@ function collectAuthNodes() {
         registerConfirmInput: document.getElementById('register-confirm'),
         rememberCheckbox: document.getElementById('remember-me'),
         agreeTermsInput: document.getElementById('agree-terms'),
-        guestButton: document.querySelector('.footer-links .link-guest:not(.link-demo-voyage)'),
-        guestLoginButton: document.getElementById('guest-login-btn'),
+        guestButton: document.querySelector('[data-guest-entry="soft-browse"]'),
         demoVoyageButton: document.getElementById('demoVoyageButton'),
-        forgotLink: document.querySelector('.link-forgot[data-brand-link="forgot"]')
+        forgotLink: document.querySelector('.link-forgot[data-brand-link="forgot"]'),
+        sideWaterlineTrack: document.getElementById('sideWaterlineTrack'),
+        sideWaterlineFill: document.getElementById('sideWaterlineFill'),
+        sideWaterlineValue: document.getElementById('sideWaterlineValue'),
+        sideWaterlineStatus: document.getElementById('sideWaterlineStatus')
     };
 }
 
@@ -1354,6 +1754,9 @@ function initializeAuthPage() {
     setupStageDebugToggle();
     setupLoginStageResize(nodes);
     bindTabSwitching(nodes, feedbackNode);
+    bindPhoneInputSanitizer(nodes);
+    bindFieldStateTracking(nodes);
+    bindHallProgress(nodes);
     bindRememberMe(nodes);
     bindInteractiveFeedback(nodes, feedbackNode);
     bindFormSubmit(nodes, feedbackNode);

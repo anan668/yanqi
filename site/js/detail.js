@@ -1301,6 +1301,15 @@ function navigateWithDepth(url, options = {}) {
     window.location.href = url;
 }
 
+function isDetailDepthNavigationHref(href) {
+    const safeHref = String(href || '').trim();
+    if (!safeHref || safeHref.startsWith('#')) {
+        return false;
+    }
+
+    return /^(?:home|trip|detail)\.html(?:[?#].*)?$/i.test(safeHref);
+}
+
 const RELATED_SPOT_PROFILES = Object.freeze({
     1: {
         englishName: 'Sipadan',
@@ -13574,7 +13583,7 @@ class DetailPage {
 
         return `
             <div class="related-stage-shell${directionClass}">
-                <article class="related-feature-card" data-id="${activeSpot.id}" tabindex="0" aria-label="继续查看 ${activeSpot.name} 的详情">
+                <article class="related-feature-card" data-id="${activeSpot.id}" aria-label="${activeSpot.name} 的当前主舞台">
                     <div class="related-feature-media">
                         <img
                             src="${activeImage}"
@@ -13586,7 +13595,7 @@ class DetailPage {
                     </div>
 
                     <div class="related-feature-copy">
-                        <p class="related-feature-kicker">Featured Water</p>
+                        <p class="related-feature-kicker">Current Water</p>
                         <h3 class="related-feature-title">
                             <span>${activeSpot.name}</span>
                             <small>${activeProfile.englishName}</small>
@@ -13597,7 +13606,7 @@ class DetailPage {
                         </div>
                         <p class="related-feature-why">${activeProfile.why}</p>
                         <button type="button" class="related-feature-action" data-id="${activeSpot.id}">
-                            继续看这片海
+                            直接潜向这片海
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path
                                     d="M5 12h14M13 6l6 6-6 6"
@@ -13622,7 +13631,7 @@ class DetailPage {
                                 class="related-neighbor-card"
                                 data-id="${spot.id}"
                                 data-neighbor-index="${index}"
-                                aria-label="切换到 ${spot.name}"
+                                aria-label="先在当前舞台展开 ${spot.name}"
                                 style="animation-delay: ${index * 0.12}s; --related-neighbor-delay: ${index * 120}ms;"
                             >
                                 <div class="related-neighbor-media">
@@ -13663,45 +13672,27 @@ class DetailPage {
         const featureAction = scope.querySelector('.related-feature-action');
         const neighborCards = Array.from(scope.querySelectorAll('.related-neighbor-card'));
 
-        if (featureCard) {
-            featureCard.addEventListener('pointerdown', () => {
+        if (featureCard && featureAction) {
+            featureAction.addEventListener('pointerdown', () => {
                 this.setPressedRelatedCard(featureCard);
             });
 
-            featureCard.addEventListener('pointerup', () => {
+            featureAction.addEventListener('pointerup', () => {
                 if (!this.relatedTransitionTimer) {
                     this.clearPressedRelatedCard(featureCard);
                 }
             });
 
-            featureCard.addEventListener('pointercancel', () => {
+            featureAction.addEventListener('pointercancel', () => {
                 if (!this.relatedTransitionTimer) {
                     this.clearPressedRelatedCard(featureCard);
                 }
             });
 
-            featureCard.addEventListener('pointerleave', () => {
+            featureAction.addEventListener('pointerleave', () => {
                 if (!this.relatedTransitionTimer) {
                     this.clearPressedRelatedCard(featureCard);
                 }
-            });
-
-            featureCard.addEventListener('click', (event) => {
-                if (event.target.closest('.related-feature-action')) {
-                    return;
-                }
-
-                event.preventDefault();
-                this.startRelatedSpotTransition(featureCard);
-            });
-
-            featureCard.addEventListener('keydown', (event) => {
-                if (event.key !== 'Enter' && event.key !== ' ') {
-                    return;
-                }
-
-                event.preventDefault();
-                this.startRelatedSpotTransition(featureCard);
             });
         }
 
@@ -15007,6 +14998,36 @@ class DetailPage {
         window.YanqiAvatarReturn?.bind({
             targetUrl: 'index.html'
         });
+
+        const depthNavigationHandler = (event) => {
+            if (event.defaultPrevented) {
+                return;
+            }
+
+            const link = event.target.closest('a[href]');
+            if (!link) {
+                return;
+            }
+
+            if (link.matches('[data-detail-scroll]') || link.closest('[data-detail-scroll]')) {
+                return;
+            }
+
+            if (link.id === 'detailFooterNextLink' && link.hasAttribute('data-related-id')) {
+                return;
+            }
+
+            const href = link.getAttribute('href');
+            if (!isDetailDepthNavigationHref(href)) {
+                return;
+            }
+
+            event.preventDefault();
+            navigateWithDepth(href);
+        };
+
+        document.querySelector('.navbar')?.addEventListener('click', depthNavigationHandler);
+        this.detailFooter?.addEventListener('click', depthNavigationHandler);
     }
 
     // 相关推荐切页生命周期：处理进入时接续动画、离场写状态和资源预加载。

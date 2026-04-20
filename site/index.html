@@ -45,9 +45,16 @@
         <div class="bg-container" aria-hidden="true">
             <div class="gradient-bg"></div>
             <div class="login-atmosphere">
+                <span class="atmosphere-haze haze-a"></span>
+                <span class="atmosphere-haze haze-b"></span>
                 <span class="atmosphere-wave wave-a"></span>
                 <span class="atmosphere-wave wave-b"></span>
                 <span class="atmosphere-wave wave-c"></span>
+                <span class="atmosphere-current current-a"></span>
+                <span class="atmosphere-current current-b"></span>
+                <span class="atmosphere-current current-c"></span>
+                <span class="atmosphere-ripple ripple-a"></span>
+                <span class="atmosphere-ripple ripple-b"></span>
                 <div class="salt-particles">
                     <div class="particle"></div>
                     <div class="particle"></div>
@@ -79,14 +86,48 @@
                     <button type="button" class="login-stage-resize-handle is-north-west" data-resize-direction="nw" tabindex="-1" aria-hidden="true"></button>
                 </div>
                 <div class="glass-card">
+                    <div class="login-stage-divider" aria-hidden="true"></div>
                     <div class="card-layout">
                         <!-- 左侧品牌门厅：先建立“进入盐憩之前先安静下来”的情绪。 -->
-                        <aside class="login-side fade-in-up" style="animation-delay: 0s">
+                        <aside class="login-side fade-in-up" style="animation-delay: 0s" aria-labelledby="arrivalHallTitle">
+                            <div class="login-side-atmosphere" aria-hidden="true">
+                                <span class="login-side-orbit orbit-a"></span>
+                                <span class="login-side-orbit orbit-b"></span>
+                                <span class="login-side-orbit orbit-c"></span>
+                            </div>
                             <div class="login-brand-copy">
                                 <p class="side-kicker">Arrival Layer</p>
-                                <h1 class="side-title">盐憩</h1>
+                                <p class="side-depth-tag">静水门厅 · 0m</p>
+                                <h1 class="side-title" id="arrivalHallTitle">盐憩</h1>
                                 <p class="side-quote">先让呼吸慢一点。</p>
                                 <p class="side-meta">海还在前面，你先安静下来。</p>
+                                <section class="side-observatory" aria-label="潜前观察">
+                                    <p class="side-observatory-title">进入之前，先让目光和潮汐对齐。</p>
+                                    <div class="side-observatory-grid">
+                                        <p class="side-observatory-item">
+                                            <span class="side-observatory-label">海层</span>
+                                            <strong>岸上与海面之间</strong>
+                                        </p>
+                                        <p class="side-observatory-item">
+                                            <span class="side-observatory-label">节奏</span>
+                                            <strong>先停一停，再继续下潜</strong>
+                                        </p>
+                                        <p class="side-observatory-item">
+                                            <span class="side-observatory-label">入口</span>
+                                            <strong>号码会把你带回这层静水</strong>
+                                        </p>
+                                    </div>
+                                </section>
+                                <div class="side-waterline" aria-label="进入进度">
+                                    <div class="side-waterline-head">
+                                        <span class="side-waterline-label">Entrance Progress</span>
+                                        <span class="side-waterline-value" id="sideWaterlineValue">0%</span>
+                                    </div>
+                                    <span class="side-waterline-track" role="progressbar" aria-label="进入进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="sideWaterlineTrack">
+                                        <span class="side-waterline-fill" id="sideWaterlineFill"></span>
+                                    </span>
+                                    <p class="side-waterline-status" id="sideWaterlineStatus">这一层还在等你慢慢写下第一个入口。</p>
+                                </div>
                             </div>
                         </aside>
 
@@ -95,32 +136,36 @@
                             <div class="auth-panel-shell fade-in-up" style="animation-delay: 0.08s">
                                 <div class="auth-panel-glass" aria-hidden="true"></div>
                                 <div class="auth-panel-inner">
+                                    <div class="auth-waterline fade-in-up" style="animation-delay: 0.04s" aria-hidden="true">
+                                        <span class="auth-waterline-kicker">Entrance Passage</span>
+                                        <span class="auth-waterline-copy">沿这一层静水慢慢进入首页主线</span>
+                                    </div>
                                     <div class="form-brand fade-in-up" style="animation-delay: 0.08s">
                                         <p class="form-kicker">Entrance Console</p>
 
-                                        <div class="form-copy form-copy-login">
+                                        <div class="form-copy form-copy-login" id="authModeSummaryLogin">
                                             <h2 class="form-title">欢迎回来</h2>
-                                            <p class="form-subtitle">让海面慢慢安静下来，再继续这一次下潜。邮箱入口已经收起，现在只通过手机号把你带回这层静水。</p>
+                                            <p class="form-subtitle">海面先安静下来，再继续这一次下潜。现在只通过手机号把你带回这层静水。</p>
                                         </div>
 
-                                        <div class="form-copy form-copy-register">
+                                        <div class="form-copy form-copy-register" id="authModeSummaryRegister">
                                             <h2 class="form-title">留下你的手机号</h2>
-                                            <p class="form-subtitle">先让这一串号码停在这里，往后的海会慢慢向你打开。之后每一次回来，都可以沿着同一条安静的入口继续下潜。</p>
+                                            <p class="form-subtitle">先把号码停在这里。往后的海，会沿着同一条安静入口慢慢打开。</p>
                                         </div>
                                     </div>
 
                                     <div class="tab-section fade-in-up" style="animation-delay: 0.14s">
                                         <div class="tabs" role="tablist" aria-label="登录方式切换">
-                                            <button class="tab-btn active" data-tab="login" type="button" role="tab" aria-selected="true">登录</button>
-                                            <button class="tab-btn" data-tab="register" type="button" role="tab" aria-selected="false">注册</button>
+                                            <button class="tab-btn active" id="auth-tab-login" data-tab="login" type="button" role="tab" aria-controls="login" aria-selected="true">登录</button>
+                                            <button class="tab-btn" id="auth-tab-register" data-tab="register" type="button" role="tab" aria-controls="register" aria-selected="false">注册</button>
                                         </div>
                                     </div>
 
-                                    <form class="auth-form" id="authForm" novalidate>
-                                        <div class="tab-content active" id="login">
+                                    <form class="auth-form" id="authForm" aria-describedby="authModeSummaryLogin" novalidate>
+                                        <div class="tab-content active" id="login" role="tabpanel" aria-labelledby="auth-tab-login" tabindex="-1">
                                             <div class="input-group fade-in-up" style="animation-delay: 0.18s">
                                                 <label for="login-phone">手机号</label>
-                                                <input type="tel" id="login-phone" placeholder="留下一串会把你带回这层静水的号码" required>
+                                                <input type="tel" id="login-phone" inputmode="numeric" maxlength="11" autocomplete="tel-national" pattern="^1[3-9]\d{9}$" placeholder="留下一串会把你带回这层静水的号码" required>
                                             </div>
 
                                             <div class="input-group fade-in-up" style="animation-delay: 0.3s">
@@ -133,7 +178,7 @@
                                                 <label for="remember-me" class="checkbox-label">让这层静水记住这串号码</label>
                                             </div>
 
-                                            <button type="submit" class="button fade-in-up" style="animation-delay: 0.54s">
+                                            <button type="submit" class="auth-cta fade-in-up" style="animation-delay: 0.54s">
                                                 <span>登录</span>
                                                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -141,10 +186,10 @@
                                             </button>
                                         </div>
 
-                                        <div class="tab-content" id="register">
+                                        <div class="tab-content" id="register" role="tabpanel" aria-labelledby="auth-tab-register" tabindex="-1" hidden>
                                             <div class="input-group fade-in-up" style="animation-delay: 0.18s">
                                                 <label for="register-phone">手机号</label>
-                                                <input type="tel" id="register-phone" placeholder="让这次进入有一个更稳的联系节奏" required>
+                                                <input type="tel" id="register-phone" inputmode="numeric" maxlength="11" autocomplete="tel-national" pattern="^1[3-9]\d{9}$" placeholder="让这次进入有一个更稳的联系节奏" required>
                                             </div>
 
                                             <div class="input-group fade-in-up" style="animation-delay: 0.3s">
@@ -162,7 +207,7 @@
                                                 <label for="agree-terms" class="checkbox-label">我已阅读并同意 <a href="terms.html" target="_blank" rel="noopener noreferrer">《用户协议》</a> 与 <a href="privacy.html" target="_blank" rel="noopener noreferrer">《隐私政策》</a></label>
                                             </div>
 
-                                            <button type="submit" class="submit-btn fade-in-up" style="animation-delay: 0.66s">
+                                            <button type="submit" class="auth-cta fade-in-up" style="animation-delay: 0.66s">
                                                 <span>注册</span>
                                                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -172,23 +217,18 @@
                                     </form>
 
                                     <div class="footer-links fade-in-up" style="animation-delay: 0.86s">
-                                        <a href="contact.html#contactStatusSection" class="link-forgot" data-brand-link="forgot">忘记密码</a>
-                                        <span class="divider">/</span>
-                                        <button type="button" class="link-guest link-demo-voyage" id="demoVoyageButton">展示航线</button>
-                                        <span class="divider">/</span>
-                                        <button type="button" class="link-guest">先逛逛</button>
-                                        <span class="divider">/</span>
-                                        <a href="contact.html#contactStatusSection" class="link-forgot" data-brand-link="contact">联系我们</a>
-                                    </div>
-
-                                    <div class="social-login fade-in-up" style="animation-delay: 0.96s">
-                                        <p class="social-text">也可以从别的入口慢慢进来</p>
-                                        <div class="social-buttons">
-                                            <button type="button" class="social-btn wechat" title="微信登录"><span>微信</span></button>
-                                            <button type="button" class="social-btn qq" title="QQ 登录"><span>QQ</span></button>
-                                            <button type="button" class="social-btn google" title="Google 登录"><span>Google</span></button>
+                                        <p class="footer-links-label">别的入口也仍然开着</p>
+                                        <div class="footer-links-row">
+                                            <a href="contact.html#contactStatusSection" class="link-forgot" data-brand-link="forgot">忘记密码</a>
+                                            <span class="divider">/</span>
+                                            <button type="button" class="link-guest link-demo-voyage" id="demoVoyageButton" data-guest-entry="showcase">展示航线</button>
+                                            <span class="divider">/</span>
+                                            <button type="button" class="link-guest" data-guest-entry="soft-browse">先逛逛</button>
+                                            <span class="divider">/</span>
+                                            <a href="contact.html#contactStatusSection" class="link-forgot" data-brand-link="contact">联系我们</a>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                         </section>

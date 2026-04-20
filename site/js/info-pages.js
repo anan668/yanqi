@@ -30,7 +30,7 @@
             label: '联系邮箱',
             value: '暂未开放',
             href: 'contact.html#contactStatusSection',
-            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先去演示留言台收住想法。',
+            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先去站内留言台收住想法。',
             status: '未开放'
         }),
         Object.freeze({
@@ -313,11 +313,11 @@
         const messages = safeReadContactMessages();
 
         if (!messages.length) {
-            meta.textContent = '这里还没有已经靠岸的演示回声。写下的草稿会先被本地收住，真正留下以后，它也会继续停在这里。';
+            meta.textContent = '这里还没有已经靠岸的回声。写下的草稿会先被本地收住，真正留下以后，它也会继续停在这里。';
             list.innerHTML = `
                 <article class="contact-memory-item is-empty">
                     <p class="contact-memory-empty-title">这片回看水域暂时还是安静的</p>
-                    <p class="contact-memory-empty-copy">当你真正留下第一条演示回声以后，它会继续停在当前浏览器里。哪怕刷新回来，也还能从这里重新看见。</p>
+                    <p class="contact-memory-empty-copy">当你真正留下第一条回声以后，它会继续停在当前浏览器里。哪怕刷新回来，也还能从这里重新看见。</p>
                 </article>
             `;
 
@@ -327,7 +327,7 @@
             return;
         }
 
-        meta.textContent = `当前浏览器里已经安静收着 ${messages.length} 条演示回声。刷新回来时，它们也会继续停在这里。`;
+        meta.textContent = `当前浏览器里已经安静收着 ${messages.length} 条回声。刷新回来时，它们也会继续停在这里。`;
         list.innerHTML = messages.map((entry) => `
             <article class="contact-memory-item">
                 <div class="contact-memory-item-top">
@@ -632,7 +632,7 @@
 
                 clearContactMessages();
                 renderStoredContactMessages();
-                showContactFeedback('本地暂存的演示回声已经轻轻收起，这片回看水域暂时安静下来了。');
+                showContactFeedback('本地暂存的回声已经轻轻收起，这片回看水域暂时安静下来了。');
             });
         }
 
@@ -650,7 +650,7 @@
             });
 
             if (hasError) {
-                showContactFeedback('在继续之前，还有几格演示回声没有写完整。慢一点补齐也没关系。', 'error');
+                showContactFeedback('在继续之前，还有几格回声没有写完整。慢一点补齐也没关系。', 'error');
                 return;
             }
 
@@ -664,7 +664,7 @@
             });
 
             if (!safeSaveContactMessages(messages)) {
-                showContactFeedback('这条演示回声暂时没能写进当前浏览器的本地存储。可以先复制一下文字，再重新试一次。', 'error');
+                showContactFeedback('这条回声暂时没能写进当前浏览器的本地存储。可以先复制一下文字，再重新试一次。', 'error');
                 return;
             }
 
@@ -673,7 +673,7 @@
             clearContactDraft();
             updateContactDraftState(createEmptyContactDraft());
             renderStoredContactMessages();
-            showContactFeedback('这条演示回声已经先替你留在当前浏览器里，不会发往真实渠道；刷新回来也还能继续看见。');
+            showContactFeedback('这条回声已经先替你留在当前浏览器里，不会发往真实渠道；刷新回来也还能继续看见。');
         });
     }
 
