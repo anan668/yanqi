@@ -560,17 +560,16 @@ function setupPlannerSummary() {
     const dateInput = document.getElementById('plannerDate');
     const peopleInput = document.getElementById('plannerPeople');
 
+    const plannerCapsule = document.getElementById('plannerCapsule');
+    const plannerDeskControl = document.getElementById('plannerDeskControl');
     const summaryRoot = document.getElementById('plannerSummary');
+    const summaryDockBody = document.getElementById('plannerSummaryDockBody');
     const summaryIntro = document.getElementById('plannerSummaryIntro');
     const summaryActiveIndex = document.getElementById('plannerSummaryActiveIndex');
     const summaryMeterFill = document.getElementById('plannerSummaryMeterFill');
     const summaryMeterOrbs = Array.from(document.querySelectorAll('#plannerSummary .planner-summary-meter-orb'));
-    const summarySwimStage = document.getElementById('plannerSummarySwimStage');
-    const summarySwimViewport = document.getElementById('plannerSummarySwimViewport');
-    const summaryPrevNeighbor = document.getElementById('plannerSummaryPrevNeighbor');
-    const summaryNextNeighbor = document.getElementById('plannerSummaryNextNeighbor');
     const summarySwitchLive = document.getElementById('plannerSummarySwitchLive');
-    const initialSummaryDeck = summarySwimViewport?.querySelector('.planner-summary-swim-deck') || null;
+    const initialSummaryDeck = summaryDockBody || summaryRoot;
 
     const spotField = document.querySelector('[data-planner-field="spot"]');
     const dateField = document.querySelector('[data-planner-field="date"]');
@@ -579,10 +578,6 @@ function setupPlannerSummary() {
     const spotTrigger = document.getElementById('plannerSpotTrigger');
     const dateTrigger = document.getElementById('plannerDateTrigger');
     const peopleTrigger = document.getElementById('plannerPeopleTrigger');
-    const plannerDeskControl = document.getElementById('plannerDeskControl');
-    const plannerBookingSwitcher = document.getElementById('plannerBookingSwitcher');
-    const plannerBookingSwitcherTrack = document.getElementById('plannerBookingSwitcherTrack');
-    const plannerBookingSwitcherNote = document.getElementById('plannerBookingSwitcherNote');
     const submitButton = document.querySelector('#plannerDeskControl .planner-submit-btn');
     const submitButtonInner = submitButton?.querySelector('.planner-submit-btn-inner');
     const submitButtonLabel = submitButton?.querySelector('.planner-submit-btn-label');
@@ -614,14 +609,13 @@ function setupPlannerSummary() {
         !spotInput ||
         !dateInput ||
         !peopleInput ||
+        !plannerCapsule ||
+        !plannerDeskControl ||
         !summaryRoot ||
+        !summaryDockBody ||
         !summaryIntro ||
         !summaryActiveIndex ||
         !summaryMeterFill ||
-        !summarySwimStage ||
-        !summarySwimViewport ||
-        !summaryPrevNeighbor ||
-        !summaryNextNeighbor ||
         !summarySwitchLive ||
         !spotField ||
         !dateField ||
@@ -629,10 +623,6 @@ function setupPlannerSummary() {
         !spotTrigger ||
         !dateTrigger ||
         !peopleTrigger ||
-        !plannerDeskControl ||
-        !plannerBookingSwitcher ||
-        !plannerBookingSwitcherTrack ||
-        !plannerBookingSwitcherNote ||
         !submitButton ||
         !submitButtonInner ||
         !submitButtonLabel ||
@@ -705,11 +695,6 @@ function setupPlannerSummary() {
     };
     function readInitialSummaryDeckText(slotName, fallbackValue = '') {
         return initialSummaryDeck?.querySelector(`[data-summary-slot="${slotName}"]`)?.textContent?.trim()
-            || fallbackValue;
-    }
-
-    function readInitialSummaryNeighborText(button, slotName, fallbackValue = '') {
-        return button?.querySelector(`[data-summary-neighbor-slot="${slotName}"]`)?.textContent?.trim()
             || fallbackValue;
     }
 
@@ -906,30 +891,13 @@ function setupPlannerSummary() {
     let previousSummaryFilledCount = 0;
     let hasInitializedProgressiveState = false;
     let activeBookingEntryId = '';
-    let summaryStageSwitchTimer = 0;
-    let summaryStageCleanupTimer = 0;
-    let summaryStageHeightResetTimer = 0;
-    let summaryIsSwitching = false;
-    const summaryGestureState = {
-        pointerId: null,
-        startX: 0,
-        startY: 0,
-        shiftX: 0,
-        claimed: false
-    };
     const fieldUnlockTimers = new WeakMap();
     const defaultSubmitButtonLabel = submitButtonLabel.textContent.trim() || '\u786e\u8ba4\u8fd9\u4e00\u5c42\u5b89\u6392';
     const defaultSummaryActiveIndex = summaryActiveIndex.textContent.trim() || '01 / 01';
     const defaultSummaryActiveSpot = readInitialSummaryDeckText('route-spot', '\u5f53\u524d\u6d77\u57df\u5f85\u5b9a');
     const defaultSummaryActivePackage = readInitialSummaryDeckText('active-package', '\u5957\u9910\u5c1a\u672a\u5199\u5165');
     const defaultSummaryActiveCompanion = readInitialSummaryDeckText('active-companion', '\u540c\u884c\u8282\u594f\u5f85\u5b9a');
-    const defaultSummaryNeighborStatus = readInitialSummaryNeighborText(summaryPrevNeighbor, 'status', '\u65f6\u95f4\u4e0e\u540c\u884c\u5f85\u6536\u62e2');
-    const defaultPlannerSwitcherNote = plannerBookingSwitcherNote.textContent.trim() || '\u5f53\u524d\u53ea\u6574\u7406\u4e00\u6761\u4e0b\u6f5c\u8282\u594f';
     const defaultCustomPeopleNote = customPeopleNote.textContent.trim() || '适合人数不在预设选项里的小团或同行安排。';
-    const SUMMARY_SWITCH_DURATION_MS = 780;
-    const SUMMARY_SWIPE_TRIGGER_DISTANCE = 58;
-    const SUMMARY_SWIPE_CLAIM_DISTANCE = 18;
-    const SUMMARY_SWIPE_CLAIM_RATIO = 1.2;
 
     function getConfirmedBookings() {
         return sortConfirmedBookings(
@@ -1070,27 +1038,7 @@ function setupPlannerSummary() {
     }
 
     function renderPlannerBookingSwitcher(bookings = getConfirmedBookings()) {
-        const safeBookings = Array.isArray(bookings) ? bookings : [];
-        const activeBooking = getActiveBooking(safeBookings);
-        const total = safeBookings.length;
-        const activeIndex = Math.max(0, safeBookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId));
-
-        plannerBookingSwitcher.hidden = total === 0;
-        plannerBookingSwitcher.classList.toggle('is-single', total === 1);
-        plannerBookingSwitcherTrack.classList.toggle('is-single', total === 1);
-        plannerBookingSwitcherTrack.innerHTML = '';
-
-        if (!total) {
-            plannerBookingSwitcherNote.textContent = defaultPlannerSwitcherNote;
-            return;
-        }
-
-        plannerBookingSwitcherNote.textContent = total === 1
-            ? '\u8fd9\u4e00\u5c42\u53ea\u5269\u4e0b\u4e00\u6761\u6b63\u5728\u6536\u675f\u7684\u4e0b\u6f5c'
-            : `\u6b63\u5728\u6574\u7406 ${String(activeIndex + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')} \u6761\u5df2\u6536\u8fdb\u884c\u7a0b`;
-        plannerBookingSwitcherTrack.innerHTML = safeBookings
-            .map((booking, index) => buildPlannerBookingSwitcherMarkup(booking, index, total, activeBooking?.entryId === booking.entryId))
-            .join('');
+        void bookings;
     }
 
     function buildPlannerSubmitActionLabel() {
@@ -1318,76 +1266,7 @@ function setupPlannerSummary() {
     }
 
     function getActiveSummaryDeck() {
-        return summarySwimViewport.querySelector('.planner-summary-swim-deck.is-deck-active')
-            || summarySwimViewport.querySelector('.planner-summary-swim-deck:not(.is-deck-outgoing)')
-            || summarySwimViewport.querySelector('.planner-summary-swim-deck');
-    }
-
-    function buildPlannerSummaryNeighborStatusLabel(booking) {
-        if (!booking) {
-            return defaultSummaryNeighborStatus;
-        }
-
-        return [
-            booking?.selectedDateLabel ? '时间已落位' : '时间待收拢',
-            booking?.selectedPeopleLabel ? '同行已落位' : '同行待收拢'
-        ].join(' · ');
-    }
-
-    function syncPlannerSummaryNeighbor(button, booking) {
-        if (!button) {
-            return;
-        }
-
-        const nameNode = button.querySelector('[data-summary-neighbor-slot="name"]');
-        const packageNode = button.querySelector('[data-summary-neighbor-slot="package"]');
-        const statusNode = button.querySelector('[data-summary-neighbor-slot="status"]');
-        const dateDot = button.querySelector('[data-summary-neighbor-slot="date-dot"]');
-        const peopleDot = button.querySelector('[data-summary-neighbor-slot="people-dot"]');
-
-        if (!booking) {
-            button.hidden = true;
-            button.disabled = true;
-            button.removeAttribute('data-entry-id');
-            button.setAttribute('aria-label', '暂无相邻海域');
-            nameNode && (nameNode.textContent = '');
-            packageNode && (packageNode.textContent = '');
-            statusNode && (statusNode.textContent = defaultSummaryNeighborStatus);
-            dateDot?.classList.remove('is-ready');
-            peopleDot?.classList.remove('is-ready');
-            return;
-        }
-
-        const statusText = buildPlannerSummaryNeighborStatusLabel(booking);
-        button.hidden = false;
-        button.disabled = summaryIsSwitching;
-        button.dataset.entryId = String(booking.entryId || '').trim();
-        button.setAttribute('aria-label', `切换到 ${String(booking.spotName || '未命名海域').trim()}，${statusText}`);
-        nameNode && (nameNode.textContent = String(booking.spotName || '未命名海域').trim());
-        packageNode && (packageNode.textContent = buildPlannerBookingPackageLabel(booking));
-        statusNode && (statusNode.textContent = statusText);
-        dateDot?.classList.toggle('is-ready', Boolean(String(booking?.selectedDate || '').trim()));
-        peopleDot?.classList.toggle('is-ready', Boolean(String(booking?.selectedPeople || '').trim()));
-    }
-
-    function syncPlannerSummaryNeighbors(bookings = getConfirmedBookings(), activeBooking = getActiveBooking(bookings)) {
-        const safeBookings = Array.isArray(bookings) ? bookings : [];
-        const total = safeBookings.length;
-        const activeIndex = Math.max(0, safeBookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId));
-        const hasMultiple = total > 1 && Boolean(activeBooking);
-
-        summarySwimStage.classList.toggle('has-multiple', hasMultiple);
-
-        if (!hasMultiple) {
-            syncPlannerSummaryNeighbor(summaryPrevNeighbor, null);
-            syncPlannerSummaryNeighbor(summaryNextNeighbor, null);
-            return;
-        }
-
-        const prevBooking = safeBookings[(activeIndex - 1 + total) % total];
-        const nextBooking = safeBookings[(activeIndex + 1) % total];
-        syncPlannerSummaryNeighbor(summaryPrevNeighbor, prevBooking);
-        syncPlannerSummaryNeighbor(summaryNextNeighbor, nextBooking);
+        return summaryDockBody;
     }
 
     function buildPlannerSummaryDeckMarkup(state) {
@@ -1453,24 +1332,14 @@ function setupPlannerSummary() {
 
     function createPlannerSummaryDeckElement(state) {
         const deck = document.createElement('div');
-        deck.className = 'planner-summary-swim-deck';
+        deck.className = 'planner-summary-dock-inner';
         deck.innerHTML = buildPlannerSummaryDeckMarkup(state);
         return deck;
     }
 
     function renderPlannerSummaryDeckState(state) {
-        const currentDeck = getActiveSummaryDeck();
-        const nextDeck = createPlannerSummaryDeckElement(state);
-        nextDeck.classList.add('is-deck-active');
-
-        if (!currentDeck) {
-            summarySwimViewport.innerHTML = '';
-            summarySwimViewport.appendChild(nextDeck);
-            return nextDeck;
-        }
-
-        currentDeck.replaceWith(nextDeck);
-        return nextDeck;
+        summaryDockBody.innerHTML = buildPlannerSummaryDeckMarkup(state);
+        return summaryDockBody;
     }
 
     function setPlannerSummaryStatusOverride(statusText) {
@@ -1480,47 +1349,8 @@ function setupPlannerSummary() {
         }
     }
 
-    function clearPlannerSummaryHeightResetTimer() {
-        if (!summaryStageHeightResetTimer) {
-            return;
-        }
-
-        window.clearTimeout(summaryStageHeightResetTimer);
-        summaryStageHeightResetTimer = 0;
-    }
-
-    function lockPlannerSummaryViewportHeight(...decks) {
-        clearPlannerSummaryHeightResetTimer();
-
-        const heights = [
-            summarySwimViewport.offsetHeight || 0,
-            ...decks.map((deck) => deck?.offsetHeight || 0)
-        ].filter((value) => value > 0);
-
-        if (!heights.length) {
-            return;
-        }
-
-        summarySwimViewport.style.height = `${Math.max(...heights)}px`;
-    }
-
-    function releasePlannerSummaryViewportHeight(delay = 80) {
-        clearPlannerSummaryHeightResetTimer();
-        summaryStageHeightResetTimer = window.setTimeout(() => {
-            summarySwimViewport.style.height = '';
-            summaryStageHeightResetTimer = 0;
-        }, delay);
-    }
-
-    function resetPlannerSummarySwipeShift() {
-        summaryGestureState.shiftX = 0;
-        summaryGestureState.claimed = false;
-        summarySwimStage.style.setProperty('--planner-summary-swipe-shift', '0px');
-        summarySwimStage.classList.remove('is-dragging');
-    }
-
     function pulsePlannerSummaryProgress() {
-        restartTransientClassAnimation(summaryRoot, 'is-progress-shifting');
+        restartTransientClassAnimation(plannerCapsule, 'is-progress-shifting');
     }
 
     function syncPlannerSummaryMeter(filledCount, isConfirmed, state = {}) {
@@ -1754,7 +1584,7 @@ function setupPlannerSummary() {
         submitButton.removeAttribute('aria-busy');
         submitButton.removeAttribute('aria-label');
         submitButton.classList.remove('is-feedback', 'is-feedback-confirmed', 'is-feedback-warning');
-        summaryRoot.classList.remove('is-submit-feedback');
+        plannerCapsule.classList.remove('is-submit-feedback');
         syncPlannerSubmitActionLabel();
 
         if (shouldSyncSummary) {
@@ -1774,7 +1604,7 @@ function setupPlannerSummary() {
         submitButton.setAttribute('aria-label', feedbackCopy.button);
         attachPlannerSubmitFeedbackInterruption();
 
-        restartTransientClassAnimation(summaryRoot, 'is-submit-feedback');
+        restartTransientClassAnimation(plannerCapsule, 'is-submit-feedback');
         setPlannerSummaryStatusOverride(feedbackCopy.status);
 
         submitFeedbackResetTimer = window.setTimeout(() => {
@@ -1797,7 +1627,7 @@ function setupPlannerSummary() {
         startPlannerSubmitFeedbackCountdown(feedbackCopy.button, feedbackDelay);
         attachPlannerSubmitFeedbackInterruption();
 
-        restartTransientClassAnimation(summaryRoot, 'is-submit-feedback');
+        restartTransientClassAnimation(plannerCapsule, 'is-submit-feedback');
         setPlannerSummaryStatusOverride(feedbackCopy.status);
 
         submitContinueTimer = window.setTimeout(() => {
@@ -1898,6 +1728,7 @@ function setupPlannerSummary() {
         });
 
         spotField.classList.toggle('is-booking-bound', isBookingBound);
+        plannerCapsule.dataset.editingMode = isBookingBound ? 'confirmed-booking' : 'draft';
         plannerDeskControl.dataset.editingMode = isBookingBound ? 'confirmed-booking' : 'draft';
         summaryRoot.dataset.editingMode = isBookingBound ? 'confirmed-booking' : 'draft';
         if (isBookingBound) {
@@ -2813,6 +2644,10 @@ function setupPlannerSummary() {
         applyBookingToPlanner(nextBooking);
         renderPlannerBookingSwitcher(bookings);
 
+        if (summarySwitchLive && nextBooking?.spotName) {
+            summarySwitchLive.textContent = `已对准 ${nextBooking.spotName}。`;
+        }
+
         if (options.refreshSummary !== false) {
             updatePlannerSummary();
         }
@@ -2957,17 +2792,19 @@ function setupPlannerSummary() {
 
     function applyPlannerSummaryState(state, options = {}) {
         const { renderDeck = true } = options;
-        const wasConfirmed = summaryRoot.classList.contains('is-confirmed');
+        const previousCapsuleState = String(plannerCapsule.dataset.capsuleState || 'idle').trim() || 'idle';
+        const nextCapsuleState = state.isConfirmed
+            ? 'confirmed'
+            : (state.filledCount > 0 ? 'progress' : 'idle');
+        const wasConfirmed = previousCapsuleState === 'confirmed';
 
         summaryActiveIndex.textContent = state.activeIndexLabel;
         summaryIntro.textContent = state.intro;
         syncPlannerSummaryGuidance(state.guidance);
-        syncPlannerSummaryNeighbors(state.bookings, state.activeBooking);
         summaryRoot.dataset.summaryStage = state.summaryStage;
+        summaryRoot.dataset.summaryState = nextCapsuleState;
+        plannerCapsule.dataset.capsuleState = nextCapsuleState;
         summaryRoot.classList.toggle('is-empty', state.filledCount === 0);
-        summaryRoot.classList.toggle('has-progress', state.filledCount > 0);
-        summaryRoot.classList.toggle('is-confirmed', state.isConfirmed);
-        summaryRoot.classList.toggle('is-breathing', state.filledCount > 0 && !state.isConfirmed);
         syncPlannerSummaryMeter(state.filledCount, state.isConfirmed, {
             hasSpot: state.hasSpot,
             hasDate: state.hasDate,
@@ -2977,16 +2814,12 @@ function setupPlannerSummary() {
 
         if (renderDeck) {
             renderPlannerSummaryDeckState(state);
-            clearPlannerSummaryHeightResetTimer();
-            if (!summaryIsSwitching) {
-                summarySwimViewport.style.height = '';
-            }
         }
 
         if (hasRenderedSummaryOnce && state.isConfirmed && !wasConfirmed) {
-            restartTransientClassAnimation(summaryRoot, 'is-updated-confirmed');
+            restartTransientClassAnimation(plannerCapsule, 'is-updated-confirmed');
         } else if (!state.isConfirmed) {
-            summaryRoot.classList.remove('is-updated-confirmed');
+            plannerCapsule.classList.remove('is-updated-confirmed');
         }
 
         hasRenderedSummaryOnce = true;
@@ -3009,119 +2842,6 @@ function setupPlannerSummary() {
         syncTripProofFlowState();
 
         return state;
-    }
-
-    function getPlannerSummarySwitchTarget(direction, bookings = getConfirmedBookings()) {
-        const safeBookings = Array.isArray(bookings) ? bookings : [];
-        const activeBooking = getActiveBooking(safeBookings);
-
-        if (!activeBooking || safeBookings.length < 2) {
-            return null;
-        }
-
-        const activeIndex = safeBookings.findIndex((booking) => booking?.entryId === activeBooking?.entryId);
-        if (activeIndex === -1) {
-            return null;
-        }
-
-        const targetIndex = direction === 'backward'
-            ? (activeIndex - 1 + safeBookings.length) % safeBookings.length
-            : (activeIndex + 1) % safeBookings.length;
-
-        return safeBookings[targetIndex] || null;
-    }
-
-    function switchPlannerSummaryBooking(entryId, direction = 'forward', source = 'preview') {
-        const safeEntryId = String(entryId || '').trim();
-        const flowDirection = direction === 'backward' ? 'backward' : 'forward';
-        const bookings = getConfirmedBookings();
-        const activeBooking = getActiveBooking(bookings);
-        const nextBooking = getBookingByEntryId(safeEntryId, bookings);
-
-        if (
-            !safeEntryId ||
-            summaryIsSwitching ||
-            !activeBooking ||
-            !nextBooking ||
-            safeEntryId === String(activeBooking.entryId || '').trim() ||
-            bookings.length < 2
-        ) {
-            return null;
-        }
-
-        const currentDeck = getActiveSummaryDeck();
-        if (!currentDeck) {
-            const fallbackBooking = setActiveBooking(safeEntryId, {
-                bookings,
-                refreshSummary: true,
-                refreshCards: true
-            });
-            if (summarySwitchLive && fallbackBooking?.spotName) {
-                summarySwitchLive.textContent = `已切到${fallbackBooking.spotName}。`;
-            }
-            return fallbackBooking;
-        }
-
-        clearPlannerSummaryHeightResetTimer();
-        resetPlannerSummarySwipeShift();
-
-        summaryIsSwitching = true;
-        summaryRoot.classList.add('is-swim-switching');
-        summarySwimStage.classList.add('is-stage-switching');
-        summarySwimStage.classList.toggle('is-flow-backward', flowDirection === 'backward');
-        summarySwimStage.classList.toggle('is-flow-forward', flowDirection !== 'backward');
-        summarySwimViewport.classList.add('is-stage-switching');
-        lockPlannerSummaryViewportHeight(currentDeck);
-        currentDeck.classList.remove('is-deck-active');
-        currentDeck.classList.add('is-deck-outgoing');
-
-        setActiveBooking(safeEntryId, {
-            bookings,
-            refreshSummary: false,
-            refreshCards: true
-        });
-
-        const nextState = buildPlannerSummaryViewState();
-        applyPlannerSummaryState(nextState, { renderDeck: false });
-
-        if (store && typeof store.savePlannerDraft === 'function') {
-            store.savePlannerDraft(buildPlannerDraftPayload());
-        }
-
-        const incomingDeck = createPlannerSummaryDeckElement(nextState);
-        incomingDeck.classList.add('is-deck-incoming');
-        summarySwimViewport.appendChild(incomingDeck);
-        lockPlannerSummaryViewportHeight(currentDeck, incomingDeck);
-
-        summaryStageSwitchTimer = window.setTimeout(() => {
-            incomingDeck.classList.add('is-deck-active');
-            summaryStageSwitchTimer = 0;
-        }, 24);
-
-        summaryStageCleanupTimer = window.setTimeout(() => {
-            if (currentDeck.isConnected) {
-                currentDeck.remove();
-            }
-
-            incomingDeck.classList.remove('is-deck-incoming');
-            incomingDeck.classList.add('is-deck-active');
-            summarySwimStage.classList.remove('is-stage-switching', 'is-flow-forward', 'is-flow-backward', 'is-dragging');
-            summarySwimViewport.classList.remove('is-stage-switching');
-            summaryRoot.classList.remove('is-swim-switching');
-            summaryIsSwitching = false;
-            releasePlannerSummaryViewportHeight();
-            syncPlannerSummaryNeighbors(nextState.bookings, nextState.activeBooking);
-
-            if (summarySwitchLive && nextBooking?.spotName) {
-                summarySwitchLive.textContent = source === 'gesture'
-                    ? `已潜游到${nextBooking.spotName}。`
-                    : `已切到${nextBooking.spotName}。`;
-            }
-
-            summaryStageCleanupTimer = 0;
-        }, SUMMARY_SWITCH_DURATION_MS);
-
-        return nextBooking;
     }
 
     /**
@@ -3182,202 +2902,6 @@ function setupPlannerSummary() {
         restoreDraftSelection(draft);
     }
     const peopleOptions = Array.from(peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]'));
-
-    function resetPlannerSummaryGestureTracking() {
-        const pointerId = summaryGestureState.pointerId;
-        if (
-            pointerId !== null &&
-            typeof pointerId === 'number' &&
-            typeof summarySwimStage.releasePointerCapture === 'function' &&
-            summarySwimStage.hasPointerCapture?.(pointerId)
-        ) {
-            try {
-                summarySwimStage.releasePointerCapture(pointerId);
-            } catch (error) {
-                // 某些浏览器在 pointer 已结束后会抛异常，这里静默兜底即可。
-            }
-        }
-
-        summaryGestureState.pointerId = null;
-        summaryGestureState.startX = 0;
-        summaryGestureState.startY = 0;
-        resetPlannerSummarySwipeShift();
-    }
-
-    function beginPlannerSummaryGesture(pointerToken, clientX, clientY) {
-        if (
-            summaryIsSwitching ||
-            getConfirmedBookings().length < 2 ||
-            summaryGestureState.pointerId !== null
-        ) {
-            return false;
-        }
-
-        summaryGestureState.pointerId = pointerToken;
-        summaryGestureState.startX = clientX;
-        summaryGestureState.startY = clientY;
-        summaryGestureState.shiftX = 0;
-        summaryGestureState.claimed = false;
-        return true;
-    }
-
-    function updatePlannerSummaryGesture(pointerToken, clientX, clientY, onClaim = null) {
-        if (summaryGestureState.pointerId !== pointerToken || summaryIsSwitching) {
-            return;
-        }
-
-        const deltaX = clientX - summaryGestureState.startX;
-        const deltaY = clientY - summaryGestureState.startY;
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
-
-        if (!summaryGestureState.claimed) {
-            if (absX < SUMMARY_SWIPE_CLAIM_DISTANCE && absY < SUMMARY_SWIPE_CLAIM_DISTANCE) {
-                return;
-            }
-
-            if (absX <= absY * SUMMARY_SWIPE_CLAIM_RATIO) {
-                resetPlannerSummaryGestureTracking();
-                return;
-            }
-
-            summaryGestureState.claimed = true;
-            summarySwimStage.classList.add('is-dragging');
-            if (typeof onClaim === 'function') {
-                onClaim();
-            }
-        }
-
-        summaryGestureState.shiftX = Math.max(-136, Math.min(136, deltaX));
-        summarySwimStage.style.setProperty('--planner-summary-swipe-shift', `${summaryGestureState.shiftX}px`);
-    }
-
-    function finishPlannerSummaryGesture(pointerToken) {
-        if (summaryGestureState.pointerId !== pointerToken) {
-            return;
-        }
-
-        const finalShift = summaryGestureState.shiftX;
-        const direction = finalShift < 0 ? 'forward' : 'backward';
-        const targetBooking = Math.abs(finalShift) >= SUMMARY_SWIPE_TRIGGER_DISTANCE
-            ? getPlannerSummarySwitchTarget(direction)
-            : null;
-
-        resetPlannerSummaryGestureTracking();
-
-        if (!targetBooking) {
-            return;
-        }
-
-        switchPlannerSummaryBooking(targetBooking.entryId, direction, 'gesture');
-    }
-
-    [summaryPrevNeighbor, summaryNextNeighbor].forEach((button, index) => {
-        button.addEventListener('click', () => {
-            const entryId = String(button.dataset.entryId || '').trim();
-            const direction = index === 0 ? 'backward' : 'forward';
-            if (!entryId) {
-                return;
-            }
-
-            switchPlannerSummaryBooking(entryId, direction, 'preview');
-        });
-    });
-
-    summarySwimStage.addEventListener('keydown', (event) => {
-        if (summaryIsSwitching || event.altKey || event.ctrlKey || event.metaKey) {
-            return;
-        }
-
-        const direction = event.key === 'ArrowLeft'
-            ? 'backward'
-            : (event.key === 'ArrowRight' ? 'forward' : '');
-        if (!direction) {
-            return;
-        }
-
-        const targetBooking = getPlannerSummarySwitchTarget(direction);
-        if (!targetBooking) {
-            return;
-        }
-
-        event.preventDefault();
-        switchPlannerSummaryBooking(targetBooking.entryId, direction, 'keyboard');
-    });
-
-    summarySwimStage.addEventListener('pointerdown', (event) => {
-        if (event.pointerType === 'mouse') {
-            return;
-        }
-
-        if (event.button !== 0) {
-            return;
-        }
-
-        beginPlannerSummaryGesture(event.pointerId, event.clientX, event.clientY);
-    });
-
-    summarySwimStage.addEventListener('pointermove', (event) => {
-        if (summaryGestureState.pointerId !== event.pointerId) {
-            return;
-        }
-
-        if (event.cancelable) {
-            event.preventDefault();
-        }
-
-        updatePlannerSummaryGesture(event.pointerId, event.clientX, event.clientY, () => {
-            if (typeof summarySwimStage.setPointerCapture === 'function') {
-                summarySwimStage.setPointerCapture(event.pointerId);
-            }
-        });
-    });
-
-    const handlePlannerSummaryPointerRelease = (event) => {
-        finishPlannerSummaryGesture(event.pointerId);
-    };
-
-    summarySwimStage.addEventListener('pointerup', handlePlannerSummaryPointerRelease);
-    summarySwimStage.addEventListener('pointercancel', handlePlannerSummaryPointerRelease);
-    summarySwimStage.addEventListener('lostpointercapture', handlePlannerSummaryPointerRelease);
-
-    summarySwimStage.addEventListener('mousedown', (event) => {
-        if (event.button !== 0) {
-            return;
-        }
-
-        beginPlannerSummaryGesture('mouse', event.clientX, event.clientY);
-    });
-
-    window.addEventListener('mousemove', (event) => {
-        if (summaryGestureState.pointerId !== 'mouse') {
-            return;
-        }
-
-        updatePlannerSummaryGesture('mouse', event.clientX, event.clientY);
-    });
-
-    window.addEventListener('mouseup', () => {
-        finishPlannerSummaryGesture('mouse');
-    });
-
-    plannerBookingSwitcherTrack.addEventListener('click', (event) => {
-        const chip = event.target.closest('.planner-booking-switcher-chip[data-entry-id]');
-        if (!chip) {
-            return;
-        }
-
-        const entryId = String(chip.dataset.entryId || '').trim();
-        if (!entryId || entryId === activeBookingEntryId) {
-            return;
-        }
-
-        closeActivePanel();
-        setActiveBooking(entryId, {
-            refreshSummary: true,
-            refreshCards: true
-        });
-    });
 
     // 三个字段都采用“再点一次自己就收起”的切换规则，减少手机端多余操作。
     spotTrigger.addEventListener('click', () => {
@@ -3717,6 +3241,7 @@ class PrepSystem {
 const CONFIRMED_BOOKING_COPY = Object.freeze({
     emptyDate: '仍在等一段合适的潮汐',
     emptyPeople: '同行节奏还没写进这一潜',
+    emptyStay: '停留节奏待定',
     emptyTagline: '这片海已经被收下，接下来只等节奏慢慢靠近。',
     emptyNote: '这次下潜已经停进行程里，接下来可以继续整理日期、同行与海况窗口。'
 });
@@ -3825,10 +3350,12 @@ function syncTripProofFlowState() {
     const statusBadge = document.getElementById('tripProofFlowStatusBadge');
     const statusCopy = document.getElementById('tripProofFlowStatusCopy');
     const introCopy = document.getElementById('tripProofFlowIntro');
-    const activeNote = document.getElementById('confirmedBookingsActiveNote');
+    const proofMeta = document.getElementById('tripProofFlowMeta');
+    const echoBadge = document.getElementById('confirmedBookingsEchoBadge');
+    const echoState = document.getElementById('confirmedBookingsEchoState');
     const echoCopy = document.getElementById('confirmedBookingsEchoCopy');
     const echoMeta = document.getElementById('confirmedBookingsEchoMeta');
-    if (!statusBadge || !statusCopy || !introCopy || !activeNote || !echoCopy || !echoMeta) {
+    if (!statusBadge || !statusCopy || !introCopy || !proofMeta) {
         return;
     }
 
@@ -3920,30 +3447,6 @@ function syncTripProofFlowState() {
         introCopy.textContent = '这里会依次看到：入口如何被选定，行程怎样写进本地，以及回执怎样围绕当前这一条慢慢亮起来。';
     }
 
-    if (activeBooking) {
-        activeNote.textContent = `当前高亮的是 ${activeBooking.spotName || '这一程'} · ${activeBooking.packageTitle || '当前套餐'}。Sea Brief 会围绕这一条继续整理。`;
-    } else if (bookings.length > 0) {
-        activeNote.textContent = '已经检测到本地行程，但当前还没有一条被明确对准为回执中心。';
-    } else {
-        activeNote.textContent = '当前还没有被高亮的这一程，先从 detail 写入一条安排，它会在这里被说明。';
-    }
-
-    if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
-        echoCopy.textContent = activeBooking
-            ? `上一条安排已经从本地回声里浮回来了，当前高亮的是 ${activeBooking.spotName || '这一程'}。`
-            : '上一轮草稿已经从本地回声里浮回来了。';
-    } else if (bookings.length > 0 && marker?.source === 'detail') {
-        echoCopy.textContent = '最近一次写入来自 detail 页，已收进行程和最终回执会围绕当前这一条一起联动。';
-    } else if (bookings.length > 0 && marker?.source === 'trip') {
-        echoCopy.textContent = '最近一次更新来自 trip planner，日期或同行的改动已经回写进本地。';
-    } else if (bookings.length > 0) {
-        echoCopy.textContent = `本地已经收住 ${bookings.length} 条安排，当前高亮会继续带着 Sea Brief 对准这一程。`;
-    } else if (draftFilledCount > 0) {
-        echoCopy.textContent = '本地只有草稿层的回声，还没有来自 detail 的已收进行程。';
-    } else {
-        echoCopy.textContent = '还没有检测到本地写入的行程。';
-    }
-
     const echoChips = [];
     if (bookings.length > 0) {
         echoChips.push(`已收进行程 ${bookings.length} 条`);
@@ -3956,9 +3459,43 @@ function syncTripProofFlowState() {
     if (activeBooking?.spotName) {
         echoChips.push(`当前高亮：${activeBooking.spotName}`);
     }
-    echoMeta.innerHTML = echoChips
-        .map((chip) => `<span class="confirmed-bookings-echo-chip">${escapeHtml(chip)}</span>`)
+    if (activeBooking?.packageTitle) {
+        echoChips.push(`回执中心：${activeBooking.packageTitle}`);
+    } else if (bookings.length > 0) {
+        echoChips.push('回执中心待对准');
+    }
+    proofMeta.innerHTML = echoChips
+        .map((chip) => `<span class="trip-proof-flow-meta-chip">${escapeHtml(chip)}</span>`)
         .join('');
+
+    if (echoBadge) {
+        echoBadge.textContent = statusBadge.textContent || 'Local Echo';
+    }
+
+    if (echoState) {
+        if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
+            echoState.textContent = '刷新后已恢复';
+        } else if (activeBooking) {
+            echoState.textContent = '当前回执已对准';
+        } else if (bookings.length > 0) {
+            echoState.textContent = '本地写入已收住';
+        } else if (draftFilledCount > 0) {
+            echoState.textContent = '草稿正在回显';
+        } else {
+            echoState.textContent = '等待写入';
+        }
+    }
+
+    if (echoCopy) {
+        echoCopy.textContent = statusCopy.textContent || '还没有检测到本地写入的行程。';
+    }
+
+    if (echoMeta) {
+        echoMeta.innerHTML = echoChips
+            .slice(0, 4)
+            .map((chip) => `<span class="trip-proof-flow-meta-chip">${escapeHtml(chip)}</span>`)
+            .join('');
+    }
 }
 
 function queueTripDemoArrivalGuide() {
@@ -4379,25 +3916,25 @@ function observeTripRevealElements(elements, options = {}) {
  * @returns {void} - 无返回值，直接为已存在的区块注册 reveal
  */
 function setupTripReveal() {
-    const plannerDesk = document.getElementById('plannerDeskControl');
+    const plannerCapsule = document.getElementById('plannerCapsule');
     const focusHead = document.querySelector('#trip-layer .trip-section-head');
     const focusCards = Array.from(document.querySelectorAll('#trip-layer .trip-focus-card'));
     const prepHead = document.querySelector('#trip-prep .trip-section-head');
     const prepCards = Array.from(document.querySelectorAll('#trip-prep .prep-card'));
     const prepPanel = document.getElementById('prepDetailPanel');
 
-    plannerDesk?.classList.add('trip-reveal-block');
+    plannerCapsule?.classList.add('trip-reveal-block');
     focusHead?.classList.add('trip-reveal-head');
     prepHead?.classList.add('trip-reveal-head');
     prepPanel?.classList.add('trip-reveal-panel');
     focusCards.forEach((card) => card.classList.add('trip-reveal-card'));
     prepCards.forEach((card) => card.classList.add('trip-reveal-card'));
 
-    applyTripRevealPreset([plannerDesk], 'trip-reveal-descent');
+    applyTripRevealPreset([plannerCapsule], 'trip-reveal-descent');
     applyTripRevealPreset([focusHead, ...focusCards], 'trip-reveal-current');
     applyTripRevealPreset([prepHead, prepPanel, ...prepCards], 'trip-reveal-ascent');
 
-    observeTripRevealElements([plannerDesk], {
+    observeTripRevealElements([plannerCapsule], {
         baseDelay: 80,
         stepDelay: 0,
         threshold: 0.28,
@@ -4966,49 +4503,55 @@ function buildConfirmedBookingCardMarkup(booking) {
     const safeStay = getConfirmedBookingStayLabel(booking);
     const packageTags = Array.isArray(booking.packageTags) ? booking.packageTags.filter(Boolean).slice(0, 3) : [];
     const priceView = getConfirmedBookingPriceView(booking);
-    const metaSignals = [booking.fitLabel, booking.windowLabel].filter(Boolean);
+    const metaSignals = [safeStay, booking.fitLabel, booking.windowLabel, priceView.primary, ...packageTags]
+        .filter(Boolean)
+        .slice(0, 4);
+    const inactiveSummaryParts = [
+        safeStay !== CONFIRMED_BOOKING_COPY.emptyStay ? safeStay : '',
+        booking.fitLabel || '',
+        booking.windowLabel || '',
+        priceView.primary || ''
+    ].filter(Boolean);
+    const railNote = isActive
+        ? (booking.packageNote || CONFIRMED_BOOKING_COPY.emptyNote)
+        : (inactiveSummaryParts.join(' · ') || '这一程已经留在本地里，等你继续把日期与同行慢慢补齐。');
+    const dateReadyClass = booking.selectedDateLabel ? ' is-ready' : '';
+    const peopleReadyClass = booking.selectedPeopleLabel ? ' is-ready' : '';
 
     return `
         <article class="confirmed-booking-card${isActive ? ' is-active' : ''}" data-booking-id="${escapeHtml(booking.bookingId)}" data-booking-entry-id="${escapeHtml(entryId)}">
             <div class="confirmed-booking-top">
                 <div class="confirmed-booking-meta">
-                    <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '行程档案')}</p>
+                    <p class="confirmed-booking-kicker">${escapeHtml(booking.packageTier || '已收进行程')}</p>
                     <h3 class="confirmed-booking-spot">${escapeHtml(booking.spotName || '未命名海域')}</h3>
                     <p class="confirmed-booking-tagline">${escapeHtml(safeTagline)}</p>
-                    ${isActive ? '<span class="confirmed-booking-state">Sea Brief 正在对准这一程</span>' : ''}
                 </div>
                 <span class="confirmed-booking-chip">${escapeHtml(booking.packageTitle || '未命名套餐')}</span>
             </div>
 
-            <div class="confirmed-booking-body">
-                <div class="confirmed-booking-price-wrap">
-                    <div class="confirmed-booking-price-row">
-                        <div class="confirmed-booking-price">${escapeHtml(priceView.primary)}</div>
-                        ${priceView.cny ? `<div class="confirmed-booking-price-cny">${escapeHtml(priceView.cny)}</div>` : ''}
-                    </div>
-                    ${priceView.secondary ? `<div class="confirmed-booking-price-note">${escapeHtml(priceView.secondary)}</div>` : ''}
+            <div class="confirmed-booking-track">
+                <div class="confirmed-booking-track-item${dateReadyClass}">
+                    <span class="confirmed-booking-track-label">日期</span>
+                    <strong>${escapeHtml(safeDate)}</strong>
                 </div>
-                <p class="confirmed-booking-note">${escapeHtml(booking.packageNote || CONFIRMED_BOOKING_COPY.emptyNote)}</p>
-                ${metaSignals.length ? `
-                    <div class="confirmed-booking-signal-row">
-                        ${metaSignals.map((item) => `<span class="confirmed-booking-signal">${escapeHtml(item)}</span>`).join('')}
-                    </div>
-                ` : ''}
-                ${packageTags.length ? `
-                    <div class="confirmed-booking-tags">
-                        ${packageTags.map((tag) => `<span class="confirmed-booking-tag">${escapeHtml(tag)}</span>`).join('')}
-                    </div>
-                ` : ''}
+                <div class="confirmed-booking-track-item${peopleReadyClass}">
+                    <span class="confirmed-booking-track-label">同行</span>
+                    <strong>${escapeHtml(safePeople)}</strong>
+                </div>
             </div>
 
-            <div class="confirmed-booking-details">
-                <div
-                    class="confirmed-booking-detail confirmed-booking-detail-static"
-                    aria-label="这次行程停留时长"
-                >
-                    <span class="confirmed-booking-detail-label">停留</span>
-                    <strong>${escapeHtml(safeStay)}</strong>
+            <p class="confirmed-booking-note">${escapeHtml(railNote)}</p>
+
+            ${isActive && metaSignals.length ? `
+                <div class="confirmed-booking-signal-row">
+                    ${metaSignals.map((item) => `<span class="confirmed-booking-signal">${escapeHtml(item)}</span>`).join('')}
                 </div>
+            ` : ''}
+
+            <div class="confirmed-booking-actions">
+                <button type="button" class="confirmed-booking-brief" data-booking-entry-id="${escapeHtml(entryId)}" aria-pressed="${String(isActive)}">
+                    ${isActive ? '回执已对准' : '查看回执'}
+                </button>
                 <button
                     type="button"
                     class="confirmed-booking-detail"
@@ -5016,8 +4559,7 @@ function buildConfirmedBookingCardMarkup(booking) {
                     data-booking-entry-id="${escapeHtml(entryId)}"
                     aria-label="调整这次下潜的日期"
                 >
-                    <span class="confirmed-booking-detail-label">日期</span>
-                    <strong>${escapeHtml(safeDate)}</strong>
+                    补日期
                 </button>
                 <button
                     type="button"
@@ -5026,22 +4568,19 @@ function buildConfirmedBookingCardMarkup(booking) {
                     data-booking-entry-id="${escapeHtml(entryId)}"
                     aria-label="调整这次下潜的同行人数"
                 >
-                    <span class="confirmed-booking-detail-label">同行</span>
-                    <strong>${escapeHtml(safePeople)}</strong>
+                    补同行
                 </button>
+                ${isActive ? `
+                    <button type="button" class="confirmed-booking-link" data-detail-href="${escapeHtml(booking.detailHref || `detail.html?id=${booking.spotKey}`)}">
+                        回到详情
+                    </button>
+                    <button type="button" class="confirmed-booking-remove" data-booking-entry-id="${escapeHtml(entryId)}">
+                        从这一程里退开
+                    </button>
+                ` : ''}
             </div>
 
-            <div class="confirmed-booking-actions">
-                <button type="button" class="confirmed-booking-brief" data-booking-entry-id="${escapeHtml(entryId)}" aria-pressed="${String(isActive)}">
-                    ${isActive ? '正在查看回执' : '查看回执'}
-                </button>
-                <button type="button" class="confirmed-booking-link" data-detail-href="${escapeHtml(booking.detailHref || `detail.html?id=${booking.spotKey}`)}">
-                    回到这片海
-                </button>
-                <button type="button" class="confirmed-booking-remove" data-booking-entry-id="${escapeHtml(entryId)}">
-                    从行程里移开
-                </button>
-            </div>
+            ${isActive ? '<p class="confirmed-booking-state">Sea Brief 正在围绕这一程展开，当前日期与同行会优先继续写回这条海流。</p>' : ''}
         </article>
     `;
 }

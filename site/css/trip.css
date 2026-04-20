@@ -4983,6 +4983,881 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     }
 }
 
+/* Trip 状态证明区重构：
+   把原来的三张同级玻璃卡压成“左侧轨道 + 右侧主舱”的 master-detail 结构。
+   Sea Brief 继续作为主舞台，proof 信息只附着在上缘，不再单独占一整张卡。 */
+.trip-page-planner .trip-planner-shell {
+    grid-template-areas:
+        "search"
+        "summary"
+        "confirmed";
+}
+
+.trip-brief-deck {
+    grid-area: confirmed;
+    display: grid;
+    grid-template-columns: minmax(280px, 0.74fr) minmax(0, 1.26fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.confirmed-bookings-stage {
+    grid-area: auto;
+    gap: 14px;
+    min-width: 0;
+    padding: 22px 18px 18px;
+    border-radius: 30px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(198, 229, 244, 0.14), rgba(198, 229, 244, 0) 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(95, 135, 158, 0.03)),
+        rgba(6, 20, 32, 0.66);
+    border: 1px solid rgba(204, 229, 241, 0.08);
+    box-shadow:
+        0 24px 36px rgba(3, 12, 20, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+    animation: none;
+}
+
+.confirmed-bookings-head {
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.confirmed-bookings-copy {
+    gap: 8px;
+    max-width: none;
+}
+
+.confirmed-bookings-title {
+    font-size: clamp(1.16rem, 1.4vw, 1.4rem);
+    line-height: 1.38;
+}
+
+.confirmed-bookings-switch {
+    padding: 11px 14px;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+}
+
+.confirmed-bookings-empty {
+    padding: 16px 16px 15px;
+    border-radius: 20px;
+    font-size: 0.92rem;
+    line-height: 1.72;
+}
+
+.confirmed-bookings-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.confirmed-bookings-list.is-refreshing .confirmed-booking-card:not(.is-entering) {
+    opacity: 0;
+    transform: translate3d(-14px, 18px, 0) scale(0.986);
+    filter: blur(16px);
+}
+
+.confirmed-bookings-list.is-refreshing .confirmed-booking-card:nth-child(even):not(.is-entering) {
+    transform: translate3d(14px, 18px, 0) scale(0.986);
+}
+
+.confirmed-booking-card {
+    gap: 12px;
+    padding: 16px 16px 15px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(208, 236, 248, 0.12), rgba(208, 236, 248, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(128, 168, 191, 0.03)),
+        rgba(8, 25, 39, 0.66);
+    border: 1px solid rgba(202, 229, 240, 0.08);
+    box-shadow:
+        0 18px 28px rgba(3, 11, 18, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+}
+
+.confirmed-booking-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(214, 238, 248, 0.14);
+    box-shadow:
+        0 24px 34px rgba(3, 11, 18, 0.22),
+        0 0 20px rgba(98, 167, 201, 0.08);
+}
+
+.confirmed-booking-card.is-active {
+    transform: translate3d(4px, 0, 0);
+    border-color: rgba(197, 231, 246, 0.22);
+    box-shadow:
+        0 26px 42px rgba(3, 11, 18, 0.24),
+        0 0 26px rgba(114, 194, 227, 0.12),
+        inset 0 0 0 1px rgba(208, 236, 248, 0.08);
+}
+
+.confirmed-booking-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.confirmed-booking-meta {
+    gap: 6px;
+}
+
+.confirmed-booking-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+}
+
+.confirmed-booking-spot {
+    font-size: 1.08rem;
+    line-height: 1.4;
+}
+
+.confirmed-booking-tagline {
+    font-size: 0.84rem;
+    line-height: 1.68;
+    color: rgba(203, 222, 233, 0.68);
+}
+
+.confirmed-booking-chip {
+    align-self: flex-start;
+    justify-content: flex-start;
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.confirmed-booking-track {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.confirmed-booking-track-item {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    padding: 11px 12px 10px;
+    border-radius: 18px;
+    border: 1px solid rgba(203, 230, 242, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.confirmed-booking-track-item.is-ready {
+    border-color: rgba(190, 229, 244, 0.16);
+    background:
+        radial-gradient(circle at 50% 0%, rgba(182, 228, 245, 0.12), rgba(182, 228, 245, 0)),
+        rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 18px rgba(117, 191, 223, 0.08);
+}
+
+.confirmed-booking-track-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(187, 214, 227, 0.48);
+}
+
+.confirmed-booking-track-item strong {
+    min-width: 0;
+    font-size: 0.88rem;
+    line-height: 1.56;
+    color: rgba(236, 246, 251, 0.88);
+}
+
+.confirmed-booking-note {
+    margin: 0;
+    line-height: 1.72;
+    color: rgba(215, 231, 240, 0.72);
+}
+
+.confirmed-booking-signal-row {
+    gap: 7px;
+}
+
+.confirmed-booking-signal {
+    min-height: 26px;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+}
+
+.confirmed-booking-actions {
+    gap: 10px;
+}
+
+.confirmed-booking-brief,
+.confirmed-booking-link,
+.confirmed-booking-remove,
+.confirmed-booking-detail {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(205, 229, 242, 0.1);
+    background: rgba(255, 255, 255, 0.045);
+    color: rgba(238, 247, 252, 0.88);
+    width: auto;
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-align: center;
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background-color 220ms ease,
+        color 220ms ease;
+}
+
+.confirmed-booking-detail {
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.confirmed-booking-brief {
+    background:
+        linear-gradient(180deg, rgba(191, 231, 247, 0.16), rgba(139, 201, 225, 0.08)),
+        rgba(255, 255, 255, 0.08);
+    border-color: rgba(190, 227, 241, 0.18);
+}
+
+.confirmed-booking-link:hover,
+.confirmed-booking-brief:hover,
+.confirmed-booking-remove:hover,
+.confirmed-booking-detail:hover,
+.confirmed-booking-link:focus-visible,
+.confirmed-booking-brief:focus-visible,
+.confirmed-booking-remove:focus-visible,
+.confirmed-booking-detail:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(214, 238, 248, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.confirmed-booking-state {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.72;
+    color: rgba(226, 240, 247, 0.78);
+}
+
+.sea-brief-stage {
+    min-width: 0;
+    gap: 18px;
+}
+
+.sea-brief-head {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 16px;
+}
+
+.sea-brief-copy {
+    display: grid;
+    gap: 10px;
+    max-width: 68ch;
+}
+
+.sea-brief-proof-shell {
+    position: relative;
+    display: grid;
+    gap: 14px;
+    padding: 16px 18px 18px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(202, 234, 247, 0.12), rgba(202, 234, 247, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(142, 186, 207, 0.02)),
+        rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(203, 230, 242, 0.08);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 16px 28px rgba(3, 12, 20, 0.12);
+}
+
+.sea-brief-proof-head {
+    display: grid;
+    gap: 8px;
+}
+
+.sea-brief-proof-heading {
+    display: grid;
+    gap: 6px;
+}
+
+.trip-proof-flow-kicker,
+.trip-proof-flow-title,
+.trip-proof-flow-intro,
+.trip-proof-flow-status-copy,
+.trip-proof-flow-step-copy p {
+    margin: 0;
+}
+
+.trip-proof-flow-kicker {
+    font-size: 0.66rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(190, 219, 234, 0.5);
+}
+
+.trip-proof-flow-title {
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1rem, 1.5vw, 1.18rem);
+    line-height: 1.44;
+    color: rgba(243, 250, 255, 0.92);
+}
+
+.trip-proof-flow-intro {
+    max-width: 62ch;
+    line-height: 1.76;
+    color: rgba(205, 224, 234, 0.68);
+}
+
+.trip-proof-flow-status {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px 14px;
+    align-items: start;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+.trip-proof-flow-status-badge {
+    min-height: 28px;
+    padding: 0 11px;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+}
+
+.trip-proof-flow-status-copy {
+    padding-top: 3px;
+    line-height: 1.72;
+    color: rgba(224, 238, 246, 0.84);
+}
+
+.trip-proof-flow-meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.trip-proof-flow-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 227, 241, 0.12);
+    background: rgba(158, 216, 240, 0.08);
+    color: rgba(234, 245, 251, 0.84);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+}
+
+.trip-proof-flow-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+}
+
+.trip-proof-flow-step {
+    gap: 10px;
+    padding: 14px 14px 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(205, 229, 242, 0.06);
+}
+
+.trip-proof-flow-step.is-complete {
+    border-color: rgba(184, 225, 239, 0.14);
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.trip-proof-flow-step.is-active {
+    transform: translateY(-2px);
+    border-color: rgba(198, 231, 246, 0.18);
+    box-shadow:
+        0 14px 24px rgba(4, 17, 28, 0.14),
+        0 0 16px rgba(110, 182, 214, 0.06);
+}
+
+.trip-proof-flow-step-index {
+    width: 32px;
+    height: 32px;
+    font-size: 0.72rem;
+}
+
+.trip-proof-flow-step-copy {
+    gap: 6px;
+}
+
+.trip-proof-flow-step-copy strong {
+    color: rgba(241, 249, 253, 0.92);
+}
+
+.trip-proof-flow-step-copy p {
+    font-size: 0.82rem;
+    line-height: 1.66;
+    color: rgba(203, 221, 232, 0.68);
+}
+
+.trip-proof-flow-step-state {
+    min-height: 24px;
+    padding: 0 9px;
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+}
+
+@media (max-width: 1180px) {
+    .trip-brief-deck {
+        grid-template-columns: minmax(248px, 0.72fr) minmax(0, 1.28fr);
+    }
+
+    .trip-proof-flow-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 980px) {
+    .trip-page-planner .trip-planner-shell {
+        grid-template-areas:
+            "search"
+            "summary"
+            "confirmed";
+    }
+
+    .trip-brief-deck {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .confirmed-bookings-stage {
+        padding: 20px 18px 18px;
+    }
+
+    .confirmed-bookings-head {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .sea-brief-stage {
+        padding: 24px 24px 22px;
+    }
+}
+
+@media (max-width: 600px) {
+    .trip-brief-deck {
+        gap: 14px;
+    }
+
+    .confirmed-bookings-stage,
+    .sea-brief-stage,
+    .sea-brief-proof-shell {
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .confirmed-bookings-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .confirmed-bookings-switch {
+        align-self: flex-start;
+    }
+
+    .confirmed-booking-card {
+        padding: 15px 15px 14px;
+        border-radius: 20px;
+    }
+
+    .confirmed-booking-card.is-active {
+        transform: none;
+    }
+
+    .confirmed-booking-track {
+        grid-template-columns: 1fr;
+    }
+
+    .confirmed-booking-actions {
+        flex-direction: column;
+    }
+
+    .confirmed-booking-brief,
+    .confirmed-booking-link,
+    .confirmed-booking-remove,
+    .confirmed-booking-detail {
+        width: 100%;
+    }
+
+    .trip-proof-flow-status {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-proof-flow-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Planner Capsule + Left Rail Dock：
+   让 Trip Console 和 Live Draft 读成同一套舱体，
+   左轨底部再补一层更低矮的回声底舱，避免列表下方留空。 */
+.trip-page-planner .trip-planner-shell {
+    grid-template-areas:
+        "capsule"
+        "confirmed";
+    gap: 20px;
+}
+
+.planner-capsule {
+    grid-area: capsule;
+    position: relative;
+    display: grid;
+    gap: 0;
+    overflow: hidden;
+    min-width: 0;
+    border-radius: 36px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(210, 235, 246, 0.14), rgba(210, 235, 246, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(102, 144, 169, 0.03)),
+        rgba(6, 20, 32, 0.7);
+    border: 1px solid rgba(204, 229, 241, 0.09);
+    box-shadow:
+        0 28px 44px rgba(3, 12, 20, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+}
+
+.planner-capsule::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(194, 228, 242, 0.08), rgba(194, 228, 242, 0) 26%),
+        radial-gradient(circle at 80% 0%, rgba(193, 226, 241, 0.08), rgba(193, 226, 241, 0) 28%);
+    pointer-events: none;
+}
+
+.planner-capsule::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.planner-capsule > .trip-search-bar {
+    grid-area: auto;
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: clamp(26px, 3vw, 34px) clamp(24px, 3vw, 34px) 22px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.trip-planner-submerge-active .planner-capsule > .trip-search-bar {
+    box-shadow: none;
+}
+
+.planner-summary-dock {
+    grid-area: auto;
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 18px clamp(22px, 3vw, 32px) clamp(22px, 3vw, 30px);
+    border: 0;
+    border-top: 1px solid rgba(202, 229, 241, 0.08);
+    border-radius: 0 0 36px 36px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(96, 136, 159, 0.02)),
+        rgba(255, 255, 255, 0.02);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.planner-summary-dock::before,
+.planner-summary-dock::after {
+    content: none;
+}
+
+.planner-summary-dock .planner-summary-head {
+    align-items: end;
+    gap: 14px;
+    margin-bottom: 8px;
+}
+
+.planner-summary-dock .planner-summary-title {
+    font-size: clamp(1.22rem, 1.7vw, 1.48rem);
+}
+
+.planner-summary-dock .planner-summary-intro {
+    max-width: 58ch;
+    margin-bottom: 16px;
+    font-size: 0.94rem;
+    line-height: 1.78;
+    color: rgba(208, 226, 236, 0.72);
+}
+
+.planner-summary-dock.is-empty .planner-summary-intro {
+    max-height: none;
+    opacity: 1;
+    transform: none;
+}
+
+.planner-summary-dock .planner-summary-meter {
+    margin-bottom: 16px;
+}
+
+.planner-summary-dock-body,
+.planner-summary-dock-inner {
+    display: grid;
+    gap: 16px;
+}
+
+.planner-summary-dock .planner-summary-status-note {
+    margin: 0;
+}
+
+.planner-summary-dock .planner-summary-draft-rail {
+    padding: 16px 18px 17px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(200, 232, 244, 0.1), rgba(200, 232, 244, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(125, 165, 188, 0.02)),
+        rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(202, 229, 241, 0.07);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.planner-summary-dock .planner-summary-draft-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.planner-summary-dock .planner-item {
+    min-width: 0;
+}
+
+.planner-capsule[data-capsule-state="progress"] .planner-summary-status-note {
+    border-color: rgba(189, 225, 239, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(233, 244, 250, 0.88);
+}
+
+.planner-capsule[data-capsule-state="progress"] .planner-summary-status-note::before {
+    background: rgba(182, 224, 240, 0.88);
+}
+
+.planner-capsule[data-capsule-state="confirmed"] .planner-summary-status-note {
+    border-color: rgba(184, 227, 241, 0.18);
+    background:
+        radial-gradient(circle at 0% 0%, rgba(190, 229, 243, 0.12), rgba(190, 229, 243, 0) 36%),
+        rgba(255, 255, 255, 0.05);
+    color: rgba(239, 248, 252, 0.92);
+}
+
+.planner-capsule[data-capsule-state="confirmed"] .planner-summary-status-note::before {
+    background: rgba(194, 233, 246, 0.94);
+}
+
+.planner-capsule[data-capsule-state="confirmed"] .planner-summary-draft-rail {
+    border-color: rgba(190, 227, 241, 0.14);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 0 18px rgba(104, 176, 208, 0.08);
+}
+
+.planner-capsule.is-progress-shifting::after,
+.planner-capsule.is-updated-confirmed::after,
+.planner-capsule.is-submit-feedback::after {
+    opacity: 1;
+}
+
+.planner-capsule.is-progress-shifting::after {
+    animation: planner-summary-shell-glow 760ms ease;
+}
+
+.planner-capsule.is-updated-confirmed::after {
+    animation: planner-summary-shell-glow 1100ms ease;
+}
+
+.planner-capsule.is-submit-feedback::after {
+    animation: planner-summary-shell-glow 980ms ease;
+}
+
+.trip-brief-deck {
+    align-items: stretch;
+}
+
+.confirmed-bookings-stage {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    align-self: stretch;
+}
+
+.confirmed-bookings-list {
+    align-content: start;
+}
+
+.confirmed-bookings-echo-dock {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 14px 15px 15px;
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(113, 154, 178, 0.02)),
+        rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(198, 228, 240, 0.08);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 22px rgba(2, 10, 18, 0.12);
+}
+
+.confirmed-bookings-echo-dock-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.confirmed-bookings-echo-dock-kicker,
+.confirmed-bookings-echo-dock-state,
+.confirmed-bookings-echo-dock-copy {
+    margin: 0;
+}
+
+.confirmed-bookings-echo-dock-kicker {
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(190, 219, 234, 0.52);
+}
+
+.confirmed-bookings-echo-dock-state {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 227, 241, 0.11);
+    background: rgba(158, 216, 240, 0.08);
+    color: rgba(236, 246, 251, 0.88);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+}
+
+.confirmed-bookings-echo-dock-copy {
+    line-height: 1.72;
+    color: rgba(219, 233, 241, 0.76);
+}
+
+.confirmed-bookings-echo-dock-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.confirmed-bookings-echo-dock-meta .trip-proof-flow-meta-chip {
+    min-height: 26px;
+    padding: 0 9px;
+    font-size: 0.68rem;
+    background: rgba(158, 216, 240, 0.06);
+}
+
+@media (max-width: 980px) {
+    .trip-page-planner .trip-planner-shell {
+        grid-template-areas:
+            "capsule"
+            "confirmed";
+    }
+
+    .planner-capsule {
+        border-radius: 30px;
+    }
+
+    .planner-capsule > .trip-search-bar {
+        padding: 24px 24px 20px;
+    }
+
+    .planner-summary-dock {
+        padding: 18px 24px 22px;
+        border-radius: 0 0 30px 30px;
+    }
+
+    .planner-summary-dock .planner-summary-head {
+        align-items: start;
+    }
+
+    .planner-summary-dock .planner-summary-draft-steps {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .planner-capsule {
+        border-radius: 24px;
+    }
+
+    .planner-capsule > .trip-search-bar {
+        padding: 20px 18px 18px;
+    }
+
+    .planner-summary-dock {
+        padding: 16px 18px 18px;
+        border-radius: 0 0 24px 24px;
+    }
+
+    .planner-summary-dock .planner-summary-head {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .planner-summary-dock .planner-summary-intro {
+        margin-bottom: 14px;
+    }
+
+    .planner-summary-dock .planner-summary-draft-rail {
+        padding: 14px 14px 15px;
+        border-radius: 20px;
+    }
+
+    .confirmed-bookings-echo-dock {
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .confirmed-bookings-echo-dock-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media print {
+    #seaBriefStage .sea-brief-proof-shell {
+        display: none !important;
+    }
+}
+
 
 
 
