@@ -232,46 +232,17 @@
             </script>
         </section>
 
-        <section class="detail-descent-bridge" aria-labelledby="detailDescentTitle">
-            <div class="detail-descent-shell">
-                <p class="detail-descent-kicker">Descent Route</p>
-                <div class="detail-descent-route" aria-hidden="true">
-                    <div class="detail-descent-route-current"></div>
-                    <div class="detail-descent-route-line"></div>
-                    <div class="detail-descent-stage is-surface" style="--descent-stage-delay: 0ms">
-                        <span class="detail-descent-stage-index">01</span>
-                        <div class="detail-descent-stage-copy">
-                            <strong>海面的第一眼</strong>
-                            <span>先记住这一片海的光线、深度与进入节奏。</span>
-                        </div>
-                    </div>
-                    <div class="detail-descent-stage is-current" style="--descent-stage-delay: 90ms">
-                        <span class="detail-descent-stage-index">02</span>
-                        <div class="detail-descent-stage-copy">
-                            <strong>海域档案</strong>
-                            <span>把流向、能见度与停驻方式慢慢读清。</span>
-                        </div>
-                    </div>
-                    <div class="detail-descent-stage" style="--descent-stage-delay: 180ms">
-                        <span class="detail-descent-stage-index">03</span>
-                        <div class="detail-descent-stage-copy">
-                            <strong>地图与回声</strong>
-                            <span>沿着海图和别人的回声继续往下一层去。</span>
-                        </div>
-                    </div>
+        <section class="detail-readiness-bridge" aria-labelledby="detailReadinessTitle">
+            <div class="detail-readiness-card" id="detailReadinessCard" data-readiness-card data-readiness-tone="quiet">
+                <div class="detail-readiness-status">
+                    <span class="detail-readiness-glow" aria-hidden="true"></span>
+                    <p class="detail-readiness-kicker">Dive Readiness</p>
+                    <h2 class="detail-readiness-title" id="detailReadinessTitle">适潜判断正在浮现</h2>
+                    <p class="detail-readiness-copy">等海域资料完全载入后，会把深度、季节、能见度和流况一起压进这一张判断卡里。</p>
                 </div>
-                <div class="detail-descent-copy">
-                    <h2 class="detail-descent-title" id="detailDescentTitle">从海面的第一眼，慢慢落到这片海的资料里</h2>
-                    <p class="detail-descent-text">先读海域档案，再沿着地图与回声继续下潜；右侧那套安排会跟着你此刻读到的位置，一起慢慢靠近。</p>
-                    <div class="detail-descent-notes" aria-label="当前阅读路径">
-                        <span class="detail-descent-note">海域档案</span>
-                        <span class="detail-descent-note">Sea Atlas</span>
-                        <span class="detail-descent-note">Travel Echoes</span>
-                    </div>
-                </div>
-                <div class="detail-descent-actions">
-                    <a href="#spotOverview" class="detail-descent-link">先看海域档案</a>
-                    <a href="#bookingPackages" class="detail-descent-link detail-descent-link-secondary">对照右侧安排</a>
+                <div class="detail-readiness-actions">
+                    <a href="#spotOverview" class="detail-readiness-link">继续看海域档案</a>
+                    <a href="#bookingPackages" class="detail-readiness-link detail-readiness-link-secondary">对照右侧安排</a>
                 </div>
             </div>
         </section>
@@ -333,14 +304,14 @@
                         </div>
                     </section>
 
-                    <!-- 用户评价区：
+                    <!-- 下潜回声区：
                          上方 filters 是评论筛选入口，下方列表才是真正的评论内容容器。 -->
                     <section class="detail-reading-section detail-reading-section-reviews" data-detail-reading-section="reviews" aria-labelledby="spotReviews">
-                        <h2 id="spotReviews">用户评价</h2>
+                        <h2 id="spotReviews">下潜回声</h2>
                         <div class="reviews-stage">
                             <div class="reviews-intro">
                                 <p class="reviews-kicker">Travel Echoes</p>
-                                <p class="reviews-lead">这些不是打卡式短评，而是人真正进入这片海之后，留下来的住宿、饮食、风景和下潜回声。</p>
+                                <p class="reviews-lead">这些不是打卡式短评，而是人真正进入这片海之后，留下来的停宿、餐桌、岸上光线和下潜回声。</p>
                             </div>
                             <div class="reviews-filters" id="reviewsFilters"></div>
                         </div>
@@ -486,7 +457,7 @@
                         <section class="detail-footer-group" aria-labelledby="detailFooterGroupExplore">
                             <h4 class="detail-footer-group-title" id="detailFooterGroupExplore">再看一片更适合的蓝</h4>
                             <div class="detail-footer-links">
-                                <a href="home.html#featured-destinations" class="detail-footer-link">回到精选目的地</a>
+                                <a href="home.html#featured-destinations" class="detail-footer-link">回到海域陈列</a>
                                 <a href="home.html#dive-match" class="detail-footer-link">查看适合自己的海</a>
                                 <button type="button" class="detail-footer-link detail-footer-link-button" data-detail-scroll="#relatedSpots">再看一片相近的海域</button>
                             </div>
@@ -495,7 +466,7 @@
                         <section class="detail-footer-group" aria-labelledby="detailFooterGroupTrip">
                             <h4 class="detail-footer-group-title" id="detailFooterGroupTrip">把这一潜慢慢收进行程</h4>
                             <div class="detail-footer-links">
-                                <button type="button" class="detail-footer-link detail-footer-link-button" data-detail-scroll="#itineraryList">去看可预订套餐</button>
+                                <button type="button" class="detail-footer-link detail-footer-link-button" data-detail-scroll="#itineraryList">看这一程的安排</button>
                                 <a href="trip.html" class="detail-footer-link">返回行程规划页</a>
                                 <a href="trip.html#trip-prep" class="detail-footer-link">潜前再确认一下</a>
                             </div>

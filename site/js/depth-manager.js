@@ -148,11 +148,11 @@
             bubbleCount: 16
         }),
         oceanNav: Object.freeze({
-            diveExitMs: 1460,
-            diveEnterMs: 1280,
-            surfaceExitMs: 1520,
-            surfaceEnterMs: 1340,
-            navigateLeadMs: 120,
+            diveExitMs: 1180,
+            diveEnterMs: 980,
+            surfaceExitMs: 1220,
+            surfaceEnterMs: 1020,
+            navigateLeadMs: 80,
             overlayBoost: 0.2,
             pageshowOverlayBoost: 0.14
         })
@@ -165,14 +165,14 @@
             oceanSwimDriftY: '0.24vh'
         }),
         plannerDive: Object.freeze({
-            stageTranslation: '56vh',
-            oceanTranslation: '18vh',
+            stageTranslation: '42vh',
+            oceanTranslation: '10.5vh',
             oceanSwimShift: '3.1vw',
             oceanSwimDriftY: '0.26vh'
         }),
         plannerSurface: Object.freeze({
-            stageTranslation: '52vh',
-            oceanTranslation: '16.5vh',
+            stageTranslation: '38vh',
+            oceanTranslation: '9.5vh',
             oceanSwimShift: '2.9vw',
             oceanSwimDriftY: '0.22vh'
         }),
@@ -865,9 +865,21 @@
      */
     function getOceanNavConfig(fromPage, toPage) {
         if (fromPage === 'home' && toPage === 'trip') {
-            // 用户希望首页进入行程页时，完全复用 home -> contact 的现有效果；
-            // 这里显式沿用默认 backward 这一组视觉 class，而不再走更重的专用潜浮动画。
-            return getDefaultTransitionConfig('backward');
+            return {
+                ...buildOceanRouteConfig('forward', {
+                    motionPreset: 'plannerDive'
+                }),
+                visualDirection: 'forward'
+            };
+        }
+
+        if (fromPage === 'trip' && toPage === 'home') {
+            return {
+                ...buildOceanRouteConfig('backward', {
+                    motionPreset: 'plannerSurface'
+                }),
+                visualDirection: 'backward'
+            };
         }
 
         return null;
@@ -887,7 +899,8 @@
             entryDuration: TRANSITION.enterPageMs,
             overlayBoost: TRANSITION.overlayBoost,
             navigateLeadMs: TRANSITION.exitNavigateLeadMs,
-            pageshowOverlayBoost: TRANSITION.pageshowOverlayBoost
+            pageshowOverlayBoost: TRANSITION.pageshowOverlayBoost,
+            motionPreset: 'default'
         };
     }
 
@@ -902,7 +915,9 @@
             return {
                 entryClass: 'page-ocean-dive-enter',
                 entryDuration: OCEAN_NAV.diveEnterMs,
-                overlayBoostStart: OCEAN_NAV.pageshowOverlayBoost
+                overlayBoostStart: OCEAN_NAV.pageshowOverlayBoost,
+                navTransition: NAV_TRANSITION_OCEAN,
+                motionPreset: 'plannerDive'
             };
         }
 
@@ -910,14 +925,18 @@
             return {
                 entryClass: 'page-ocean-surface-enter',
                 entryDuration: OCEAN_NAV.surfaceEnterMs,
-                overlayBoostStart: OCEAN_NAV.pageshowOverlayBoost
+                overlayBoostStart: OCEAN_NAV.pageshowOverlayBoost,
+                navTransition: NAV_TRANSITION_OCEAN,
+                motionPreset: 'plannerSurface'
             };
         }
 
         return {
             entryClass: visualDirection === 'forward' ? 'page-enter-from-bottom' : 'page-enter-from-top',
             entryDuration: TRANSITION.enterPageMs + 40,
-            overlayBoostStart: TRANSITION.pageshowOverlayBoost
+            overlayBoostStart: TRANSITION.pageshowOverlayBoost,
+            navTransition: null,
+            motionPreset: 'default'
         };
     }
 
@@ -1222,6 +1241,11 @@
                 this.startEntryTransition(incomingState.visualDirection, {
                     animateDepth: shouldContinueDepthOnEntry,
                     entryClass: incomingState.entryClass,
+                    fromPage: incomingState.fromPage,
+                    toPage: incomingState.toPage,
+                    navTransition: incomingState.navTransition,
+                    motionPreset: incomingState.motionPreset,
+                    visualDirection: incomingState.visualDirection,
                     startDepth: incomingState.entryStartDepth,
                     targetDepth: entryTargetDepth,
                     overlayBoostStart: incomingState.overlayBoost,
@@ -3682,14 +3706,32 @@
 
         // 通用切页控制：负责设置过渡 class、时长、覆盖层和入场/离场清理时机。
         /**
-         * applyTransitionClass(className) - 应用当前页面切换所需的主动画 class
+         * applyTransitionClass(className, options) - 应用当前页面切换所需的主动画 class
          * @param {string} className - 需要添加的动画 class
+         * @param {Object} options - 本次切换的上下文与运动预设
          * @returns {void} - 无返回值，直接更新页面 class
          */
-        applyTransitionClass(className) {
+        applyTransitionClass(className, options = {}) {
             this.clearTransitionClasses();
             this.forceTransitionReflow();
             this.body.classList.add('page-transition-active');
+
+            const visualDirection = options.visualDirection
+                || options.context?.visualDirection
+                || 'forward';
+
+            if (options.motionPreset) {
+                this.applyTransitionMotionPreset(options.motionPreset, className, visualDirection);
+            }
+
+            if (options.context) {
+                this.setTransitionContext({
+                    className,
+                    ...options.context,
+                    visualDirection
+                });
+            }
+
             this.forceTransitionReflow();
 
             if (className) {
@@ -3779,7 +3821,17 @@
 
             this.cancelActiveAnimations();
             this.setTransitionDuration(entryClass, entryDuration);
-            this.applyTransitionClass(entryClass);
+            this.applyTransitionClass(entryClass, {
+                motionPreset: options.motionPreset,
+                visualDirection: options.visualDirection || direction,
+                context: {
+                    phase: 'enter',
+                    fromPage: options.fromPage,
+                    toPage: options.toPage || this.pageId,
+                    navTransition: options.navTransition,
+                    visualDirection: options.visualDirection || direction
+                }
+            });
             this.overlayBoost = overlayBoostStart;
             this.setOverlayState(this.currentDepth, overlayBoostStart);
 
@@ -4022,10 +4074,15 @@
             const pendingHomeEntryDepth = consumePendingHomeEntryDepth(parsedUrl);
             const homeHashEntryDepth = resolveHomeHashEntryDepth(parsedUrl);
             const toDepth = pendingHomeEntryDepth ?? homeHashEntryDepth ?? this.getTargetDepth(toPage);
-            // 目标页面先被翻译成一个“目标深度”，再根据深浅判断是继续下潜还是缓慢上浮。
+            // 目标页面先被翻译成一个“目标深度”，再结合海层关系判断是继续下潜、缓慢上浮还是同层潜游。
             const visualDirection = getVisualDirection(fromDepth, toDepth);
+            const oceanNavConfig = getOceanNavConfig(this.pageId, toPage);
+            const sameLayerNavConfig = getSameLayerNavConfig(this.pageId, toPage);
+            const routeConfig = oceanNavConfig || sameLayerNavConfig;
+            const routeVisualDirection = routeConfig?.visualDirection
+                || (sameLayerNavConfig ? getSameLayerVisualDirection(this.pageId, toPage, parsedUrl) : visualDirection);
 
-            if (visualDirection === 'none') {
+            if (visualDirection === 'none' && !routeConfig) {
                 sessionStorage.setItem(STORAGE_KEY_CURRENT, String(Math.round(toDepth)));
                 window.location.href = rawUrl;
                 return;
@@ -4039,7 +4096,7 @@
                 return;
             }
 
-            const transitionConfig = getOceanNavConfig(this.pageId, toPage) || getDefaultTransitionConfig(visualDirection);
+            const transitionConfig = routeConfig || getDefaultTransitionConfig(routeVisualDirection);
             const exitClass = transitionConfig.exitClass;
             const depthDuration = transitionConfig.navTransition === NAV_TRANSITION_OCEAN
                 ? transitionConfig.exitDuration - transitionConfig.navigateLeadMs - 120
@@ -4055,12 +4112,13 @@
                 toPage: toPage,
                 fromDepth: Math.round(fromDepth),
                 toDepth: Math.round(toDepth),
-                visualDirection: visualDirection,
+                visualDirection: routeVisualDirection,
                 overlayBoost: transitionConfig.overlayBoost,
                 navTransition: transitionConfig.navTransition,
                 entryClass: transitionConfig.entryClass,
                 entryDuration: transitionConfig.entryDuration,
                 depthDuration: transitionConfig.entryDuration + 80,
+                motionPreset: transitionConfig.motionPreset || 'default',
                 continueDepthOnEntry: this.pageId === 'detail' && toPage !== 'detail',
                 entryStartDepth: Math.round(fromDepth),
                 animatedOnSource: true,
@@ -4068,7 +4126,17 @@
             };
 
             this.setTransitionDuration(exitClass, transitionConfig.exitDuration);
-            this.applyTransitionClass(exitClass);
+            this.applyTransitionClass(exitClass, {
+                motionPreset: transitionConfig.motionPreset,
+                visualDirection: routeVisualDirection,
+                context: {
+                    phase: 'exit',
+                    fromPage: this.pageId,
+                    toPage,
+                    navTransition: transitionConfig.navTransition,
+                    visualDirection: routeVisualDirection
+                }
+            });
             this.animateDepth(fromDepth, toDepth, depthDuration);
             this.animateOverlayBoost(
                 this.overlayBoost,
@@ -4149,7 +4217,10 @@
                     overlayBoostStart: pageshowConfig.overlayBoostStart,
                     entryClass: pageshowConfig.entryClass,
                     duration: pageshowConfig.entryDuration,
-                    depthDuration: pageshowConfig.entryDuration + 80
+                    depthDuration: pageshowConfig.entryDuration + 80,
+                    navTransition: pageshowConfig.navTransition,
+                    motionPreset: pageshowConfig.motionPreset,
+                    visualDirection
                 });
 
                 if (this.hasScrollDepthConfig()) {

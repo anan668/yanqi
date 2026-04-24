@@ -24,6 +24,7 @@ const LOGIN_STAGE_STORAGE_KEY = 'yanqi_login_stage_size';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
 const STAGE_DEBUG_EXIT_DELAY_MS = 180;
+const ENTRANCE_PROGRESS_READY_SETTLE_MS = 620;
 let isNavigatingToHome = false;
 
 /**
@@ -683,14 +684,17 @@ function updateFormHeight(targetContent, authForm, immediate = false, fromConten
         return;
     }
 
-    const nextHeight = targetContent.scrollHeight;
+    const formStyle = window.getComputedStyle(authForm);
+    const verticalPadding = (parseFloat(formStyle.paddingTop) || 0)
+        + (parseFloat(formStyle.paddingBottom) || 0);
+    const nextHeight = targetContent.scrollHeight + verticalPadding;
     if (immediate) {
         authForm.style.minHeight = `${nextHeight}px`;
         return;
     }
 
     const currentHeight = fromContent
-        ? fromContent.scrollHeight
+        ? fromContent.scrollHeight + verticalPadding
         : (authForm.getBoundingClientRect().height || nextHeight);
 
     authForm.style.minHeight = `${currentHeight}px`;
@@ -760,7 +764,7 @@ function switchToTab(tabName, options, refs) {
 
         replayTabAnimations(tabName, { formBrand, tabSection, footerLinks, activeContent: targetContent });
         triggerDepthResponse(0.86);
-        updateHallProgress(nodes);
+        updateEntranceProgress(nodes);
         if (glassCard) {
             glassCard.classList.remove('is-rippled');
         }
@@ -800,7 +804,7 @@ function switchToTab(tabName, options, refs) {
 
     replayTabAnimations(tabName, { formBrand, tabSection, footerLinks, activeContent: targetContent });
     triggerDepthResponse(1.06);
-    updateHallProgress(nodes);
+    updateEntranceProgress(nodes);
 
     const firstInput = targetContent.querySelector('input:not([disabled])');
     if (firstInput instanceof HTMLInputElement) {
@@ -855,7 +859,8 @@ function syncRememberMeStorage(nodes) {
 function bindRememberMe(nodes) {
     const { rememberCheckbox, loginPhoneInput, loginPasswordInput } = nodes;
     restoreRememberedAccount(nodes);
-    updateHallProgress(nodes);
+    syncAllFieldStates(nodes);
+    updateEntranceProgress(nodes);
 
     rememberCheckbox.addEventListener('change', () => {
         syncRememberMeStorage(nodes);
@@ -927,6 +932,114 @@ function replayTransientClass(node, className, duration) {
     });
 }
 
+function getLoginEntranceReadySignature(nodes) {
+    return [
+        'login',
+        normalizePhone(nodes.loginPhoneInput?.value),
+        Boolean(nodes.loginPasswordInput?.value.trim()) ? 'keyed' : 'waiting',
+        nodes.rememberCheckbox?.checked ? 'remembered' : 'unanchored'
+    ].join(':');
+}
+
+function isLoginEntranceReady(nodes) {
+    return isValidMainlandChinaPhone(nodes.loginPhoneInput?.value)
+        && Boolean(nodes.loginPasswordInput?.value.trim());
+}
+
+function clearEntranceProgressReadyTimer(nodes) {
+    if (!nodes) {
+        return;
+    }
+
+    if (typeof nodes.entranceProgressReadyTimerId === 'number') {
+        window.clearTimeout(nodes.entranceProgressReadyTimerId);
+    }
+
+    nodes.entranceProgressReadyTimerId = 0;
+    nodes.entranceProgressReadySettled = false;
+    nodes.entranceProgressReadySignature = '';
+}
+
+function syncEntranceProgressReadyTimer(nodes) {
+    if (!nodes) {
+        return;
+    }
+
+    const activeMode = document.body.dataset.authMode || 'login';
+    if (activeMode !== 'login' || !isLoginEntranceReady(nodes)) {
+        clearEntranceProgressReadyTimer(nodes);
+        return;
+    }
+
+    const nextSignature = getLoginEntranceReadySignature(nodes);
+    if (nodes.entranceProgressReadySignature === nextSignature) {
+        return;
+    }
+
+    if (typeof nodes.entranceProgressReadyTimerId === 'number') {
+        window.clearTimeout(nodes.entranceProgressReadyTimerId);
+    }
+
+    nodes.entranceProgressReadySignature = nextSignature;
+    nodes.entranceProgressReadySettled = false;
+    nodes.entranceProgressReadyTimerId = window.setTimeout(() => {
+        nodes.entranceProgressReadySettled = true;
+        nodes.entranceProgressReadyTimerId = 0;
+        updateEntranceProgress(nodes);
+    }, ENTRANCE_PROGRESS_READY_SETTLE_MS);
+}
+
+function easeEntranceProgress(progress) {
+    const clamped = Math.min(Math.max(progress, 0), 1);
+    return 1 - Math.pow(1 - clamped, 3);
+}
+
+function animateEntranceProgressNumber(valueNode, fromPercent, toPercent) {
+    if (!(valueNode instanceof HTMLElement)) {
+        return;
+    }
+
+    const startPercent = Number.isFinite(fromPercent) && fromPercent >= 0
+        ? fromPercent
+        : toPercent;
+    const endPercent = Number.isFinite(toPercent) ? toPercent : startPercent;
+
+    if (typeof valueNode.entranceProgressFrameId === 'number') {
+        window.cancelAnimationFrame(valueNode.entranceProgressFrameId);
+    }
+
+    if (startPercent === endPercent) {
+        valueNode.textContent = `${endPercent}%`;
+        valueNode.dataset.renderedPercent = String(endPercent);
+        valueNode.entranceProgressFrameId = 0;
+        return;
+    }
+
+    const startedAt = performance.now();
+    const duration = 560;
+    const delta = endPercent - startPercent;
+
+    const render = (timestamp) => {
+        const elapsed = timestamp - startedAt;
+        const progress = easeEntranceProgress(elapsed / duration);
+        const current = Math.round(startPercent + delta * progress);
+
+        valueNode.textContent = `${current}%`;
+        valueNode.dataset.renderedPercent = String(current);
+
+        if (elapsed < duration) {
+            valueNode.entranceProgressFrameId = window.requestAnimationFrame(render);
+            return;
+        }
+
+        valueNode.textContent = `${endPercent}%`;
+        valueNode.dataset.renderedPercent = String(endPercent);
+        valueNode.entranceProgressFrameId = 0;
+    };
+
+    valueNode.entranceProgressFrameId = window.requestAnimationFrame(render);
+}
+
 function isFieldComplete(input, nodes) {
     if (!(input instanceof HTMLInputElement)) {
         return false;
@@ -952,7 +1065,7 @@ function isFieldComplete(input, nodes) {
     return !input.classList.contains('is-invalid');
 }
 
-function syncFieldState(input, nodes) {
+function syncAuthFieldState(input, nodes) {
     if (!(input instanceof HTMLInputElement)) {
         return;
     }
@@ -975,7 +1088,7 @@ function syncFieldState(input, nodes) {
 
 function syncAllFieldStates(nodes) {
     nodes.allInputs.forEach((input) => {
-        syncFieldState(input, nodes);
+        syncAuthFieldState(input, nodes);
     });
 }
 
@@ -987,10 +1100,10 @@ function bindFieldStateTracking(nodes) {
 
         const eventName = input.type === 'checkbox' ? 'change' : 'input';
         input.addEventListener(eventName, () => {
-            syncFieldState(input, nodes);
+            syncAuthFieldState(input, nodes);
 
             if (input === nodes.registerPasswordInput) {
-                syncFieldState(nodes.registerConfirmInput, nodes);
+                syncAuthFieldState(nodes.registerConfirmInput, nodes);
             }
         });
     });
@@ -1062,37 +1175,37 @@ function getAuthProgressState(nodes) {
 
     const phoneDigits = getDigitLength(nodes.loginPhoneInput?.value);
     const passwordLength = getInputLength(nodes.loginPasswordInput?.value);
+    const hasPhoneInput = phoneDigits > 0;
+    const hasPasswordInput = passwordLength > 0;
     const isPhoneReady = isValidMainlandChinaPhone(nodes.loginPhoneInput?.value);
-    const isPasswordReady = passwordLength > 0;
+    const isPasswordReady = hasPasswordInput;
     const shouldRemember = Boolean(nodes.rememberCheckbox?.checked);
     const loginChecks = [isPhoneReady, isPasswordReady];
     const completed = loginChecks.filter(Boolean).length;
-    const basePercent = Math.round(
-        getLinearProgress(phoneDigits, 11) * 56
-        + getLinearProgress(passwordLength, 6) * 44
-    );
-    const percent = shouldRemember && basePercent > 0 ? Math.min(100, basePercent + 6) : basePercent;
+    const isReadySettled = Boolean(nodes.entranceProgressReadySettled)
+        && nodes.entranceProgressReadySignature === getLoginEntranceReadySignature(nodes);
+    let percent = 0;
     let step = 'idle';
     let statusText = '这一层还在等你慢慢写下第一个入口。';
 
-    if (percent > 0 && !isPhoneReady) {
-        step = 'recognizing';
-        statusText = phoneDigits > 0
-            ? `号码已经写下 ${phoneDigits} 位，还差一点，静水就会认出你。`
-            : '先把号码写稳，让入口先慢慢浮出来。';
-    } else if (isPhoneReady && !isPasswordReady) {
-        step = 'opening';
-        statusText = passwordLength > 0
-            ? '通行密钥正在写入静水，入口快要成形了。'
-            : '号码已经落稳，再把通行密钥轻轻写进来。';
-    } else if (isPhoneReady && isPasswordReady && shouldRemember) {
+    if (isPhoneReady && isPasswordReady && isReadySettled) {
+        percent = 100;
+        step = 'ready';
+        statusText = '可以沿这层静水继续进入首页主线。';
+    } else if (hasPasswordInput && shouldRemember) {
+        percent = 77;
         step = 'anchored';
         statusText = '入口已经对齐，这层静水会替你把号码稳稳留住。';
-    } else if (isPhoneReady && isPasswordReady) {
-        step = 'ready';
-        statusText = completed >= loginChecks.length
-            ? '入口已经成形，再往前一点，就能回到海面那层。'
-            : '这条入口已经写下了一半，再补完剩下的静水信息。';
+    } else if (hasPasswordInput) {
+        percent = 65;
+        step = 'opening';
+        statusText = '入口正在慢慢成形。';
+    } else if (hasPhoneInput) {
+        percent = 35;
+        step = 'recognizing';
+        statusText = isPhoneReady
+            ? '静水已经记住你的号码。'
+            : '号码正在落进静水，入口会慢慢辨认。';
     }
 
     return {
@@ -1111,18 +1224,18 @@ function getAuthProgressState(nodes) {
     };
 }
 
-function updateHallProgress(nodes) {
+function updateEntranceProgress(nodes) {
     const { sideWaterlineTrack, sideWaterlineFill, sideWaterlineValue, sideWaterlineStatus } = nodes;
     if (!sideWaterlineTrack || !sideWaterlineFill || !sideWaterlineValue || !sideWaterlineStatus) {
         return;
     }
 
+    syncEntranceProgressReadyTimer(nodes);
+
     const progressState = getAuthProgressState(nodes);
     const {
         mode,
         percent,
-        completed,
-        total,
         isReady,
         step,
         statusText
@@ -1143,7 +1256,6 @@ function updateHallProgress(nodes) {
     sideWaterlineTrack.dataset.progressMode = mode;
     sideWaterlineTrack.dataset.progressStep = step;
     sideWaterlineTrack.dataset.progressPercent = String(percent);
-    sideWaterlineValue.textContent = nextValue;
     sideWaterlineValue.dataset.progressStep = step;
     document.body.dataset.authProgressMode = mode;
     document.body.dataset.authProgressState = waterlineState;
@@ -1155,12 +1267,20 @@ function updateHallProgress(nodes) {
     sideWaterlineTrack.setAttribute('aria-valuetext', statusText);
 
     if (!hasMounted) {
+        sideWaterlineValue.textContent = nextValue;
+        sideWaterlineValue.dataset.renderedPercent = String(percent);
         return;
     }
 
     if (hasProgressChanged) {
+        const renderedPercent = Number(sideWaterlineValue.dataset.renderedPercent);
+        const animationStart = Number.isFinite(renderedPercent) ? renderedPercent : previousPercent;
+        animateEntranceProgressNumber(sideWaterlineValue, animationStart, percent);
         replayTransientClass(sideWaterlineTrack, 'is-pulsing', 620);
         replayTransientClass(sideWaterlineValue, 'is-updating', 340);
+    } else {
+        sideWaterlineValue.textContent = nextValue;
+        sideWaterlineValue.dataset.renderedPercent = String(percent);
     }
 
     if (hasStepChanged || hasStatusChanged) {
@@ -1168,7 +1288,7 @@ function updateHallProgress(nodes) {
     }
 }
 
-function bindHallProgress(nodes) {
+function bindEntranceProgress(nodes) {
     const watchedInputs = [
         nodes.loginPhoneInput,
         nodes.loginPasswordInput,
@@ -1185,11 +1305,11 @@ function bindHallProgress(nodes) {
         }
 
         input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
-            updateHallProgress(nodes);
+            updateEntranceProgress(nodes);
         });
     });
 
-    updateHallProgress(nodes);
+    updateEntranceProgress(nodes);
 }
 
 function buildAccount(nodes) {
@@ -1445,6 +1565,10 @@ function bindFormSubmit(nodes, feedbackNode) {
     authForm.addEventListener('submit', (event) => {
         event.preventDefault();
         clearFeedback(feedbackNode);
+        document.body.classList.remove('is-auth-entering-mainline');
+        authForm.querySelectorAll('.auth-cta.is-entering-mainline').forEach((button) => {
+            button.classList.remove('is-entering-mainline');
+        });
 
         const activeContent = document.querySelector('.tab-content.active');
         if (!activeContent) {
@@ -1460,9 +1584,26 @@ function bindFormSubmit(nodes, feedbackNode) {
             return;
         }
 
+        const submitButton = activeContent.querySelector('.auth-cta');
+        if (submitButton) {
+            submitButton.classList.add('is-entering-mainline');
+        }
+
+        document.body.classList.add('is-auth-entering-mainline');
+        if (isLogin) {
+            if (typeof nodes.entranceProgressReadyTimerId === 'number') {
+                window.clearTimeout(nodes.entranceProgressReadyTimerId);
+            }
+            nodes.entranceProgressReadyTimerId = 0;
+            nodes.entranceProgressReadySignature = getLoginEntranceReadySignature(nodes);
+            nodes.entranceProgressReadySettled = true;
+            updateEntranceProgress(nodes);
+        }
+        triggerDepthResponse(1.18);
+
         window.setTimeout(() => {
             navigateToHome();
-        }, 360);
+        }, 420);
     });
 }
 
@@ -1820,7 +1961,7 @@ function initializeAuthPage() {
     bindTabSwitching(nodes, feedbackNode);
     bindPhoneInputSanitizer(nodes);
     bindFieldStateTracking(nodes);
-    bindHallProgress(nodes);
+    bindEntranceProgress(nodes);
     bindRememberMe(nodes);
     bindInteractiveFeedback(nodes, feedbackNode);
     bindFormSubmit(nodes, feedbackNode);

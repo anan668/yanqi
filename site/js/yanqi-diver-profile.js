@@ -164,6 +164,20 @@
         }
     }
 
+    function hasStoredProfile() {
+        const storage = getSafeStorage();
+        if (!storage) {
+            return false;
+        }
+
+        try {
+            const raw = storage.getItem(STORAGE_KEY);
+            return raw != null && String(raw).trim() !== '';
+        } catch (error) {
+            return false;
+        }
+    }
+
     function saveProfile(profile) {
         const storage = getSafeStorage();
         const normalized = normalizeProfile({
@@ -381,6 +395,107 @@
         };
     }
 
+    function getRequiredCertificationLabel(rank) {
+        const normalizedRank = Math.min(Math.max(Number(rank) || 0, 0), 3);
+        const matchedKey = Object.entries(CERTIFICATION_RANK)
+            .find(([, value]) => value === normalizedRank)?.[0] || 'beginner';
+        return getFieldLabel('certificationLevel', matchedKey);
+    }
+
+    function getCurrentDemandLabel(demand) {
+        const normalizedDemand = Math.min(Math.max(Number(demand) || 0, 0), 2);
+        if (normalizedDemand >= 2) {
+            return '流况明显';
+        }
+        if (normalizedDemand === 1) {
+            return '缓流到中流';
+        }
+        return '静水到缓流';
+    }
+
+    function getCurrentComfortCapacity(profile) {
+        const safeProfile = normalizeProfile(profile);
+        if (safeProfile.currentComfort === 'currentReady') {
+            return 2;
+        }
+        if (safeProfile.currentComfort === 'balanced') {
+            return 1;
+        }
+        return 0;
+    }
+
+    function evaluateSpotReadiness(context = {}) {
+        const safeContext = context && typeof context === 'object' ? context : { spotId: context };
+        const traits = resolveSpotTraits(safeContext.spotId);
+        const spotData = safeContext.spotData && typeof safeContext.spotData === 'object' ? safeContext.spotData : {};
+        const atlas = safeContext.atlas && typeof safeContext.atlas === 'object' ? safeContext.atlas : {};
+        const safeProfile = normalizeProfile(safeContext.profile || getProfile());
+        const certRank = getCertificationRank(safeProfile.certificationLevel);
+        const currentCapacity = getCurrentComfortCapacity(safeProfile);
+        const certGap = traits.minCert - certRank;
+        const currentGap = traits.currentDemand - currentCapacity;
+        const returningRisk = safeProfile.recentDiveState !== 'recent' && traits.currentDemand >= 1;
+        const requiredCert = getRequiredCertificationLabel(traits.minCert);
+        const certificationLabel = getFieldLabel('certificationLevel', safeProfile.certificationLevel);
+        const recentLabel = getFieldLabel('recentDiveState', safeProfile.recentDiveState);
+        const comfortLabel = getFieldLabel('currentComfort', safeProfile.currentComfort);
+        const depthLabel = String(safeContext.depth || spotData.depth || atlas.depth || '').trim();
+        const seasonLabel = String(safeContext.season || spotData.features?.weather?.season || spotData.season || atlas.season || '').trim();
+        const visibilityLabel = String(safeContext.visibility || spotData.features?.weather?.visibility || '').trim();
+        const currentLabel = String(safeContext.current || atlas.current || getCurrentDemandLabel(traits.currentDemand)).trim();
+        let tone = 'ready';
+        let title = '可以慢慢进入这片海';
+        let copy = '证书、近期状态和海况舒适区基本对上。仍然按当天 briefing 控制深度、气量和集合节奏。';
+        let currentNote = `${currentLabel}，你的偏好是${comfortLabel}。`;
+
+        if (certGap > 0) {
+            tone = 'caution';
+            title = '先别急着进入主线';
+            copy = `这片海更适合 ${requiredCert} 及以上经验。现在可以先把视线停在海域档案里，等证书和陪同安排对齐后再往下走。`;
+            currentNote = '证书层级还没完全贴合，先不把流区和深度推到核心位置。';
+        } else if (currentGap > 0) {
+            tone = 'check';
+            title = '适合先在浅一层试水';
+            copy = '证书已经接近这片海，但流况比你的舒适区更明显。建议先安排 check dive，再决定是否进入核心点位。';
+            currentNote = `${currentLabel}，比你现在的海况舒适区更深一点。`;
+        } else if (returningRisk) {
+            tone = 'check';
+            title = '先用一潜把状态找回来';
+            copy = '这片海可以靠近，但近期下潜状态需要先和身体重新对齐。第一潜放轻，确认浮力、耳压和流向判断。';
+            currentNote = `${currentLabel}，近期状态建议先留一个适应窗口。`;
+        } else if (traits.tags.includes('current') && safeProfile.currentComfort === 'currentReady') {
+            title = '可以进入更完整的蓝水主线';
+            copy = '你的证书和流区偏好都能接住这片海的推进感。继续保持保守气量和集合深度，让大景慢慢展开。';
+        } else if (traits.tags.includes('gentle') || traits.tags.includes('comfort')) {
+            title = '这片海会比较贴近你的节奏';
+            copy = '它的深度和流况不需要一开始就用力推进，适合把呼吸放慢，再看清海底结构和停驻方式。';
+        }
+
+        const chips = [
+            `证书 ${certificationLabel}`,
+            `要求 ${requiredCert}`,
+            depthLabel ? `深度 ${depthLabel}` : '',
+            seasonLabel ? `季节 ${seasonLabel}` : '',
+            visibilityLabel ? `能见度 ${visibilityLabel}` : '',
+            currentLabel ? `流况 ${currentLabel}` : ''
+        ].filter(Boolean);
+
+        return {
+            tone,
+            title,
+            copy,
+            chips,
+            requiredCert,
+            currentNote,
+            certificationLabel,
+            recentNote: recentLabel,
+            comfortNote: comfortLabel,
+            isCertMatched: certGap <= 0,
+            shouldCheckDive: tone === 'check',
+            recommendedMatchKey: getRecommendedMatchKey(safeProfile)
+        };
+    }
+
     function evaluatePackageFit(context = {}) {
         const safeProfile = normalizeProfile(context.profile || getProfile());
         const traits = resolveSpotTraits(context.spotId);
@@ -460,6 +575,7 @@
         normalizeProfile,
         getDefaultProfile,
         getProfile,
+        hasStoredProfile,
         saveProfile,
         clearProfile,
         getPreset,
@@ -472,6 +588,7 @@
         scoreSpotForProfile,
         sortSpotsForProfile,
         describeSpotRecommendation,
+        evaluateSpotReadiness,
         evaluatePackageFit
     });
 }(window));

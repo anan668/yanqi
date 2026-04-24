@@ -133,6 +133,7 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #081923;
+    overflow-x: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -1024,14 +1025,98 @@ body.has-avatar-return-open {
     h1 { font-size: 1.5rem; }
     h2 { font-size: 1.2rem; }
     h3 { font-size: 1rem; }
+
+    .navbar {
+        height: auto;
+        min-height: 64px;
+        background:
+            radial-gradient(circle at 16% 0%, rgba(174, 219, 238, 0.1), rgba(174, 219, 238, 0) 46%),
+            linear-gradient(180deg, rgba(9, 30, 45, 0.9), rgba(8, 25, 37, 0.76));
+    }
     
     .nav-container {
-        padding: 0 var(--spacing-md);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px 12px;
+        min-height: 64px;
+        height: auto;
+        padding: 8px var(--spacing-md) 10px;
+    }
+
+    .nav-brand {
+        min-width: 0;
+    }
+
+    .logo {
+        font-size: 1.22rem;
+        letter-spacing: 0.1em;
+    }
+
+    .nav-user {
+        justify-self: end;
+        min-width: 0;
     }
     
 /* 控制顶部导航的布局、透明度和当前页状态反馈 */
     .nav-menu {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-start;
+        gap: 6px;
+        max-width: 100%;
+        overflow-x: auto;
+        padding: 7px;
+        border-radius: 999px;
+        background:
+            linear-gradient(180deg, rgba(236, 248, 255, 0.1), rgba(115, 172, 199, 0.04)),
+            rgba(6, 25, 39, 0.54);
+        border: 1px solid rgba(200, 230, 242, 0.12);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.06),
+            0 10px 18px rgba(3, 13, 22, 0.12);
+        backdrop-filter: blur(14px) saturate(126%);
+        -webkit-backdrop-filter: blur(14px) saturate(126%);
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    .nav-menu::-webkit-scrollbar {
         display: none;
+    }
+
+    .nav-menu li {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+    }
+
+    .nav-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        padding: 0 11px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        line-height: 1;
+        white-space: nowrap;
+        color: rgba(224, 239, 247, 0.7);
+    }
+
+    .nav-link:hover {
+        transform: none;
+    }
+
+    .nav-link.active {
+        background: rgba(209, 235, 247, 0.09);
+    }
+
+    .nav-link.active::after {
+        bottom: 3px;
+        left: 18px;
+        right: 18px;
+        height: 1px;
     }
     
 /* 控制返回顶部按钮的位置、显隐和悬停反馈 */

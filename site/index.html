@@ -104,15 +104,15 @@
                                 <section class="side-observatory" aria-label="潜前观察">
                                     <p class="side-observatory-title">进入之前，先让目光和潮汐对齐。</p>
                                     <div class="side-observatory-grid">
-                                        <p class="side-observatory-item">
+                                        <p class="side-observatory-item" data-observatory-item="layer">
                                             <span class="side-observatory-label">海层</span>
                                             <strong>岸上与海面之间</strong>
                                         </p>
-                                        <p class="side-observatory-item">
+                                        <p class="side-observatory-item" data-observatory-item="rhythm">
                                             <span class="side-observatory-label">节奏</span>
                                             <strong>先停一停，再继续下潜</strong>
                                         </p>
-                                        <p class="side-observatory-item">
+                                        <p class="side-observatory-item" data-observatory-item="entrance">
                                             <span class="side-observatory-label">入口</span>
                                             <strong>号码会把你带回这层静水</strong>
                                         </p>
@@ -165,12 +165,12 @@
                                         <div class="tab-content active" id="login" role="tabpanel" aria-labelledby="auth-tab-login" tabindex="-1">
                                             <div class="input-group fade-in-up" style="animation-delay: 0.18s">
                                                 <label for="login-phone">手机号</label>
-                                                <input type="tel" id="login-phone" inputmode="numeric" maxlength="11" autocomplete="tel-national" pattern="^1[3-9]\d{9}$" placeholder="留下一串会把你带回这层静水的号码" required>
+                                                <input type="tel" id="login-phone" inputmode="numeric" maxlength="11" autocomplete="tel-national" pattern="^1[3-9]\d{9}$" placeholder="写下会把你带回来的号码" required>
                                             </div>
 
                                             <div class="input-group fade-in-up" style="animation-delay: 0.3s">
                                                 <label for="login-password">通行密钥</label>
-                                                <input type="password" id="login-password" placeholder="把这一层海的入口轻轻写进来" required>
+                                                <input type="password" id="login-password" placeholder="轻轻写下这一层密钥" required>
                                             </div>
 
                                             <div class="checkbox-group fade-in-up" style="animation-delay: 0.42s">
@@ -178,7 +178,7 @@
                                                 <label for="remember-me" class="checkbox-label">让这层静水记住这串号码</label>
                                             </div>
 
-                                            <button type="submit" class="auth-cta fade-in-up" style="animation-delay: 0.54s">
+                                            <button type="submit" class="auth-cta fade-in-up" data-auth-cta="login" style="animation-delay: 0.54s">
                                                 <span>登录</span>
                                                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -189,17 +189,17 @@
                                         <div class="tab-content" id="register" role="tabpanel" aria-labelledby="auth-tab-register" tabindex="-1" hidden>
                                             <div class="input-group fade-in-up" style="animation-delay: 0.18s">
                                                 <label for="register-phone">手机号</label>
-                                                <input type="tel" id="register-phone" inputmode="numeric" maxlength="11" autocomplete="tel-national" pattern="^1[3-9]\d{9}$" placeholder="让这次进入有一个更稳的联系节奏" required>
+                                                <input type="tel" id="register-phone" inputmode="numeric" maxlength="11" autocomplete="tel-national" pattern="^1[3-9]\d{9}$" placeholder="写下这次进入的号码" required>
                                             </div>
 
                                             <div class="input-group fade-in-up" style="animation-delay: 0.3s">
                                                 <label for="register-password">设置密钥</label>
-                                                <input type="password" id="register-password" placeholder="替自己留下一把进入这片海的钥匙" required>
+                                                <input type="password" id="register-password" placeholder="留下一把进入海面的钥匙" required>
                                             </div>
 
                                             <div class="input-group fade-in-up" style="animation-delay: 0.42s">
                                                 <label for="register-confirm">确认密钥</label>
-                                                <input type="password" id="register-confirm" placeholder="再确认一次，让这层海记住你" required>
+                                                <input type="password" id="register-confirm" placeholder="再轻轻确认一次密钥" required>
                                             </div>
 
                                             <div class="checkbox-group fade-in-up" style="animation-delay: 0.54s">
@@ -207,7 +207,7 @@
                                                 <label for="agree-terms" class="checkbox-label">我已阅读并同意 <a href="terms.html" target="_blank" rel="noopener noreferrer">《用户协议》</a> 与 <a href="privacy.html" target="_blank" rel="noopener noreferrer">《隐私政策》</a></label>
                                             </div>
 
-                                            <button type="submit" class="auth-cta fade-in-up" style="animation-delay: 0.66s">
+                                            <button type="submit" class="auth-cta fade-in-up" data-auth-cta="register" style="animation-delay: 0.66s">
                                                 <span>注册</span>
                                                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"></path>

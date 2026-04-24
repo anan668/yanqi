@@ -2513,7 +2513,9 @@ function setHomeGuideOpenState(isOpen) {
  * @returns {boolean}
  */
 function isHomeInteractionLocked() {
-    return HOME_INTERACTION_STATE.guideOpen || performance.now() < HOME_INTERACTION_STATE.lockUntil;
+    return Boolean(document.body?.classList.contains('page-transition-active'))
+        || HOME_INTERACTION_STATE.guideOpen
+        || performance.now() < HOME_INTERACTION_STATE.lockUntil;
 }
 
 function resolveHomeGuideJumpStrategy(mode) {
@@ -2614,6 +2616,10 @@ class BambooScroll {
         this.leftBtn = document.getElementById('scroll-left');
         this.rightBtn = document.getElementById('scroll-right');
         this.performanceProfile = resolveHomePerformanceProfile();
+        this.isHeroPhysics = Boolean(this.wrapper?.classList.contains('hero-bamboo-cards-wrapper'));
+        this.heroPhysicsStrength = this.isHeroPhysics
+            ? (this.performanceProfile.lite ? 0.42 : (this.performanceProfile.coarsePointer ? 0.52 : (this.performanceProfile.compactViewport ? 0.74 : 1)))
+            : 0;
         // 自动滑动是这个首屏模块的基础节奏，不应因为系统“减少动态”而整条关闭，
         // 否则用户会直接看到“始终静止”。这里只在纯粗指针设备上停用自动滑动。
         this.enableAutoStep = !this.performanceProfile.coarsePointer;
@@ -2660,6 +2666,12 @@ class BambooScroll {
             boostTime: 0,
             boostAccel: 0
         };
+        this.snap = {
+            active: false,
+            target: 0,
+            velocity: 0,
+            energy: 0
+        };
 
         this.autoStep = null;
         this.autoTimer = null;
@@ -2705,6 +2717,7 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接初始化组件
      */
     init() {
+        this.wrapper.classList.toggle('is-motion-lite', this.performanceProfile.lite);
         this.render();
         this.attachEvents();
         this.scheduleInitialLayout();
@@ -2765,15 +2778,21 @@ class BambooScroll {
         for (let set = 0; set < this.cloneSets; set += 1) {
             divingSpotsData.forEach((spot, dataIndex) => {
                 const imageAsset = resolveHomeImageAsset(spot.imageOriginal || spot.image);
+                const isVisibleSet = set === visibleSetIndex;
                 const circularDistance = Math.min(
                     Math.abs(dataIndex - preferredDataIndex),
                     Math.abs(dataIndex - preferredDataIndex + this.totalCards),
                     Math.abs(dataIndex - preferredDataIndex - this.totalCards)
                 );
-                const shouldPrioritizeImage = set === visibleSetIndex && circularDistance <= eagerRange;
-                const isPrimaryFocusImage = set === visibleSetIndex && circularDistance === 0;
+                const shouldPrioritizeImage = isVisibleSet && circularDistance <= eagerRange;
+                const isPrimaryFocusImage = isVisibleSet && circularDistance === 0;
                 const card = document.createElement('div');
                 card.className = 'bamboo-card';
+                card.tabIndex = isVisibleSet ? 0 : -1;
+                card.setAttribute('role', 'link');
+                card.setAttribute('aria-label', `进入${spot.name}的海域档案`);
+                card.setAttribute('aria-hidden', isVisibleSet ? 'false' : 'true');
+                card.dataset.cloneSet = String(set);
                 card.dataset.spotId = String(spot.id);
                 card.dataset.url = `detail.html?id=${spot.id}`;
                 card.style.setProperty('--enter-delay', `${(spot.id - 1) * 0.045 + set * 0.04}s`);
@@ -2826,16 +2845,30 @@ class BambooScroll {
             lagScale: this.randomBetween(0.018, 0.03),
             dragBackScale: this.randomBetween(0.005, 0.009),
             recoilScale: this.randomBetween(0.85, 1.3),
+            mass: this.randomBetween(0.88, 1.22),
             jitterX: 0,
             jitterV: 0,
             lagX: 0,
             lagV: 0,
             wobbleY: 0,
             wobbleR: 0,
+            gravityY: 0,
+            gravityV: 0,
+            tiltR: 0,
+            tiltV: 0,
+            rollY: 0,
+            rollV: 0,
+            pressure: 0,
             renderedWobbleX: null,
             renderedElasticX: null,
             renderedWobbleY: null,
-            renderedWobbleR: null
+            renderedWobbleR: null,
+            renderedGravityY: null,
+            renderedTiltR: null,
+            renderedRollY: null,
+            renderedShadowY: null,
+            renderedShadowBlur: null,
+            renderedShadowAlpha: null
         };
     }
 
@@ -2905,6 +2938,7 @@ class BambooScroll {
         this.wrapper.addEventListener('pointercancel', (event) => this.handlePointerUp(event));
         this.wrapper.addEventListener('lostpointercapture', (event) => this.handleLostPointerCapture(event));
         this.wrapper.addEventListener('click', (event) => this.handleCardClick(event));
+        this.wrapper.addEventListener('keydown', (event) => this.handleCardKeydown(event));
         this.wrapper.addEventListener('dragstart', (event) => {
             event.preventDefault();
         });
@@ -2964,6 +2998,9 @@ class BambooScroll {
         this.cancelPointerMoveFrame();
         this.cancelAutoStep();
         this.inertia.active = false;
+        this.snap.active = false;
+        this.snap.velocity = 0;
+        this.snap.energy = 0;
         this.trackVelocity = 0;
 
         this.isDragging = true;
@@ -3090,13 +3127,15 @@ class BambooScroll {
 
         this.flushPointerMoveFrame(performance.now());
         this.cancelPointerMoveFrame();
+        const releaseTime = performance.now();
+        const releaseVelocity = this.resolveReleaseVelocity(releaseTime);
 
         this.isDragging = false;
         this.pointerId = null;
         this.wrapper.classList.remove('is-dragging');
 
         if (this.dragMoved) {
-            this.suppressClickUntil = performance.now() + 180;
+            this.suppressClickUntil = releaseTime + 180;
             this.pressedCard = null;
         }
 
@@ -3105,7 +3144,7 @@ class BambooScroll {
         }
 
         if (this.dragMoved) {
-            this.startInertiaFromRelease(this.lastTrackVelocity);
+            this.startInertiaFromRelease(releaseVelocity);
         } else {
             this.trackVelocity = 0;
             this.inertia.active = false;
@@ -3114,6 +3153,24 @@ class BambooScroll {
         if (this.enableAutoStep && !HOME_INTERACTION_STATE.scrollTraveling) {
             this.scheduleAutoStep();
         }
+    }
+
+    /**
+     * resolveReleaseVelocity(releaseTime) - 避免停顿后松手仍沿用旧高速造成尾端抖动
+     * @param {number} releaseTime - 松手时刻
+     * @returns {number} - 衰减后的释放速度
+     */
+    resolveReleaseVelocity(releaseTime) {
+        const idleMs = Math.max(releaseTime - this.lastPointerTime, 0);
+        if (idleMs <= 48) {
+            return this.lastTrackVelocity;
+        }
+
+        if (idleMs >= 220) {
+            return 0;
+        }
+
+        return this.lastTrackVelocity * Math.exp(-(idleMs - 48) / 86);
     }
 
     /**
@@ -3151,6 +3208,10 @@ class BambooScroll {
             return;
         }
 
+        if (card.getAttribute('aria-hidden') === 'true' || card.tabIndex < 0) {
+            return;
+        }
+
         if (this.autoStep) {
             this.finishStepScrollImmediately();
         }
@@ -3171,6 +3232,26 @@ class BambooScroll {
     }
 
     /**
+     * handleCardKeydown(event) - 让首页热门卡片支持键盘进入对应海域
+     * @param {KeyboardEvent} event - 键盘事件对象
+     * @returns {void} - 无返回值，按键命中时复用卡片点击跳转
+     */
+    handleCardKeydown(event) {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        const card = event.target.closest('.bamboo-card');
+        if (!card || card.getAttribute('aria-hidden') === 'true' || card.tabIndex < 0) {
+            return;
+        }
+
+        event.preventDefault();
+        this.pressedCard = card;
+        this.handleCardClick(event);
+    }
+
+    /**
      * startInertiaFromRelease(releaseVelocity) - 按释放速度启动轨道惯性滚动
      * @param {number} releaseVelocity - 拖拽释放瞬间的速度
      * @returns {void} - 无返回值，直接更新惯性状态
@@ -3181,6 +3262,9 @@ class BambooScroll {
             this.inertia.active = false;
             this.inertia.boostTime = 0;
             this.inertia.boostAccel = 0;
+            if (this.isHeroPhysics) {
+                this.startSnapToNearest(releaseVelocity * 0.08);
+            }
             return;
         }
 
@@ -3191,14 +3275,44 @@ class BambooScroll {
             this.inertia.active = false;
             this.inertia.boostTime = 0;
             this.inertia.boostAccel = 0;
+            if (this.isHeroPhysics) {
+                this.startSnapToNearest(clamped);
+            }
             return;
         }
 
         this.inertia.active = true;
+        this.snap.active = false;
+        this.snap.velocity = 0;
+        this.snap.energy = 0;
         this.inertia.boostTime = 0;
         this.inertia.boostAccel = 0;
         this.trackVelocity = clamped;
         this.injectShake(Math.abs(this.trackVelocity) * 1.1);
+        this.ensureFrameLoop();
+    }
+
+    /**
+     * startSnapToNearest(seedVelocity) - 让松手后的轨道带着水阻回到最近卡位
+     * @param {number} seedVelocity - 进入吸附阶段时保留的水平速度
+     * @returns {void}
+     */
+    startSnapToNearest(seedVelocity = 0) {
+        if (!this.isHeroPhysics || !Number.isFinite(this.cardStride) || this.cardStride <= 0) {
+            this.trackVelocity = 0;
+            this.inertia.active = false;
+            return;
+        }
+
+        const projectedPosition = this.trackPosition + this.clamp(seedVelocity, -900, 900) * 0.08;
+        const target = Math.round(projectedPosition / this.cardStride) * this.cardStride;
+
+        this.inertia.active = false;
+        this.snap.active = true;
+        this.snap.target = target;
+        this.snap.energy = this.clamp(Math.abs(seedVelocity) / 780, 0, 1);
+        this.snap.velocity = this.clamp(seedVelocity, -780, 780) * (0.2 + this.snap.energy * 0.12);
+        this.trackVelocity = this.snap.velocity;
         this.ensureFrameLoop();
     }
 
@@ -3240,6 +3354,9 @@ class BambooScroll {
         }
 
         this.inertia.active = false;
+        this.snap.active = false;
+        this.snap.velocity = 0;
+        this.snap.energy = 0;
         this.trackVelocity = 0;
 
         const from = this.trackPosition;
@@ -3397,6 +3514,9 @@ class BambooScroll {
             this.cancelAutoStep();
             if (!this.isDragging) {
                 this.inertia.active = false;
+                this.snap.active = false;
+                this.snap.velocity = 0;
+                this.snap.energy = 0;
                 this.trackVelocity = 0;
             }
         }
@@ -3447,6 +3567,7 @@ class BambooScroll {
             || this.isDragging
             || Boolean(this.autoStep)
             || this.inertia.active
+            || this.snap.active
             || Math.abs(this.trackVelocity) > 0.1
             || this.shakeEnergy > 0.01
             || this.trackPositionDirty;
@@ -3539,15 +3660,41 @@ class BambooScroll {
                 this.trackPosition = this.autoStep.to;
                 this.trackVelocity = 0;
                 this.autoStep = null;
+                this.snap.active = false;
+                this.snap.velocity = 0;
+                this.snap.energy = 0;
                 this.schedulePendingManualStep();
             }
         } else if (this.inertia.active && !this.isDragging) {
             this.trackPosition += this.trackVelocity * dt;
-            this.trackVelocity *= Math.pow(0.94, dt * 60);
+            const speedNorm = this.clamp(Math.abs(this.trackVelocity) / 2600, 0, 1);
+            const dragPerSecond = this.isHeroPhysics
+                ? (2.35 + speedNorm * 1.15 + this.heroPhysicsStrength * 0.35)
+                : 3.82;
+            this.trackVelocity *= Math.exp(-dragPerSecond * dt);
 
-            if (Math.abs(this.trackVelocity) < 10) {
+            if (this.isHeroPhysics && Math.abs(this.trackVelocity) < 34) {
+                this.startSnapToNearest(this.trackVelocity);
+            } else if (Math.abs(this.trackVelocity) < 10) {
                 this.trackVelocity = 0;
                 this.inertia.active = false;
+            }
+        } else if (this.snap.active && !this.isDragging) {
+            const targetDelta = this.snap.target - this.trackPosition;
+            const spring = this.isHeroPhysics ? 54 : 58;
+            const damping = this.isHeroPhysics ? 16.5 : 14;
+            const accel = targetDelta * spring - this.snap.velocity * damping;
+
+            this.snap.velocity += accel * dt;
+            this.trackPosition += this.snap.velocity * dt;
+            this.trackVelocity = this.snap.velocity;
+
+            if (Math.abs(targetDelta) < 0.18 && Math.abs(this.snap.velocity) < 7) {
+                this.trackPosition = this.snap.target;
+                this.trackVelocity = 0;
+                this.snap.velocity = 0;
+                this.snap.active = false;
+                this.snap.energy = 0;
             }
         } else if (!this.isDragging) {
             this.trackVelocity *= Math.pow(0.82, dt * 60);
@@ -3619,10 +3766,40 @@ class BambooScroll {
             state.lagV += lagAccel * dt;
             state.lagX += state.lagV * dt;
 
+            const heroStrength = this.heroPhysicsStrength;
+            const speedNorm = this.clamp(Math.abs(this.trackVelocity) / 2200, 0, 1);
+            const gravityPull = this.isHeroPhysics
+                ? (0.8 + speedNorm * 5.8 + this.shakeEnergy * 2.3 + (this.snap.active ? this.snap.energy * 0.45 : 0)) * centerWeight * heroStrength
+                : 0;
+            const gravitySpring = this.isDragging ? 84 : (this.snap.active ? 68 : 56);
+            const gravityDamping = 13.5 + state.mass * 4.2;
+            const gravityAccel = ((gravityPull - state.gravityY) * gravitySpring - state.gravityV * gravityDamping) / state.mass;
+            state.gravityV += gravityAccel * dt;
+            state.gravityY += state.gravityV * dt;
+
+            const torqueTarget = this.isHeroPhysics
+                ? this.clamp((-this.trackVelocity * 0.0021 + state.lagV * 0.0035) * centerWeight * heroStrength, -4.8, 4.8)
+                : 0;
+            const torqueAccel = (torqueTarget - state.tiltR) * 92 - state.tiltV * 15.5;
+            state.tiltV += torqueAccel * dt;
+            state.tiltR += state.tiltV * dt;
+
+            const rollTarget = this.isHeroPhysics
+                ? this.clamp((-this.trackVelocity * 0.0045 + state.jitterV * 0.003) * centerWeight * heroStrength, -8, 8)
+                : 0;
+            const rollAccel = (rollTarget - state.rollY) * 74 - state.rollV * 13;
+            state.rollV += rollAccel * dt;
+            state.rollY += state.rollV * dt;
+
+            state.pressure = this.isHeroPhysics
+                ? this.clamp((state.gravityY / 8) + speedNorm * 0.54 + this.shakeEnergy * 0.22, 0, 1)
+                : 0;
+
             const verticalTarget = Math.sin(time * (state.frequency * 1.18) + state.phase * 0.8) * dynamicAmp * 0.26;
             state.wobbleY += (verticalTarget - state.wobbleY) * Math.min(1, dt * 10);
 
-            const rotateTarget = this.clamp((state.jitterX + state.lagX) * 0.22, -6, 6);
+            const rotateLimit = this.isHeroPhysics ? 4.2 : 6;
+            const rotateTarget = this.clamp((state.jitterX + state.lagX) * 0.22, -rotateLimit, rotateLimit);
             state.wobbleR += (rotateTarget - state.wobbleR) * Math.min(1, dt * 12);
 
             this.applyCardPhysicsStyle(card, state);
@@ -3704,7 +3881,7 @@ class BambooScroll {
             this.isDragging ||
             isHomeInteractionLocked() ||
             this.isPageScrollSettlingActive() ||
-            (!this.autoStep && !this.inertia.active)
+            (!this.autoStep && !this.inertia.active && !this.snap.active)
         ) {
             return;
         }
@@ -3772,8 +3949,14 @@ class BambooScroll {
 
         if (this.trackPosition < min) {
             this.trackPosition += this.setWidth;
+            if (this.snap.active) {
+                this.snap.target += this.setWidth;
+            }
         } else if (this.trackPosition > max) {
             this.trackPosition -= this.setWidth;
+            if (this.snap.active) {
+                this.snap.target -= this.setWidth;
+            }
         }
     }
 
@@ -3802,6 +3985,9 @@ class BambooScroll {
         this.trackPosition = this.autoStep.to;
         this.autoStep = null;
         this.trackVelocity = 0;
+        this.snap.active = false;
+        this.snap.velocity = 0;
+        this.snap.energy = 0;
         this.recenterTrack();
         this.updateTrackPosition();
         this.trackPositionDirty = false;
@@ -3826,6 +4012,9 @@ class BambooScroll {
         this.trackPosition = stepIndex * stride;
         this.autoStep = null;
         this.trackVelocity = 0;
+        this.snap.active = false;
+        this.snap.velocity = 0;
+        this.snap.energy = 0;
         this.recenterTrack();
         this.updateTrackPosition();
         this.trackPositionDirty = false;
@@ -3857,6 +4046,7 @@ class BambooScroll {
         return this.isDragging
             || Boolean(this.autoStep)
             || this.inertia.active
+            || this.snap.active
             || Math.abs(this.trackVelocity) > 0.1
             || this.shakeEnergy > 0.01;
     }
@@ -3939,6 +4129,13 @@ class BambooScroll {
         state.lagV = 0;
         state.wobbleY = 0;
         state.wobbleR = 0;
+        state.gravityY = 0;
+        state.gravityV = 0;
+        state.tiltR = 0;
+        state.tiltV = 0;
+        state.rollY = 0;
+        state.rollV = 0;
+        state.pressure = 0;
 
         this.applyCardPhysicsStyle(card, state);
     }
@@ -3954,6 +4151,12 @@ class BambooScroll {
         const elasticX = `${state.lagX.toFixed(2)}px`;
         const wobbleY = `${state.wobbleY.toFixed(2)}px`;
         const wobbleR = `${state.wobbleR.toFixed(2)}deg`;
+        const gravityY = `${state.gravityY.toFixed(2)}px`;
+        const tiltR = `${state.tiltR.toFixed(2)}deg`;
+        const rollY = `${state.rollY.toFixed(2)}deg`;
+        const shadowY = `${(18 + state.pressure * 12).toFixed(2)}px`;
+        const shadowBlur = `${(34 + state.pressure * 20).toFixed(2)}px`;
+        const shadowAlpha = (0.16 + state.pressure * 0.12).toFixed(3);
 
         if (state.renderedWobbleX !== wobbleX) {
             card.style.setProperty('--wobble-x', wobbleX);
@@ -3973,6 +4176,36 @@ class BambooScroll {
         if (state.renderedWobbleR !== wobbleR) {
             card.style.setProperty('--wobble-r', wobbleR);
             state.renderedWobbleR = wobbleR;
+        }
+
+        if (state.renderedGravityY !== gravityY) {
+            card.style.setProperty('--gravity-y', gravityY);
+            state.renderedGravityY = gravityY;
+        }
+
+        if (state.renderedTiltR !== tiltR) {
+            card.style.setProperty('--tilt-r', tiltR);
+            state.renderedTiltR = tiltR;
+        }
+
+        if (state.renderedRollY !== rollY) {
+            card.style.setProperty('--roll-y', rollY);
+            state.renderedRollY = rollY;
+        }
+
+        if (state.renderedShadowY !== shadowY) {
+            card.style.setProperty('--physics-shadow-y', shadowY);
+            state.renderedShadowY = shadowY;
+        }
+
+        if (state.renderedShadowBlur !== shadowBlur) {
+            card.style.setProperty('--physics-shadow-blur', shadowBlur);
+            state.renderedShadowBlur = shadowBlur;
+        }
+
+        if (state.renderedShadowAlpha !== shadowAlpha) {
+            card.style.setProperty('--physics-shadow-alpha', shadowAlpha);
+            state.renderedShadowAlpha = shadowAlpha;
         }
     }
 
@@ -4404,7 +4637,7 @@ class CuratedWatersStage {
                 <p class="curated-display-footnote">${dest.sampleMeta}</p>
 
                 <button type="button" class="curated-detail-button" data-detail-url="detail.html?id=${dest.id}">
-                    <span>查看详情</span>
+                    <span>进入这片海</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M5 12h12M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
@@ -6001,7 +6234,7 @@ class DiveMatchStage {
                 data-detail-url="detail.html?id=${destination.id}"
                 role="link"
                 tabindex="0"
-                aria-label="查看 ${destination.name} 详情"
+                aria-label="进入${destination.name}的海域档案"
                 style="--card-delay: ${index * 90}ms;"
             >
                 <div class="dive-match-card-media">
@@ -6026,7 +6259,7 @@ class DiveMatchStage {
                         ${card.tags.map((tag) => `<span class="dive-match-card-tag">${tag}</span>`).join('')}
                     </div>
                     <button type="button" class="dive-match-card-action" data-detail-url="detail.html?id=${destination.id}">
-                        查看详情
+                        进入这片海
                     </button>
                 </div>
             </article>
@@ -6797,6 +7030,14 @@ function setupHomeNavState() {
  */
 function setupHeroImmersion() {
     if (!document.body.classList.contains('home-page')) {
+        return;
+    }
+
+    if (hasActivePageEntryTransition()) {
+        document.body.classList.add('home-depth-entry-settled', 'hero-awakened');
+        runAfterPageEntryTransition(() => {
+            document.body.classList.remove('home-depth-entry-settled');
+        });
         return;
     }
 

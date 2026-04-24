@@ -158,6 +158,7 @@ body.page-transition-active.info-page > .navbar {
     pointer-events: none;
     user-select: none;
     will-change: transform, opacity;
+    backface-visibility: hidden;
 }
 
 /* 控制页面过渡遮罩、气泡层和海洋切换特效 */
@@ -345,20 +346,10 @@ body.info-page.page-ocean-swim-enter > .navbar {
         transform: translate3d(0, 0, 0) scale(1);
         opacity: 1;
     }
-/* 控制动画在 42% 阶段的状态 */
-    42% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.42), 0) scale(0.994);
-        opacity: 0.72;
-    }
-/* 控制动画在 72% 阶段的状态 */
-    72% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.78), 0) scale(0.984);
-        opacity: 0.34;
-    }
 /* 控制动画在 100% 阶段的状态 */
     100% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * -1), 0) scale(0.972);
-        opacity: 0.12;
+        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.74), 0) scale(0.986);
+        opacity: 0.14;
     }
 }
 
@@ -366,16 +357,11 @@ body.info-page.page-ocean-swim-enter > .navbar {
 @keyframes page-ocean-dive-enter {
 /* 控制动画在 0% 阶段的状态 */
     0% {
-        transform: translate3d(0, var(--page-ocean-translation), 0) scale(1.012);
-        opacity: 0.06;
+        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.62), 0) scale(1.004);
+        opacity: 0.1;
     }
-/* 控制动画在 52% 阶段的状态 */
-    52% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.34), 0) scale(1.004);
-        opacity: 0.74;
-    }
-/* 控制动画在 68% 阶段的状态 */
-    68% {
+/* 控制动画在 62% 阶段的状态 */
+    62% {
         opacity: 0.88;
     }
 /* 控制动画在 100% 阶段的状态 */
@@ -392,20 +378,10 @@ body.info-page.page-ocean-swim-enter > .navbar {
         transform: translate3d(0, 0, 0) scale(1);
         opacity: 1;
     }
-/* 控制动画在 40% 阶段的状态 */
-    40% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.36), 0) scale(0.994);
-        opacity: 0.74;
-    }
-/* 控制动画在 72% 阶段的状态 */
-    72% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.76), 0) scale(0.984);
-        opacity: 0.34;
-    }
 /* 控制动画在 100% 阶段的状态 */
     100% {
-        transform: translate3d(0, var(--page-ocean-translation), 0) scale(0.972);
-        opacity: 0.12;
+        transform: translate3d(0, calc(var(--page-ocean-translation) * 0.72), 0) scale(0.986);
+        opacity: 0.14;
     }
 }
 
@@ -413,16 +389,11 @@ body.info-page.page-ocean-swim-enter > .navbar {
 @keyframes page-ocean-surface-enter {
 /* 控制动画在 0% 阶段的状态 */
     0% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * -1), 0) scale(1.01);
-        opacity: 0.06;
+        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.58), 0) scale(1.004);
+        opacity: 0.1;
     }
-/* 控制动画在 52% 阶段的状态 */
-    52% {
-        transform: translate3d(0, calc(var(--page-ocean-translation) * -0.3), 0) scale(1.003);
-        opacity: 0.76;
-    }
-/* 控制动画在 68% 阶段的状态 */
-    68% {
+/* 控制动画在 62% 阶段的状态 */
+    62% {
         opacity: 0.9;
     }
 /* 控制动画在 100% 阶段的状态 */

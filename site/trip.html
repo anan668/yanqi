@@ -56,11 +56,11 @@
                     <div class="trip-hero-copy">
                         <p class="trip-hero-kicker">Planner Desk</p>
                         <h1 class="trip-hero-title">我的行程</h1>
-                        <p class="trip-hero-subtitle">把出发时间、同行人数与想去的海域，安静地放进这一层海流里。规划不必像填表，更像为一次下潜预留合适的潮汐与呼吸。</p>
+                        <p class="trip-hero-subtitle">把想去的海域、出发时间与同行节奏，先轻轻放进这一层水里。规划不急着完成，只为下一次下潜预留合适的潮汐与呼吸。</p>
                         <div class="trip-hero-current">
                             <div class="trip-hero-current-head">
                                 <p class="trip-hero-current-kicker">Current Descent</p>
-                                <p class="trip-hero-current-copy">这一层会先把下一潜写成桌面草稿，再沉到本地回声，最后收成一张可以慢慢回看的 Sea Brief。</p>
+                                <p class="trip-hero-current-copy">下一潜会先成为草稿，再慢慢沉进本地回声，最后收成一张可以回看的 Sea Brief。</p>
                             </div>
                             <div class="trip-hero-current-track" aria-hidden="true">
                                 <span class="trip-hero-current-step is-current">
@@ -79,8 +79,8 @@
                         </div>
 
                         <div class="trip-hero-actions">
-                            <button type="button" class="sea-action sea-action-primary" data-scroll-target="#plannerDeskControl">继续安排行程</button>
-                            <a href="home.html" class="sea-action sea-action-secondary">返回首页</a>
+                            <button type="button" class="sea-action sea-action-primary" data-scroll-target="#plannerDeskControl">继续下潜安排行程</button>
+                            <a href="home.html" class="sea-action sea-action-secondary">缓慢上浮回首页</a>
                         </div>
                     </div>
 
@@ -502,8 +502,8 @@
                                         <div class="sea-brief-prep" id="seaBriefPrep"></div>
                                         <div class="sea-brief-divider" aria-hidden="true"></div>
                                         <div class="sea-brief-actions" id="seaBriefActions">
-                                            <button type="button" class="sea-brief-action" id="seaBriefCopy">复制摘要</button>
-                                            <button type="button" class="sea-brief-action" id="seaBriefPrint">打印摘要</button>
+                                            <button type="button" class="sea-brief-action" id="seaBriefCopy">留下一份 Sea Brief</button>
+                                            <button type="button" class="sea-brief-action" id="seaBriefPrint">收成纸面回声</button>
                                             <button type="button" class="sea-brief-action sea-brief-action-primary" id="seaBriefBackToDetail">回到详情</button>
                                         </div>
                                     </article>
@@ -820,8 +820,8 @@
                         <section class="footer-nav-group">
                             <h3 class="footer-nav-title">探索</h3>
                             <ul class="footer-nav-list">
-                                <li><a href="home.html#hot-spots" class="footer-link">热门潜点</a></li>
-                                <li><a href="home.html#featured-destinations" class="footer-link">精选目的地</a></li>
+                                <li><a href="home.html#hot-spots" class="footer-link">今日靠近的几片蓝</a></li>
+                                <li><a href="home.html#featured-destinations" class="footer-link">海域陈列</a></li>
                                 <li><a href="home.html#hero-home" class="footer-link">今日海域</a></li>
                                 <li><a href="home.html#why-yanqi" class="footer-link">盐憩故事</a></li>
                             </ul>
@@ -976,12 +976,12 @@
                 <span>日</span>
             </div>
             <div class="planner-calendar-legend" id="plannerCalendarLegend" aria-label="海况窗口说明">
-                <span class="planner-calendar-legend-item is-recommended">推荐窗口</span>
+                <span class="planner-calendar-legend-item is-recommended">较稳潮窗</span>
                 <span class="planner-calendar-legend-item is-available">可行窗口</span>
                 <span class="planner-calendar-legend-item is-caution">谨慎窗口</span>
             </div>
             <!-- 日期格子由脚本动态生成：
-                 这样可以同时标记“今天 / 推荐窗口 / 当前选中日期”，
+                 这样可以同时标记“今天 / 较稳潮窗 / 当前选中日期”，
                  也便于切月时做轻量动画。 -->
             <div class="planner-calendar-grid" id="plannerCalendarGrid"></div>
         </div>

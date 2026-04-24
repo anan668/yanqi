@@ -807,6 +807,44 @@ body[data-home-performance='lite'] .hero-section::after {
     animation-play-state: var(--hero-play-state, running);
 }
 
+.home-page.home-depth-entry-settled .hero-section::before {
+    transition: none !important;
+}
+
+.home-page.home-depth-entry-settled :is(
+    .hero-ocean-glow,
+    .hero-ocean-wave,
+    .hero-plankton,
+    .hero-title,
+    .hero-subtitle,
+    .today-sea-card,
+    .hero-hotspots-head,
+    .hero-bamboo-scroll-container,
+    .hero-hotspots-shell,
+    .hero-memory-ribbon,
+    .hero-observation-rail
+) {
+    transition: none !important;
+    animation-play-state: paused !important;
+}
+
+.home-page.home-depth-entry-settled :is(
+    .hero-title,
+    .hero-subtitle,
+    .today-sea-card,
+    .hero-hotspots-head,
+    .hero-bamboo-scroll-container,
+    .hero-hotspots-shell
+) {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+}
+
+body.home-page.page-transition-active .page-stage * {
+    animation-play-state: paused !important;
+}
+
 /* 首屏 主标题：制制宽度、亮度和阴影层次。 */
 .hero-title {
     max-width: 760px;
@@ -1105,17 +1143,23 @@ body[data-home-performance='lite'] .hero-section::after {
     position: relative;
     isolation: isolate;
     contain: layout paint;
+    perspective: 1200px;
+    perspective-origin: 50% 54%;
 }
 
 /* 压低轨道内边距，避免 首屏 内卡片显得太松散 */
 .hero-hotspots-shell .bamboo-cards-content {
     padding: 8px 2px;
     gap: 14px;
+    transform-style: preserve-3d;
 }
 
 /* 首屏 内的热门卡片改成更深海、更柔和的玻璃卡，不再像普通列表卡。 */
 .hero-hotspots-shell .bamboo-card {
     --card-scale: 0.986;
+    --physics-shadow-y: 18px;
+    --physics-shadow-blur: 34px;
+    --physics-shadow-alpha: 0.16;
     flex: 0 0 336px;
     min-width: 336px;
     border-radius: 32px;
@@ -1124,17 +1168,20 @@ body[data-home-performance='lite'] .hero-section::after {
         rgba(7, 33, 49, 0.4);
     border: 1px solid rgba(221, 242, 252, 0.1);
     box-shadow:
-        0 18px 34px rgba(5, 22, 34, 0.16),
+        0 var(--physics-shadow-y) var(--physics-shadow-blur) rgba(5, 22, 34, var(--physics-shadow-alpha)),
         0 0 24px rgba(107, 183, 219, 0.04),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(22px) saturate(138%);
     -webkit-backdrop-filter: blur(22px) saturate(138%);
     filter: blur(0) saturate(0.98) brightness(0.98);
+    transform-origin: 50% 82%;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 }
 
 .hero-hotspots-shell .bamboo-cards-wrapper.is-motion-lite .bamboo-card {
     box-shadow:
-        0 14px 26px rgba(5, 22, 34, 0.14),
+        0 calc(var(--physics-shadow-y) - 4px) calc(var(--physics-shadow-blur) - 8px) rgba(5, 22, 34, 0.14),
         0 0 18px rgba(107, 183, 219, 0.03),
         inset 0 1px 0 rgba(255, 255, 255, 0.09);
     backdrop-filter: blur(14px) saturate(132%);
@@ -1147,7 +1194,7 @@ body[data-home-performance='lite'] .hero-section::after {
     --lift-y: -6px;
     --card-scale: 1.002;
     box-shadow:
-        0 26px 48px rgba(5, 22, 34, 0.22),
+        0 calc(var(--physics-shadow-y) + 8px) calc(var(--physics-shadow-blur) + 14px) rgba(5, 22, 34, calc(var(--physics-shadow-alpha) + 0.06)),
         0 0 36px rgba(136, 205, 236, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.16);
     border-color: rgba(227, 245, 252, 0.18);
@@ -1158,7 +1205,7 @@ body[data-home-performance='lite'] .hero-section::after {
 .hero-hotspots-shell .bamboo-card.active {
     --card-scale: 1.026;
     box-shadow:
-        0 34px 56px rgba(5, 22, 34, 0.28),
+        0 calc(var(--physics-shadow-y) + 16px) calc(var(--physics-shadow-blur) + 22px) rgba(5, 22, 34, calc(var(--physics-shadow-alpha) + 0.1)),
         0 0 0 1px rgba(194, 231, 247, 0.24),
         0 0 44px rgba(134, 205, 236, 0.14);
     border-color: rgba(214, 240, 250, 0.22);
@@ -2664,6 +2711,12 @@ body[data-home-performance='lite'] .hero-section::after {
     --wobble-x: 0px;
     --wobble-y: 0px;
     --wobble-r: 0deg;
+    --gravity-y: 0px;
+    --tilt-r: 0deg;
+    --roll-y: 0deg;
+    --physics-shadow-y: 18px;
+    --physics-shadow-blur: 34px;
+    --physics-shadow-alpha: 0.16;
     --lift-y: 0px;
     --card-scale: 1;
     flex: 0 0 280px;
@@ -2677,7 +2730,7 @@ body[data-home-performance='lite'] .hero-section::after {
     opacity: 0;
     transition: box-shadow 260ms ease, border-color 260ms ease, filter 260ms ease, opacity 240ms ease;
     cursor: pointer;
-    transform: translate3d(calc(var(--elastic-x) + var(--wobble-x)), calc(var(--lift-y) + var(--wobble-y)), 0) rotate(var(--wobble-r)) scale(var(--card-scale));
+    transform: translate3d(calc(var(--elastic-x) + var(--wobble-x)), calc(var(--lift-y) + var(--wobble-y) + var(--gravity-y)), 0) rotate(calc(var(--wobble-r) + var(--tilt-r))) rotateY(var(--roll-y)) scale(var(--card-scale));
     will-change: transform;
     animation: bamboo-card-reveal 0.58s ease-out var(--enter-delay, 0s) forwards;
     -webkit-user-drag: none;
@@ -2717,6 +2770,17 @@ body[data-home-performance='lite'] .bamboo-card {
     --card-scale: 1.016;
     opacity: 1;
     box-shadow: var(--shadow-lg);
+}
+
+.bamboo-card:focus-visible {
+    --lift-y: -6px;
+    --card-scale: 1.016;
+    opacity: 1;
+    border-color: rgba(137, 205, 232, 0.58);
+    box-shadow:
+        0 18px 34px rgba(26, 106, 158, 0.2),
+        0 0 0 3px rgba(181, 225, 244, 0.28);
+    outline: none;
 }
 
 body[data-home-performance='lite'] .bamboo-card:hover {
@@ -2767,7 +2831,7 @@ body[data-home-performance='lite'] .bamboo-card.active:hover {
 /* bamboo-card-reveal 在 100%：卡片回到稳定位置并保留轻微漂浮变量。 */
     100% {
         opacity: 0.94;
-        transform: translate3d(calc(var(--elastic-x) + var(--wobble-x)), calc(var(--lift-y) + var(--wobble-y)), 0) rotate(var(--wobble-r)) scale(var(--card-scale));
+        transform: translate3d(calc(var(--elastic-x) + var(--wobble-x)), calc(var(--lift-y) + var(--wobble-y) + var(--gravity-y)), 0) rotate(calc(var(--wobble-r) + var(--tilt-r))) rotateY(var(--roll-y)) scale(var(--card-scale));
     }
 }
 /* Bamboo Card Image */
@@ -7084,6 +7148,7 @@ body[data-current-home-layer="story"] .story-river-line {
 /* 首页滚动到一定深度后，显示海图导览浮标。 */
 .sea-guide-home.is-visible {
     opacity: 1;
+    pointer-events: none;
     transform: none;
 }
 

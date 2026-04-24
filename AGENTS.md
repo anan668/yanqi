@@ -131,6 +131,77 @@
 - 退回普通网页设计思路
 - 用过于抽象、不可落地的描述替代具体实现方向
 
+## Codex 协作与修改记录
+
+- 每个 Codex 窗口开始任务前，都应先阅读本文件，理解盐憩的长期规则、当前约定和最近修改。
+- 每次对项目做出实际修改后，都要在本节下方的“修改记录”里追加一条记录。
+- 记录应写清楚：日期、任务目的、改动文件、具体改了什么、验证方式或尚未验证的原因。
+- 如果只是查看、分析、讨论方案，没有改动文件，可以不写入修改记录。
+- 后续记录按时间倒序追加，最新记录放在最上方。
+
+### 修改记录
+
+#### 2026-04-24
+
+- 任务目的：精修 `index.html` 潜前门厅登录页，让输入状态、Entrance Progress、右侧控制台、左侧档案卡和登录按钮更有入口动作感。
+- 改动文件：`site/index.html`、`site/css/login.css`、`site/js/auth.js`、`AGENTS.md`
+- 具体改动：为左侧门厅档案三项增加状态标记，收短登录/注册 placeholder；将 Entrance Progress 改为分段水位联动并加入数字缓动与 ready 停驻；补强输入框 default / focus / filled 三态、右侧表单阅读雾层、左侧进度点亮和登录按钮推进/下潜/进入主线反馈。
+- 验证方式：已通过 `node --check site/js/auth.js`；使用 Playwright 检查 1440×900 与 390×844 下登录输入、记住我、100% ready、注册切换和提交按钮状态；通过 `npm.cmd run perf:pages`，确认 index/home/trip/contact 页面关键选择器、控制台错误和页面错误均正常。
+
+#### 2026-04-24
+
+- 任务目的：收掉首页首屏竹签卡片拖拽结束后快停时的轻微抖动，让停驻更像水下阻尼贴合。
+- 改动文件：`site/js/home.js`、`AGENTS.md`
+- 具体改动：给松手速度增加停顿时间衰减，避免手指/鼠标停住后仍沿用旧高速；移除低速吸附开始和吸附完成时的额外震动注入；将 snap 阶段的下坠补偿改为按进入速度衰减，并提高阻尼、降低弹簧力度。
+- 验证方式：已通过 `node --check site/js/home.js`；使用 Playwright 模拟桌面端快速拖拽后停顿 320ms 再松手，确认松手后 120ms 轨道仅缓慢贴合约 6px；另验证快速拖拽后立即松手仍保留惯性滑动。
+
+#### 2026-04-24
+
+- 任务目的：二次修正海域定位台 `sea-atlas-dossier-view.is-active` 下方被隐藏视图撑出的空白。
+- 改动文件：`site/css/detail.css`、`AGENTS.md`
+- 具体改动：让 `sea-atlas-dossier-map` 的网格项按顶部对齐；把非激活 dossier 视图改为绝对定位，使隐藏的路线视图不再参与高度计算；同时取消基础 dossier 最小高度，让当前激活层按自身内容收口。
+- 验证方式：使用 Playwright 打开 `detail.html?id=1` 并滚动到海图区，检查 1365×900 与 1920×1280 两个尺寸；`location` 与 `route` 激活视图的 `activeContentGap` 均为 0，`dossierBottomGap` 均为 23px，且无裁切；另保存截图 `tools/qa/out/sea-atlas-dossier-location-after.png` 做视觉确认；随后通过 `npm.cmd run perf:detail`，确认详情页海图加载和全屏海图交互正常。
+
+#### 2026-04-24
+
+- 任务目的：修复移动端滚动到首屏竹签右按钮附近时，Sea Guide 透明外层拦截点击导致右按钮失灵的问题。
+- 改动文件：`site/css/home.css`、`AGENTS.md`
+- 具体改动：将 `.sea-guide-home.is-visible` 外层保持为 `pointer-events: none`，继续让 `.sea-guide-trigger` 和展开后的 `.sea-guide-panel` 自己接收点击，避免不可见容器覆盖竹签滚动按钮。
+- 验证方式：使用 Playwright 分别在 1440px 桌面视口和 390px 移动视口点击 `#scroll-right`，确认命中元素为按钮内 SVG 且轨道 transform 发生变化；另验证 Sea Guide trigger 仍可点击展开。
+
+#### 2026-04-24
+
+- 任务目的：升级首页首屏 `hero-bamboo-cards-wrapper` 的竹签卡片滚动，让拖拽、松手、惯性和停驻更像水下有重量的物理滑动。
+- 改动文件：`site/js/home.js`、`site/css/home.css`、`AGENTS.md`
+- 具体改动：在 `BambooScroll` 中加入 hero-only 物理强度、松手水阻衰减、最近卡位弹簧吸附，以及卡片重力下坠、倾角、横向 roll 和压力阴影变量；在首页首屏竹签轨道样式中加入透视、变换重心和随物理变量变化的阴影，lite 档保留轻量效果。
+- 验证方式：已通过 `node --check site/js/home.js`；使用 Playwright 打开本地 `home.html` 做 1440px 桌面拖拽验证，确认无控制台错误且 `--gravity-y`、`--tilt-r`、`--roll-y`、`--physics-shadow-blur` 会随拖拽写入；使用 390px 移动视口做轻量档 smoke，确认无控制台错误。
+
+#### 2026-04-24
+
+- 任务目的：重塑 `trip.html` 首屏 `trip-hero-stage`，减少多层玻璃卡片堆叠感，让行程页入口更像安静下潜的规划舱。
+- 改动文件：`site/trip.html`、`site/css/trip.css`、`AGENTS.md`
+- 具体改动：精简首屏文案和按钮语气；将 hero 文案与 Current Descent 调成桌面双栏；弱化外层 stage 边框、阴影与内描边，改用雾光和细深度线；把 Current Descent 三张卡改为轻量下潜进度带；同步收敛 planner capsule 和潮汐刻度节点的卡片感。
+- 验证方式：已通过 `git diff --check`；使用本地 Node 静态服务器与 Playwright 检查 `trip.html` 桌面、平板、手机首屏截图，确认 Current Descent 无卡片背景和溢出；滚动到 planner capsule 检查舱体显现；交互验证海域、日期、人数浮层均可打开并写入草稿。
+
+#### 2026-04-24
+
+- 任务目的：收紧详情页海域定位台里 `sea-atlas-dossier-view` 下方的留白，让活跃卡片底部不再拖得过长。
+- 改动文件：`site/css/detail.css`、`AGENTS.md`
+- 具体改动：将 `sea-atlas-dossier` 的最小高度改为随视口收敛的 `clamp()` 值，并同步收紧内边距，让 dossier 区块更贴近内容而不是被固定高度撑空。
+- 验证方式：已通过 `git diff` 确认只调整了 dossier 区块的高度与内边距；尚未做浏览器回归。
+
+#### 2026-04-24
+
+- 任务目的：优化 `detail.html` 评论区图片的流光幕布效果，避免静态遮罩盖住照片。
+- 改动文件：`site/css/detail.css`、`AGENTS.md`
+- 具体改动：将评论卡与评论详情弹层里的图片伪元素拆分为底部柔和暗雾和默认移出画面的窄流光层；流光仅在 hover / focus 时轻扫，caption 层级提高到暗雾和流光之上。
+- 验证方式：使用 Playwright 打开本地 `detail.html?id=1`，检查评论卡、评论详情弹层和移动端评论图；确认默认流光层透明并移出照片外，hover / focus 时才扫过，lightbox 仍可打开。
+
+- 任务目的：建立 Codex 跨窗口可见的长期协作说明和修改记录入口。
+- 改动文件：`AGENTS.md`
+- 具体改动：在项目长期规则中新增“Codex 协作与修改记录”区域，要求后续每次实际修改都把改动内容写回本文件。
+- 验证方式：确认 `AGENTS.md` 位于项目根目录，便于 Codex 新窗口读取。
+
 ## 长期判断标准
 
 如果后续某个改动完成后，用户看到它的感觉更像：

@@ -146,6 +146,37 @@ function navigateWithDepth(url) {
     window.location.href = url;
 }
 
+/**
+ * hasActiveTripPageEntryTransition() - 判断行程页是否正在承接跨页潜浮入场
+ * @returns {boolean} - 是否处于跨页入场阶段
+ */
+function hasActiveTripPageEntryTransition() {
+    const body = document.body;
+    if (!body || !body.classList.contains('page-transition-active')) {
+        return false;
+    }
+
+    return [
+        'page-enter-from-bottom',
+        'page-enter-from-top',
+        'page-ocean-dive-enter',
+        'page-ocean-surface-enter',
+        'page-ocean-swim-enter'
+    ].some((className) => body.classList.contains(className));
+}
+
+/**
+ * settleTripLocalEntryDuringDepthTransition() - 跨页入场时先固定本页首屏显现，避免和主潜浮动画叠帧
+ * @returns {void}
+ */
+function settleTripLocalEntryDuringDepthTransition() {
+    if (!hasActiveTripPageEntryTransition()) {
+        return;
+    }
+
+    document.body.classList.add('trip-depth-entry-settled');
+}
+
 // 页面内滚动工具：负责行程页导航与按钮在不。section 之间做平滑移动。
 /**
  * scrollToSection(targetSelector, duration) - 平滑滚动到行程页指定区块
@@ -4785,6 +4816,7 @@ function setupConfirmedBookingsStage() {
  * @returns {void} - 无返回值，直接启动页面逻辑
  */
 document.addEventListener('DOMContentLoaded', () => {
+    settleTripLocalEntryDuringDepthTransition();
     setupTripScrollLinks();
     new TripSeaGuide();
     setupPlannerSummary();

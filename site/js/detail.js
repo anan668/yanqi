@@ -1752,6 +1752,7 @@ class DetailPage {
         this.bookingFocusSummary = document.getElementById('bookingFocusSummary');
         this.bookingFocusEchoSlot = document.getElementById('bookingFocusEchoSlot');
         this.bookingFocusAction = document.getElementById('bookingFocusAction');
+        this.readinessCard = document.getElementById('detailReadinessCard');
         this.detailDebugEchoResetButton = document.getElementById('detailDebugEchoReset');
         this.detailDebugEchoResetState = this.detailDebugEchoResetButton?.querySelector('[data-detail-debug-echo-reset-state]') || null;
         this.detailDebugEchoResetFeedbackTimer = 0;
@@ -2871,6 +2872,7 @@ class DetailPage {
         this.renderTag('depthTag', '深度', this.spotData.depth);
         this.renderTag('seasonTag', '最佳季节', this.spotData.season);
         this.syncDepthGaugeProfile();
+        this.renderReadinessCard();
 
         const heroImage = document.querySelector('.hero-image');
         if (heroImage) {
@@ -8391,6 +8393,158 @@ class DetailPage {
         return sharedSpotWindowConfig?.getBySpotId?.(spotId) || this.windowConfig || null;
     }
 
+    getReadinessStatusLabel(tone) {
+        const labels = {
+            ready: '适合靠近',
+            check: '先做适应潜',
+            caution: '暂缓主线',
+            quiet: '正在判断'
+        };
+        return labels[String(tone || '').trim()] || labels.quiet;
+    }
+
+    createReadinessChipMarkup(chip) {
+        return `<span class="detail-readiness-chip">${escapeHtml(chip)}</span>`;
+    }
+
+    createReadinessCertificationMarkup(currentLevel = '') {
+        const certificationOptions = [
+            { value: 'beginner', label: '体验 / 刚开始', note: '先在浅层找呼吸' },
+            { value: 'ow', label: 'OW', note: '开放水域节奏' },
+            { value: 'aow', label: 'AOW', note: '可进入更深一层' },
+            { value: 'advanced', label: 'AOW+', note: '流区与深蓝经验' }
+        ];
+
+        return `
+            <div class="detail-readiness-cert-panel">
+                <p class="detail-readiness-cert-intro">还没有读到你的潜水者档案。先落下一枚证书刻度，这张卡会立刻按你的层级重新判断。</p>
+                <div class="detail-readiness-cert-grid" role="group" aria-label="选择潜水证书水平">
+                    ${certificationOptions.map((option, index) => `
+                        <button
+                            class="detail-readiness-cert ${currentLevel === option.value ? 'is-current' : ''}"
+                            type="button"
+                            data-readiness-cert="${escapeHtml(option.value)}"
+                            aria-pressed="${currentLevel === option.value ? 'true' : 'false'}"
+                            style="--readiness-cert-delay: ${index * 70}ms"
+                        >
+                            <span>${escapeHtml(option.label)}</span>
+                            <small>${escapeHtml(option.note)}</small>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    createReadinessProfileMarkup(profile, readiness) {
+        const profileItems = [
+            ['当前证书', readiness.certificationLabel],
+            ['近期状态', readiness.recentNote],
+            ['海况偏好', readiness.comfortNote]
+        ];
+
+        return `
+            <div class="detail-readiness-profile" aria-label="已保存的潜水者档案">
+                <span class="detail-readiness-profile-label">已按你的证书判断</span>
+                <div class="detail-readiness-profile-grid">
+                    ${profileItems.map(([label, value]) => `
+                        <span class="detail-readiness-profile-item">
+                            <small>${escapeHtml(label)}</small>
+                            <strong>${escapeHtml(value)}</strong>
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderReadinessCard() {
+        if (!this.readinessCard || !sharedDiverProfile?.evaluateSpotReadiness) {
+            return;
+        }
+
+        const hasStoredProfile = Boolean(sharedDiverProfile.hasStoredProfile?.());
+        const profile = hasStoredProfile
+            ? sharedDiverProfile.getProfile?.()
+            : sharedDiverProfile.getDefaultProfile?.();
+        const atlas = this.buildSeaAtlasData();
+        const readiness = sharedDiverProfile.evaluateSpotReadiness({
+            spotId: this.spotId,
+            profile,
+            spotData: this.spotData,
+            atlas
+        });
+        const tone = hasStoredProfile ? readiness.tone : 'quiet';
+        const statusLabel = this.getReadinessStatusLabel(tone);
+        const title = hasStoredProfile ? readiness.title : '先确认你的证书水层';
+        const copy = hasStoredProfile
+            ? readiness.copy
+            : `这片海建议 ${readiness.requiredCert} 起。选完证书后，会把深度、季节、能见度和流况一起压进判断里。`;
+        const stateCopy = hasStoredProfile ? '已按你的证书判断' : '等待证书刻度';
+        const chips = Array.isArray(readiness.chips) ? readiness.chips : [];
+        const displayChips = hasStoredProfile
+            ? chips
+            : chips.map((chip) => (
+                /^证书\s/.test(chip) ? '证书 待选择' : chip
+            ));
+        const chipMarkup = displayChips.map((chip) => this.createReadinessChipMarkup(chip)).join('');
+        const profileMarkup = hasStoredProfile
+            ? this.createReadinessProfileMarkup(profile, readiness)
+            : this.createReadinessCertificationMarkup('');
+        const certificationPanelTitle = hasStoredProfile
+            ? readiness.certificationLabel
+            : '待选择证书';
+        const certificationPanelCopy = hasStoredProfile
+            ? (readiness.isCertMatched
+                ? `这片海建议 ${readiness.requiredCert} 起，证书层级已经对齐。`
+                : `这片海建议 ${readiness.requiredCert} 起，先别把自己推到主线。`)
+            : `这片海建议 ${readiness.requiredCert} 起，先把你的证书刻度落下来。`;
+        const conditionPanelCopy = hasStoredProfile
+            ? `近期状态：${readiness.recentNote || '待确认'}；偏好：${readiness.comfortNote || '待确认'}。`
+            : '近期状态与海况偏好会先沿用默认慢潜档案，之后可在首页匹配里补细。';
+        const conditionPanelTitle = hasStoredProfile
+            ? readiness.currentNote
+            : '先按这片海的流况与季节做轻判断';
+
+        this.readinessCard.dataset.readinessTone = tone;
+        this.readinessCard.innerHTML = `
+            <div class="detail-readiness-status">
+                <span class="detail-readiness-glow" aria-hidden="true"></span>
+                <div class="detail-readiness-state">
+                    <span class="detail-readiness-state-dot" aria-hidden="true"></span>
+                    <span class="detail-readiness-state-label">${escapeHtml(statusLabel)}</span>
+                    <span class="detail-readiness-state-copy">${escapeHtml(stateCopy)}</span>
+                </div>
+                <p class="detail-readiness-kicker">Dive Readiness</p>
+                <h2 class="detail-readiness-title" id="detailReadinessTitle">${escapeHtml(title)}</h2>
+                <p class="detail-readiness-copy">${escapeHtml(copy)}</p>
+                <div class="detail-readiness-chips" aria-label="适潜判断依据">
+                    ${chipMarkup}
+                </div>
+            </div>
+
+            <div class="detail-readiness-panels">
+                <div class="detail-readiness-panel">
+                    <span class="detail-readiness-panel-label">证书匹配</span>
+                    <strong>${escapeHtml(certificationPanelTitle || '')}</strong>
+                    <p>${escapeHtml(certificationPanelCopy)}</p>
+                </div>
+                <div class="detail-readiness-panel">
+                    <span class="detail-readiness-panel-label">海况要点</span>
+                    <strong>${escapeHtml(conditionPanelTitle || '')}</strong>
+                    <p>${escapeHtml(conditionPanelCopy)}</p>
+                </div>
+            </div>
+
+            ${profileMarkup}
+
+            <div class="detail-readiness-actions">
+                <a href="#spotOverview" class="detail-readiness-link">继续看海域档案</a>
+                <a href="#bookingPackages" class="detail-readiness-link detail-readiness-link-secondary">对照右侧安排</a>
+            </div>
+        `;
+    }
+
     getPackageFitResult(pkg) {
         return sharedDiverProfile?.evaluatePackageFit?.({
             profile: this.diverProfile,
@@ -8460,7 +8614,7 @@ class DetailPage {
             const cadenceStayCopy = this.getPackageCadenceStayCopy(pkg);
             const focusCopy = this.getPackageFocusCopy(pkg);
             const guidanceCopy = getLeadingSentence(pkg.pace || pkg.mood || pkg.fitReason);
-            const actionCopy = isBooked ? '再看这套安排' : '继续了解';
+            const actionCopy = isBooked ? '再看这套安排' : '慢慢读完';
             const stageLabel = `Sea Layer ${String(index + 1).padStart(2, '0')}`;
 
             return `
@@ -8469,7 +8623,7 @@ class DetailPage {
                     data-package-id="${pkg.id}"
                     data-package-flow-index="${index + 1}"
                     tabindex="0"
-                    aria-label="${pkg.name}，查看详情"
+                    aria-label="${pkg.name}，读完整安排"
                     style="animation-delay: ${index * 0.08}s"
                 >
                     <div class="package-card-head">
@@ -9303,11 +9457,11 @@ class DetailPage {
         }
 
         const filters = [
-            { key: 'all', label: '全部' },
-            { key: 'diving', label: '潜水体验' },
-            { key: 'stay', label: '住宿' },
-            { key: 'food', label: '饮食' },
-            { key: 'scenery', label: '风景' }
+            { key: 'all', label: '全部回声' },
+            { key: 'diving', label: '水下' },
+            { key: 'stay', label: '停宿' },
+            { key: 'food', label: '餐桌' },
+            { key: 'scenery', label: '岸上光线' }
         ];
 
         if (this.reviewsFilters) {
@@ -9387,7 +9541,7 @@ class DetailPage {
                     <p class="review-summary">${review.summary}</p>
                     <div class="review-actions">
                         <button type="button" class="review-expand">展开全文</button>
-                        <button type="button" class="review-detail-trigger" data-review-id="${review.id}">查看详情</button>
+                        <button type="button" class="review-detail-trigger" data-review-id="${review.id}">读完整回声</button>
                     </div>
 
                     <div class="review-dimensions">
@@ -9396,15 +9550,15 @@ class DetailPage {
                             <p class="review-dimension-text">${review.diving}</p>
                         </div>
                         <div class="review-dimension">
-                            <span class="review-dimension-title">酒店住宿</span>
+                            <span class="review-dimension-title">停宿</span>
                             <p class="review-dimension-text">${review.stay}</p>
                         </div>
                         <div class="review-dimension">
-                            <span class="review-dimension-title">饮食</span>
+                            <span class="review-dimension-title">餐桌</span>
                             <p class="review-dimension-text">${review.food}</p>
                         </div>
                         <div class="review-dimension">
-                            <span class="review-dimension-title">风景感受</span>
+                            <span class="review-dimension-title">岸上光线</span>
                             <p class="review-dimension-text">${review.scenery}</p>
                         </div>
                     </div>
@@ -10392,15 +10546,15 @@ class DetailPage {
                             <p>${review.diving}</p>
                         </article>
                         <article class="review-detail-section">
-                            <span class="review-detail-section-title">酒店住宿</span>
+                            <span class="review-detail-section-title">停宿</span>
                             <p>${review.stay}</p>
                         </article>
                         <article class="review-detail-section">
-                            <span class="review-detail-section-title">饮食</span>
+                            <span class="review-detail-section-title">餐桌</span>
                             <p>${review.food}</p>
                         </article>
                         <article class="review-detail-section">
-                            <span class="review-detail-section-title">风景感受</span>
+                            <span class="review-detail-section-title">岸上光线</span>
                             <p>${review.scenery}</p>
                         </article>
                     </section>
@@ -14250,6 +14404,29 @@ class DetailPage {
             });
         }
 
+        if (this.readinessCard) {
+            this.readinessCard.addEventListener('click', (event) => {
+                const certButton = event.target.closest('[data-readiness-cert]');
+                if (!certButton || !this.readinessCard.contains(certButton)) {
+                    return;
+                }
+
+                const certificationLevel = certButton.dataset.readinessCert;
+                const certificationOptions = sharedDiverProfile?.FIELD_OPTIONS?.certificationLevel || {};
+                if (!certificationLevel || !Object.prototype.hasOwnProperty.call(certificationOptions, certificationLevel)) {
+                    return;
+                }
+
+                this.diverProfile = sharedDiverProfile.saveProfile({
+                    ...(sharedDiverProfile.getDefaultProfile?.() || {}),
+                    certificationLevel
+                });
+                this.renderReadinessCard();
+                this.renderItineraries();
+                this.syncBookingReadingGuide({ force: true, immediate: true });
+            });
+        }
+
         if (this.mapContainer) {
             this.mapContainer.addEventListener('click', (event) => {
                 const tabButton = event.target.closest('.sea-atlas-tab');
@@ -15397,6 +15574,34 @@ class DetailPage {
         }
 
         const direction = targetId > this.spotId ? 'forward' : 'backward';
+        const handledInDocument = this.startInDocumentDetailSwap(targetId, {
+            direction
+        });
+
+        if (handledInDocument) {
+            this.relatedTransitionCleanupTimer = window.setTimeout(() => {
+                this.relatedTransitionCleanupTimer = 0;
+                if (sourceElement) {
+                    sourceElement.classList.remove('is-pressed');
+                }
+                if (this.relatedGrid) {
+                    this.relatedGrid.classList.remove('is-navigating');
+                }
+                sourceCard?.classList.remove('is-leaving');
+                this.clearPressedRelatedCard(sourceCard || sourceElement);
+            }, DETAIL_SWAP_DURATION_MS + 160);
+            return;
+        }
+
+        if (this.isInDocumentDetailSwapping) {
+            if (sourceElement) {
+                sourceElement.classList.remove('is-pressed');
+            }
+            sourceCard?.classList.remove('is-leaving');
+            this.relatedGrid?.classList.remove('is-navigating');
+            return;
+        }
+
         const currentDepth = window.DepthManager && typeof window.DepthManager.getCurrentDepth === 'function'
             ? window.DepthManager.getCurrentDepth()
             : -54;
