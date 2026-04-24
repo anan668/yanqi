@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/depth-gauge.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
-<body class="login-page is-auth-login" data-auth-mode="login">
+<body class="login-page is-auth-login" data-auth-mode="login" data-auth-progress-state="idle" data-auth-progress-step="idle">
     <!-- 页面过渡遮罩：登录页进入首页时会先经过这一层，避免跳转像普通切页。 -->
     <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
 
@@ -123,10 +123,10 @@
                                         <span class="side-waterline-label">Entrance Progress</span>
                                         <span class="side-waterline-value" id="sideWaterlineValue">0%</span>
                                     </div>
-                                    <span class="side-waterline-track" role="progressbar" aria-label="进入进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="sideWaterlineTrack">
+                                    <span class="side-waterline-track" role="progressbar" aria-label="进入进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-progress-state="idle" data-progress-step="idle" id="sideWaterlineTrack">
                                         <span class="side-waterline-fill" id="sideWaterlineFill"></span>
                                     </span>
-                                    <p class="side-waterline-status" id="sideWaterlineStatus">这一层还在等你慢慢写下第一个入口。</p>
+                                    <p class="side-waterline-status" id="sideWaterlineStatus" aria-live="polite">这一层还在等你慢慢写下第一个入口。</p>
                                 </div>
                             </div>
                         </aside>

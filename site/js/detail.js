@@ -29,8 +29,10 @@ const PACKAGE_MODAL_DURATION_MIN_DAYS = 2;
 const PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS = 6;
 const PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS = 12;
 const BOOKING_MATCH_CONFIRM_CLOSE_DURATION = 380;
-const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS = 300;
-const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_FALLBACK_MS = BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS + 120;
+const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS = 560;
+const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_FALLBACK_MS = BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS + 200;
+const BOOKING_STICKY_FOCUS_CONTEXT_ENTER_FADE_MS = 280;
+const BOOKING_STICKY_FOCUS_CONTEXT_EXIT_FADE_MS = 180;
 const BOOKING_STICKY_DESKTOP_FOCUS_CONTEXT_MIN_WIDTH = 1025;
 const DETAIL_SPOT_DATA_SCRIPT_SRC_ATTRIBUTE = 'data-detail-spot-data-src';
 const DETAIL_SPOT_DATA_SCRIPT_ID_ATTRIBUTE = 'data-detail-spot-data-id';
@@ -3512,7 +3514,7 @@ class DetailPage {
 
     /**
      * setBookingStickyFocusContextMotionState() - 设置 focus-only 过渡中的 motion 子阶段。
-     * @param {string} state - entering / leaving-prep / leaving / settling / ''
+     * @param {string} state - entering-prep / entering / leaving-prep / leaving / settling / ''
      * @returns {void}
      */
     setBookingStickyFocusContextMotionState(state) {
@@ -3520,7 +3522,7 @@ class DetailPage {
             return;
         }
 
-        const normalizedState = ['entering', 'leaving-prep', 'leaving', 'settling'].includes(state)
+        const normalizedState = ['entering-prep', 'entering', 'leaving-prep', 'leaving', 'settling'].includes(state)
             ? state
             : '';
         if (normalizedState) {
@@ -3580,6 +3582,95 @@ class DetailPage {
     }
 
     /**
+     * setBookingFocusPanelCommitOffset() - 写入焦点舱布局提交时的 FLIP 位移补偿。
+     * @param {number} offset - 需要补偿的 Y 轴像素值
+     * @returns {number}
+     */
+    setBookingFocusPanelCommitOffset(offset) {
+        if (!this.bookingFocusPanel) {
+            return 0;
+        }
+
+        const safeOffset = Math.round(Number(offset) || 0);
+        if (Math.abs(safeOffset) < 1) {
+            this.bookingFocusPanel.style.removeProperty('--booking-focus-panel-commit-translate-y');
+            return 0;
+        }
+
+        this.bookingFocusPanel.style.setProperty('--booking-focus-panel-commit-translate-y', `${safeOffset}px`);
+        return safeOffset;
+    }
+
+    /**
+     * resetBookingFocusPanelCommitMotion() - 清掉焦点舱布局补偿的临时样式。
+     * @returns {void}
+     */
+    resetBookingFocusPanelCommitMotion() {
+        if (!this.bookingFocusPanel) {
+            return;
+        }
+
+        this.bookingFocusPanel.style.removeProperty('--booking-focus-panel-commit-translate-y');
+        this.bookingFocusPanel.style.removeProperty('transition');
+    }
+
+    /**
+     * prepareBookingFocusPanelCommitMotion() - 在布局切换后把焦点舱视觉位置先补回切换前。
+     * @param {DOMRect|null} beforeRect - 切换布局前的焦点舱位置
+     * @returns {number}
+     */
+    prepareBookingFocusPanelCommitMotion(beforeRect) {
+        if (!this.bookingFocusPanel || !beforeRect) {
+            return 0;
+        }
+
+        const afterRect = this.bookingFocusPanel.getBoundingClientRect();
+        const offset = beforeRect.top - afterRect.top;
+        if (Math.abs(offset) < 1) {
+            this.setBookingFocusPanelCommitOffset(0);
+            return 0;
+        }
+
+        this.bookingFocusPanel.style.transition = 'none';
+        const appliedOffset = this.setBookingFocusPanelCommitOffset(offset);
+        void this.bookingFocusPanel.offsetHeight;
+        this.bookingFocusPanel.style.removeProperty('transition');
+        return appliedOffset;
+    }
+
+    /**
+     * finishBookingFocusPanelCommitMotion() - 让焦点舱从补偿位移回到当前布局位置。
+     * @param {Function} [afterMotion] - 位移过渡完成后的收尾动作
+     * @returns {void}
+     */
+    finishBookingFocusPanelCommitMotion(afterMotion = null) {
+        if (!this.bookingFocusPanel) {
+            if (typeof afterMotion === 'function') {
+                afterMotion();
+            }
+            return;
+        }
+
+        if (this.bookingStickyFocusContextCommitTimer) {
+            window.clearTimeout(this.bookingStickyFocusContextCommitTimer);
+            this.bookingStickyFocusContextCommitTimer = 0;
+        }
+
+        this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+            this.bookingStickyFocusContextRaf = 0;
+            this.setBookingFocusPanelCommitOffset(0);
+
+            this.bookingStickyFocusContextCommitTimer = window.setTimeout(() => {
+                this.bookingStickyFocusContextCommitTimer = 0;
+                this.resetBookingFocusPanelCommitMotion();
+                if (typeof afterMotion === 'function') {
+                    afterMotion();
+                }
+            }, BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS + 80);
+        });
+    }
+
+    /**
      * armBookingStickyFocusContextFallback() - 为 focus-only 动画阶段挂一个 transitionend 兜底。
      * @param {'entering'|'leaving'} direction - 当前等待结束的方向
      * @returns {void}
@@ -3620,6 +3711,7 @@ class DetailPage {
                 return;
             }
 
+            const focusPanelBeforeRect = this.bookingFocusPanel?.getBoundingClientRect?.() || null;
             this.setBookingStickyFocusContextMotionState('settling');
             this.setBookingStickyFocusContextPhase('');
             this.applyBookingStickyFocusOnlyState(true);
@@ -3627,13 +3719,20 @@ class DetailPage {
             this.bookingStickyScrollTargetTop = 0;
             this.bookingStickyFocusContextState = 'focus';
             this.applyPackageCardSelectionState(targetPackageId);
+            const commitOffset = this.prepareBookingFocusPanelCommitMotion(focusPanelBeforeRect);
 
-            this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
-                this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
-                    this.bookingStickyFocusContextRaf = 0;
+            if (commitOffset) {
+                this.finishBookingFocusPanelCommitMotion(() => {
                     this.setBookingStickyFocusContextMotionState('');
                     this.applyPackageCardSelectionState(targetPackageId);
                 });
+                return;
+            }
+
+            this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+                this.bookingStickyFocusContextRaf = 0;
+                this.setBookingStickyFocusContextMotionState('');
+                this.applyPackageCardSelectionState(targetPackageId);
             });
             return;
         }
@@ -3692,6 +3791,8 @@ class DetailPage {
             window.cancelAnimationFrame(this.bookingStickyFocusContextRaf);
             this.bookingStickyFocusContextRaf = 0;
         }
+
+        this.resetBookingFocusPanelCommitMotion();
     }
 
     /**
@@ -3769,10 +3870,29 @@ class DetailPage {
             this.bookingStickyScrollTargetTop = this.bookingStickyListContextScrollTop;
             this.bookingStickyFocusContextState = 'entering';
             this.applyBookingStickyFocusOnlyState(false);
-            this.setBookingStickyFocusContextPhase('entering');
-            this.setBookingStickyFocusContextMotionState('entering');
-            this.armBookingStickyFocusContextFallback('entering');
+            this.setBookingStickyFocusContextPhase('');
+            this.setBookingStickyFocusContextMotionState('entering-prep');
             this.applyPackageCardSelectionState(packageId);
+
+            this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+                this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
+                    this.bookingStickyFocusContextRaf = 0;
+                    if (!this.bookingSticky || this.bookingStickyFocusContextState !== 'entering') {
+                        return;
+                    }
+
+                    this.bookingFocusContextPhaseTimer = window.setTimeout(() => {
+                        this.bookingFocusContextPhaseTimer = 0;
+                        if (!this.bookingSticky || this.bookingStickyFocusContextState !== 'entering') {
+                            return;
+                        }
+
+                        this.setBookingStickyFocusContextPhase('entering');
+                        this.setBookingStickyFocusContextMotionState('entering');
+                        this.armBookingStickyFocusContextFallback('entering');
+                    }, BOOKING_STICKY_FOCUS_CONTEXT_ENTER_FADE_MS);
+                });
+            });
             return;
         }
 
@@ -3798,6 +3918,7 @@ class DetailPage {
             return;
         }
 
+        const focusPanelBeforeRect = this.bookingFocusPanel?.getBoundingClientRect?.() || null;
         this.clearBookingStickyFocusContextTransition();
         this.bookingStickyFocusContextState = 'leaving';
         this.measureBookingStickyFocusContextShift();
@@ -3805,6 +3926,7 @@ class DetailPage {
         this.setBookingStickyFocusContextPhase('leaving');
         this.applyBookingStickyFocusOnlyState(false);
         this.applyPackageCardSelectionState(packageId);
+        this.prepareBookingFocusPanelCommitMotion(focusPanelBeforeRect);
 
         this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
             this.bookingStickyFocusContextRaf = window.requestAnimationFrame(() => {
@@ -3813,12 +3935,20 @@ class DetailPage {
                     return;
                 }
 
-                const maxScrollTop = this.getBookingStickyMaxScrollTop();
-                const restoreTop = Math.max(0, Math.min(this.bookingStickyListContextScrollTop || 0, maxScrollTop));
-                this.bookingStickyScrollTargetTop = restoreTop;
-                this.bookingSticky.scrollTop = restoreTop;
-                this.setBookingStickyFocusContextMotionState('leaving');
-                this.armBookingStickyFocusContextFallback('leaving');
+                this.bookingFocusContextPhaseTimer = window.setTimeout(() => {
+                    this.bookingFocusContextPhaseTimer = 0;
+                    if (!this.bookingSticky || this.bookingStickyFocusContextState !== 'leaving') {
+                        return;
+                    }
+
+                    const maxScrollTop = this.getBookingStickyMaxScrollTop();
+                    const restoreTop = Math.max(0, Math.min(this.bookingStickyListContextScrollTop || 0, maxScrollTop));
+                    this.bookingStickyScrollTargetTop = restoreTop;
+                    this.bookingSticky.scrollTop = restoreTop;
+                    this.setBookingStickyFocusContextMotionState('leaving');
+                    this.setBookingFocusPanelCommitOffset(0);
+                    this.armBookingStickyFocusContextFallback('leaving');
+                }, BOOKING_STICKY_FOCUS_CONTEXT_EXIT_FADE_MS);
             });
         });
     }

@@ -480,6 +480,30 @@ body.page-transition-active .login-stage-hud {
     z-index: 1;
 }
 
+.login-stage-divider::before,
+.login-stage-divider::after {
+    content: "";
+    position: absolute;
+    top: 8%;
+    bottom: 8%;
+    width: 56px;
+    pointer-events: none;
+}
+
+.login-stage-divider::before {
+    right: -8px;
+    background: linear-gradient(90deg, rgba(214, 238, 247, 0.12), transparent 78%);
+    filter: blur(18px);
+    opacity: 0.78;
+}
+
+.login-stage-divider::after {
+    left: -8px;
+    background: linear-gradient(90deg, transparent 18%, rgba(119, 187, 216, 0.12) 100%);
+    filter: blur(18px);
+    opacity: 0.56;
+}
+
 /* .glass-card::before：前置高光层，给观察舱加一层缓慢扫过的冷白雾光。*/
 .glass-card::before {
     content: "";
@@ -558,7 +582,8 @@ body.page-transition-active .login-stage-hud {
     inset: 0;
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
-        linear-gradient(135deg, rgba(163, 209, 229, 0.04), transparent 38%);
+        linear-gradient(135deg, rgba(163, 209, 229, 0.04), transparent 38%),
+        linear-gradient(90deg, transparent 68%, rgba(165, 214, 233, 0.07) 100%);
     pointer-events: none;
 }
 
@@ -607,7 +632,7 @@ body.page-transition-active .login-stage-hud {
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
     width: min(352px, 100%);
 }
 
@@ -622,13 +647,14 @@ body.page-transition-active .login-stage-hud {
     background:
         linear-gradient(180deg, rgba(244, 250, 254, 0.08), rgba(138, 194, 220, 0.04)),
         rgba(8, 31, 48, 0.28);
-    color: rgba(222, 239, 246, 0.76);
+    color: rgba(236, 247, 252, 0.88);
     font-size: 0.72rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     box-shadow:
         0 12px 24px rgba(3, 14, 25, 0.14),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    text-shadow: 0 6px 14px rgba(3, 14, 25, 0.18);
 }
 
 /* side-kicker：
@@ -638,7 +664,7 @@ body.page-transition-active .login-stage-hud {
     font-size: 0.7rem;
     letter-spacing: 0.34em;
     text-transform: uppercase;
-    color: rgba(229, 238, 245, 0.52);
+    color: rgba(236, 244, 249, 0.7);
 }
 
 /* .side-title：左侧品牌主标题，是整页唯一明确的品牌锚点。*/
@@ -649,7 +675,9 @@ body.page-transition-active .login-stage-hud {
     font-size: clamp(3.1rem, 5.2vw, 4.9rem);
     letter-spacing: 0.12em;
     color: #f5f5f5;
-    text-shadow: 0 10px 30px rgba(2, 14, 25, 0.36);
+    text-shadow:
+        0 10px 30px rgba(2, 14, 25, 0.36),
+        0 0 18px rgba(197, 230, 242, 0.08);
     margin: 0;
 }
 
@@ -661,71 +689,105 @@ body.page-transition-active .login-stage-hud {
 /* side-quote：
    这是品牌区最明确的一句引导，语气更稳、权重高于补充文案。 */
 .side-quote {
-    margin: 2px 0 0;
+    margin: 0;
     max-width: 13em;
-    font-size: clamp(1rem, 1.06vw, 1.12rem);
-    line-height: 1.72;
-    color: rgba(244, 248, 252, 0.92);
+    font-size: clamp(1.04rem, 1.12vw, 1.18rem);
+    line-height: 1.7;
+    color: rgba(247, 250, 252, 0.98);
+    text-shadow: 0 8px 22px rgba(3, 15, 27, 0.16);
 }
 
 /* side-meta：
    最后一层补充文案只保留一句，帮助用户把岸上的节奏放下。 */
 .side-meta {
-    margin: 2px 0 0;
+    margin: -4px 0 0;
     max-width: 18em;
     font-size: 0.9rem;
     line-height: 1.72;
-    color: rgba(224, 236, 243, 0.78);
+    color: rgba(233, 242, 247, 0.88);
 }
 
 .side-observatory {
-    margin-top: 2px;
-    padding: 14px 16px 12px;
+    position: relative;
+    margin-top: 4px;
+    padding: 15px 16px 14px;
     border-radius: 20px;
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(161, 202, 221, 0.04)),
-        rgba(8, 31, 49, 0.34);
-    border: 1px solid rgba(211, 238, 247, 0.12);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(161, 202, 221, 0.05)),
+        rgba(8, 31, 49, 0.38);
+    border: 1px solid rgba(211, 238, 247, 0.14);
     box-shadow:
         0 18px 34px rgba(2, 12, 21, 0.18),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
+.side-observatory::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(90deg, rgba(208, 235, 245, 0.08), transparent 34%),
+        radial-gradient(circle at 82% 18%, rgba(217, 241, 249, 0.08), transparent 24%);
+    pointer-events: none;
+    opacity: 0.84;
+}
+
 .side-observatory-title {
     margin: 0 0 10px;
-    color: rgba(239, 248, 252, 0.86);
-    font-size: 0.9rem;
-    line-height: 1.64;
+    color: rgba(244, 249, 252, 0.94);
+    font-size: 0.92rem;
+    line-height: 1.62;
 }
 
 .side-observatory-grid {
     display: grid;
-    gap: 8px;
+    gap: 10px;
 }
 
 .side-observatory-item {
     margin: 0;
     display: grid;
-    gap: 3px;
+    gap: 4px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(214, 238, 247, 0.08);
+}
+
+.side-observatory-item:first-child {
+    padding-top: 0;
+    border-top: none;
 }
 
 .side-observatory-label {
-    color: rgba(194, 223, 234, 0.56);
+    color: rgba(210, 234, 243, 0.72);
     font-size: 0.7rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
 }
 
 .side-observatory-item strong {
-    color: rgba(241, 249, 252, 0.86);
-    font-size: 0.88rem;
+    color: rgba(245, 250, 252, 0.92);
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
 .side-waterline {
+    position: relative;
     margin-top: 0;
     display: grid;
-    gap: 8px;
+    gap: 9px;
+    padding-top: 6px;
+}
+
+.side-waterline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(211, 238, 247, 0.14), transparent 82%);
+    opacity: 0.72;
 }
 
 .side-waterline-head {
@@ -736,16 +798,17 @@ body.page-transition-active .login-stage-hud {
 }
 
 .side-waterline-label {
-    color: rgba(195, 224, 235, 0.56);
+    color: rgba(212, 235, 244, 0.76);
     font-size: 0.72rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
 }
 
 .side-waterline-value {
-    color: rgba(232, 246, 252, 0.82);
-    font-size: 0.74rem;
-    letter-spacing: 0.1em;
+    color: rgba(239, 249, 252, 0.94);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    transition: color 220ms ease, transform 320ms ease;
 }
 
 .side-waterline-track {
@@ -753,7 +816,7 @@ body.page-transition-active .login-stage-hud {
     height: 10px;
     border-radius: 999px;
     overflow: hidden;
-    background: rgba(212, 238, 247, 0.06);
+    background: rgba(212, 238, 247, 0.08);
     border: 1px solid rgba(212, 238, 247, 0.08);
     transition: border-color 220ms ease, box-shadow 320ms ease, background-color 220ms ease;
 }
@@ -764,39 +827,44 @@ body.page-transition-active .login-stage-hud {
     width: var(--waterline-progress, 0%);
     border-radius: inherit;
     background:
-        linear-gradient(90deg, rgba(226, 244, 250, 0.64), rgba(148, 206, 227, 0.3)),
+        linear-gradient(90deg, rgba(235, 247, 251, 0.76), rgba(148, 206, 227, 0.3)),
         rgba(161, 216, 237, 0.22);
-    box-shadow: 0 0 18px rgba(164, 221, 239, 0.18);
+    box-shadow:
+        0 0 18px rgba(164, 221, 239, 0.18),
+        0 0 28px rgba(127, 196, 222, 0.08);
     opacity: 0.92;
     transform-origin: left center;
     transition:
         width 420ms cubic-bezier(0.2, 0.86, 0.24, 1),
         opacity 220ms ease,
         box-shadow 320ms ease,
-        background 320ms ease;
+        background 320ms ease,
+        transform 320ms ease;
 }
 
 .side-waterline-status {
     margin: 0;
-    color: rgba(217, 235, 244, 0.72);
-    font-size: 0.82rem;
-    line-height: 1.58;
+    color: rgba(228, 241, 247, 0.86);
+    font-size: 0.84rem;
+    line-height: 1.6;
     min-height: 2.5em;
-    transition: color 220ms ease;
+    transition: color 220ms ease, transform 320ms ease, opacity 320ms ease;
 }
 
 .login-page[data-auth-progress-state="active"] .side-waterline-track {
     border-color: rgba(188, 228, 242, 0.18);
     box-shadow:
         0 0 0 1px rgba(214, 238, 247, 0.03),
-        0 0 20px rgba(125, 197, 224, 0.08);
+        0 0 20px rgba(125, 197, 224, 0.08),
+        0 0 42px rgba(101, 174, 205, 0.07);
 }
 
 .login-page[data-auth-progress-state="complete"] .side-waterline-track {
     border-color: rgba(214, 239, 247, 0.24);
     box-shadow:
         0 0 0 1px rgba(224, 243, 250, 0.05),
-        0 0 24px rgba(160, 222, 243, 0.12);
+        0 0 24px rgba(160, 222, 243, 0.12),
+        0 0 48px rgba(119, 193, 224, 0.08);
 }
 
 .login-page[data-auth-progress-state="complete"] .side-waterline-fill {
@@ -806,10 +874,46 @@ body.page-transition-active .login-stage-hud {
     box-shadow:
         0 0 20px rgba(179, 232, 248, 0.26),
         0 0 36px rgba(101, 177, 209, 0.12);
+    transform: scaleY(1.04);
 }
 
 .login-page[data-auth-progress-state="complete"] .side-waterline-status {
-    color: rgba(231, 244, 250, 0.82);
+    color: rgba(236, 247, 252, 0.9);
+}
+
+.login-page[data-auth-progress-state="active"] .side-waterline-value,
+.login-page[data-auth-progress-state="complete"] .side-waterline-value {
+    transform: translate3d(0, -1px, 0);
+}
+
+.side-waterline-track.is-pulsing .side-waterline-fill {
+    animation: waterline-swell 620ms cubic-bezier(0.24, 0.82, 0.24, 1);
+}
+
+.side-waterline-value.is-updating {
+    animation: status-breathe 340ms cubic-bezier(0.24, 0.82, 0.24, 1);
+}
+
+.side-waterline-status.is-updating {
+    animation: status-breathe 360ms cubic-bezier(0.24, 0.82, 0.24, 1);
+}
+
+.login-page[data-auth-progress-step="recognizing"] .side-waterline-fill {
+    opacity: 0.96;
+}
+
+.login-page[data-auth-progress-step="opening"] .side-waterline-fill,
+.login-page[data-auth-progress-step="keying"] .side-waterline-fill,
+.login-page[data-auth-progress-step="confirming"] .side-waterline-fill {
+    box-shadow:
+        0 0 18px rgba(174, 228, 245, 0.2),
+        0 0 30px rgba(110, 184, 214, 0.1);
+}
+
+.login-page[data-auth-progress-step="anchored"] .side-waterline-track,
+.login-page[data-auth-progress-step="accord"] .side-waterline-track,
+.login-page[data-auth-progress-step="ready"] .side-waterline-track {
+    border-color: rgba(217, 239, 247, 0.22);
 }
 
 /* 左侧四层文案分开出现。
@@ -860,6 +964,36 @@ body.page-transition-active .login-stage-hud {
     padding: clamp(18px, 2.2vw, 28px) clamp(18px, 2.2vw, 28px) 4px;
 }
 
+.form-side::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: -34px;
+    width: 72px;
+    background:
+        linear-gradient(90deg, rgba(198, 232, 243, 0.06), transparent 68%),
+        radial-gradient(circle at 28% 50%, rgba(173, 221, 239, 0.12), transparent 62%);
+    filter: blur(18px);
+    opacity: 0.84;
+    pointer-events: none;
+}
+
+.form-side::after {
+    content: "";
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    left: -6px;
+    width: 64px;
+    background:
+        linear-gradient(90deg, rgba(7, 27, 42, 0.38), transparent 74%),
+        radial-gradient(circle at 14% 50%, rgba(187, 228, 242, 0.08), transparent 62%);
+    filter: blur(18px);
+    opacity: 0.78;
+    pointer-events: none;
+}
+
 /* 登录模式下的表单区：多给一点底部空间，避免按钮和底链显得太挤。*/
 .login-page[data-auth-mode="login"] .form-side {
     padding-bottom: clamp(16px, 2.8vw, 24px);
@@ -876,6 +1010,19 @@ body.page-transition-active .login-stage-hud {
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.06),
         0 24px 46px rgba(3, 14, 23, 0.18);
+    overflow: hidden;
+    animation: auth-shell-breathe 8.6s ease-in-out 1.2s infinite alternate;
+}
+
+.auth-panel-shell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 86% 16%, rgba(225, 243, 250, 0.08), transparent 24%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%);
+    opacity: 0.76;
+    pointer-events: none;
 }
 
 .auth-panel-glass {
@@ -885,7 +1032,7 @@ body.page-transition-active .login-stage-hud {
     background:
         radial-gradient(circle at 84% 14%, rgba(255, 255, 255, 0.08), transparent 26%),
         linear-gradient(180deg, rgba(17, 45, 65, 0.34), rgba(8, 26, 39, 0.18));
-    opacity: 0.94;
+    opacity: 0.96;
     pointer-events: none;
 }
 
@@ -900,7 +1047,7 @@ body.page-transition-active .login-stage-hud {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     padding: 8px 12px;
     border-radius: 999px;
     border: 1px solid rgba(211, 236, 247, 0.12);
@@ -910,6 +1057,7 @@ body.page-transition-active .login-stage-hud {
     box-shadow:
         0 12px 22px rgba(2, 12, 21, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: transform 280ms ease, border-color 220ms ease, box-shadow 280ms ease;
 }
 
 .auth-waterline-kicker,
@@ -921,16 +1069,17 @@ body.page-transition-active .login-stage-hud {
 }
 
 .auth-waterline-kicker {
-    color: rgba(220, 239, 246, 0.74);
+    color: rgba(231, 244, 249, 0.86);
 }
 
 .auth-waterline-copy {
-    color: rgba(189, 223, 236, 0.46);
+    color: rgba(209, 233, 242, 0.72);
+    transition: color 240ms ease, transform 320ms ease, opacity 240ms ease;
 }
 
 /* .form-brand：承接右侧标题、小字和说明文案的整体容器。*/
 .form-brand {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 /* .form-kicker：右侧认证区的小标题，用来建立“进入动作”层级。*/
@@ -939,7 +1088,7 @@ body.page-transition-active .login-stage-hud {
     font-size: 0.72rem;
     letter-spacing: 0.34em;
     text-transform: uppercase;
-    color: rgba(245, 245, 245, 0.46);
+    color: rgba(241, 247, 250, 0.66);
 }
 
 /* .form-copy：登录态和注册态各自的说明文案容器。*/
@@ -971,7 +1120,28 @@ body.page-transition-active .login-stage-hud {
     max-width: 34em;
     font-size: 0.9rem;
     line-height: 1.68;
-    color: rgba(226, 236, 244, 0.7);
+    color: rgba(233, 241, 246, 0.86);
+}
+
+.login-page[data-auth-progress-state="active"] .auth-waterline-copy {
+    color: rgba(216, 237, 245, 0.8);
+}
+
+.login-page[data-auth-progress-step="opening"] .auth-waterline,
+.login-page[data-auth-progress-step="keying"] .auth-waterline,
+.login-page[data-auth-progress-step="confirming"] .auth-waterline {
+    border-color: rgba(206, 235, 246, 0.16);
+    box-shadow:
+        0 14px 28px rgba(2, 12, 21, 0.14),
+        0 0 24px rgba(123, 196, 223, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.login-page[data-auth-progress-step="anchored"] .auth-waterline,
+.login-page[data-auth-progress-step="accord"] .auth-waterline,
+.login-page[data-auth-progress-step="ready"] .auth-waterline {
+    border-color: rgba(218, 239, 247, 0.2);
+    transform: translate3d(0, -1px, 0);
 }
 
 /* ============================================
@@ -1339,6 +1509,19 @@ body.page-transition-active .login-stage-hud {
         0 10px 22px rgba(8, 37, 63, 0.12);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    overflow: hidden;
+}
+
+.tabs::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(216, 239, 248, 0.07), transparent 26%),
+        radial-gradient(circle at 84% 54%, rgba(137, 200, 226, 0.08), transparent 24%);
+    opacity: 0.88;
+    pointer-events: none;
 }
 
 /* 登录 / 注册切换按钮：控制分段按钮的外观、边界和状态过渡。 */
@@ -1353,7 +1536,7 @@ body.page-transition-active .login-stage-hud {
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(122, 174, 198, 0.02)),
         rgba(255, 255, 255, 0.01);
-    color: rgba(229, 239, 247, 0.74);
+    color: rgba(231, 240, 247, 0.8);
     font-weight: 600;
     font-size: 0.95rem;
     transition:
@@ -1361,7 +1544,8 @@ body.page-transition-active .login-stage-hud {
         border-color var(--transition-fast),
         background var(--transition-fast),
         box-shadow var(--transition-fast),
-        transform var(--transition-fast);
+        transform var(--transition-fast),
+        filter var(--transition-fast);
     cursor: pointer;
 }
 
@@ -1372,6 +1556,7 @@ body.page-transition-active .login-stage-hud {
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(154, 206, 228, 0.05)),
         rgba(255, 255, 255, 0.03);
+    transform: translate3d(0, -1px, 0);
 }
 
 .tab-btn:focus-visible {
@@ -1383,15 +1568,23 @@ body.page-transition-active .login-stage-hud {
 .tab-btn.active,
 .tab-btn[aria-selected="true"] {
     background:
-        linear-gradient(180deg, rgba(247, 251, 253, 0.2), rgba(156, 207, 229, 0.14)),
+        linear-gradient(180deg, rgba(247, 251, 253, 0.24), rgba(156, 207, 229, 0.16)),
         rgba(228, 243, 249, 0.08);
     color: rgba(246, 251, 253, 0.96);
-    border-color: rgba(220, 240, 248, 0.24);
+    border-color: rgba(220, 240, 248, 0.26);
     box-shadow:
         0 12px 24px rgba(6, 31, 51, 0.18),
-        0 0 18px rgba(130, 199, 225, 0.08),
+        0 0 18px rgba(130, 199, 225, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.22);
-    transform: translate3d(0, -1px, 0);
+    transform: translate3d(0, -1px, 0) scale(1.008);
+    filter: saturate(1.04);
+}
+
+.login-page.is-switching .tab-btn[aria-selected="true"] {
+    box-shadow:
+        0 14px 26px rgba(6, 31, 51, 0.18),
+        0 0 22px rgba(130, 199, 225, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
 
 /* .auth-form：表单总容器，负责承接登录 / 注册两层内容和高度变化。*/
@@ -1556,7 +1749,7 @@ body.page-transition-active .login-stage-hud {
     margin-bottom: 6px;
     font-size: 0.86rem;
     font-weight: 600;
-    color: rgba(238, 245, 250, 0.84);
+    color: rgba(242, 247, 251, 0.92);
     transition: color 0.3s ease, letter-spacing 0.3s ease;
 }
 
@@ -1566,10 +1759,11 @@ body.page-transition-active .login-stage-hud {
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 12px;
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(201, 225, 241, 0.08)),
-        rgba(144, 177, 198, 0.08);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(201, 225, 241, 0.09)),
+        rgba(144, 177, 198, 0.1);
     padding: 11px 13px;
     color: #f5f5f5;
+    caret-color: rgba(222, 245, 252, 0.92);
     font-size: 0.92rem;
     transition:
         transform var(--transition-fast),
@@ -1579,7 +1773,8 @@ body.page-transition-active .login-stage-hud {
         color var(--transition-fast);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 10px 20px rgba(3, 15, 26, 0.12);
+        0 10px 20px rgba(3, 15, 26, 0.12),
+        0 0 0 1px rgba(211, 238, 247, 0.04);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     transform: translate3d(0, 0, 0);
@@ -1589,18 +1784,22 @@ body.page-transition-active .login-stage-hud {
 }
 
 .input-group.is-filled input {
-    border-color: rgba(196, 228, 241, 0.18);
+    border-color: rgba(200, 231, 242, 0.22);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(201, 225, 241, 0.09)),
-        rgba(126, 165, 190, 0.11);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(201, 225, 241, 0.1)),
+        rgba(126, 165, 190, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 12px 22px rgba(4, 17, 28, 0.14);
 }
 
 .input-group.is-complete input {
-    border-color: rgba(162, 220, 243, 0.4);
+    border-color: rgba(172, 225, 244, 0.48);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 0 0 1px rgba(165, 221, 240, 0.08),
-        0 14px 24px rgba(4, 17, 28, 0.16);
+        0 0 0 1px rgba(165, 221, 240, 0.12),
+        0 14px 24px rgba(4, 17, 28, 0.16),
+        0 0 28px rgba(120, 198, 228, 0.1);
 }
 
 .input-group.is-complete label {
@@ -1620,39 +1819,39 @@ body.page-transition-active .login-stage-hud {
 
 /* .input-group:focus-within：字段被聚焦时，整组内容轻微上提。*/
 .input-group:focus-within {
-    transform: translate3d(0, -2px, 0);
+    transform: translate3d(0, -3px, 0);
 }
 
 /* 聚焦时同步提。label，让用户更容易感知当前输入位置*/
 .input-group:focus-within label {
-    color: rgba(221, 244, 255, 0.96);
+    color: rgba(233, 248, 252, 0.98);
     letter-spacing: 0.01em;
 }
 
 /* 输入框聚焦状态：不是系统蓝边，而是更柔和的海水提亮。*/
 .input-group input:focus {
     outline: none;
-    transform: translate3d(0, -2px, 0);
-    border-color: rgba(138, 218, 255, 0.78);
+    transform: translate3d(0, -3px, 0) scale(1.003);
+    border-color: rgba(154, 223, 255, 0.82);
     box-shadow:
-        0 0 0 3px rgba(104, 191, 233, 0.14),
-        0 0 24px rgba(96, 180, 220, 0.22),
+        0 0 0 3px rgba(104, 191, 233, 0.16),
+        0 0 28px rgba(96, 180, 220, 0.24),
         0 16px 28px rgba(3, 18, 29, 0.18);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(215, 233, 244, 0.12)),
-        rgba(160, 203, 226, 0.14);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(215, 233, 244, 0.13)),
+        rgba(160, 203, 226, 0.16);
 }
 
 /* 输入框 placeholder：弱化提示文字，避免和真实输入内容抢层级。*/
 .input-group input::placeholder {
-    color: rgba(229, 239, 247, 0.46);
+    color: rgba(231, 239, 246, 0.66);
     transition: color 0.28s ease, opacity 0.28s ease;
 }
 
 /* 聚焦时进一步淡化 placeholder，把视觉优先级让给真实输入。*/
 .input-group input:focus::placeholder {
-    color: rgba(229, 239, 247, 0.22);
-    opacity: 0.45;
+    color: rgba(231, 239, 246, 0.38);
+    opacity: 0.52;
 }
 
 .input-group.is-invaliding input {
@@ -1773,7 +1972,7 @@ body.page-transition-active .login-stage-hud {
 /* .checkbox-label：显示复选项说明文字，避免这一行显得像系统表单。*/
 .checkbox-label {
     font-size: 0.86rem;
-    color: rgba(229, 239, 247, 0.68);
+    color: rgba(230, 239, 247, 0.76);
     user-select: none;
     line-height: 1.48;
     transition: color 220ms ease;
@@ -1797,7 +1996,7 @@ body.page-transition-active .login-stage-hud {
 
 /* .checkbox-label a：弱化的辅助链接，用于协议等次级入口。*/
 .checkbox-label a {
-    color: rgba(176, 224, 242, 0.9);
+    color: rgba(188, 228, 243, 0.94);
 }
 
 .auth-feedback {
@@ -1852,7 +2051,8 @@ body.page-transition-active .login-stage-hud {
         transform 0.3s ease-in-out,
         box-shadow 0.3s ease-in-out,
         border-color 0.3s ease-in-out,
-        background-color 0.3s ease-in-out;
+        background-color 0.3s ease-in-out,
+        filter 0.3s ease-in-out;
     box-shadow:
         0 18px 32px rgba(2, 12, 21, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.18);
@@ -1874,6 +2074,7 @@ body.page-transition-active .login-stage-hud {
     overflow: hidden;
     font-size: clamp(13px, 1.8vw, 14px);
     letter-spacing: 0.08em;
+    will-change: transform, box-shadow;
 }
 
 /* .icon：按钮里的轻量箭头图标，hover 时会配合轻微前移。*/
@@ -1891,11 +2092,23 @@ body.page-transition-active .login-stage-hud {
         0 22px 38px rgba(2, 12, 21, 0.22),
         0 0 24px rgba(164, 221, 239, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    filter: saturate(1.04);
 }
 
 /* 按钮 hover 时箭头轻轻前移，增强进入感。*/
 .auth-cta:hover .icon {
-    transform: translateX(4px);
+    transform: translateX(5px);
+}
+
+.auth-cta:active {
+    transform: translate3d(0, 1px, 0) scale(0.996);
+    box-shadow:
+        0 12px 22px rgba(2, 12, 21, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.auth-cta:active .icon {
+    transform: translateX(7px);
 }
 
 /* hover 时启动按钮表面的扫光。*/
@@ -1941,6 +2154,13 @@ body.page-transition-active .login-stage-hud {
         inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
+.login-page[data-auth-progress-state="complete"] .auth-cta {
+    box-shadow:
+        0 20px 36px rgba(2, 12, 21, 0.22),
+        0 0 26px rgba(171, 226, 245, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
 /* ============================================
    Footer and Social
    ============================================ */
@@ -1962,7 +2182,7 @@ body.page-transition-active .login-stage-hud {
 
 .footer-links-label {
     margin: 0;
-    color: rgba(202, 227, 237, 0.46);
+    color: rgba(218, 237, 245, 0.68);
     font-size: 0.72rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -1981,11 +2201,12 @@ body.page-transition-active .login-stage-hud {
 .link-forgot,
 .link-guest {
     font-size: 0.9rem;
-    color: rgba(234, 242, 248, 0.74);
+    color: rgba(238, 244, 248, 0.88);
     text-decoration: none;
     border: none;
     background: transparent;
-    transition: color var(--transition-fast), transform var(--transition-fast);
+    transition: color var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+    opacity: 0.92;
 }
 
 /* 底部辅助链接 hover：只做轻微提亮和下划线，不抢主按钮存在感。*/
@@ -1994,11 +2215,12 @@ body.page-transition-active .login-stage-hud {
     color: rgba(223, 243, 250, 0.96);
     text-decoration: underline;
     transform: translate3d(0, -1px, 0);
+    opacity: 1;
 }
 
 /* .divider：分隔底部两个辅助链接。*/
 .divider {
-    color: rgba(229, 239, 247, 0.32);
+    color: rgba(229, 239, 247, 0.52);
 }
 
 @media (max-height: 860px) and (min-width: 769px) {
@@ -2055,7 +2277,7 @@ body.page-transition-active .login-stage-hud {
     }
 
     .form-brand {
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
 
     .form-kicker {
@@ -2068,8 +2290,8 @@ body.page-transition-active .login-stage-hud {
     }
 
     .form-subtitle {
-        margin-top: 8px;
-        font-size: 0.88rem;
+        margin-top: 9px;
+        font-size: 0.9rem;
         line-height: 1.55;
     }
 
@@ -2219,6 +2441,22 @@ body.page-transition-active .login-stage-hud {
         inset 0 -1px 0 rgba(255, 255, 255, 0.06);
 }
 
+.login-page.is-field-focus .auth-panel-shell {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.07),
+        0 28px 52px rgba(3, 14, 23, 0.2),
+        0 0 34px rgba(127, 196, 222, 0.07);
+}
+
+.login-page.is-field-focus .auth-waterline {
+    transform: translate3d(0, -1px, 0);
+    border-color: rgba(206, 236, 247, 0.16);
+    box-shadow:
+        0 14px 26px rgba(2, 12, 21, 0.12),
+        0 0 20px rgba(126, 197, 223, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 .login-page.is-switching .login-stage-divider {
     opacity: 1;
     box-shadow: 0 0 28px rgba(136, 197, 223, 0.12);
@@ -2341,6 +2579,23 @@ body.page-transition-active .login-stage-hud {
     }
 }
 
+@keyframes auth-shell-breathe {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.06),
+            0 24px 46px rgba(3, 14, 23, 0.18);
+    }
+    50% {
+        transform: translate3d(0, -1px, 0);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.07),
+            0 28px 52px rgba(3, 14, 23, 0.2),
+            0 0 32px rgba(118, 191, 221, 0.06);
+    }
+}
+
 /* 定义 checkbox-invalid-jolt 动画的关键帧 */
 @keyframes checkbox-invalid-jolt {
 /* 复选框错误时只做更小幅度的点状回摆。 */
@@ -2374,6 +2629,29 @@ body.page-transition-active .login-stage-hud {
     }
     72% {
         transform: translate3d(-1px, 0, 0);
+    }
+}
+
+@keyframes waterline-swell {
+    0%,
+    100% {
+        transform: scaleY(1);
+        opacity: 0.92;
+    }
+    46% {
+        transform: scaleY(1.08);
+        opacity: 1;
+    }
+}
+
+@keyframes status-breathe {
+    0% {
+        opacity: 0.7;
+        transform: translate3d(0, 4px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
     }
 }
 
@@ -2478,17 +2756,18 @@ body.page-transition-active .login-stage-hud {
         display: block;
         padding: 22px 20px 18px;
         border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(216, 238, 247, 0.08);
+        box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .login-brand-copy {
         width: 100%;
-        gap: 12px;
+        gap: 14px;
     }
 
     .side-quote,
     .side-meta {
-        max-width: none;
+        max-width: 18em;
     }
 
     .side-observatory {
@@ -2537,8 +2816,8 @@ body.page-transition-active .login-stage-hud {
     }
 
     .auth-waterline {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-wrap: wrap;
+        align-items: center;
         border-radius: 18px;
     }
 }

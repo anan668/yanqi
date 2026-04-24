@@ -235,9 +235,39 @@
         <section class="detail-descent-bridge" aria-labelledby="detailDescentTitle">
             <div class="detail-descent-shell">
                 <p class="detail-descent-kicker">Descent Route</p>
+                <div class="detail-descent-route" aria-hidden="true">
+                    <div class="detail-descent-route-current"></div>
+                    <div class="detail-descent-route-line"></div>
+                    <div class="detail-descent-stage is-surface" style="--descent-stage-delay: 0ms">
+                        <span class="detail-descent-stage-index">01</span>
+                        <div class="detail-descent-stage-copy">
+                            <strong>海面的第一眼</strong>
+                            <span>先记住这一片海的光线、深度与进入节奏。</span>
+                        </div>
+                    </div>
+                    <div class="detail-descent-stage is-current" style="--descent-stage-delay: 90ms">
+                        <span class="detail-descent-stage-index">02</span>
+                        <div class="detail-descent-stage-copy">
+                            <strong>海域档案</strong>
+                            <span>把流向、能见度与停驻方式慢慢读清。</span>
+                        </div>
+                    </div>
+                    <div class="detail-descent-stage" style="--descent-stage-delay: 180ms">
+                        <span class="detail-descent-stage-index">03</span>
+                        <div class="detail-descent-stage-copy">
+                            <strong>地图与回声</strong>
+                            <span>沿着海图和别人的回声继续往下一层去。</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="detail-descent-copy">
                     <h2 class="detail-descent-title" id="detailDescentTitle">从海面的第一眼，慢慢落到这片海的资料里</h2>
                     <p class="detail-descent-text">先读海域档案，再沿着地图与回声继续下潜；右侧那套安排会跟着你此刻读到的位置，一起慢慢靠近。</p>
+                    <div class="detail-descent-notes" aria-label="当前阅读路径">
+                        <span class="detail-descent-note">海域档案</span>
+                        <span class="detail-descent-note">Sea Atlas</span>
+                        <span class="detail-descent-note">Travel Echoes</span>
+                    </div>
                 </div>
                 <div class="detail-descent-actions">
                     <a href="#spotOverview" class="detail-descent-link">先看海域档案</a>

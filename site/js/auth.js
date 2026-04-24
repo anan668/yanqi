@@ -900,6 +900,33 @@ function getLinearProgress(length, maxLength) {
     return Math.min(Math.max(length / maxLength, 0), 1);
 }
 
+function replayTransientClass(node, className, duration) {
+    if (!(node instanceof HTMLElement)) {
+        return;
+    }
+
+    const frameKey = `__${className}FrameId`;
+    const timerKey = `__${className}TimerId`;
+
+    if (typeof node[frameKey] === 'number') {
+        window.cancelAnimationFrame(node[frameKey]);
+    }
+
+    if (typeof node[timerKey] === 'number') {
+        window.clearTimeout(node[timerKey]);
+    }
+
+    node.classList.remove(className);
+    node[frameKey] = window.requestAnimationFrame(() => {
+        node.classList.add(className);
+        node[timerKey] = window.setTimeout(() => {
+            node.classList.remove(className);
+            node[timerKey] = 0;
+        }, duration);
+        node[frameKey] = 0;
+    });
+}
+
 function isFieldComplete(input, nodes) {
     if (!(input instanceof HTMLInputElement)) {
         return false;
@@ -991,6 +1018,29 @@ function getAuthProgressState(nodes) {
             + getLinearProgress(confirmLength, confirmTargetLength) * 26
             + (hasAgreed ? 18 : 0)
         );
+        let step = 'idle';
+        let statusText = '这一层还在等你慢慢写下第一段登记。';
+
+        if (percent > 0 && !isPhoneReady) {
+            step = 'recognizing';
+            statusText = phoneDigits > 0
+                ? `号码已经写下 ${phoneDigits} 位，还差一点，入口就会浮出水面。`
+                : '先从手机号开始，让这条登记入口慢慢出现。';
+        } else if (isPhoneReady && !isPasswordReady) {
+            step = 'keying';
+            statusText = '号码已经落稳，再替自己留下一把进入这片海的钥匙。';
+        } else if (isPhoneReady && isPasswordReady && !isConfirmReady) {
+            step = 'confirming';
+            statusText = confirmLength > 0
+                ? '两次密钥还没完全对齐，收一收，再轻轻写一次。'
+                : '密钥已经写下了，再确认一次，让入口慢慢收稳。';
+        } else if (isPhoneReady && isPasswordReady && isConfirmReady && !hasAgreed) {
+            step = 'accord';
+            statusText = '这条登记入口已经成形，最后看一眼约定，就能继续进入。';
+        } else if (isPhoneReady && isPasswordReady && isConfirmReady && hasAgreed) {
+            step = 'ready';
+            statusText = '这条登记入口已经写稳了，继续往第一层海面进入。';
+        }
 
         return {
             mode: activeMode,
@@ -1004,7 +1054,9 @@ function getAuthProgressState(nodes) {
             isPasswordReady,
             isConfirmReady,
             hasAgreed,
-            isReady: registerChecks.every(Boolean)
+            isReady: registerChecks.every(Boolean),
+            step,
+            statusText
         };
     }
 
@@ -1014,22 +1066,48 @@ function getAuthProgressState(nodes) {
     const isPasswordReady = passwordLength > 0;
     const shouldRemember = Boolean(nodes.rememberCheckbox?.checked);
     const loginChecks = [isPhoneReady, isPasswordReady];
+    const completed = loginChecks.filter(Boolean).length;
     const basePercent = Math.round(
         getLinearProgress(phoneDigits, 11) * 56
         + getLinearProgress(passwordLength, 6) * 44
     );
+    const percent = shouldRemember && basePercent > 0 ? Math.min(100, basePercent + 6) : basePercent;
+    let step = 'idle';
+    let statusText = '这一层还在等你慢慢写下第一个入口。';
+
+    if (percent > 0 && !isPhoneReady) {
+        step = 'recognizing';
+        statusText = phoneDigits > 0
+            ? `号码已经写下 ${phoneDigits} 位，还差一点，静水就会认出你。`
+            : '先把号码写稳，让入口先慢慢浮出来。';
+    } else if (isPhoneReady && !isPasswordReady) {
+        step = 'opening';
+        statusText = passwordLength > 0
+            ? '通行密钥正在写入静水，入口快要成形了。'
+            : '号码已经落稳，再把通行密钥轻轻写进来。';
+    } else if (isPhoneReady && isPasswordReady && shouldRemember) {
+        step = 'anchored';
+        statusText = '入口已经对齐，这层静水会替你把号码稳稳留住。';
+    } else if (isPhoneReady && isPasswordReady) {
+        step = 'ready';
+        statusText = completed >= loginChecks.length
+            ? '入口已经成形，再往前一点，就能回到海面那层。'
+            : '这条入口已经写下了一半，再补完剩下的静水信息。';
+    }
 
     return {
         mode: activeMode,
-        percent: shouldRemember && basePercent > 0 ? Math.min(100, basePercent + 6) : basePercent,
-        completed: loginChecks.filter(Boolean).length,
+        percent,
+        completed,
         total: loginChecks.length,
         phoneDigits,
         passwordLength,
         shouldRemember,
         isPhoneReady,
         isPasswordReady,
-        isReady: loginChecks.every(Boolean)
+        isReady: loginChecks.every(Boolean),
+        step,
+        statusText
     };
 }
 
@@ -1045,63 +1123,49 @@ function updateHallProgress(nodes) {
         percent,
         completed,
         total,
-        phoneDigits,
-        passwordLength,
-        confirmLength,
-        shouldRemember,
-        isPhoneReady,
-        isPasswordReady,
-        isConfirmReady,
-        hasAgreed,
-        isReady
+        isReady,
+        step,
+        statusText
     } = progressState;
-    const waterlineState = percent <= 0 ? 'idle' : (isReady ? 'complete' : 'active');
+    const waterlineState = step === 'idle' ? 'idle' : (isReady ? 'complete' : 'active');
+    const nextValue = `${percent}%`;
+    const previousPercent = Number(sideWaterlineTrack.dataset.progressPercent || '-1');
+    const previousStep = sideWaterlineTrack.dataset.progressStep || '';
+    const previousStatus = sideWaterlineStatus.dataset.progressStatus || '';
+    const hasMounted = previousPercent >= 0;
+    const hasProgressChanged = previousPercent !== percent;
+    const hasStepChanged = previousStep !== step;
+    const hasStatusChanged = previousStatus !== statusText;
 
     sideWaterlineFill.style.setProperty('--waterline-progress', `${percent}%`);
     sideWaterlineTrack.setAttribute('aria-valuenow', String(percent));
     sideWaterlineTrack.dataset.progressState = waterlineState;
     sideWaterlineTrack.dataset.progressMode = mode;
-    sideWaterlineValue.textContent = `${percent}%`;
+    sideWaterlineTrack.dataset.progressStep = step;
+    sideWaterlineTrack.dataset.progressPercent = String(percent);
+    sideWaterlineValue.textContent = nextValue;
+    sideWaterlineValue.dataset.progressStep = step;
     document.body.dataset.authProgressMode = mode;
     document.body.dataset.authProgressState = waterlineState;
+    document.body.dataset.authProgressStep = step;
+    document.body.dataset.authProgressPercent = String(percent);
+    sideWaterlineStatus.textContent = statusText;
+    sideWaterlineStatus.dataset.progressStatus = statusText;
+    sideWaterlineStatus.dataset.progressStep = step;
+    sideWaterlineTrack.setAttribute('aria-valuetext', statusText);
 
-    if (mode === 'register') {
-        if (percent === 0) {
-            sideWaterlineStatus.textContent = '这一层还在等你慢慢写下第一段登记。';
-        } else if (!isPhoneReady) {
-            sideWaterlineStatus.textContent = phoneDigits > 0
-                ? `号码已经写下 ${phoneDigits} 位，还差一点，入口就会浮出水面。`
-                : '先从手机号开始，让这条登记入口慢慢出现。';
-        } else if (!isPasswordReady) {
-            sideWaterlineStatus.textContent = '号码已经落稳，再替自己留下一把进入这片海的钥匙。';
-        } else if (confirmLength === 0) {
-            sideWaterlineStatus.textContent = '密钥已经写下了，再确认一次，让入口慢慢收稳。';
-        } else if (!isConfirmReady) {
-            sideWaterlineStatus.textContent = '两次密钥还没完全对齐，收一收，再轻轻写一次。';
-        } else if (!hasAgreed) {
-            sideWaterlineStatus.textContent = '这条登记入口已经成形，最后看一眼约定，就能继续进入。';
-        } else {
-            sideWaterlineStatus.textContent = '这条登记入口已经写稳了，继续往第一层海面进入。';
-        }
-    } else if (percent === 0) {
-        sideWaterlineStatus.textContent = '这一层还在等你慢慢写下第一个入口。';
-    } else if (!isPhoneReady) {
-        sideWaterlineStatus.textContent = phoneDigits > 0
-            ? `号码已经写下 ${phoneDigits} 位，还差一点，静水就会认出你。`
-            : '先把号码写稳，让入口先慢慢浮出来。';
-    } else if (!isPasswordReady) {
-        sideWaterlineStatus.textContent = passwordLength > 0
-            ? '通行密钥正在写入静水，入口快要成形了。'
-            : '号码已经落稳，再把通行密钥轻轻写进来。';
-    } else if (shouldRemember) {
-        sideWaterlineStatus.textContent = '入口已经对齐，这层静水会替你把号码稳稳留住。';
-    } else {
-        sideWaterlineStatus.textContent = completed >= total
-            ? '入口已经成形，再往前一点，就能回到海面那层。'
-            : '这条入口已经写下了一半，再补完剩下的静水信息。';
+    if (!hasMounted) {
+        return;
     }
 
-    sideWaterlineTrack.setAttribute('aria-valuetext', sideWaterlineStatus.textContent);
+    if (hasProgressChanged) {
+        replayTransientClass(sideWaterlineTrack, 'is-pulsing', 620);
+        replayTransientClass(sideWaterlineValue, 'is-updating', 340);
+    }
+
+    if (hasStepChanged || hasStatusChanged) {
+        replayTransientClass(sideWaterlineStatus, 'is-updating', 360);
+    }
 }
 
 function bindHallProgress(nodes) {
