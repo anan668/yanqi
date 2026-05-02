@@ -19,6 +19,7 @@
     --ocean-cover-opacity: 0;
     --ocean-depth-progress: 0;
     --login-home-blue-opacity: 0;
+    --login-home-caustic-opacity: 0;
     /* 过渡 token 兼容桥：
        优先复用 global.css 的共享节奏；若某页没带全局 token，再回退到原始时长。 */
     --page-exit-duration: 1000ms;
@@ -58,8 +59,9 @@
     inset: 0;
     z-index: 0;
     background:
-        radial-gradient(circle at 50% 14%, rgba(126, 198, 255, 0.2), transparent 44%),
-        linear-gradient(180deg, rgba(12, 36, 66, 0.9) 0%, rgba(6, 23, 48, 0.96) 100%);
+        radial-gradient(circle at 50% -6%, rgba(184, 234, 255, 0.24), transparent 38%),
+        radial-gradient(ellipse at 24% 72%, rgba(76, 169, 213, 0.18), transparent 46%),
+        linear-gradient(180deg, rgba(22, 91, 137, 0.86) 0%, rgba(8, 44, 78, 0.94) 46%, rgba(3, 18, 40, 0.98) 100%);
     opacity: var(--login-home-blue-opacity);
 }
 
@@ -83,7 +85,45 @@
     inset: 0;
     z-index: 1;
     opacity: 0;
+    filter: saturate(1.08);
     transition: opacity 240ms linear;
+}
+
+.page-transition-spotlight {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    z-index: 2;
+    width: min(62vw, 760px);
+    height: min(42vh, 420px);
+    pointer-events: none;
+    border-radius: 50%;
+    opacity: 0;
+    mix-blend-mode: screen;
+    filter: blur(22px) saturate(1.08);
+    transform: translate3d(-50%, -50%, 0) scale(0.72);
+    background:
+        radial-gradient(ellipse at 50% 48%, rgba(232, 252, 255, 0.42) 0%, rgba(169, 230, 245, 0.24) 34%, rgba(74, 171, 211, 0.1) 58%, transparent 74%),
+        radial-gradient(ellipse at 50% 100%, rgba(198, 242, 250, 0.18), transparent 64%);
+    will-change: opacity, transform, filter;
+}
+
+.page-transition-spotlight::before {
+    content: ";
+    position: absolute;
+    left: 50%;
+    top: -34%;
+    width: 36%;
+    height: 132%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(240, 253, 255, 0.26), rgba(180, 237, 250, 0.1) 44%, transparent 100%);
+    filter: blur(28px);
+    opacity: 0.76;
+    transform: translateX(-50%) rotate(3deg);
+}
+
+body.page-login-home-special-active .page-transition-spotlight {
+    animation: login-home-spotlight-bloom 2.18s cubic-bezier(0.18, 0.78, 0.22, 1) 120ms both;
 }
 
 /* 控制页面过渡遮罩、气泡层和海洋切换特效 */
@@ -101,21 +141,52 @@ body.page-login-home-bubbles-fade .page-transition-bubbles {
 .page-transition-bubble {
     position: absolute;
     left: var(--bubble-left, 50%);
-    bottom: -12vh;
+    bottom: var(--bubble-bottom, -14vh);
     width: var(--bubble-size, 18px);
     height: var(--bubble-size, 18px);
+    opacity: 0;
+    filter: blur(var(--bubble-blur, 0px));
+    transform: translate3d(0, 24px, 0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+.page-transition-bubble-core {
+    position: absolute;
+    inset: 0;
     border-radius: 999px;
     background:
-        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.22) 58%, transparent 72%),
-        radial-gradient(circle at 62% 68%, rgba(180, 226, 255, 0.45), transparent 72%);
-    box-shadow: 0 0 16px rgba(171, 226, 255, 0.22);
-    opacity: 0;
-    transform: translate3d(0, 20px, 0) scale(0.45);
+        radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.22) 42%, transparent 64%),
+        radial-gradient(circle at 64% 70%, rgba(170, 226, 246, 0.34), transparent 68%),
+        radial-gradient(circle at 50% 50%, rgba(116, 203, 231, 0.18), rgba(116, 203, 231, 0.02) 58%, transparent 72%);
+    box-shadow:
+        inset 0 0 0 1px rgba(232, 250, 255, 0.28),
+        0 0 calc(var(--bubble-size, 18px) * 0.86) rgba(141, 219, 243, 0.2);
+    transform: translate3d(0, 0, 0) scale(var(--bubble-start-scale, 0.38));
+    transform-origin: center;
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 /* 控制页面过渡遮罩、气泡层和海洋切换特效 */
 body.page-login-home-bubbles .page-transition-bubble {
-    animation: login-home-bubble-rise var(--bubble-duration, 1.8s) ease-out var(--bubble-delay, 0s) forwards;
+    animation: login-home-bubble-rise var(--bubble-duration, 1.8s) linear var(--bubble-delay, 0s) forwards;
+}
+
+body.page-login-home-bubbles .page-transition-bubble-core {
+    animation: login-home-bubble-drift var(--bubble-duration, 1.8s) ease-in-out var(--bubble-delay, 0s) forwards;
+}
+
+body.page-login-home-special-active.login-page .page-stage {
+    filter: saturate(0.96) brightness(0.92);
+}
+
+body.page-login-home-special-active.login-page .login-stage-shell {
+    animation: login-home-stage-release 1.72s cubic-bezier(0.2, 0.78, 0.22, 1) 120ms both;
+}
+
+body.page-login-home-special-active.login-page .login-atmosphere {
+    animation: login-home-atmosphere-sink 1.86s cubic-bezier(0.18, 0.76, 0.2, 1) both;
 }
 
 /* .page-stage 的主要视觉与布局效果 */
@@ -130,6 +201,24 @@ body.page-login-home-bubbles .page-transition-bubble {
     filter: none;
     will-change: auto;
     backface-visibility: hidden;
+}
+
+body.page-login-home-special-active .page-transition-overlay::before {
+    animation: login-home-blue-breath 2.55s cubic-bezier(0.18, 0.76, 0.22, 1) both;
+}
+
+body.page-login-home-special-active .page-transition-overlay::after {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 20%),
+        linear-gradient(112deg, transparent 0%, rgba(190, 238, 252, 0) 28%, rgba(203, 244, 255, 0.18) 48%, rgba(118, 202, 226, 0) 68%),
+        repeating-linear-gradient(92deg, rgba(237, 251, 255, 0.045) 0 1px, transparent 1px 56px),
+        linear-gradient(180deg, transparent 0%, rgba(0, 12, 34, 0.32) 100%);
+    background-size: auto, 180% 100%, auto, auto;
+    opacity: max(
+        calc((var(--ocean-base-opacity) + var(--ocean-cover-opacity)) * (0.72 + var(--ocean-depth-progress) * 1.24)),
+        var(--login-home-caustic-opacity)
+    );
+    animation: login-home-caustic-drift 2.72s cubic-bezier(0.18, 0.78, 0.2, 1) both;
 }
 
 /* 控制顶部导航的布局、透明度和当前页状态反馈 */
@@ -457,28 +546,144 @@ body.info-page.page-ocean-swim-enter > .navbar {
     }
 }
 
-/* 定义 login-home-bubble-rise 动画的关键帧 */
-@keyframes login-home-bubble-rise {
-/* 控制动画在 0% 阶段的状态 */
+/* 登录成功后，蓝层像水压一样先轻轻压入，再为首页入场慢慢退开。 */
+@keyframes login-home-blue-breath {
+    0% {
+        filter: saturate(0.96) brightness(0.92);
+        transform: scale(1.018);
+    }
+
+    44% {
+        filter: saturate(1.08) brightness(1.02);
+        transform: scale(1.006);
+    }
+
+    100% {
+        filter: saturate(1) brightness(0.96);
+        transform: scale(1);
+    }
+}
+
+@keyframes login-home-caustic-drift {
+    0% {
+        --login-home-caustic-opacity: 0;
+        background-position: 0 0, -54% 0, 0 0, 0 0;
+        filter: blur(10px);
+    }
+
+    34% {
+        --login-home-caustic-opacity: 0.26;
+        filter: blur(4px);
+    }
+
+    100% {
+        --login-home-caustic-opacity: 0.12;
+        background-position: 0 0, 72% 0, 22px 0, 0 0;
+        filter: blur(9px);
+    }
+}
+
+@keyframes login-home-stage-release {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0) saturate(1);
+    }
+
+    58% {
+        transform: translate3d(0, -10px, 0) scale(0.992);
+        opacity: 0.82;
+        filter: blur(3px) saturate(0.92);
+    }
+
+    100% {
+        transform: translate3d(0, -28px, 0) scale(0.982);
+        opacity: 0.18;
+        filter: blur(14px) saturate(0.72);
+    }
+}
+
+@keyframes login-home-atmosphere-sink {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    100% {
+        opacity: 0.34;
+        transform: translate3d(0, 22px, 0) scale(1.028);
+    }
+}
+
+@keyframes login-home-spotlight-bloom {
     0% {
         opacity: 0;
-        transform: translate3d(0, 18px, 0) scale(0.45);
+        filter: blur(34px) saturate(0.96);
+        transform: translate3d(-50%, -44%, 0) scale(0.62);
     }
-/* 控制动画在 12% 阶段的状态 */
-    12% {
-        opacity: 0.84;
+
+    32% {
+        opacity: 0.72;
+        filter: blur(20px) saturate(1.14);
+        transform: translate3d(-50%, -50%, 0) scale(0.94);
     }
-/* 控制动画在 68% 阶段的状态 */
+
     68% {
-        opacity: 0.66;
+        opacity: 0.54;
+        filter: blur(24px) saturate(1.08);
+        transform: translate3d(-50%, -53%, 0) scale(1.04);
     }
-/* 控制动画在 86% 阶段的状态 */
-    86% {
-        opacity: 0.22;
-    }
-/* 控制动画在 100% 阶段的状态 */
+
     100% {
         opacity: 0;
-        transform: translate3d(var(--bubble-drift, 0px), -122vh, 0) scale(1.08);
+        filter: blur(40px) saturate(0.98);
+        transform: translate3d(-50%, -58%, 0) scale(1.22);
+    }
+}
+
+/* 定义 login-home-bubble-rise 动画的关键帧 */
+@keyframes login-home-bubble-rise {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 24px, 0);
+    }
+
+    8% {
+        opacity: calc(var(--bubble-peak-opacity, 0.84) * 0.76);
+    }
+
+    18% {
+        opacity: var(--bubble-peak-opacity, 0.84);
+    }
+
+    70% {
+        opacity: calc(var(--bubble-peak-opacity, 0.84) * 0.72);
+    }
+
+    86% {
+        opacity: calc(var(--bubble-peak-opacity, 0.84) * 0.26);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(0, -126vh, 0);
+    }
+}
+
+@keyframes login-home-bubble-drift {
+    0% {
+        transform: translate3d(0, 0, 0) scale(var(--bubble-start-scale, 0.38));
+    }
+
+    28% {
+        transform: translate3d(calc(var(--bubble-drift, 0px) * -0.22), 0, 0) scale(var(--bubble-mid-scale, 0.72));
+    }
+
+    58% {
+        transform: translate3d(calc(var(--bubble-drift, 0px) * 0.48), 0, 0) scale(0.96);
+    }
+
+    100% {
+        transform: translate3d(var(--bubble-drift, 0px), 0, 0) scale(var(--bubble-end-scale, 1.08));
     }
 }

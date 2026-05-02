@@ -166,15 +166,52 @@ function hasActiveTripPageEntryTransition() {
 }
 
 /**
- * settleTripLocalEntryDuringDepthTransition() - 跨页入场时先固定本页首屏显现，避免和主潜浮动画叠帧
+ * prepareTripLocalEntryDuringDepthTransition() - 跨页入场时只暂停本页局部动画，等遮罩退场后再恢复播放
  * @returns {void}
  */
-function settleTripLocalEntryDuringDepthTransition() {
+function prepareTripLocalEntryDuringDepthTransition() {
     if (!hasActiveTripPageEntryTransition()) {
         return;
     }
 
-    document.body.classList.add('trip-depth-entry-settled');
+    document.body.classList.add('trip-depth-entry-waiting');
+
+    const releaseLocalEntry = () => {
+        document.body.classList.remove('trip-depth-entry-waiting');
+        document.body.classList.add('trip-depth-entry-released');
+        restartTripEntryAnimations();
+    };
+
+    const releaseTimer = window.setTimeout(releaseLocalEntry, 920);
+
+    window.addEventListener('yanqi:page-transition-finished', () => {
+        window.clearTimeout(releaseTimer);
+        releaseLocalEntry();
+    }, { once: true });
+}
+
+function restartTripEntryAnimations() {
+    const entryNodes = [
+        '.trip-hero-stage',
+        '.trip-hero-copy',
+        '.trip-hero-kicker',
+        '.trip-hero-title',
+        '.trip-hero-subtitle',
+        '.trip-hero-actions',
+        '.trip-hero-current'
+    ]
+        .map((selector) => document.querySelector(selector))
+        .filter((node) => node instanceof HTMLElement);
+
+    entryNodes.forEach((node) => {
+        node.style.animation = 'none';
+    });
+
+    void document.body.offsetHeight;
+
+    entryNodes.forEach((node) => {
+        node.style.animation = '';
+    });
 }
 
 // 页面内滚动工具：负责行程页导航与按钮在不。section 之间做平滑移动。
@@ -366,6 +403,9 @@ class TripSeaGuide {
         this.targetTops = new Map();
         this.targetMetrics = [];
         this.resizeObserver = null;
+        this.lastVisible = null;
+        this.lastDeep = null;
+        this.lastCurrentKey = '';
 
         if (this.guide && this.trigger && this.panel && this.entries.length) {
             this.init();
@@ -495,15 +535,25 @@ class TripSeaGuide {
         const isDeep = scrollTop > Math.max(window.innerHeight * 0.9, 860);
         const currentKey = this.getCurrentKey();
 
-        this.guide.classList.toggle('is-visible', isVisible);
-        this.guide.classList.toggle('is-deep', isDeep);
-        this.guide.setAttribute('aria-hidden', String(!isVisible));
+        if (this.lastVisible !== isVisible) {
+            this.guide.classList.toggle('is-visible', isVisible);
+            this.guide.setAttribute('aria-hidden', String(!isVisible));
+            this.lastVisible = isVisible;
+        }
 
-        this.entries.forEach((entry) => {
-            const isCurrent = entry.dataset.key === currentKey;
-            entry.classList.toggle('is-current', isCurrent);
-            entry.setAttribute('aria-current', isCurrent ? 'true' : 'false');
-        });
+        if (this.lastDeep !== isDeep) {
+            this.guide.classList.toggle('is-deep', isDeep);
+            this.lastDeep = isDeep;
+        }
+
+        if (this.lastCurrentKey !== currentKey) {
+            this.entries.forEach((entry) => {
+                const isCurrent = entry.dataset.key === currentKey;
+                entry.classList.toggle('is-current', isCurrent);
+                entry.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+            });
+            this.lastCurrentKey = currentKey;
+        }
     }
 
     /**
@@ -2836,6 +2886,10 @@ function setupPlannerSummary() {
         summaryRoot.dataset.summaryState = nextCapsuleState;
         plannerCapsule.dataset.capsuleState = nextCapsuleState;
         summaryRoot.classList.toggle('is-empty', state.filledCount === 0);
+        summaryRoot.classList.toggle('has-progress', state.filledCount > 0 && !state.isConfirmed);
+        summaryRoot.classList.toggle('is-confirmed', state.isConfirmed);
+        summaryRoot.classList.toggle('is-breathing', state.filledCount > 0);
+        summaryRoot.classList.toggle('is-progress-ready', state.filledCount > 0 && !state.isConfirmed);
         syncPlannerSummaryMeter(state.filledCount, state.isConfirmed, {
             hasSpot: state.hasSpot,
             hasDate: state.hasDate,
@@ -3948,6 +4002,8 @@ function observeTripRevealElements(elements, options = {}) {
  */
 function setupTripReveal() {
     const plannerCapsule = document.getElementById('plannerCapsule');
+    const plannerSummary = document.getElementById('plannerSummary');
+    const tripBriefDeck = document.querySelector('.trip-brief-deck');
     const focusHead = document.querySelector('#trip-layer .trip-section-head');
     const focusCards = Array.from(document.querySelectorAll('#trip-layer .trip-focus-card'));
     const prepHead = document.querySelector('#trip-prep .trip-section-head');
@@ -3955,6 +4011,8 @@ function setupTripReveal() {
     const prepPanel = document.getElementById('prepDetailPanel');
 
     plannerCapsule?.classList.add('trip-reveal-block');
+    plannerSummary?.classList.add('trip-summary-reveal');
+    tripBriefDeck?.classList.add('trip-brief-reveal');
     focusHead?.classList.add('trip-reveal-head');
     prepHead?.classList.add('trip-reveal-head');
     prepPanel?.classList.add('trip-reveal-panel');
@@ -3966,13 +4024,31 @@ function setupTripReveal() {
     applyTripRevealPreset([prepHead, prepPanel, ...prepCards], 'trip-reveal-ascent');
 
     observeTripRevealElements([plannerCapsule], {
-        baseDelay: 80,
+        baseDelay: 420,
         stepDelay: 0,
-        threshold: 0.28,
-        rootMargin: '0px 0px -18% 0px',
+        threshold: 0.08,
+        rootMargin: '0px 0px -8% 0px',
         requireViewportReady: true,
-        readyTopRatio: 0.74,
+        readyTopRatio: 0.88,
         readyBottomRatio: 0.12
+    });
+    observeTripRevealElements([plannerSummary], {
+        baseDelay: 20,
+        stepDelay: 0,
+        threshold: 0.18,
+        rootMargin: '0px 0px -22% 0px',
+        requireViewportReady: true,
+        readyTopRatio: 0.62,
+        readyBottomRatio: 0.06
+    });
+    observeTripRevealElements([tripBriefDeck], {
+        baseDelay: 30,
+        stepDelay: 0,
+        threshold: 0.08,
+        rootMargin: '0px 0px -12% 0px',
+        requireViewportReady: true,
+        readyTopRatio: 0.9,
+        readyBottomRatio: 0.04
     });
     observeTripRevealElements([focusHead], {
         baseDelay: 20,
@@ -3995,6 +4071,15 @@ function setupTripReveal() {
     observeTripRevealElements([prepHead], { baseDelay: 20, stepDelay: 0 });
     observeTripRevealElements(prepCards, { baseDelay: 70, stepDelay: 96 });
     observeTripRevealElements([prepPanel], { baseDelay: 110, stepDelay: 0 });
+}
+
+function setupTripRevealAfterEntry() {
+    if (!document.body.classList.contains('trip-depth-entry-waiting')) {
+        setupTripReveal();
+        return;
+    }
+
+    window.setTimeout(setupTripReveal, 940);
 }
 
 function buildDynamicPrepPanelMarkup(key) {
@@ -4816,14 +4901,14 @@ function setupConfirmedBookingsStage() {
  * @returns {void} - 无返回值，直接启动页面逻辑
  */
 document.addEventListener('DOMContentLoaded', () => {
-    settleTripLocalEntryDuringDepthTransition();
+    prepareTripLocalEntryDuringDepthTransition();
     setupTripScrollLinks();
     new TripSeaGuide();
     setupPlannerSummary();
     setupConfirmedBookingsStage();
     setupSeaBriefActions();
     new PrepSystem();
-    setupTripReveal();
+    setupTripRevealAfterEntry();
 
     if (!document.body.dataset.scrollMood) {
         document.body.dataset.scrollMood = 'midwater';

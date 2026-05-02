@@ -376,13 +376,19 @@ function clearLoginStageSize(shell) {
  * @returns {{width:number,height:number,shiftX:number,shiftY:number}} - 经过限制后的尺寸
  */
 function clampLoginStageSize(shell, width, height, shiftX = 0, shiftY = 0) {
-    const sidePadding = Math.max(48, Math.min(window.innerWidth * 0.08, 160));
-    const minWidth = 760;
-    const maxWidth = Math.max(minWidth, Math.min(1240, window.innerWidth - sidePadding));
+    const sidePadding = Math.max(120, Math.min(window.innerWidth * 0.16, 320));
+    const minWidth = window.innerWidth >= 1180
+        ? Math.min(980, window.innerWidth - sidePadding)
+        : 760;
+    const preferredMaxWidth = window.innerWidth >= 1600
+        ? 1240
+        : Math.max(minWidth, window.innerWidth * 0.78);
+    const maxWidth = Math.max(minWidth, Math.min(1240, preferredMaxWidth, window.innerWidth - sidePadding));
     const safeGap = Math.max(10, Math.min(window.innerHeight * 0.018, 18));
-    const minHeightCap = window.innerWidth <= 980 ? 548 : 572;
-    const minHeight = Math.max(520, Math.min(minHeightCap, window.innerHeight - safeGap * 4));
-    const maxHeight = Math.max(minHeight, Math.min(860, window.innerHeight - safeGap * 2));
+    const viewportHeightCap = Math.max(460, window.innerHeight - 118);
+    const minHeightCap = window.innerWidth <= 980 ? 520 : 600;
+    const minHeight = Math.max(460, Math.min(minHeightCap, viewportHeightCap));
+    const maxHeight = Math.max(minHeight, Math.min(650, viewportHeightCap));
     const clampedWidth = Math.min(Math.max(width, minWidth), maxWidth);
     const clampedHeight = Math.min(Math.max(height, minHeight), maxHeight);
     const availableWidth = Math.max(clampedWidth, window.innerWidth - sidePadding);
@@ -1195,7 +1201,7 @@ function getAuthProgressState(nodes) {
     } else if (hasPasswordInput && shouldRemember) {
         percent = 77;
         step = 'anchored';
-        statusText = '入口已经对齐，这层静水会替你把号码稳稳留住。';
+        statusText = '这层静水会替你把号码稳稳留住。';
     } else if (hasPasswordInput) {
         percent = 65;
         step = 'opening';
@@ -1240,7 +1246,7 @@ function updateEntranceProgress(nodes) {
         step,
         statusText
     } = progressState;
-    const waterlineState = step === 'idle' ? 'idle' : (isReady ? 'complete' : 'active');
+    const waterlineState = step === 'idle' ? 'idle' : (isReady && percent >= 100 ? 'complete' : 'active');
     const nextValue = `${percent}%`;
     const previousPercent = Number(sideWaterlineTrack.dataset.progressPercent || '-1');
     const previousStep = sideWaterlineTrack.dataset.progressStep || '';

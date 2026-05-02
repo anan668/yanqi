@@ -76,13 +76,13 @@ body.home-page.home-guide-custom-travel-active > .navbar {
     transform: translate3d(0, 0, 0);
 }
 
-body.home-scroll-traveling .featured-destinations,
+body.home-scroll-active .featured-destinations,
 body.home-guide-custom-travel-active .featured-destinations,
-body.home-scroll-traveling .dive-match,
+body.home-scroll-active .dive-match,
 body.home-guide-custom-travel-active .dive-match,
-body.home-scroll-traveling .why-yanqi,
+body.home-scroll-active .why-yanqi,
 body.home-guide-custom-travel-active .why-yanqi,
-body.home-scroll-traveling .footer,
+body.home-scroll-active .footer,
 body.home-guide-custom-travel-active .footer {
     transition: opacity 220ms ease;
 }
@@ -97,6 +97,13 @@ body[data-home-interaction='locked'] .scroll-arrow,
 body[data-home-interaction='locked'] .dive-match.is-display-visible .dive-match-surface.is-resting,
 body[data-home-interaction='locked'] .story-river-glow,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger,
+body.home-scroll-active .hero-ocean-glow-one,
+body.home-scroll-active .hero-ocean-glow-two,
+body.home-scroll-active .hero-ocean-wave-one,
+body.home-scroll-active .hero-ocean-wave-two,
+body.home-scroll-active .hero-plankton,
+body.home-scroll-active .home-page.hero-awakened .today-sea-card,
+body.home-scroll-active .scroll-arrow,
 body.home-guide-custom-travel-active .hero-ocean-glow-one,
 body.home-guide-custom-travel-active .hero-ocean-glow-two,
 body.home-guide-custom-travel-active .hero-ocean-wave-one,
@@ -117,34 +124,34 @@ body.home-guide-custom-travel-active .curated-nav-rail.is-cycling .curated-nav-r
     animation-play-state: paused !important;
 }
 
-body.home-scroll-traveling .curated-display-media::after,
+body.home-scroll-active .curated-display-media::after,
 body.home-guide-custom-travel-active .curated-display-media::after,
-body.home-scroll-traveling .curated-nav-rail.is-cycling .curated-nav-refresh::after,
+body.home-scroll-active .curated-nav-rail.is-cycling .curated-nav-refresh::after,
 body.home-guide-custom-travel-active .curated-nav-rail.is-cycling .curated-nav-refresh::after,
-body.home-scroll-traveling .dive-match.is-display-visible .dive-match-surface.is-resting,
+body.home-scroll-active .dive-match.is-display-visible .dive-match-surface.is-resting,
 body.home-guide-custom-travel-active .dive-match.is-display-visible .dive-match-surface.is-resting,
-body.home-scroll-traveling .story-river-glow,
+body.home-scroll-active .story-river-glow,
 body.home-guide-custom-travel-active .story-river-glow,
-body.home-scroll-traveling .sea-guide-home.is-visible .sea-guide-trigger,
+body.home-scroll-active .sea-guide-home.is-visible .sea-guide-trigger,
 body.home-guide-custom-travel-active .sea-guide-home.is-visible .sea-guide-trigger {
     animation-play-state: paused !important;
 }
 
-body.home-scroll-traveling .curated-waters-stage,
+body.home-scroll-active .curated-waters-stage,
 body.home-guide-custom-travel-active .curated-waters-stage,
-body.home-scroll-traveling .curated-display-copy,
+body.home-scroll-active .curated-display-copy,
 body.home-guide-custom-travel-active .curated-display-copy,
-body.home-scroll-traveling .dive-match-stage,
+body.home-scroll-active .dive-match-stage,
 body.home-guide-custom-travel-active .dive-match-stage,
-body.home-scroll-traveling .dive-match-profile-panel,
+body.home-scroll-active .dive-match-profile-panel,
 body.home-guide-custom-travel-active .dive-match-profile-panel,
-body.home-scroll-traveling .dive-match-focus-card,
+body.home-scroll-active .dive-match-focus-card,
 body.home-guide-custom-travel-active .dive-match-focus-card,
-body.home-scroll-traveling .dive-match-card,
+body.home-scroll-active .dive-match-card,
 body.home-guide-custom-travel-active .dive-match-card,
-body.home-scroll-traveling .sea-guide-home .sea-guide-panel,
+body.home-scroll-active .sea-guide-home .sea-guide-panel,
 body.home-guide-custom-travel-active .sea-guide-home .sea-guide-panel,
-body.home-scroll-traveling .sea-guide-home .sea-guide-trigger,
+body.home-scroll-active .sea-guide-home .sea-guide-trigger,
 body[data-home-interaction='locked'] .curated-waters-stage,
 body[data-home-interaction='locked'] .curated-display-copy,
 body[data-home-interaction='locked'] .dive-match-stage,
@@ -158,29 +165,29 @@ body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger {
     -webkit-backdrop-filter: none !important;
 }
 
-body.home-scroll-traveling .curated-waters-stage::before,
+body.home-scroll-active .curated-waters-stage::before,
 body.home-guide-custom-travel-active .curated-waters-stage::before,
-body.home-scroll-traveling .curated-waters-stage::after,
+body.home-scroll-active .curated-waters-stage::after,
 body.home-guide-custom-travel-active .curated-waters-stage::after,
-body.home-scroll-traveling .curated-display-media::after,
+body.home-scroll-active .curated-display-media::after,
 body.home-guide-custom-travel-active .curated-display-media::after,
-body.home-scroll-traveling .dive-match::before,
+body.home-scroll-active .dive-match::before,
 body.home-guide-custom-travel-active .dive-match::before,
-body.home-scroll-traveling .dive-match::after,
+body.home-scroll-active .dive-match::after,
 body.home-guide-custom-travel-active .dive-match::after,
-body.home-scroll-traveling .dive-match-stage::before,
+body.home-scroll-active .dive-match-stage::before,
 body.home-guide-custom-travel-active .dive-match-stage::before,
-body.home-scroll-traveling .dive-match-focus-card::before,
+body.home-scroll-active .dive-match-focus-card::before,
 body.home-guide-custom-travel-active .dive-match-focus-card::before,
-body.home-scroll-traveling .dive-match-focus-card::after,
+body.home-scroll-active .dive-match-focus-card::after,
 body.home-guide-custom-travel-active .dive-match-focus-card::after,
-body.home-scroll-traveling .dive-match-profile-presets-focus-aura,
+body.home-scroll-active .dive-match-profile-presets-focus-aura,
 body.home-guide-custom-travel-active .dive-match-profile-presets-focus-aura,
-body.home-scroll-traveling .story-river-glow,
+body.home-scroll-active .story-river-glow,
 body.home-guide-custom-travel-active .story-river-glow,
-body.home-scroll-traveling .sea-guide-home .sea-guide-trigger::after,
+body.home-scroll-active .sea-guide-home .sea-guide-trigger::after,
 body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger::after,
-body.home-scroll-traveling .sea-guide-home .sea-guide-panel::before,
+body.home-scroll-active .sea-guide-home .sea-guide-panel::before,
 body[data-home-interaction='locked'] .curated-waters-stage::before,
 body[data-home-interaction='locked'] .curated-waters-stage::after,
 body[data-home-interaction='locked'] .curated-display-media::after,
@@ -193,10 +200,10 @@ body[data-home-interaction='locked'] .dive-match-profile-presets-focus-aura,
 body[data-home-interaction='locked'] .story-river-glow,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger::after,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-panel::before,
-body.home-scroll-traveling .hero-bamboo-scroll-container::before,
-body.home-scroll-traveling .hero-bamboo-cards-wrapper::before,
-body.home-scroll-traveling .hero-bamboo-cards-wrapper::after,
-body.home-scroll-traveling .today-sea-card::before,
+body.home-scroll-active .hero-bamboo-scroll-container::before,
+body.home-scroll-active .hero-bamboo-cards-wrapper::before,
+body.home-scroll-active .hero-bamboo-cards-wrapper::after,
+body.home-scroll-active .today-sea-card::before,
 body[data-home-interaction='locked'] .hero-bamboo-scroll-container::before,
 body[data-home-interaction='locked'] .hero-bamboo-cards-wrapper::before,
 body[data-home-interaction='locked'] .hero-bamboo-cards-wrapper::after,
@@ -210,11 +217,11 @@ body.home-guide-custom-travel-active .today-sea-card::before {
     opacity: 0.34 !important;
 }
 
-body.home-scroll-traveling .today-sea-card,
-body.home-scroll-traveling .hero-hotspots-shell .bamboo-card,
-body.home-scroll-traveling .bamboo-card,
-body.home-scroll-traveling .bamboo-card-image,
-body.home-scroll-traveling .bamboo-card-content,
+body.home-scroll-active .today-sea-card,
+body.home-scroll-active .hero-hotspots-shell .bamboo-card,
+body.home-scroll-active .bamboo-card,
+body.home-scroll-active .bamboo-card-image,
+body.home-scroll-active .bamboo-card-content,
 body[data-home-interaction='locked'] .today-sea-card,
 body[data-home-interaction='locked'] .hero-hotspots-shell .bamboo-card,
 body[data-home-interaction='locked'] .bamboo-card,
@@ -229,10 +236,10 @@ body.home-guide-custom-travel-active .bamboo-card-content {
     animation-play-state: paused !important;
 }
 
-body.home-scroll-traveling .today-sea-card,
-body.home-scroll-traveling .hero-hotspots-shell .bamboo-card,
-body.home-scroll-traveling .bamboo-card,
-body.home-scroll-traveling .bamboo-card-content,
+body.home-scroll-active .today-sea-card,
+body.home-scroll-active .hero-hotspots-shell .bamboo-card,
+body.home-scroll-active .bamboo-card,
+body.home-scroll-active .bamboo-card-content,
 body[data-home-interaction='locked'] .today-sea-card,
 body[data-home-interaction='locked'] .hero-hotspots-shell .bamboo-card,
 body[data-home-interaction='locked'] .bamboo-card,
@@ -247,10 +254,131 @@ body.home-guide-custom-travel-active .bamboo-card-content {
     filter: none !important;
 }
 
-body.home-scroll-traveling .bamboo-card-image,
+body.home-scroll-active .bamboo-card-image,
 body[data-home-interaction='locked'] .bamboo-card-image,
 body.home-guide-custom-travel-active .bamboo-card-image {
     transform: none !important;
+}
+
+body.home-scroll-active :is(
+    .hero-section,
+    .hero-ocean-glow,
+    .hero-ocean-wave,
+    .hero-plankton,
+    .hero-content,
+    .hero-title,
+    .hero-subtitle,
+    .today-sea-card,
+    .today-sea-head,
+    .today-sea-copy,
+    .today-sea-spot,
+    .today-sea-spot-link,
+    .today-sea-actions,
+    .hero-hotspots-shell,
+    .hero-hotspots-head,
+    .hero-bamboo-scroll-container,
+    .hero-bamboo-cards-wrapper,
+    .curated-reveal,
+    .curated-waters-stage,
+    .curated-archive-wall,
+    .curated-nav-btn,
+    .curated-display-surface,
+    .curated-display-media,
+    .curated-display-copy,
+    .dive-match,
+    .dive-match-reveal,
+    .dive-match-stage,
+    .dive-match-profile-panel,
+    .dive-match-profile-panel-track,
+    .dive-match-profile-presets-focus-aura,
+    .dive-match-profile-presets-track,
+    .dive-match-profile-preset,
+    .dive-match-filter,
+    .dive-match-surface,
+    .dive-match-focus-card,
+    .dive-match-focus-group,
+    .dive-match-focus-head,
+    .dive-match-focus-audience,
+    .dive-match-focus-guidance,
+    .dive-match-focus-note,
+    .dive-match-focus-personal
+) {
+    animation-play-state: paused !important;
+    transition: none !important;
+    will-change: auto !important;
+}
+
+body.home-scroll-restoring :is(
+    .hero-section,
+    .hero-ocean-glow,
+    .hero-ocean-wave,
+    .hero-plankton,
+    .today-sea-card,
+    .hero-hotspots-shell,
+    .bamboo-card,
+    .bamboo-card-content,
+    .curated-waters-stage,
+    .curated-archive-wall,
+    .curated-nav-btn,
+    .curated-display-surface,
+    .curated-display-media,
+    .curated-display-copy,
+    .dive-match,
+    .dive-match-stage,
+    .dive-match-profile-panel,
+    .dive-match-profile-panel-track,
+    .dive-match-profile-presets-track,
+    .dive-match-profile-preset,
+    .dive-match-filter,
+    .dive-match-surface,
+    .dive-match-focus-card,
+    .dive-match-focus-group,
+    .sea-guide-home .sea-guide-panel,
+    .sea-guide-home .sea-guide-trigger
+) {
+    animation-play-state: paused !important;
+    transition: none !important;
+    will-change: auto !important;
+}
+
+body.home-scroll-restoring :is(
+    .hero-section,
+    .featured-destinations,
+    .curated-waters-stage,
+    .curated-archive-wall,
+    .dive-match,
+    .dive-match-stage,
+    .dive-match-focus-card
+)::before,
+body.home-scroll-restoring :is(
+    .hero-section,
+    .featured-destinations,
+    .curated-waters-stage,
+    .curated-archive-wall,
+    .dive-match,
+    .dive-match-focus-card
+)::after,
+body.home-scroll-restoring .curated-display-media::after,
+body.home-scroll-restoring .sea-guide-home .sea-guide-panel::before {
+    animation-play-state: paused !important;
+    transition: none !important;
+}
+
+body.home-scroll-active .hero-section::before,
+body.home-scroll-active .hero-section::after,
+body.home-scroll-active .hero-hotspots-shell::after,
+body.home-scroll-active .featured-destinations::before,
+body.home-scroll-active .featured-destinations::after,
+body.home-scroll-active .curated-waters-stage::before,
+body.home-scroll-active .curated-waters-stage::after,
+body.home-scroll-active .curated-archive-wall::before,
+body.home-scroll-active .curated-archive-wall::after,
+body.home-scroll-active .dive-match::before,
+body.home-scroll-active .dive-match::after,
+body.home-scroll-active .dive-match-stage::before,
+body.home-scroll-active .dive-match-focus-card::before,
+body.home-scroll-active .dive-match-focus-card::after {
+    transition: none !important;
 }
 
 /* ============================================
@@ -3006,22 +3134,30 @@ body[data-home-performance='lite'] .bamboo-card-content {
     transition: opacity 320ms ease, transform 320ms ease, box-shadow 320ms ease;
 }
 
-/* 给玻璃按钮加一层很淡的海面扫光，悬停时会更明显一些。 */
+/* 给玻璃按钮加一层像评论照片悬浮那样的窄柔流光，默认收在圆面外。 */
 .scroll-arrow .button-top::after {
     content: "";
     position: absolute;
-    inset: -18% auto -24% -48%;
-    width: 72%;
-    background: linear-gradient(110deg, rgba(255, 255, 255, 0) 0%, rgba(228, 247, 255, 0.34) 48%, rgba(255, 255, 255, 0) 100%);
-    transform: translate3d(-120%, 0, 0) rotate(10deg);
-    opacity: 0.36;
+    top: -18%;
+    bottom: -18%;
+    left: 0;
+    z-index: 1;
+    width: 34%;
+    background: linear-gradient(108deg, rgba(255, 255, 255, 0), rgba(229, 248, 255, 0.1) 42%, rgba(255, 255, 255, 0.28) 50%, rgba(182, 230, 243, 0.08) 58%, rgba(255, 255, 255, 0));
+    filter: blur(14px);
+    mix-blend-mode: screen;
+    transform: translate3d(-150%, 0, 0) skewX(-10deg);
+    opacity: 0;
     pointer-events: none;
-    transition: opacity 320ms ease;
-    animation: sea-arrow-sheen 9.5s ease-in-out infinite;
+    transition:
+        opacity 420ms ease,
+        transform 760ms cubic-bezier(0.2, 0.78, 0.24, 1);
 }
 
 /* 使用线性 SVG 箭头代替廉价文本箭头，保持按钮中心留白。 */
 .scroll-arrow-icon {
+    position: relative;
+    z-index: 2;
     width: 22px;
     height: 22px;
     display: block;
@@ -3076,7 +3212,13 @@ body[data-home-performance='lite'] .bamboo-card-content {
 }
 
 .scroll-arrow:hover .button-top::after {
-    opacity: 0.56;
+    opacity: 0.62;
+    transform: translate3d(330%, 0, 0) skewX(-10deg);
+}
+
+.scroll-arrow:focus-visible .button-top::after {
+    opacity: 0.62;
+    transform: translate3d(330%, 0, 0) skewX(-10deg);
 }
 
 /* 点击时只做轻微下沉和收光，像在水中按到导航器 */
@@ -3143,21 +3285,6 @@ body[data-home-performance='lite'] .bamboo-card-content {
     }
 }
 
-/* 定义按钮表面的淡扫光动画，模拟海面折射光慢慢滑过 */
-@keyframes sea-arrow-sheen {
-    0%,
-    16%,
-    100% {
-        transform: translate3d(-120%, 0, 0) rotate(10deg);
-    }
-    34%,
-    54% {
-        transform: translate3d(178%, 0, 0) rotate(10deg);
-    }
-}
-
-
-
 /* ============================================
    Featured Destinations - 深海档案墙
    ============================================ */
@@ -3167,7 +3294,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
     position: relative;
     overflow: hidden;
     overflow-anchor: none;
-    padding: clamp(96px, 10vw, 148px) var(--spacing-lg) clamp(110px, 12vw, 164px);
+    padding: clamp(96px, 10vw, 148px) var(--spacing-lg) clamp(64px, 7vw, 104px);
     background:
         radial-gradient(circle at 18% 12%, rgba(173, 215, 239, 0.2) 0%, rgba(173, 215, 239, 0) 18%),
         radial-gradient(circle at 80% 18%, rgba(194, 226, 243, 0.12) 0%, rgba(194, 226, 243, 0) 20%),
@@ -3354,7 +3481,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
     align-content: center;
     padding: clamp(18px, 1.8vw, 24px) 0 clamp(22px, 2vw, 28px);
     max-height: 100%;
-    overflow-y: auto;
+    overflow-y: hidden;
+    overscroll-behavior-y: none;
     scrollbar-width: none;
 }
 
@@ -4038,6 +4166,24 @@ body[data-home-performance='lite'] .bamboo-card-content {
     padding: 4px 0;
 }
 
+.curated-nav-rail::after {
+    content: "";
+    position: absolute;
+    inset: -14px -18px -14px -22px;
+    z-index: 8;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(5, 24, 39, 0), rgba(13, 55, 78, 0.28) 36%, rgba(226, 246, 255, 0.1) 50%, rgba(5, 24, 39, 0) 70%),
+        radial-gradient(ellipse at 54% 48%, rgba(166, 220, 242, 0.16), rgba(166, 220, 242, 0) 58%);
+    filter: blur(16px);
+    opacity: 0;
+    transform: translate3d(0, -42%, 0) scaleY(0.72);
+    transition:
+        opacity 0.32s ease,
+        transform 0.72s var(--home-reveal-ease),
+        filter 0.72s ease;
+}
+
 .curated-nav-btn {
     --sample-shift-x: 0px;
     --sample-shift-y: 0px;
@@ -4499,14 +4645,35 @@ body[data-home-performance='lite'] .bamboo-card-content {
         0 0 16px rgba(151, 208, 236, 0.2);
 }
 
+.curated-nav-rail.is-cycling::after {
+    opacity: 0.92;
+    filter: blur(18px);
+    transform: translate3d(0, 6%, 0) scaleY(1.08);
+    transition-duration: 0.42s;
+}
+
+.curated-nav-rail.is-cycle-prime::after {
+    opacity: 0.7;
+    filter: blur(20px);
+    transform: translate3d(0, 28%, 0) scaleY(1.18);
+    transition-duration: 0.18s;
+}
+
+.curated-nav-rail.is-cycle-reveal::after {
+    opacity: 0;
+    filter: blur(22px);
+    transform: translate3d(0, 88%, 0) scaleY(1.28);
+    transition-duration: 0.96s;
+}
+
 .featured-destinations.is-stage-visible.is-stage-hydrated .curated-nav-rail.is-cycle-prime .curated-nav-btn {
     opacity: 0;
-    filter: blur(14px);
+    filter: blur(18px);
     transform: translate3d(
-        calc(var(--sample-shift-x, 0px) + var(--sample-cycle-shift, 12px)),
-        calc(var(--sample-shift-y, 0px) + 14px),
+        calc(var(--sample-shift-x, 0px) + var(--sample-cycle-shift, 12px) + 10px),
+        calc(var(--sample-shift-y, 0px) + 28px),
         0
-    ) scale(calc(var(--sample-scale, 1) - 0.035));
+    ) scale(calc(var(--sample-scale, 1) - 0.055));
     transition-delay: 0ms;
 }
 
@@ -4533,6 +4700,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .curated-nav-rail.is-cycle-reveal .curated-nav-btn,
 .curated-nav-rail.is-cycle-reveal .curated-nav-refresh {
     transition-delay: var(--sample-cycle-delay, 0ms);
+    transition-duration: 1.02s;
 }
 
 .featured-destinations.is-stage-visible.is-stage-hydrated .curated-nav-rail.is-cycle-reveal .curated-nav-btn {
@@ -4787,6 +4955,298 @@ body[data-home-performance='lite'] .bamboo-card-content {
     transform: translate3d(0, -2px, 0);
 }
 
+/* 海域陈列精修：让舞台、主档案与相邻海域墙重新形成海层关系。 */
+.curated-waters-stage.curated-archive-wall {
+    grid-template-columns: minmax(0, 1.18fr) clamp(246px, 22vw, 300px);
+    gap: clamp(24px, 2.6vw, 36px);
+    padding: clamp(22px, 2.8vw, 34px);
+    border-color: rgba(230, 246, 255, 0.11);
+    background:
+        radial-gradient(ellipse at 38% 12%, rgba(190, 223, 242, 0.13), rgba(190, 223, 242, 0) 34%),
+        radial-gradient(ellipse at 86% 50%, rgba(78, 149, 184, 0.12), rgba(78, 149, 184, 0) 30%),
+        linear-gradient(90deg, rgba(4, 18, 31, 0.18), rgba(7, 29, 45, 0.1) 58%, rgba(5, 22, 36, 0.42)),
+        linear-gradient(180deg, rgba(13, 53, 78, 0.42), rgba(4, 17, 28, 0.48));
+    box-shadow:
+        0 46px 96px rgba(2, 12, 21, 0.32),
+        0 0 0 1px rgba(206, 232, 245, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -34px 84px rgba(2, 13, 23, 0.24);
+}
+
+.curated-waters-stage.curated-archive-wall::before {
+    background:
+        linear-gradient(90deg, rgba(223, 244, 255, 0.08), rgba(223, 244, 255, 0) 26%),
+        linear-gradient(180deg, rgba(237, 249, 255, 0.1), rgba(237, 249, 255, 0) 30%),
+        radial-gradient(ellipse at 52% 78%, rgba(29, 104, 139, 0.26), rgba(29, 104, 139, 0) 46%),
+        repeating-linear-gradient(180deg, rgba(217, 241, 252, 0.032) 0 1px, transparent 1px 46px);
+    opacity: 0.82;
+}
+
+.curated-waters-stage.curated-archive-wall::after {
+    left: clamp(38px, 4vw, 58px);
+    right: clamp(290px, 26vw, 352px);
+    bottom: clamp(22px, 2.5vw, 34px);
+    height: clamp(160px, 18vw, 230px);
+    background:
+        radial-gradient(ellipse at 50% 100%, rgba(117, 192, 224, 0.22), rgba(117, 192, 224, 0) 68%),
+        linear-gradient(180deg, rgba(4, 18, 30, 0), rgba(4, 18, 30, 0.24));
+    opacity: 0.86;
+    filter: blur(22px);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-surface {
+    border-color: rgba(229, 246, 255, 0.09);
+    background:
+        radial-gradient(ellipse at 74% 18%, rgba(210, 236, 248, 0.12), rgba(210, 236, 248, 0) 30%),
+        linear-gradient(120deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.018) 48%),
+        linear-gradient(180deg, rgba(7, 30, 47, 0.34), rgba(3, 15, 26, 0.34));
+    box-shadow:
+        0 38px 82px rgba(2, 12, 22, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -42px 78px rgba(2, 13, 23, 0.24);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-surface::before {
+    background:
+        linear-gradient(90deg, rgba(4, 18, 30, 0.04), rgba(4, 18, 30, 0.34) 62%, rgba(4, 18, 30, 0.54)),
+        radial-gradient(ellipse at 28% 14%, rgba(238, 250, 255, 0.16), rgba(238, 250, 255, 0) 30%),
+        radial-gradient(ellipse at 64% 88%, rgba(83, 169, 205, 0.12), rgba(83, 169, 205, 0) 42%);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(115deg, rgba(255, 255, 255, 0) 12%, rgba(231, 248, 255, 0.06) 34%, rgba(255, 255, 255, 0) 52%),
+        repeating-linear-gradient(90deg, rgba(207, 234, 246, 0.03) 0 1px, transparent 1px 58px);
+    mix-blend-mode: screen;
+    opacity: 0.42;
+    transform: translate3d(-3%, 0, 0);
+    transition: opacity 0.86s ease, transform 1.16s var(--home-reveal-ease);
+}
+
+.featured-destinations.is-stage-visible.is-stage-hydrated .curated-display-surface.is-active::after {
+    opacity: 0.58;
+    transform: translate3d(0, 0, 0);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-media {
+    border-radius: 30px;
+    background: rgba(3, 17, 30, 0.5);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -28px 58px rgba(1, 10, 19, 0.32),
+        0 26px 48px rgba(2, 13, 23, 0.22);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-media::before {
+    background:
+        linear-gradient(90deg, rgba(3, 15, 27, 0.08), rgba(3, 15, 27, 0.18) 56%, rgba(3, 15, 27, 0.48)),
+        linear-gradient(180deg, rgba(235, 249, 255, 0.1), rgba(4, 18, 31, 0.3) 72%, rgba(3, 14, 24, 0.52)),
+        radial-gradient(ellipse at 22% 18%, rgba(240, 251, 255, 0.18), rgba(240, 251, 255, 0) 28%);
+    opacity: 0.92;
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-media::after {
+    opacity: 0.22;
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-image {
+    filter: saturate(0.86) contrast(1.06) brightness(0.78) hue-rotate(-2deg);
+}
+
+.featured-destinations.is-stage-visible.is-stage-hydrated .curated-waters-stage.curated-archive-wall .curated-display-surface.is-active .curated-display-image {
+    filter: saturate(0.9) contrast(1.07) brightness(0.88) hue-rotate(-2deg);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-copy {
+    right: clamp(26px, 2.4vw, 38px);
+    bottom: clamp(24px, 2.4vw, 36px);
+    width: min(430px, calc(100% - 52px));
+    gap: 13px;
+    padding: clamp(24px, 2.25vw, 32px);
+    border-radius: 30px;
+    border-color: rgba(231, 247, 255, 0.12);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.025)),
+        radial-gradient(ellipse at 26% 8%, rgba(171, 215, 235, 0.1), rgba(171, 215, 235, 0) 36%),
+        rgba(4, 18, 30, 0.72);
+    box-shadow:
+        0 32px 62px rgba(1, 11, 20, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -24px 54px rgba(2, 12, 22, 0.18);
+    backdrop-filter: blur(26px) saturate(118%);
+    -webkit-backdrop-filter: blur(26px) saturate(118%);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-copy::before {
+    content: "";
+    position: absolute;
+    inset: 14px 16px auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(227, 247, 255, 0), rgba(227, 247, 255, 0.34), rgba(227, 247, 255, 0));
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-facts {
+    border-color: rgba(231, 247, 255, 0.08);
+    background:
+        linear-gradient(90deg, rgba(226, 244, 255, 0.07), rgba(226, 244, 255, 0.018)),
+        rgba(6, 28, 44, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-display-condition {
+    background: rgba(218, 240, 252, 0.055);
+    border-color: rgba(218, 240, 252, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-detail-button {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(233, 248, 255, 0.18), rgba(233, 248, 255, 0.05)),
+        rgba(99, 167, 199, 0.2);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-detail-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 0 28%, rgba(238, 250, 255, 0.2) 48%, transparent 68%);
+    opacity: 0;
+    transform: translate3d(-62%, 0, 0);
+    transition: opacity 0.3s ease, transform 0.72s ease;
+}
+
+.curated-waters-stage.curated-archive-wall .curated-detail-button:hover::before {
+    opacity: 1;
+    transform: translate3d(62%, 0, 0);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-rail {
+    align-content: stretch;
+    gap: clamp(14px, 1.7vw, 20px);
+    padding: clamp(20px, 2.1vw, 30px) 0 clamp(58px, 6vw, 86px);
+    mask-image: linear-gradient(180deg, transparent, #000 8%, #000 84%, transparent);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-rail::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -16px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(219, 243, 255, 0.24) 18%, rgba(219, 243, 255, 0.08) 72%, transparent);
+    pointer-events: none;
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 8px 12px;
+    min-height: 118px;
+    padding: 16px 16px 18px;
+    border-radius: 26px;
+    background:
+        radial-gradient(ellipse at 44% 0%, rgba(218, 242, 255, 0.08), rgba(218, 242, 255, 0) 54%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.072), rgba(255, 255, 255, 0.012)),
+        rgba(5, 23, 38, 0.2);
+    border-color: rgba(226, 244, 254, 0.075);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.055),
+        0 20px 34px rgba(2, 13, 23, 0.11);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn::before {
+    left: 18px;
+    right: 18px;
+    bottom: 12px;
+    background: linear-gradient(90deg, rgba(196, 230, 246, 0), rgba(196, 230, 246, 0.38), rgba(196, 230, 246, 0));
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn::after {
+    background:
+        radial-gradient(circle at 16px 16px, rgba(219, 244, 255, 0.18), rgba(219, 244, 255, 0) 28%),
+        linear-gradient(92deg, rgba(222, 244, 255, 0.06), rgba(222, 244, 255, 0));
+    opacity: 0.42;
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-thumb {
+    width: 66px;
+    height: 78px;
+    border-radius: 18px;
+    transform: translate3d(0, 0, 0);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 14px 26px rgba(2, 12, 22, 0.16);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-thumb::after {
+    background: linear-gradient(180deg, rgba(238, 250, 255, 0.08), rgba(3, 16, 28, 0.28));
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-thumb img {
+    filter: saturate(0.72) contrast(1.02) brightness(0.68);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn:hover {
+    opacity: 0.9;
+    transform: translate3d(-3px, -2px, 0) scale(1.01);
+    border-color: rgba(231, 248, 255, 0.16);
+    background:
+        radial-gradient(ellipse at 42% 0%, rgba(224, 246, 255, 0.11), rgba(224, 246, 255, 0) 56%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.018)),
+        rgba(8, 32, 50, 0.26);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn:hover .curated-nav-thumb img {
+    filter: saturate(0.84) contrast(1.04) brightness(0.82);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn.is-active {
+    transform: translate3d(-8px, 0, 0) scale(1.035);
+    border-color: rgba(234, 248, 255, 0.2);
+    background:
+        radial-gradient(ellipse at 36% 0%, rgba(231, 248, 255, 0.15), rgba(231, 248, 255, 0) 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03)),
+        rgba(15, 50, 73, 0.42);
+    box-shadow:
+        0 26px 46px rgba(2, 13, 23, 0.2),
+        0 0 34px rgba(129, 195, 226, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn.is-active .curated-nav-thumb img {
+    filter: saturate(0.92) contrast(1.05) brightness(0.92);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn:not(.is-active) .curated-nav-name {
+    color: rgba(222, 239, 248, 0.74);
+}
+
+.curated-waters-stage.curated-archive-wall .curated-nav-btn:not(.is-active) .curated-nav-meta,
+.curated-waters-stage.curated-archive-wall .curated-nav-btn:not(.is-active) .curated-nav-eng,
+.curated-waters-stage.curated-archive-wall .curated-nav-btn:not(.is-active) .curated-nav-keyword {
+    color: rgba(194, 219, 234, 0.46);
+}
+
+.curated-display-surface.is-leaving.to-depth {
+    opacity: 0;
+    filter: blur(18px);
+    transform: translate3d(-18px, 18px, 0) scale(0.988);
+}
+
+.curated-display-surface.from-depth,
+.curated-display-surface.is-entering {
+    transform: translate3d(18px, 24px, 0) scale(0.972);
+}
+
 @keyframes curated-breathe {
     0%,
     100% {
@@ -4814,8 +5274,8 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .dive-match {
     position: relative;
     overflow: hidden;
-    margin-top: -24px;
-    padding: calc(clamp(88px, 9vw, 136px) + 24px) var(--spacing-lg) clamp(88px, 9vw, 136px);
+    margin-top: -64px;
+    padding: clamp(38px, 4vw, 58px) var(--spacing-lg) clamp(88px, 9vw, 136px);
     background:
         radial-gradient(circle at 16% 18%, rgba(177, 214, 234, 0.1) 0%, rgba(177, 214, 234, 0) 18%),
         radial-gradient(circle at 84% 20%, rgba(143, 200, 228, 0.08) 0%, rgba(143, 200, 228, 0) 20%),
@@ -6599,7 +7059,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 .home-page {
     --home-layer-progress: 0;
     --home-layer-index: 0;
-    --home-featured-layer-overlap: 10px;
+    --home-featured-layer-overlap: 28px;
     --home-story-overlap-top: clamp(24px, 3vw, 38px);
     --home-story-overlap-bottom: clamp(30px, 4vw, 52px);
 }
@@ -6630,7 +7090,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 .featured-destinations.is-home-current {
     margin-bottom: calc(var(--home-featured-layer-overlap) * -1);
-    padding-bottom: calc(clamp(92px, 9vw, 140px) + var(--home-featured-layer-overlap));
+    padding-bottom: calc(clamp(40px, 5vw, 72px) + var(--home-featured-layer-overlap));
 }
 
 .featured-destinations.is-home-current .curated-waters-stage {
@@ -6643,7 +7103,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
 
 .featured-destinations.is-home-passed {
     margin-bottom: calc(var(--home-featured-layer-overlap) * -1);
-    padding-bottom: calc(clamp(92px, 9vw, 140px) + var(--home-featured-layer-overlap));
+    padding-bottom: calc(clamp(40px, 5vw, 72px) + var(--home-featured-layer-overlap));
 }
 
 .featured-destinations.is-home-passed .curated-waters-intro {
@@ -7291,7 +7751,7 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
     width: min(326px, calc(100vw - 28px));
     max-height: min(62vh, 560px);
     overflow: auto;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: auto;
     scroll-padding: 18px 0 26px;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -8159,26 +8619,26 @@ body.home-page .hero-subtitle {
 
 body.home-page .hero-hotspots-shell {
     padding-top: 38px;
-    border: 1px solid rgba(225, 243, 251, 0.12);
+    border: 1px solid rgba(225, 243, 251, 0.09);
     box-shadow:
-        0 42px 80px rgba(4, 20, 31, 0.28),
-        0 0 40px rgba(87, 154, 186, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        inset 0 -28px 48px rgba(6, 29, 45, 0.14);
+        0 30px 62px rgba(4, 20, 31, 0.22),
+        0 0 30px rgba(87, 154, 186, 0.055),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -22px 42px rgba(6, 29, 45, 0.11);
 }
 
 body.home-page .hero-hotspots-shell::before {
     content: "";
     position: absolute;
     inset: 18px 22px auto;
-    height: 118px;
-    border-radius: 24px;
+    height: 96px;
+    border-radius: 22px;
     background:
         linear-gradient(90deg, rgba(189, 225, 241, 0.12) 0 1px, transparent 1px 100%),
         linear-gradient(180deg, rgba(189, 225, 241, 0.08) 0 1px, transparent 1px 100%);
-    background-size: 54px 100%, 100% 28px;
-    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-    opacity: 0.28;
+    background-size: 60px 100%, 100% 30px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.64), rgba(0, 0, 0, 0));
+    opacity: 0.18;
     pointer-events: none;
     z-index: 0;
 }
@@ -8219,8 +8679,4011 @@ body.home-page .footer-companion::before {
     pointer-events: none;
 }
 
+/* 今日海域首屏强化：删除上方开场文案后，让观察舱成为进入首页的第一视觉。 */
+body.home-page .hero-section {
+    min-height: calc(100vh - var(--nav-height, 82px));
+    padding-top: clamp(28px, 4.2vh, 46px);
+    padding-bottom: clamp(24px, 4vh, 46px);
+    display: flex;
+    align-items: flex-start;
+}
+
+body.home-page .hero-content {
+    width: min(100%, 1400px);
+    max-width: 1400px;
+}
+
+body.home-page .hero-hotspots-stage-shell {
+    --hero-hotspots-stage-width: min(100%, 1320px);
+    width: var(--hero-hotspots-stage-width);
+    max-width: min(100%, 1320px);
+}
+
+body.home-page .hero-hotspots-shell {
+    min-height: clamp(500px, calc(100vh - 280px), 620px);
+    padding: clamp(18px, 2.4vh, 28px) clamp(16px, 2vw, 28px) clamp(18px, 2.4vh, 26px);
+    border-radius: clamp(28px, 2.8vw, 40px);
+    background:
+        radial-gradient(circle at 50% -18%, rgba(219, 244, 255, 0.13) 0%, rgba(219, 244, 255, 0) 40%),
+        linear-gradient(180deg, rgba(102, 158, 187, 0.13) 0%, rgba(10, 46, 68, 0.3) 46%, rgba(5, 27, 42, 0.47) 100%),
+        rgba(5, 30, 47, 0.34);
+    border-color: rgba(225, 243, 251, 0.105);
+    box-shadow:
+        0 28px 58px rgba(4, 20, 31, 0.22),
+        0 0 42px rgba(83, 160, 194, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -30px 58px rgba(4, 22, 35, 0.16);
+}
+
+body.home-page .hero-hotspots-shell::before {
+    inset: 14px 24px auto;
+    height: 84px;
+    opacity: 0.14;
+}
+
+body.home-page .hero-hotspots-head {
+    gap: 8px;
+    margin-bottom: clamp(10px, 1.6vh, 16px);
+}
+
+body.home-page .hero-hotspots-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.46em;
+    color: rgba(202, 231, 244, 0.5);
+}
+
+body.home-page .hero-hotspots-copy {
+    gap: 7px;
+}
+
+body.home-page .hero-hotspots-title {
+    font-size: clamp(1.8rem, 2.55vw, 2.38rem);
+    letter-spacing: 0.14em;
+}
+
+body.home-page .hero-hotspots-subtitle {
+    font-size: clamp(0.88rem, 1vw, 0.98rem);
+    line-height: 1.64;
+    color: rgba(218, 236, 245, 0.62);
+}
+
+body.home-page .hero-observation-rail {
+    width: min(100%, 590px);
+    gap: 7px;
+}
+
+body.home-page .hero-observation-chip {
+    min-height: 25px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background:
+        linear-gradient(90deg, rgba(185, 223, 240, 0.02), rgba(222, 244, 252, 0.09), rgba(185, 223, 240, 0.02)),
+        rgba(7, 31, 48, 0.12);
+    border-color: rgba(213, 238, 248, 0.1);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(108, 174, 205, 0.02);
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    color: rgba(218, 237, 246, 0.58);
+}
+
+body.home-page .hero-bamboo-scroll-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: clamp(8px, 1vw, 14px);
+    padding: 0 4px 4px;
+}
+
+body.home-page .hero-bamboo-scroll-container::before {
+    inset: 8px clamp(36px, 3.6vw, 58px) 10px;
+    border-radius: clamp(24px, 2.4vw, 36px);
+    background:
+        linear-gradient(180deg, rgba(237, 247, 252, 0.045) 0%, rgba(237, 247, 252, 0.008) 100%),
+        rgba(4, 24, 38, 0.22);
+}
+
+body.home-page .hero-bamboo-cards-wrapper {
+    align-self: stretch;
+    min-height: clamp(320px, calc(100vh - 500px), 430px);
+    padding: clamp(8px, 1.2vh, 14px) 0 clamp(10px, 1.4vh, 18px);
+    display: flex;
+    align-items: center;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-cards-content {
+    width: 100%;
+    padding-block: 8px;
+    gap: clamp(12px, 1.35vw, 18px);
+    align-items: stretch;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    flex-basis: clamp(286px, 22vw, 330px);
+    min-width: clamp(286px, 22vw, 330px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image {
+    height: clamp(178px, 20vh, 220px);
+}
+
+@media (min-width: 1600px) {
+    body.home-page .hero-content {
+        width: min(100%, 1440px);
+        max-width: 1440px;
+    }
+
+    body.home-page .hero-hotspots-stage-shell {
+        --hero-hotspots-stage-width: min(100%, 1360px);
+        max-width: min(100%, 1360px);
+    }
+}
+
+@media (max-width: 1179px) {
+    body.home-page .hero-section {
+        min-height: auto;
+        padding-top: 42px;
+        align-items: stretch;
+    }
+
+    body.home-page .hero-hotspots-shell {
+        min-height: 0;
+        padding: 28px 20px 24px;
+    }
+
+    body.home-page .hero-bamboo-cards-wrapper {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 720px) {
+    body.home-page .hero-section {
+        padding-top: 28px;
+        padding-inline: 14px;
+    }
+
+    body.home-page .hero-hotspots-shell {
+        padding: 24px 14px 20px;
+        border-radius: 28px;
+    }
+
+    body.home-page .hero-hotspots-head {
+        margin-bottom: 16px;
+    }
+
+    body.home-page .hero-hotspots-title {
+        font-size: clamp(1.65rem, 9vw, 2.15rem);
+    }
+
+    body.home-page .hero-observation-rail {
+        gap: 7px;
+    }
+
+    body.home-page .hero-observation-chip {
+        width: auto;
+        min-height: 30px;
+        padding-inline: 10px;
+        font-size: 0.68rem;
+        letter-spacing: 0.04em;
+    }
+
+    body.home-page .hero-bamboo-scroll-container::before {
+        inset: 6px 32px 8px;
+    }
+}
+
 @media (max-width: 960px) {
     body.home-page .hero-hotspots-shell {
         padding-top: 34px;
     }
+}
+
+/* ============================================
+   今日海域观察窗升级
+   ============================================ */
+
+body.home-page .hero-hotspots-stage-shell {
+    --hero-hotspots-stage-width: min(100%, 1380px);
+    max-width: min(100%, 1380px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card {
+    position: relative;
+    min-height: clamp(510px, calc(100vh - 272px), 650px);
+    padding: clamp(22px, 3vh, 34px) clamp(18px, 2.2vw, 34px) clamp(18px, 2.6vh, 28px);
+    border-radius: clamp(18px, 2.2vw, 30px);
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(2, 18, 31, 0.42), rgba(2, 18, 31, 0) 14%, rgba(2, 18, 31, 0) 86%, rgba(2, 18, 31, 0.44)),
+        linear-gradient(180deg, rgba(222, 246, 255, 0.07), rgba(128, 188, 213, 0.035) 38%, rgba(4, 28, 44, 0.18)),
+        rgba(4, 28, 44, 0.22);
+    border: 0;
+    box-shadow:
+        inset 0 1px 0 rgba(226, 247, 255, 0.18),
+        inset 0 -1px 0 rgba(184, 228, 244, 0.1),
+        inset 36px 0 70px rgba(2, 18, 31, 0.18),
+        inset -36px 0 70px rgba(2, 18, 31, 0.2),
+        0 26px 58px rgba(3, 17, 28, 0.18);
+    backdrop-filter: blur(18px) saturate(118%);
+    -webkit-backdrop-filter: blur(18px) saturate(118%);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before {
+    content: "";
+    position: absolute;
+    left: clamp(20px, 3vw, 44px);
+    right: clamp(20px, 3vw, 44px);
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(188, 231, 247, 0), rgba(211, 241, 251, 0.42), rgba(188, 231, 247, 0));
+    opacity: 0.88;
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    content: "";
+    position: absolute;
+    left: clamp(20px, 3vw, 44px);
+    right: clamp(20px, 3vw, 44px);
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(120, 194, 222, 0), rgba(168, 223, 239, 0.28), rgba(120, 194, 222, 0));
+    opacity: 0.72;
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-head {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "kicker hints"
+        "copy hints";
+    align-items: end;
+    gap: 6px 24px;
+    width: min(100%, 1120px);
+    margin: 0 auto clamp(18px, 2.4vh, 26px);
+    padding: 0 clamp(6px, 1vw, 12px);
+    text-align: left;
+}
+
+body.home-page .hero-hotspots-kicker {
+    grid-area: kicker;
+    margin: 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.38em;
+    color: rgba(207, 233, 244, 0.48);
+}
+
+body.home-page .hero-hotspots-copy {
+    grid-area: copy;
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+
+body.home-page .hero-hotspots-title {
+    font-size: clamp(2rem, 2.7vw, 2.72rem);
+    line-height: 1.08;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-shadow: 0 18px 42px rgba(2, 16, 27, 0.28);
+}
+
+body.home-page .hero-hotspots-subtitle {
+    max-width: 36ch;
+    margin: 0;
+    font-size: clamp(0.9rem, 1vw, 1rem);
+    line-height: 1.66;
+    color: rgba(218, 237, 246, 0.66);
+    text-align: left;
+}
+
+body.home-page .hero-observation-rail {
+    grid-area: hints;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    width: auto;
+    max-width: 360px;
+    gap: 8px;
+}
+
+body.home-page .hero-observation-chip {
+    min-height: 26px;
+    padding: 0 0 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: rgba(207, 232, 242, 0.56);
+}
+
+body.home-page .hero-observation-chip::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(157, 219, 239, 0.52);
+    box-shadow: 0 0 12px rgba(126, 207, 235, 0.3);
+    transform: translateY(-50%);
+}
+
+body.home-page .hero-bamboo-scroll-container {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 0;
+    padding: 0 clamp(42px, 4vw, 70px) clamp(8px, 1vh, 14px);
+}
+
+body.home-page .hero-bamboo-scroll-container::before {
+    inset: clamp(4px, 0.8vh, 10px) clamp(40px, 4.2vw, 74px) clamp(8px, 1.2vh, 16px);
+    border-radius: clamp(16px, 1.6vw, 24px);
+    background:
+        linear-gradient(90deg, rgba(3, 18, 30, 0.46), rgba(3, 18, 30, 0) 18%, rgba(3, 18, 30, 0) 82%, rgba(3, 18, 30, 0.48)),
+        linear-gradient(180deg, rgba(228, 248, 255, 0.045), rgba(228, 248, 255, 0.012)),
+        rgba(4, 24, 38, 0.16);
+    border: 0;
+    box-shadow:
+        inset 0 1px 0 rgba(224, 245, 253, 0.08),
+        inset 0 -1px 0 rgba(138, 208, 231, 0.06);
+}
+
+body.home-page .hero-bamboo-cards-wrapper {
+    align-self: stretch;
+    min-height: clamp(328px, calc(100vh - 500px), 450px);
+    padding: clamp(8px, 1.2vh, 14px) 0 clamp(10px, 1.4vh, 18px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-cards-content {
+    gap: clamp(24px, 2.4vw, 38px);
+    padding-block: 10px;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    flex-basis: clamp(300px, 23vw, 360px);
+    min-width: clamp(300px, 23vw, 360px);
+    border-radius: 22px;
+    overflow: hidden;
+    background: rgba(6, 28, 43, 0.42);
+    border: 1px solid rgba(211, 238, 248, 0.1);
+    box-shadow:
+        0 18px 38px rgba(3, 17, 28, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    opacity: 0.78;
+    filter: saturate(0.9) brightness(0.9) blur(0.2px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card:hover {
+    opacity: 0.92;
+    filter: saturate(1) brightness(0.98) blur(0);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.active {
+    --card-scale: 1.035;
+    opacity: 1;
+    border-color: rgba(220, 244, 252, 0.22);
+    box-shadow:
+        0 26px 54px rgba(3, 17, 28, 0.3),
+        0 0 44px rgba(119, 202, 232, 0.13),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    filter: saturate(1.04) brightness(1) blur(0);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.active::before {
+    content: "";
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(194, 235, 248, 0), rgba(220, 246, 253, 0.62), rgba(194, 235, 248, 0));
+    opacity: 0.84;
+    z-index: 2;
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image {
+    height: clamp(208px, 24vh, 260px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-content {
+    margin-top: -26px;
+    padding: 32px 22px 18px;
+    background:
+        linear-gradient(180deg, rgba(8, 35, 52, 0.04), rgba(6, 25, 38, 0.58) 28%, rgba(4, 18, 29, 0.82));
+    border-top: 1px solid rgba(235, 247, 252, 0.08);
+    box-shadow:
+        0 -16px 30px rgba(4, 20, 31, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px) saturate(124%);
+    -webkit-backdrop-filter: blur(14px) saturate(124%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-title {
+    color: rgba(242, 250, 253, 0.94);
+    font-size: 1.03rem;
+    letter-spacing: 0.02em;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-tagline {
+    color: rgba(204, 226, 236, 0.68);
+    line-height: 1.62;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-footer {
+    border-top-color: rgba(214, 234, 244, 0.08);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-price {
+    color: rgba(218, 240, 249, 0.88);
+    font-size: 1.02rem;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-rating {
+    color: rgba(231, 207, 142, 0.78);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow {
+    position: absolute;
+    z-index: 4;
+    top: 50%;
+    width: clamp(34px, 3vw, 46px);
+    height: clamp(118px, 18vh, 166px);
+    border-radius: 999px;
+    transform: translateY(-50%);
+    background:
+        linear-gradient(180deg, rgba(232, 248, 254, 0.14), rgba(108, 174, 205, 0.05)),
+        rgba(3, 22, 36, 0.26);
+    border: 1px solid rgba(213, 239, 248, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 16px 28px rgba(2, 15, 25, 0.18);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.left {
+    left: clamp(4px, 1vw, 14px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.right {
+    right: clamp(4px, 1vw, 14px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
+body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
+body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
+    position: static;
+    inset: auto;
+    width: auto;
+    height: auto;
+    transform: none;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow-icon {
+    width: 26px;
+    height: 26px;
+    stroke: rgba(224, 243, 250, 0.76);
+    stroke-width: 1.8;
+    filter: drop-shadow(0 0 10px rgba(144, 218, 239, 0.18));
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover {
+    transform: translateY(-50%) translate3d(0, -1px, 0);
+    background:
+        linear-gradient(180deg, rgba(232, 248, 254, 0.2), rgba(108, 174, 205, 0.08)),
+        rgba(3, 22, 36, 0.34);
+    border-color: rgba(220, 243, 251, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 18px 34px rgba(2, 15, 25, 0.22),
+        0 0 24px rgba(120, 204, 233, 0.1);
+}
+
+body.home-page .hero-hotspots-actions {
+    width: min(100%, 1120px);
+    margin: auto auto 0;
+    padding-top: clamp(12px, 1.8vh, 20px);
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 0.86fr);
+    justify-content: center;
+    gap: 12px;
+}
+
+body.home-page .hero-hotspots-actions::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(100%, 640px);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(185, 219, 235, 0), rgba(185, 219, 235, 0.2), rgba(185, 219, 235, 0));
+    transform: translateX(-50%);
+}
+
+body.home-page .hero-hotspots-actions .sea-action {
+    min-height: 44px;
+    border-radius: 999px;
+    border-color: rgba(218, 240, 249, 0.12);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    color: rgba(235, 248, 252, 0.9);
+    background:
+        linear-gradient(180deg, rgba(240, 250, 253, 0.08), rgba(117, 178, 205, 0.035)),
+        rgba(6, 30, 46, 0.24);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 12px 24px rgba(3, 17, 28, 0.1);
+}
+
+body.home-page .hero-hotspots-actions .sea-action-primary {
+    background:
+        linear-gradient(180deg, rgba(202, 238, 248, 0.12), rgba(78, 148, 180, 0.06)),
+        rgba(7, 38, 58, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 12px 24px rgba(3, 17, 28, 0.12),
+        0 0 18px rgba(120, 204, 233, 0.06);
+}
+
+body.home-page .hero-hotspots-actions .sea-action:hover {
+    transform: translate3d(0, -1px, 0);
+    border-color: rgba(221, 242, 250, 0.2);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 16px 28px rgba(3, 17, 28, 0.16),
+        0 0 22px rgba(120, 204, 233, 0.08);
+}
+
+@media (max-width: 1179px) {
+    body.home-page .hero-hotspots-head {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "kicker"
+            "copy"
+            "hints";
+        justify-items: start;
+    }
+
+    body.home-page .hero-observation-rail {
+        justify-content: flex-start;
+        max-width: none;
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        padding-inline: 40px;
+    }
+}
+
+@media (max-width: 720px) {
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        min-height: 0;
+        padding: 22px 12px 18px;
+        border-radius: 22px;
+    }
+
+    body.home-page .hero-hotspots-title {
+        font-size: clamp(1.62rem, 8vw, 2.12rem);
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        padding-inline: 30px;
+    }
+
+    body.home-page .hero-bamboo-scroll-container::before {
+        inset: 6px 28px 8px;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow {
+        width: 30px;
+        height: 118px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card {
+        flex-basis: min(74vw, 304px);
+        min-width: min(74vw, 304px);
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-image {
+        height: 190px;
+    }
+
+    body.home-page .hero-hotspots-actions {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+}
+
+/* 观察窗中心光带：不依赖 JS hover，也能让中间海域自然成为当前观察点。 */
+body.home-page .hero-bamboo-cards-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: clamp(18px, 1.8vw, 28px);
+}
+
+body.home-page .hero-bamboo-cards-wrapper::before {
+    content: "";
+    position: absolute;
+    top: clamp(8px, 1vh, 14px);
+    bottom: clamp(10px, 1.2vh, 18px);
+    left: 50%;
+    z-index: 2;
+    width: clamp(280px, 25vw, 390px);
+    border-radius: 28px;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(224, 248, 255, 0.14), transparent 58%),
+        linear-gradient(180deg, rgba(224, 248, 255, 0.04), rgba(224, 248, 255, 0));
+    border-top: 1px solid rgba(220, 246, 253, 0.22);
+    box-shadow: 0 0 36px rgba(126, 207, 235, 0.08);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body.home-page .hero-bamboo-cards-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: linear-gradient(90deg, rgba(4, 22, 35, 0.66), rgba(4, 22, 35, 0) 18%, rgba(4, 22, 35, 0) 82%, rgba(4, 22, 35, 0.68));
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-cards-content,
+body.home-page .hero-hotspots-shell .bamboo-card,
+body.home-page .hero-hotspots-shell .scroll-arrow {
+    position: relative;
+    z-index: 4;
+}
+
+@media (max-width: 720px) {
+    body.home-page .hero-bamboo-cards-wrapper::before {
+        width: min(72vw, 304px);
+    }
+}
+
+/* 移动端观察窗收束：让海域切片靠近标题，避免首屏变成长面板。 */
+@media (max-width: 720px) {
+    body.home-page .hero-section {
+        padding-top: 22px;
+        padding-bottom: 22px;
+    }
+
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        max-height: none;
+        padding: 20px 12px 16px;
+    }
+
+    body.home-page .hero-hotspots-head {
+        margin-bottom: 12px;
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        flex: 0 0 auto;
+        min-height: 360px;
+    }
+
+    body.home-page .hero-bamboo-cards-wrapper {
+        align-items: flex-start;
+        min-height: 344px;
+        padding-top: 12px;
+        padding-bottom: 10px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card {
+        flex-basis: min(72vw, 292px);
+        min-width: min(72vw, 292px);
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-image {
+        height: 176px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-content {
+        margin-top: -24px;
+        padding: 28px 18px 16px;
+    }
+
+    body.home-page .hero-hotspots-actions {
+        margin-top: 8px;
+    }
+}
+
+/* ============================================
+   今日海域海流带重构
+   这一层覆盖专门用来把首屏从“大玻璃面板 + 商品轮播”
+   收回成更开阔的海面观察带。
+   ============================================ */
+
+body.home-page .hero-section {
+    min-height: calc(100svh - var(--nav-height, 82px));
+    padding: clamp(24px, 3.4vh, 42px) clamp(30px, 5vw, 72px) clamp(28px, 4vh, 48px);
+    align-items: center;
+}
+
+body.home-page .hero-content {
+    width: min(100%, 1500px);
+    max-width: 1500px;
+}
+
+body.home-page .hero-hotspots-stage-shell {
+    --hero-hotspots-stage-width: min(100%, 1360px);
+    width: var(--hero-hotspots-stage-width);
+    max-width: min(100%, 1360px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: clamp(500px, calc(100svh - 218px), 642px);
+    padding: clamp(18px, 2.7vh, 32px) 0 clamp(10px, 2vh, 22px);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none !important;
+    animation: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before {
+    content: "";
+    position: absolute;
+    inset: clamp(76px, 10vh, 112px) 0 clamp(64px, 8vh, 88px);
+    z-index: 0;
+    border-radius: 0;
+    background:
+        linear-gradient(90deg, rgba(2, 15, 27, 0.76), rgba(2, 15, 27, 0.12) 13%, rgba(2, 15, 27, 0) 46%, rgba(2, 15, 27, 0.12) 87%, rgba(2, 15, 27, 0.78)),
+        radial-gradient(ellipse at 50% 0%, rgba(218, 245, 255, 0.16), rgba(218, 245, 255, 0) 54%),
+        linear-gradient(180deg, rgba(228, 247, 255, 0.045), rgba(24, 72, 96, 0.08) 48%, rgba(4, 21, 34, 0.2));
+    box-shadow: none;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
+    pointer-events: none;
+    display: none;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    content: "";
+    position: absolute;
+    inset: clamp(92px, 12vh, 132px) clamp(16px, 4vw, 72px) clamp(76px, 10vh, 102px);
+    z-index: 0;
+    border-top: 1px solid rgba(203, 235, 247, 0.18);
+    border-bottom: 1px solid rgba(127, 195, 221, 0.12);
+    background:
+        linear-gradient(90deg, transparent, rgba(220, 244, 252, 0.055), transparent),
+        repeating-linear-gradient(90deg, rgba(216, 240, 249, 0.06) 0 1px, transparent 1px 90px);
+    opacity: 0.7;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    pointer-events: none;
+    display: none;
+}
+
+body.home-page .hero-hotspots-head {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "kicker hints"
+        "copy hints";
+    align-items: end;
+    width: min(100%, 1180px);
+    margin: 0 auto clamp(18px, 2.8vh, 30px);
+    padding-inline: clamp(12px, 1.8vw, 24px);
+    gap: 6px clamp(22px, 3vw, 46px);
+    justify-items: stretch;
+    text-align: left;
+}
+
+body.home-page .hero-hotspots-head::before {
+    content: "";
+    position: absolute;
+    left: clamp(12px, 1.8vw, 24px);
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: linear-gradient(180deg, rgba(202, 235, 247, 0), rgba(202, 235, 247, 0.34), rgba(202, 235, 247, 0));
+    opacity: 0.7;
+}
+
+body.home-page .hero-hotspots-kicker {
+    grid-area: kicker;
+    margin: 0 0 0 16px;
+    font-size: 0.64rem;
+    line-height: 1;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: rgba(207, 234, 244, 0.44);
+}
+
+body.home-page .hero-hotspots-copy {
+    grid-area: copy;
+    display: grid;
+    justify-items: start;
+    gap: 7px;
+    max-width: none;
+    margin-left: 16px;
+}
+
+body.home-page .hero-hotspots-title {
+    margin: 0;
+    font-size: clamp(1.96rem, 2.6vw, 2.84rem);
+    line-height: 1.04;
+    letter-spacing: 0.08em;
+    text-align: left;
+    color: rgba(244, 251, 255, 0.96);
+    text-shadow: 0 18px 42px rgba(2, 14, 24, 0.24);
+}
+
+body.home-page .hero-hotspots-subtitle {
+    max-width: 30ch;
+    margin: 0;
+    font-size: clamp(0.9rem, 0.98vw, 1rem);
+    line-height: 1.62;
+    color: rgba(218, 237, 246, 0.66);
+    text-align: left;
+}
+
+body.home-page .hero-observation-rail {
+    grid-area: hints;
+    align-self: end;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    width: auto;
+    max-width: 360px;
+    gap: 14px 18px;
+    padding-bottom: 2px;
+}
+
+body.home-page .hero-observation-chip {
+    position: relative;
+    min-height: auto;
+    padding: 0 0 0 18px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    color: rgba(205, 229, 239, 0.54);
+}
+
+body.home-page .hero-observation-chip::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 7px;
+    height: 1px;
+    border-radius: 999px;
+    background: rgba(167, 224, 242, 0.58);
+    box-shadow: 0 0 12px rgba(126, 207, 235, 0.22);
+    transform: translateY(-50%);
+}
+
+body.home-page .hero-bamboo-scroll-container {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    width: 100%;
+    height: clamp(330px, 42vh, 452px);
+    min-height: 0;
+    align-items: center;
+    gap: 0;
+    padding: 0 clamp(48px, 5vw, 82px);
+    overflow: visible;
+}
+
+body.home-page .hero-bamboo-scroll-container::before {
+    content: "";
+    position: absolute;
+    inset: 50% 0 auto;
+    height: clamp(268px, 34vh, 372px);
+    border: 0;
+    border-radius: 0;
+    background:
+        linear-gradient(90deg, rgba(3, 18, 31, 0.72), rgba(3, 18, 31, 0) 14%, rgba(3, 18, 31, 0) 86%, rgba(3, 18, 31, 0.74)),
+        radial-gradient(ellipse at 50% 10%, rgba(226, 248, 255, 0.12), rgba(226, 248, 255, 0) 56%),
+        linear-gradient(180deg, rgba(229, 247, 254, 0.04), rgba(7, 30, 46, 0.12) 62%, rgba(3, 18, 31, 0.24));
+    box-shadow: none;
+    filter: none;
+    transform: translateY(-50%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    pointer-events: none;
+}
+
+body.home-page .hero-bamboo-cards-wrapper {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    min-height: 0;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+    border-radius: 0;
+    perspective: 1200px;
+    perspective-origin: 50% 55%;
+}
+
+body.home-page .hero-bamboo-cards-wrapper::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(12px, 2vh, 24px);
+    bottom: clamp(12px, 2vh, 24px);
+    z-index: 2;
+    width: clamp(320px, 29vw, 455px);
+    border-radius: 24px;
+    border-top: 1px solid rgba(219, 245, 253, 0.3);
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(226, 249, 255, 0.18), rgba(226, 249, 255, 0) 52%),
+        linear-gradient(180deg, rgba(226, 249, 255, 0.035), rgba(226, 249, 255, 0));
+    box-shadow: 0 0 42px rgba(126, 207, 235, 0.08);
+    opacity: 0.88;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body.home-page .hero-bamboo-cards-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background: linear-gradient(90deg, rgba(2, 16, 28, 0.54), rgba(2, 16, 28, 0.03) 5%, rgba(2, 16, 28, 0) 50%, rgba(2, 16, 28, 0.03) 95%, rgba(2, 16, 28, 0.56));
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-cards-content {
+    position: relative;
+    z-index: 3;
+    align-items: center;
+    width: auto;
+    min-height: 100%;
+    gap: clamp(24px, 2.5vw, 36px);
+    padding: 0;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    --card-scale: 1;
+    position: relative;
+    flex: 0 0 clamp(330px, 27vw, 430px);
+    min-width: clamp(330px, 27vw, 430px);
+    height: clamp(286px, 35vh, 388px);
+    overflow: hidden;
+    border-radius: clamp(18px, 1.6vw, 24px);
+    border: 1px solid rgba(222, 244, 252, 0.1);
+    background: rgba(5, 24, 38, 0.34);
+    box-shadow:
+        0 22px 42px rgba(2, 14, 24, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    opacity: 0.7;
+    filter: saturate(0.84) brightness(0.86);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transform-origin: 50% 72%;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    background:
+        linear-gradient(180deg, rgba(236, 249, 255, 0.12), rgba(236, 249, 255, 0) 26%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 18%, rgba(255, 255, 255, 0) 82%, rgba(255, 255, 255, 0.06));
+    opacity: 0.62;
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card:hover,
+body.home-page .hero-hotspots-shell .bamboo-card.active {
+    --card-scale: 1.018;
+    opacity: 0.98;
+    border-color: rgba(224, 247, 254, 0.24);
+    filter: saturate(1) brightness(0.98);
+    box-shadow:
+        0 30px 60px rgba(2, 14, 24, 0.32),
+        0 0 34px rgba(126, 207, 235, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image-wrapper {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.035);
+    filter: saturate(0.9) contrast(0.96) brightness(0.9);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card:hover .bamboo-card-image,
+body.home-page .hero-hotspots-shell .bamboo-card.active .bamboo-card-image {
+    transform: scale(1.065);
+    filter: saturate(1) contrast(0.98) brightness(0.98);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    margin: 0;
+    padding: 82px clamp(18px, 2vw, 24px) clamp(17px, 2vw, 22px);
+    border: 0;
+    background:
+        linear-gradient(180deg, rgba(2, 16, 28, 0), rgba(3, 19, 31, 0.6) 44%, rgba(2, 14, 24, 0.86) 100%);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-title {
+    margin: 0 0 7px;
+    font-size: clamp(1.02rem, 1.18vw, 1.22rem);
+    line-height: 1.22;
+    letter-spacing: 0.03em;
+    color: rgba(246, 252, 255, 0.96);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-tagline {
+    max-width: 30ch;
+    margin: 0;
+    font-size: clamp(0.78rem, 0.82vw, 0.86rem);
+    line-height: 1.58;
+    color: rgba(211, 231, 240, 0.72);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-footer {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 0;
+    border-top: 0;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-price,
+body.home-page .hero-hotspots-shell .bamboo-card-rating {
+    font-size: 0.74rem;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-price {
+    color: rgba(220, 239, 247, 0.68);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-rating {
+    color: rgba(235, 216, 166, 0.72);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 6;
+    width: clamp(30px, 3vw, 42px);
+    height: clamp(236px, 32vh, 352px);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 0.72;
+    animation: none;
+    transform: translateY(-50%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.left {
+    left: clamp(2px, 1.2vw, 16px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.right {
+    right: clamp(2px, 1.2vw, 16px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
+body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
+body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: rgba(224, 243, 250, 0.7);
+    transform: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
+body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
+    opacity: 0;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(223, 245, 252, 0), rgba(223, 245, 252, 0.11) 50%, rgba(223, 245, 252, 0)),
+        linear-gradient(90deg, rgba(223, 245, 252, 0.1), rgba(223, 245, 252, 0));
+    opacity: 0.48;
+    transition: opacity 260ms ease, transform 260ms ease;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.right .button-top::before {
+    background:
+        linear-gradient(180deg, rgba(223, 245, 252, 0), rgba(223, 245, 252, 0.11) 50%, rgba(223, 245, 252, 0)),
+        linear-gradient(270deg, rgba(223, 245, 252, 0.1), rgba(223, 245, 252, 0));
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top::after {
+    display: none;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow-icon {
+    width: 23px;
+    height: 23px;
+    stroke: currentColor;
+    stroke-width: 1.65;
+    filter: drop-shadow(0 0 10px rgba(126, 207, 235, 0.16));
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover {
+    opacity: 1;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    transform: translateY(-50%);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top {
+    transform: none;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
+    opacity: 0.82;
+    transform: scaleX(1.1);
+}
+
+body.home-page .hero-hotspots-actions {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: row;
+    grid-template-columns: none;
+    align-items: center;
+    justify-content: flex-end;
+    width: min(100%, 1180px);
+    margin: clamp(14px, 2vh, 22px) auto 0;
+    padding: 0 clamp(12px, 1.8vw, 24px);
+    gap: clamp(18px, 2.2vw, 30px);
+}
+
+body.home-page .hero-hotspots-actions::before {
+    content: "";
+    position: absolute;
+    left: clamp(12px, 1.8vw, 24px);
+    right: clamp(12px, 1.8vw, 24px);
+    top: 50%;
+    z-index: -1;
+    width: auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(172, 215, 232, 0.24), rgba(172, 215, 232, 0.05) 55%, rgba(172, 215, 232, 0));
+    transform: none;
+}
+
+body.home-page .hero-hotspots-actions .sea-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 0;
+    min-height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: rgba(232, 247, 252, 0.8);
+    font-size: 0.88rem;
+    letter-spacing: 0.08em;
+    text-shadow: 0 8px 18px rgba(2, 14, 24, 0.28);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.home-page .hero-hotspots-actions .sea-action::after {
+    content: "";
+    display: block;
+    width: 30px;
+    height: 1px;
+    margin-left: 12px;
+    background: linear-gradient(90deg, rgba(173, 224, 241, 0.58), rgba(173, 224, 241, 0));
+    transition: width 240ms ease, opacity 240ms ease;
+}
+
+body.home-page .hero-hotspots-actions .sea-action-primary,
+body.home-page .hero-hotspots-actions .sea-action-secondary {
+    background: transparent;
+    box-shadow: none;
+}
+
+body.home-page .hero-hotspots-actions .sea-action-secondary {
+    color: rgba(205, 229, 239, 0.62);
+}
+
+body.home-page .hero-hotspots-actions .sea-action:hover {
+    color: rgba(246, 252, 255, 0.94);
+    border: 0;
+    box-shadow: none;
+    transform: translate3d(0, -1px, 0);
+}
+
+body.home-page .hero-hotspots-actions .sea-action:hover::after {
+    width: 42px;
+    opacity: 1;
+}
+
+@media (min-width: 1600px) {
+    body.home-page .hero-hotspots-stage-shell {
+        --hero-hotspots-stage-width: min(100%, 1460px);
+        max-width: min(100%, 1460px);
+    }
+}
+
+@media (max-width: 1179px) {
+    body.home-page .hero-section {
+        align-items: flex-start;
+        padding-top: clamp(26px, 4vh, 42px);
+    }
+
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        min-height: 0;
+    }
+
+    body.home-page .hero-hotspots-head {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "kicker"
+            "copy"
+            "hints";
+        justify-items: start;
+    }
+
+    body.home-page .hero-observation-rail {
+        justify-self: start;
+        justify-content: flex-start;
+        max-width: none;
+        margin-left: 16px;
+    }
+}
+
+@media (max-width: 720px) {
+    body.home-page .hero-section {
+        min-height: auto;
+        padding: clamp(72px, 10vh, 88px) 0 28px;
+    }
+
+    body.home-page .hero-hotspots-stage-shell {
+        --hero-hotspots-stage-width: 100%;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        padding: 18px 0 20px;
+    }
+
+    body.home-page .hero-hotspots-shell.today-sea-card::before {
+        inset: 92px 0 54px;
+        mask-image: linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
+    }
+
+    body.home-page .hero-hotspots-shell.today-sea-card::after {
+        inset: 110px 18px 72px;
+        opacity: 0.5;
+    }
+
+    body.home-page .hero-hotspots-head {
+        width: 100%;
+        margin-bottom: 14px;
+        padding-inline: 22px;
+        gap: 6px;
+    }
+
+    body.home-page .hero-hotspots-title {
+        font-size: clamp(1.68rem, 8.4vw, 2.14rem);
+        letter-spacing: 0.07em;
+    }
+
+    body.home-page .hero-hotspots-subtitle {
+        max-width: 23ch;
+        font-size: 0.9rem;
+        line-height: 1.56;
+    }
+
+    body.home-page .hero-observation-rail {
+        gap: 8px 14px;
+        margin-top: 6px;
+    }
+
+    body.home-page .hero-observation-chip {
+        font-size: 0.68rem;
+        letter-spacing: 0.04em;
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        height: 348px;
+        padding-inline: 28px;
+    }
+
+    body.home-page .hero-bamboo-scroll-container::before {
+        height: 286px;
+        mask-image: linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
+    }
+
+    body.home-page .hero-bamboo-cards-wrapper::before {
+        top: 18px;
+        bottom: 18px;
+        width: min(76vw, 304px);
+    }
+
+    body.home-page .hero-bamboo-cards-wrapper::after {
+        background: linear-gradient(90deg, rgba(2, 16, 28, 0.5), rgba(2, 16, 28, 0.02) 5%, rgba(2, 16, 28, 0) 50%, rgba(2, 16, 28, 0.02) 95%, rgba(2, 16, 28, 0.52));
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-cards-content {
+        gap: 20px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card {
+        flex-basis: min(77vw, 304px);
+        min-width: min(77vw, 304px);
+        height: 300px;
+        border-radius: 18px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-content {
+        padding: 72px 18px 18px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-title {
+        font-size: 1.02rem;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-tagline {
+        font-size: 0.78rem;
+        line-height: 1.5;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow {
+        width: 28px;
+        height: 278px;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow.left {
+        left: 0;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow.right {
+        right: 0;
+    }
+
+    body.home-page .hero-hotspots-actions {
+        justify-content: flex-start;
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 10px;
+        padding-inline: 22px;
+        gap: 12px 22px;
+    }
+
+    body.home-page .hero-hotspots-actions::before {
+        left: 22px;
+        right: 22px;
+    }
+
+    body.home-page .hero-hotspots-actions .sea-action {
+        min-height: 38px;
+        font-size: 0.82rem;
+        letter-spacing: 0.06em;
+        box-shadow: none;
+    }
+
+    body.home-page .hero-hotspots-actions .sea-action::after {
+        width: 22px;
+        margin-left: 9px;
+    }
+}
+
+/* ============================================
+   今日海域观察窗最终收束
+   清掉旧面板残影，把标题、光束和当前海域卡片重新对齐到中心。
+   ============================================ */
+
+body.home-page .hero-section {
+    align-items: center;
+}
+
+body.home-page .hero-hotspots-stage-shell {
+    margin-inline: auto;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card {
+    isolation: isolate;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before,
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    content: none !important;
+    display: none !important;
+}
+
+body.home-page .hero-hotspots-head {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+        "kicker"
+        "copy"
+        "hints";
+    justify-items: center;
+    width: min(100%, 760px);
+    margin: 0 auto clamp(14px, 2.2vh, 24px);
+    padding-inline: clamp(20px, 2.4vw, 34px);
+    gap: 7px;
+    text-align: center;
+}
+
+body.home-page .hero-hotspots-head::before {
+    content: none;
+    display: none;
+}
+
+body.home-page .hero-hotspots-kicker,
+body.home-page .hero-hotspots-copy {
+    margin-left: 0;
+    justify-items: center;
+}
+
+body.home-page .hero-hotspots-title,
+body.home-page .hero-hotspots-subtitle {
+    text-align: center;
+}
+
+body.home-page .hero-hotspots-subtitle {
+    max-width: 32ch;
+}
+
+body.home-page .hero-observation-rail {
+    justify-self: center;
+    justify-content: center;
+    max-width: none;
+    margin-left: 0;
+    padding-bottom: 0;
+}
+
+body.home-page .hero-bamboo-scroll-container::before {
+    inset: clamp(2px, 0.8vh, 10px) 0 clamp(8px, 1.8vh, 18px);
+    height: auto;
+    border-radius: 0;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(244, 253, 255, 0.2), rgba(230, 249, 255, 0.075) 24%, rgba(230, 249, 255, 0) 56%),
+        linear-gradient(90deg, rgba(5, 23, 37, 0), rgba(219, 244, 252, 0.018) 42%, rgba(219, 244, 252, 0.018) 58%, rgba(5, 23, 37, 0));
+    box-shadow: none;
+    opacity: 0.72;
+    transform: none;
+    mask-image:
+        radial-gradient(ellipse at 50% 0%, #000 0%, #000 42%, transparent 72%),
+        linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    mask-composite: intersect;
+    -webkit-mask-image:
+        radial-gradient(ellipse at 50% 0%, #000 0%, #000 42%, transparent 72%),
+        linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    -webkit-mask-composite: source-in;
+}
+
+body.home-page .hero-bamboo-cards-wrapper::before {
+    top: clamp(0px, 0.4vh, 6px);
+    bottom: auto;
+    width: clamp(300px, 31vw, 480px);
+    height: clamp(70px, 10vh, 108px);
+    border: 0;
+    border-radius: 999px;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(248, 254, 255, 0.3), rgba(225, 248, 255, 0.13) 30%, rgba(225, 248, 255, 0) 72%);
+    box-shadow: 0 -14px 58px rgba(201, 239, 250, 0.1);
+    opacity: 0.7;
+}
+
+body.home-page .hero-bamboo-cards-wrapper::after {
+    content: none !important;
+    display: none !important;
+}
+
+body.home-page .hero-bamboo-scroll-container::before {
+    content: none !important;
+    display: none !important;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    box-shadow:
+        0 14px 26px rgba(2, 14, 24, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card:hover,
+body.home-page .hero-hotspots-shell .bamboo-card.active {
+    box-shadow:
+        0 20px 36px rgba(2, 14, 24, 0.2),
+        0 0 22px rgba(126, 207, 235, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow {
+    width: clamp(18px, 1.8vw, 26px);
+    opacity: 0.5;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.left {
+    left: clamp(10px, 2.2vw, 30px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.right {
+    right: clamp(10px, 2.2vw, 30px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
+    inset: 14% 0;
+    background: linear-gradient(180deg, rgba(223, 245, 252, 0), rgba(223, 245, 252, 0.18) 50%, rgba(223, 245, 252, 0));
+    opacity: 0.28;
+    filter: blur(0.4px);
+    mask-image: linear-gradient(90deg, transparent, #000 42%, transparent);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
+    opacity: 0.58;
+    transform: scaleX(1.05);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.78;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover .scroll-arrow-icon {
+    opacity: 1;
+}
+
+body.home-page .hero-hotspots-actions {
+    justify-content: center;
+    width: min(100%, 760px);
+}
+
+body.home-page .hero-hotspots-actions::before {
+    left: clamp(20px, 2.4vw, 34px);
+    right: clamp(20px, 2.4vw, 34px);
+    background: linear-gradient(90deg, rgba(172, 215, 232, 0), rgba(172, 215, 232, 0.2), rgba(172, 215, 232, 0));
+}
+
+@media (max-width: 720px) {
+    body.home-page .hero-section {
+        align-items: flex-start;
+    }
+
+    body.home-page .hero-hotspots-head {
+        width: 100%;
+        padding-inline: 22px;
+    }
+
+    body.home-page .hero-bamboo-scroll-container::before {
+        mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
+    }
+
+    body.home-page .hero-bamboo-cards-wrapper::before {
+        width: min(78vw, 318px);
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow {
+        width: 22px;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow.left {
+        left: 3px;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow.right {
+        right: 3px;
+    }
+
+    body.home-page .hero-hotspots-actions {
+        justify-content: center;
+        padding-inline: 22px;
+    }
+}
+
+/* ============================================
+   今日海域横向潜游完成层
+   在现有 BambooScroll 上补足主卡层级、拖拽提示和首屏承接信息。
+   ============================================ */
+
+body.home-page .hero-section {
+    padding-top: clamp(18px, 2.8vh, 34px);
+    padding-bottom: clamp(22px, 3.2vh, 42px);
+}
+
+body.home-page .hero-hotspots-stage-shell {
+    --hero-hotspots-stage-width: min(100%, 1420px);
+    max-width: min(100%, 1420px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card {
+    min-height: clamp(650px, calc(100svh - 118px), 760px);
+    padding: clamp(14px, 2vh, 24px) 0 clamp(14px, 2.4vh, 24px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before {
+    content: "" !important;
+    display: block !important;
+    position: absolute;
+    left: 50%;
+    top: clamp(92px, 13vh, 138px);
+    z-index: 0;
+    width: min(68vw, 880px);
+    height: clamp(230px, 34vh, 360px);
+    border-radius: 50%;
+    background:
+        radial-gradient(ellipse at 50% 8%, rgba(242, 253, 255, 0.34), rgba(170, 223, 239, 0.12) 30%, rgba(7, 37, 56, 0) 70%),
+        linear-gradient(180deg, rgba(229, 248, 255, 0.08), rgba(229, 248, 255, 0));
+    filter: blur(0.2px);
+    opacity: 0.7;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute;
+    left: 50%;
+    top: clamp(134px, 18vh, 188px);
+    z-index: 0;
+    width: min(86vw, 1180px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(216, 242, 251, 0.34), transparent);
+    box-shadow:
+        0 42px 80px rgba(116, 203, 231, 0.08),
+        0 110px 120px rgba(7, 28, 42, 0.22);
+    opacity: 0.76;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-head {
+    width: min(100%, 860px);
+    margin-bottom: clamp(12px, 1.8vh, 20px);
+}
+
+body.home-page .hero-hotspots-head::after {
+    content: "";
+    display: block;
+    width: min(280px, 42vw);
+    height: 1px;
+    margin-top: 7px;
+    background: linear-gradient(90deg, transparent, rgba(214, 240, 249, 0.44), transparent);
+    box-shadow: 0 0 18px rgba(142, 219, 242, 0.12);
+}
+
+body.home-page .hero-hotspots-kicker {
+    letter-spacing: 0.42em;
+    color: rgba(215, 239, 247, 0.5);
+}
+
+body.home-page .hero-hotspots-title {
+    font-size: clamp(2.15rem, 2.7vw, 3.05rem);
+    text-shadow:
+        0 0 32px rgba(207, 238, 248, 0.16),
+        0 18px 46px rgba(2, 14, 24, 0.38);
+}
+
+body.home-page .hero-hotspots-subtitle {
+    color: rgba(224, 241, 248, 0.72);
+}
+
+body.home-page .hero-observation-rail {
+    gap: 10px 20px;
+    margin-top: 4px;
+}
+
+body.home-page .hero-observation-chip {
+    color: rgba(214, 236, 245, 0.68);
+}
+
+body.home-page .hero-observation-chip::before {
+    width: 14px;
+    background: linear-gradient(90deg, rgba(174, 225, 242, 0), rgba(174, 225, 242, 0.82));
+}
+
+body.home-page .hero-bamboo-scroll-container {
+    height: clamp(316px, 37vh, 408px);
+    padding-inline: clamp(74px, 7.6vw, 126px);
+}
+
+body.home-page .hero-bamboo-cards-wrapper {
+    perspective: 1500px;
+    cursor: grab;
+}
+
+body.home-page .hero-bamboo-cards-wrapper.is-dragging {
+    cursor: grabbing;
+}
+
+body.home-page .hero-bamboo-cards-wrapper::before {
+    top: clamp(4px, 0.8vh, 12px);
+    width: clamp(340px, 34vw, 520px);
+    height: clamp(92px, 13vh, 126px);
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(248, 254, 255, 0.34), rgba(222, 248, 255, 0.18) 32%, rgba(222, 248, 255, 0) 72%),
+        linear-gradient(180deg, rgba(229, 248, 255, 0.06), rgba(229, 248, 255, 0));
+    box-shadow:
+        0 -16px 70px rgba(198, 238, 250, 0.14),
+        0 70px 110px rgba(88, 179, 209, 0.08);
+    opacity: 0.92;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-cards-content {
+    gap: clamp(34px, 3.2vw, 50px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    --stage-scale: 0.78;
+    --stage-y: 18px;
+    --stage-rotate-y: 0deg;
+    --stage-rotate-z: 0deg;
+    --stage-opacity: 0.48;
+    --stage-saturate: 0.62;
+    --stage-brightness: 0.66;
+    --stage-blur: 0.8px;
+    --stage-depth-shadow: 0.18;
+    --stage-z: 1;
+    flex-basis: clamp(332px, 27vw, 436px);
+    min-width: clamp(332px, 27vw, 436px);
+    height: clamp(286px, 34vh, 386px);
+    border-radius: 18px;
+    border-color: rgba(222, 244, 252, 0.12);
+    opacity: var(--stage-opacity);
+    z-index: var(--stage-z);
+    filter:
+        saturate(var(--stage-saturate))
+        brightness(var(--stage-brightness))
+        blur(var(--stage-blur));
+    box-shadow:
+        0 22px 44px rgba(2, 14, 24, calc(var(--stage-depth-shadow) + 0.08)),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: none !important;
+    transform:
+        translate3d(
+            calc(var(--elastic-x) + var(--wobble-x)),
+            calc(var(--lift-y) + var(--wobble-y) + var(--gravity-y) + var(--stage-y)),
+            0
+        )
+        rotate(calc(var(--wobble-r) + var(--tilt-r) + var(--stage-rotate-z)))
+        rotateY(calc(var(--roll-y) + var(--stage-rotate-y)))
+        scale(var(--card-scale))
+        scale(var(--stage-scale));
+    transition:
+        opacity 420ms cubic-bezier(0.18, 0.8, 0.22, 1),
+        filter 520ms cubic-bezier(0.18, 0.8, 0.22, 1),
+        border-color 420ms ease,
+        box-shadow 520ms ease;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card::before {
+    background:
+        linear-gradient(180deg, rgba(246, 253, 255, 0.16), rgba(246, 253, 255, 0) 28%),
+        linear-gradient(95deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0) 18%, rgba(255, 255, 255, 0) 82%, rgba(255, 255, 255, 0.08));
+    opacity: 0.48;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next {
+    border-color: rgba(190, 229, 242, 0.12);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active {
+    --card-scale: 1;
+    border-color: rgba(234, 250, 255, 0.38);
+    box-shadow:
+        0 34px 74px rgba(2, 14, 24, 0.38),
+        0 0 0 1px rgba(226, 248, 255, 0.16),
+        0 0 46px rgba(128, 211, 237, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active::before {
+    opacity: 0.82;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card:hover {
+    --card-scale: 1.012;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card:hover,
+body.home-page .hero-hotspots-shell .bamboo-card.active,
+body.home-page .hero-hotspots-shell .bamboo-card.is-active {
+    opacity: var(--stage-opacity);
+    filter:
+        saturate(var(--stage-saturate))
+        brightness(var(--stage-brightness))
+        blur(var(--stage-blur));
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.active:not(.is-active),
+body.home-page .hero-hotspots-shell .bamboo-card.active:not(.is-active):hover {
+    --card-scale: 1.012;
+    border-color: rgba(215, 243, 252, 0.2);
+    box-shadow:
+        0 24px 48px rgba(2, 14, 24, calc(var(--stage-depth-shadow) + 0.08)),
+        0 0 26px rgba(126, 207, 235, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image {
+    transform: scale(1.045);
+    filter: saturate(0.92) contrast(0.98) brightness(0.92);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image,
+body.home-page .hero-hotspots-shell .bamboo-card:hover .bamboo-card-image {
+    transform: scale(1.075);
+    filter: saturate(1.06) contrast(1) brightness(1);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-content {
+    padding: 96px clamp(20px, 2vw, 26px) clamp(18px, 2vw, 24px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-title {
+    font-size: clamp(1.12rem, 1.28vw, 1.36rem);
+    letter-spacing: 0.04em;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-tagline {
+    max-width: 29ch;
+    color: rgba(218, 237, 246, 0.78);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-footer {
+    justify-content: space-between;
+    margin-top: 14px;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-badge {
+    position: absolute;
+    left: clamp(18px, 1.8vw, 24px);
+    top: clamp(16px, 1.8vw, 22px);
+    z-index: 4;
+    padding: 6px 10px;
+    border: 1px solid rgba(226, 248, 255, 0.18);
+    border-radius: 999px;
+    background: rgba(3, 18, 31, 0.38);
+    color: rgba(234, 248, 253, 0.8);
+    font-size: 0.66rem;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    transform: translate3d(0, -6px, 0);
+    transition: opacity 320ms ease, transform 320ms ease, border-color 320ms ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-badge {
+    opacity: 1;
+    border-color: rgba(230, 249, 255, 0.32);
+    transform: translate3d(0, 0, 0);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-entry {
+    position: absolute;
+    right: clamp(18px, 1.8vw, 24px);
+    bottom: clamp(18px, 1.8vw, 24px);
+    z-index: 5;
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(230, 249, 255, 0.2);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 42% 30%, rgba(239, 253, 255, 0.32), rgba(111, 199, 228, 0.08) 44%, rgba(4, 22, 36, 0.58) 100%);
+    color: rgba(240, 251, 255, 0.86);
+    opacity: 0;
+    transform: translate3d(8px, 8px, 0) scale(0.88);
+    transition: opacity 360ms ease, transform 360ms cubic-bezier(0.18, 0.8, 0.22, 1), box-shadow 360ms ease;
+    box-shadow: 0 0 0 rgba(126, 207, 235, 0);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-entry svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-entry,
+body.home-page .hero-hotspots-shell .bamboo-card:hover .bamboo-card-entry {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    box-shadow: 0 0 26px rgba(126, 207, 235, 0.16);
+}
+
+body.home-page .hero-bamboo-cards-wrapper.is-dragging .bamboo-card.is-active {
+    box-shadow:
+        0 28px 64px rgba(2, 14, 24, 0.34),
+        0 0 36px rgba(128, 211, 237, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+body.home-page .hero-bamboo-cards-wrapper.is-dragging .bamboo-card {
+    transition:
+        opacity 160ms ease,
+        filter 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+body.home-page .hero-bamboo-cards-wrapper.is-animating .bamboo-card.is-active {
+    box-shadow:
+        0 32px 70px rgba(2, 14, 24, 0.36),
+        0 0 42px rgba(128, 211, 237, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow {
+    width: clamp(48px, 4.2vw, 62px);
+    height: clamp(48px, 4.2vw, 62px);
+    opacity: 0.82;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    filter: drop-shadow(0 16px 30px rgba(2, 14, 24, 0.24));
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.left {
+    left: clamp(20px, 4.2vw, 56px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow.right {
+    right: clamp(20px, 4.2vw, 56px);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
+body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
+body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
+    border-radius: 50%;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top {
+    border: 1px solid rgba(229, 248, 255, 0.22);
+    background:
+        radial-gradient(circle at 40% 28%, rgba(245, 254, 255, 0.32), rgba(160, 224, 243, 0.1) 38%, rgba(3, 20, 34, 0.56) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 0 28px rgba(119, 205, 232, 0.12);
+    backdrop-filter: blur(13px) saturate(130%);
+    -webkit-backdrop-filter: blur(13px) saturate(130%);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
+    inset: -7px;
+    border: 1px solid rgba(167, 224, 242, 0.16);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(143, 218, 242, 0.12), rgba(143, 218, 242, 0) 68%);
+    opacity: 0.62;
+    filter: none;
+    mask-image: none;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow .button-top::after {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: 11px;
+    border-radius: 50%;
+    border: 1px solid rgba(232, 250, 255, 0.12);
+    opacity: 0.86;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.04);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:active {
+    transform: translateY(-50%) scale(0.96);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
+    opacity: 0.95;
+    transform: scale(1.08);
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow-icon {
+    width: 23px;
+    height: 23px;
+    opacity: 0.92;
+    stroke-width: 1.8;
+}
+
+body.home-page .today-sea-drift-hint {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: min(100%, 820px);
+    margin: clamp(4px, 0.8vh, 8px) auto clamp(10px, 1.4vh, 16px);
+    padding-inline: clamp(24px, 3vw, 42px);
+    color: rgba(219, 240, 248, 0.64);
+    font-size: 0.74rem;
+    line-height: 1.4;
+    letter-spacing: 0.11em;
+}
+
+body.home-page .today-sea-drift-copy {
+    position: relative;
+    white-space: nowrap;
+}
+
+body.home-page .today-sea-drift-copy::after {
+    content: "";
+    display: inline-block;
+    width: 22px;
+    height: 1px;
+    margin-left: 10px;
+    vertical-align: middle;
+    background: linear-gradient(90deg, rgba(164, 224, 242, 0.75), rgba(164, 224, 242, 0));
+    animation: today-sea-hint-tide 2.8s ease-in-out infinite;
+}
+
+body.home-page .today-sea-drift-line {
+    flex: 1;
+    max-width: 180px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(174, 224, 241, 0.24), transparent);
+}
+
+body.home-page .today-sea-brief {
+    --brief-progress: 93%;
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: minmax(250px, 1.05fr) minmax(330px, 1.22fr) minmax(250px, 0.95fr);
+    gap: clamp(10px, 1.1vw, 14px);
+    width: min(100%, 1060px);
+    margin: 0 auto;
+    padding-inline: clamp(20px, 2.4vw, 32px);
+}
+
+body.home-page .today-sea-brief-panel {
+    position: relative;
+    min-height: 104px;
+    border: 1px solid rgba(219, 244, 252, 0.12);
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgba(11, 39, 58, 0.52), rgba(3, 19, 32, 0.34)),
+        radial-gradient(circle at 20% 0%, rgba(220, 248, 255, 0.12), rgba(220, 248, 255, 0) 58%);
+    box-shadow:
+        0 18px 34px rgba(2, 14, 24, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px) saturate(128%);
+    -webkit-backdrop-filter: blur(16px) saturate(128%);
+    overflow: hidden;
+}
+
+body.home-page .today-sea-brief-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-top: 1px solid rgba(238, 252, 255, 0.08);
+    background: linear-gradient(90deg, rgba(246, 253, 255, 0.06), rgba(246, 253, 255, 0));
+    pointer-events: none;
+}
+
+body.home-page .today-sea-brief-kicker {
+    margin: 0;
+    color: rgba(183, 222, 236, 0.62);
+    font-size: 0.62rem;
+    line-height: 1;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+body.home-page .today-sea-position-panel {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-areas:
+        "kicker kicker"
+        "map copy"
+        "map link";
+    gap: 8px 14px;
+    padding: 16px 16px 14px;
+}
+
+body.home-page .today-sea-position-panel .today-sea-brief-kicker {
+    grid-area: kicker;
+}
+
+body.home-page .today-sea-maplet {
+    grid-area: map;
+    position: relative;
+    width: 72px;
+    min-height: 62px;
+    align-self: center;
+    border: 1px solid rgba(219, 244, 252, 0.14);
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at 68% 36%, rgba(164, 225, 243, 0.28), rgba(164, 225, 243, 0) 18%),
+        radial-gradient(circle at 28% 70%, rgba(239, 253, 255, 0.14), rgba(239, 253, 255, 0) 19%),
+        linear-gradient(135deg, rgba(9, 44, 67, 0.54), rgba(2, 17, 30, 0.42));
+    overflow: hidden;
+}
+
+body.home-page .today-sea-maplet-route {
+    position: absolute;
+    inset: 24px 10px auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(201, 236, 247, 0), rgba(201, 236, 247, 0.62), rgba(201, 236, 247, 0));
+    transform: rotate(-18deg);
+}
+
+body.home-page .today-sea-maplet-dot {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(217, 245, 253, 0.78);
+    box-shadow: 0 0 14px rgba(126, 207, 235, 0.36);
+}
+
+body.home-page .today-sea-maplet-dot.is-origin {
+    left: 16px;
+    bottom: 15px;
+    opacity: 0.42;
+}
+
+body.home-page .today-sea-maplet-dot.is-current {
+    right: 17px;
+    top: 19px;
+}
+
+body.home-page .today-sea-brief-copy {
+    grid-area: copy;
+    min-width: 0;
+}
+
+body.home-page .today-sea-brief-copy h3 {
+    margin: 0 0 5px;
+    color: rgba(246, 252, 255, 0.95);
+    font-size: 1.04rem;
+    line-height: 1.18;
+    letter-spacing: 0.04em;
+}
+
+body.home-page .today-sea-brief-copy p,
+body.home-page .today-sea-brief-copy span {
+    display: block;
+    margin: 0;
+    color: rgba(210, 233, 242, 0.66);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+body.home-page .today-sea-brief-link {
+    grid-area: link;
+    justify-self: start;
+    min-height: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: rgba(230, 249, 255, 0.78);
+    font: inherit;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+body.home-page .today-sea-brief-link::after {
+    content: "";
+    display: inline-block;
+    width: 22px;
+    height: 1px;
+    margin-left: 9px;
+    vertical-align: middle;
+    background: linear-gradient(90deg, rgba(165, 224, 242, 0.7), rgba(165, 224, 242, 0));
+    transition: width 220ms ease;
+}
+
+body.home-page .today-sea-brief-link:hover::after {
+    width: 34px;
+}
+
+body.home-page .today-sea-data-panel {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding: 16px 18px 14px;
+}
+
+body.home-page .today-sea-data-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+
+body.home-page .today-sea-data-grid div {
+    min-width: 0;
+}
+
+body.home-page .today-sea-data-grid dt {
+    margin: 0 0 7px;
+    color: rgba(183, 222, 236, 0.58);
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+}
+
+body.home-page .today-sea-data-grid dd {
+    margin: 0;
+    color: rgba(245, 252, 255, 0.9);
+    font-size: clamp(0.86rem, 0.9vw, 1rem);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+body.home-page .today-sea-progress-panel {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    grid-template-areas:
+        "kicker kicker"
+        "orbit copy";
+    gap: 9px 14px;
+    padding: 16px 16px 14px;
+}
+
+body.home-page .today-sea-progress-panel .today-sea-brief-kicker {
+    grid-area: kicker;
+}
+
+body.home-page .today-sea-progress-orbit {
+    grid-area: orbit;
+    position: relative;
+    width: 56px;
+    height: 56px;
+    align-self: center;
+    border-radius: 50%;
+    background:
+        conic-gradient(rgba(181, 232, 246, 0.78) var(--brief-progress), rgba(77, 128, 150, 0.18) 0),
+        radial-gradient(circle, rgba(5, 23, 37, 0.94) 56%, rgba(5, 23, 37, 0) 57%);
+    box-shadow: inset 0 0 0 1px rgba(229, 248, 255, 0.12), 0 0 24px rgba(126, 207, 235, 0.08);
+}
+
+body.home-page .today-sea-progress-orbit span {
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(229, 248, 255, 0.12);
+    background: rgba(3, 18, 31, 0.34);
+}
+
+body.home-page .today-sea-progress-copy {
+    grid-area: copy;
+    min-width: 0;
+}
+
+body.home-page .today-sea-progress-copy strong {
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(246, 252, 255, 0.94);
+    font-size: 1.1rem;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+}
+
+body.home-page .today-sea-progress-copy span {
+    display: block;
+    margin-bottom: 6px;
+    color: rgba(214, 236, 245, 0.68);
+    font-size: 0.74rem;
+    line-height: 1.3;
+}
+
+body.home-page .today-sea-progress-copy p {
+    margin: 0;
+    color: rgba(204, 229, 239, 0.62);
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+body.home-page .hero-hotspots-actions {
+    width: min(100%, 1060px);
+    margin-top: clamp(10px, 1.4vh, 16px);
+}
+
+@keyframes today-sea-hint-tide {
+    0%,
+    100% {
+        opacity: 0.38;
+        transform: translateX(0);
+    }
+
+    50% {
+        opacity: 0.9;
+        transform: translateX(5px);
+    }
+}
+
+@media (max-height: 840px) and (min-width: 960px) {
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        min-height: clamp(606px, calc(100svh - 104px), 690px);
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        height: clamp(286px, 33vh, 350px);
+    }
+
+    body.home-page .today-sea-brief-panel {
+        min-height: 92px;
+    }
+
+    body.home-page .today-sea-progress-copy p {
+        display: none;
+    }
+}
+
+@media (max-width: 1180px) {
+    body.home-page .today-sea-brief {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    body.home-page .today-sea-progress-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 720px) {
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        min-height: 0;
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        height: 336px;
+        padding-inline: 46px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card {
+        flex-basis: min(76vw, 312px);
+        min-width: min(76vw, 312px);
+        height: 292px;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow {
+        width: 40px;
+        height: 40px;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow.left {
+        left: 4px;
+    }
+
+    body.home-page .hero-hotspots-shell .scroll-arrow.right {
+        right: 4px;
+    }
+
+    body.home-page .today-sea-drift-hint {
+        padding-inline: 20px;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+    }
+
+    body.home-page .today-sea-drift-line {
+        max-width: 72px;
+    }
+
+    body.home-page .today-sea-brief {
+        grid-template-columns: 1fr;
+        padding-inline: 20px;
+    }
+
+    body.home-page .today-sea-data-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ============================================
+   今日海域反馈收束层
+   根据展示反馈补回旧版顶部柔光柱，并把底部信息层做完整。
+   ============================================ */
+
+body.home-page .hero-section {
+    min-height: max(940px, calc(100svh - var(--nav-height, 82px)));
+    padding-top: clamp(30px, 4vh, 54px);
+    padding-bottom: clamp(40px, 5vh, 70px);
+    align-items: flex-start;
+}
+
+body.home-page .hero-content {
+    width: min(100%, 1540px);
+    max-width: 1540px;
+}
+
+body.home-page .hero-ocean-glow-one {
+    inset: -12% auto auto 50%;
+    width: min(76vw, 1160px);
+    height: min(76vw, 1160px);
+    min-width: 680px;
+    min-height: 680px;
+    background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(205, 235, 247, 0.13) 27%, rgba(205, 235, 247, 0) 67%);
+    filter: blur(14px);
+    transform: translate3d(-50%, -12%, 0) scale(0.92);
+}
+
+body.home-page .hero-ocean-wave-two {
+    inset: 5% -10% auto -10%;
+    height: 46%;
+    background:
+        radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 52%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+    filter: blur(12px);
+}
+
+body.home-page .hero-hotspots-stage-shell {
+    --hero-hotspots-stage-width: min(100%, 1460px);
+    max-width: min(100%, 1460px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card {
+    min-height: clamp(790px, calc(100svh - 72px), 940px);
+    padding: clamp(18px, 2.5vh, 32px) 0 clamp(26px, 3.6vh, 44px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before {
+    content: "" !important;
+    display: block !important;
+    position: absolute;
+    left: 50%;
+    top: clamp(-160px, -13vh, -92px);
+    z-index: 0;
+    width: min(96vw, 1500px);
+    height: clamp(560px, 62vh, 720px);
+    border-radius: 50%;
+    background:
+        radial-gradient(ellipse at 50% 8%, rgba(249, 254, 255, 0.32), rgba(215, 242, 250, 0.17) 26%, rgba(151, 211, 231, 0.065) 52%, rgba(151, 211, 231, 0) 74%),
+        linear-gradient(180deg, rgba(239, 252, 255, 0.12), rgba(239, 252, 255, 0) 72%);
+    opacity: 0.76;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute;
+    left: 50%;
+    top: clamp(150px, 19vh, 220px);
+    z-index: 0;
+    width: min(88vw, 1300px);
+    height: clamp(300px, 34vh, 420px);
+    border-radius: 50%;
+    background:
+        radial-gradient(ellipse at 50% 8%, rgba(220, 248, 255, 0.2), rgba(155, 215, 235, 0.07) 43%, rgba(5, 25, 40, 0) 73%);
+    opacity: 0.62;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body.home-page .hero-hotspots-head {
+    width: min(100%, 820px);
+    margin-bottom: clamp(16px, 2.4vh, 28px);
+}
+
+body.home-page .hero-hotspots-title {
+    font-size: clamp(2.34rem, 3vw, 3.45rem);
+}
+
+body.home-page .hero-bamboo-scroll-container {
+    height: clamp(350px, 39vh, 448px);
+    padding-inline: clamp(78px, 7vw, 128px);
+}
+
+body.home-page .hero-bamboo-cards-wrapper::before {
+    top: clamp(2px, 0.6vh, 10px);
+    width: clamp(360px, 35vw, 560px);
+    height: clamp(96px, 12vh, 138px);
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(250, 254, 255, 0.34), rgba(229, 249, 255, 0.14) 32%, rgba(229, 249, 255, 0) 74%);
+    box-shadow:
+        0 -18px 70px rgba(203, 240, 250, 0.11),
+        0 62px 120px rgba(98, 190, 220, 0.08);
+    opacity: 0.82;
+}
+
+body.home-page .today-sea-drift-hint {
+    margin: clamp(8px, 1vh, 14px) auto clamp(14px, 1.9vh, 22px);
+}
+
+body.home-page .today-sea-brief {
+    --brief-progress: 93%;
+    grid-template-columns: minmax(300px, 1fr) minmax(500px, 1.55fr) minmax(292px, 0.92fr);
+    gap: clamp(16px, 1.6vw, 22px);
+    width: min(100%, 1260px);
+    padding-inline: clamp(22px, 2.4vw, 34px);
+}
+
+body.home-page .today-sea-brief-panel {
+    min-height: 154px;
+    border-color: rgba(220, 246, 254, 0.14);
+    background:
+        linear-gradient(180deg, rgba(14, 48, 69, 0.58), rgba(4, 24, 38, 0.42)),
+        radial-gradient(circle at 22% 0%, rgba(224, 249, 255, 0.13), rgba(224, 249, 255, 0) 62%);
+    box-shadow:
+        0 22px 42px rgba(2, 14, 24, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+body.home-page .today-sea-brief-kicker {
+    font-size: 0.66rem;
+    letter-spacing: 0.28em;
+}
+
+body.home-page .today-sea-position-panel {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 12px 20px;
+    padding: 24px 26px 22px;
+}
+
+body.home-page .today-sea-maplet {
+    width: 106px;
+    min-height: 92px;
+    border-color: rgba(221, 247, 255, 0.16);
+    background:
+        radial-gradient(circle at 70% 33%, rgba(173, 235, 249, 0.24), rgba(173, 235, 249, 0) 20%),
+        radial-gradient(circle at 28% 72%, rgba(239, 253, 255, 0.16), rgba(239, 253, 255, 0) 22%),
+        linear-gradient(135deg, rgba(11, 49, 72, 0.62), rgba(3, 20, 34, 0.48));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 16px 28px rgba(2, 14, 24, 0.14);
+}
+
+body.home-page .today-sea-maplet-grid,
+body.home-page .today-sea-maplet-wake,
+body.home-page .today-sea-maplet-ring {
+    position: absolute;
+    pointer-events: none;
+}
+
+body.home-page .today-sea-maplet-grid {
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(214, 243, 252, 0.05) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(214, 243, 252, 0.04) 1px, transparent 1px);
+    background-size: 26px 26px;
+    opacity: 0.28;
+}
+
+body.home-page .today-sea-maplet-wake {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 100%, rgba(159, 225, 244, 0.18), rgba(159, 225, 244, 0));
+    filter: blur(1px);
+}
+
+body.home-page .today-sea-maplet-route {
+    left: 20px;
+    right: 19px;
+    top: 50px;
+    inset: 50px 19px auto 20px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(201, 236, 247, 0), rgba(219, 248, 255, 0.72), rgba(201, 236, 247, 0));
+    transform: rotate(-20deg);
+}
+
+body.home-page .today-sea-maplet-ring {
+    right: 21px;
+    top: 24px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(211, 244, 253, 0.16);
+    border-radius: 50%;
+    box-shadow: 0 0 18px rgba(126, 207, 235, 0.14);
+}
+
+body.home-page .today-sea-maplet-dot {
+    width: 10px;
+    height: 10px;
+}
+
+body.home-page .today-sea-maplet-dot.is-origin {
+    left: 26px;
+    bottom: 24px;
+}
+
+body.home-page .today-sea-maplet-dot.is-current {
+    right: 28px;
+    top: 33px;
+}
+
+body.home-page .today-sea-brief-copy h3 {
+    margin-bottom: 8px;
+    font-size: clamp(1.24rem, 1.28vw, 1.48rem);
+}
+
+body.home-page .today-sea-brief-copy p,
+body.home-page .today-sea-brief-copy span {
+    font-size: clamp(0.82rem, 0.86vw, 0.92rem);
+}
+
+body.home-page .today-sea-brief-link {
+    font-size: 0.86rem;
+    min-height: 32px;
+}
+
+body.home-page .today-sea-data-panel {
+    gap: 18px;
+    padding: 24px 26px 22px;
+}
+
+body.home-page .today-sea-data-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    min-height: 86px;
+}
+
+body.home-page .today-sea-data-item {
+    position: relative;
+    min-width: 0;
+    padding: 2px clamp(8px, 0.9vw, 14px) 0;
+}
+
+body.home-page .today-sea-data-item + .today-sea-data-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 6px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(203, 235, 247, 0.16), transparent);
+}
+
+body.home-page .today-sea-data-grid dt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    font-size: 0.72rem;
+    letter-spacing: 0.13em;
+    white-space: nowrap;
+}
+
+body.home-page .today-sea-data-icon {
+    position: relative;
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(131, 221, 236, 0.2), rgba(27, 83, 105, 0.28));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 16px rgba(126, 207, 235, 0.1);
+}
+
+body.home-page .today-sea-data-icon::before,
+body.home-page .today-sea-data-icon::after {
+    content: "";
+    position: absolute;
+    border-color: rgba(214, 247, 255, 0.76);
+}
+
+body.home-page .today-sea-data-item.is-temp .today-sea-data-icon::before {
+    width: 5px;
+    height: 14px;
+    border: 2px solid rgba(214, 247, 255, 0.7);
+    border-bottom: 0;
+    border-radius: 999px 999px 0 0;
+    top: 6px;
+}
+
+body.home-page .today-sea-data-item.is-temp .today-sea-data-icon::after {
+    width: 10px;
+    height: 10px;
+    bottom: 5px;
+    border-radius: 50%;
+    background: rgba(126, 229, 239, 0.62);
+}
+
+body.home-page .today-sea-data-item.is-current .today-sea-data-icon::before {
+    width: 17px;
+    height: 10px;
+    border-top: 2px solid rgba(214, 247, 255, 0.72);
+    border-bottom: 2px solid rgba(214, 247, 255, 0.48);
+    border-radius: 50%;
+    transform: rotate(-4deg);
+}
+
+body.home-page .today-sea-data-item.is-current .today-sea-data-icon::after {
+    width: 17px;
+    height: 1px;
+    background: rgba(214, 247, 255, 0.62);
+    transform: translateY(1px) rotate(-4deg);
+}
+
+body.home-page .today-sea-data-item.is-tide .today-sea-data-icon::before {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(214, 247, 255, 0.62);
+    border-radius: 50%;
+}
+
+body.home-page .today-sea-data-item.is-tide .today-sea-data-icon::after {
+    width: 7px;
+    height: 7px;
+    border-left: 2px solid rgba(214, 247, 255, 0.72);
+    border-bottom: 2px solid rgba(214, 247, 255, 0.72);
+    transform: translate(2px, -1px);
+}
+
+body.home-page .today-sea-data-item.is-visibility .today-sea-data-icon::before {
+    width: 18px;
+    height: 11px;
+    border: 2px solid rgba(214, 247, 255, 0.62);
+    border-radius: 50% 50% 48% 48%;
+}
+
+body.home-page .today-sea-data-item.is-visibility .today-sea-data-icon::after {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(126, 229, 239, 0.62);
+}
+
+body.home-page .today-sea-data-grid dd {
+    font-size: clamp(1rem, 1.08vw, 1.24rem);
+    line-height: 1.28;
+    white-space: normal;
+}
+
+body.home-page .today-sea-progress-panel {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 12px 20px;
+    padding: 24px 26px 22px;
+}
+
+body.home-page .today-sea-progress-orbit {
+    width: 76px;
+    height: 76px;
+    box-shadow:
+        inset 0 0 0 1px rgba(229, 248, 255, 0.13),
+        0 0 30px rgba(126, 207, 235, 0.1);
+}
+
+body.home-page .today-sea-progress-orbit span {
+    inset: 15px;
+}
+
+body.home-page .today-sea-progress-copy strong {
+    margin-bottom: 8px;
+    font-size: clamp(1.24rem, 1.36vw, 1.58rem);
+}
+
+body.home-page .today-sea-progress-copy span {
+    margin-bottom: 8px;
+    font-size: 0.88rem;
+}
+
+body.home-page .today-sea-progress-copy p {
+    display: block;
+    font-size: 0.78rem;
+    line-height: 1.58;
+}
+
+body.home-page .today-sea-actions.hero-hotspots-actions {
+    display: none !important;
+}
+
+@media (max-height: 840px) and (min-width: 960px) {
+    body.home-page .hero-section {
+        min-height: 910px;
+        padding-top: 28px;
+        padding-bottom: 44px;
+    }
+
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        min-height: 790px;
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        height: 352px;
+    }
+
+    body.home-page .today-sea-brief-panel {
+        min-height: 146px;
+    }
+
+    body.home-page .today-sea-progress-copy p {
+        display: block;
+    }
+}
+
+@media (max-width: 1180px) {
+    body.home-page .today-sea-brief {
+        grid-template-columns: 1fr 1fr;
+        width: min(100%, 980px);
+    }
+
+    body.home-page .today-sea-progress-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ============================================
+   今日海域光束与首屏可读性二次收束
+   把大面积白雾压回纵向水下光束，并让宽屏低高度视口完整看到承接层。
+   ============================================ */
+
+body.home-page .hero-section {
+    min-height: max(860px, calc(100svh - var(--nav-height, 82px)));
+    padding-top: clamp(20px, 2.6vh, 38px);
+    padding-bottom: clamp(22px, 3vh, 44px);
+    background:
+        radial-gradient(ellipse at 50% 34%, rgba(75, 158, 190, 0.18), rgba(7, 28, 43, 0) 43%),
+        linear-gradient(180deg, #061a29 0%, #09263d 38%, #0f4665 72%, #2d7b9c 100%);
+    box-shadow:
+        inset 18vw 0 22vw rgba(1, 10, 20, 0.42),
+        inset -18vw 0 22vw rgba(1, 10, 20, 0.42),
+        inset 0 16vh 16vh rgba(1, 12, 23, 0.28);
+}
+
+body.home-page .hero-section::before {
+    background:
+        linear-gradient(90deg, rgba(1, 10, 20, 0.62), rgba(1, 10, 20, 0.12) 18%, rgba(1, 10, 20, 0) 50%, rgba(1, 10, 20, 0.12) 82%, rgba(1, 10, 20, 0.62)),
+        radial-gradient(ellipse at 50% 7%, rgba(235, 252, 255, 0.12), rgba(171, 222, 238, 0.055) 28%, rgba(171, 222, 238, 0) 52%),
+        linear-gradient(180deg, rgba(232, 251, 255, 0.055), rgba(232, 251, 255, 0) 40%);
+    opacity: 1;
+    filter: none;
+}
+
+body.home-page .hero-section::after {
+    bottom: -72px;
+    height: 132px;
+    background: linear-gradient(180deg, rgba(8, 44, 64, 0), rgba(23, 85, 112, 0.36) 52%, rgba(80, 156, 182, 0.42) 100%);
+    filter: blur(24px);
+    opacity: 0.72;
+}
+
+body.home-page .hero-ocean-glow-one {
+    inset: -14% auto auto 50%;
+    width: min(42vw, 780px);
+    height: clamp(560px, 62vh, 760px);
+    min-width: 480px;
+    min-height: 560px;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(252, 255, 255, 0.16), rgba(198, 233, 245, 0.075) 28%, rgba(198, 233, 245, 0) 64%),
+        linear-gradient(90deg, rgba(218, 246, 255, 0), rgba(218, 246, 255, 0.045) 48%, rgba(218, 246, 255, 0));
+    filter: blur(8px);
+    transform: translate3d(-50%, -8%, 0) scale(0.96);
+}
+
+body.home-page.hero-awakened .hero-ocean-glow-one {
+    opacity: 0.58;
+}
+
+body.home-page.hero-awakened .hero-ocean-wave-two {
+    opacity: 0.42;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card {
+    min-height: clamp(760px, calc(100svh - 82px), 900px);
+    padding-top: clamp(10px, 1.6vh, 24px);
+    padding-bottom: clamp(18px, 2.4vh, 34px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before {
+    top: clamp(-104px, -10vh, -56px);
+    width: min(48vw, 780px);
+    height: clamp(440px, 54vh, 620px);
+    border-radius: 44% 44% 50% 50%;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(247, 254, 255, 0.18), rgba(189, 230, 243, 0.085) 30%, rgba(125, 197, 220, 0.032) 54%, rgba(125, 197, 220, 0) 72%),
+        linear-gradient(90deg, rgba(229, 250, 255, 0), rgba(229, 250, 255, 0.05) 45%, rgba(229, 250, 255, 0.05) 55%, rgba(229, 250, 255, 0));
+    opacity: 0.52;
+    filter: blur(1px);
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    top: clamp(214px, 28vh, 286px);
+    width: min(46vw, 680px);
+    height: clamp(130px, 16vh, 190px);
+    background: radial-gradient(ellipse at 50% 50%, rgba(129, 210, 235, 0.18), rgba(29, 107, 137, 0.06) 42%, rgba(5, 25, 40, 0) 74%);
+    opacity: 0.44;
+    filter: blur(3px);
+}
+
+body.home-page .hero-hotspots-head {
+    margin-bottom: clamp(8px, 1.2vh, 18px);
+}
+
+body.home-page .hero-hotspots-kicker {
+    color: rgba(222, 243, 250, 0.62);
+}
+
+body.home-page .hero-hotspots-title {
+    color: rgba(247, 253, 255, 0.98);
+    text-shadow:
+        0 0 18px rgba(211, 240, 249, 0.12),
+        0 18px 46px rgba(1, 10, 20, 0.5);
+}
+
+body.home-page .hero-hotspots-subtitle,
+body.home-page .hero-observation-chip {
+    color: rgba(225, 243, 249, 0.76);
+}
+
+body.home-page .hero-bamboo-scroll-container {
+    height: clamp(326px, 36vh, 414px);
+}
+
+body.home-page .hero-bamboo-cards-wrapper::before {
+    width: clamp(300px, 28vw, 460px);
+    height: clamp(72px, 9vh, 108px);
+    background: radial-gradient(ellipse at 50% 0%, rgba(245, 254, 255, 0.22), rgba(190, 234, 248, 0.08) 34%, rgba(190, 234, 248, 0) 74%);
+    opacity: 0.5;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    border-color: rgba(220, 246, 254, 0.16);
+    box-shadow:
+        0 22px 48px rgba(1, 10, 20, calc(var(--stage-depth-shadow) + 0.12)),
+        inset 0 1px 0 rgba(255, 255, 255, 0.11);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next {
+    border-color: rgba(216, 244, 253, 0.2);
+    box-shadow:
+        0 24px 54px rgba(1, 10, 20, 0.34),
+        0 0 0 1px rgba(224, 248, 255, 0.045),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active {
+    --card-scale: 1.018;
+    border-color: rgba(238, 252, 255, 0.54);
+    box-shadow:
+        0 44px 90px rgba(1, 10, 20, 0.5),
+        0 0 0 1px rgba(234, 250, 255, 0.22),
+        0 0 52px rgba(116, 211, 240, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image {
+    filter: saturate(var(--stage-saturate)) contrast(1.02) brightness(var(--stage-brightness));
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image {
+    filter: saturate(1.12) contrast(1.08) brightness(1.02);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-content {
+    background:
+        linear-gradient(180deg, rgba(2, 13, 24, 0), rgba(2, 13, 24, 0.62) 38%, rgba(1, 9, 18, 0.94) 100%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-title {
+    text-shadow: 0 8px 20px rgba(1, 10, 20, 0.5);
+}
+
+body.home-page .today-sea-drift-hint {
+    margin: clamp(3px, 0.5vh, 8px) auto clamp(8px, 1vh, 14px);
+}
+
+body.home-page .today-sea-brief-panel {
+    min-height: 140px;
+}
+
+body.home-page .today-sea-position-panel,
+body.home-page .today-sea-data-panel,
+body.home-page .today-sea-progress-panel {
+    padding-top: 18px;
+    padding-bottom: 18px;
+}
+
+body.home-page .today-sea-maplet {
+    width: 92px;
+    min-height: 78px;
+}
+
+body.home-page .today-sea-progress-orbit {
+    width: 64px;
+    height: 64px;
+}
+
+body.home-page .today-sea-progress-orbit span {
+    inset: 13px;
+}
+
+@media (min-width: 1280px) and (max-height: 960px) {
+    body.home-page .hero-section {
+        min-height: calc(100svh - var(--nav-height, 82px));
+        padding-top: 12px;
+        padding-bottom: 16px;
+    }
+
+    body.home-page .hero-hotspots-shell.today-sea-card {
+        min-height: calc(100svh - var(--nav-height, 82px) - 18px);
+        padding-top: 8px;
+        padding-bottom: 12px;
+    }
+
+    body.home-page .hero-hotspots-head {
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+
+    body.home-page .hero-hotspots-title {
+        font-size: clamp(2.08rem, 2.45vw, 2.82rem);
+    }
+
+    body.home-page .hero-hotspots-subtitle {
+        line-height: 1.42;
+    }
+
+    body.home-page .hero-observation-rail {
+        transform: translateY(-2px);
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        height: clamp(300px, 37vh, 348px);
+        padding-inline: clamp(64px, 5.4vw, 104px);
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card {
+        height: clamp(270px, 31vh, 318px);
+    }
+
+    body.home-page .today-sea-drift-hint {
+        margin: 0 auto 6px;
+    }
+
+    body.home-page .today-sea-brief {
+        width: min(100%, 1220px);
+        gap: 14px;
+    }
+
+    body.home-page .today-sea-brief-panel {
+        min-height: 126px;
+    }
+
+    body.home-page .today-sea-position-panel {
+        grid-template-columns: 86px minmax(0, 1fr);
+        gap: 8px 16px;
+        padding: 14px 20px;
+    }
+
+    body.home-page .today-sea-data-panel,
+    body.home-page .today-sea-progress-panel {
+        padding: 14px 20px;
+    }
+
+    body.home-page .today-sea-maplet {
+        width: 76px;
+        min-height: 66px;
+    }
+
+    body.home-page .today-sea-data-grid {
+        min-height: 70px;
+    }
+
+    body.home-page .today-sea-data-icon {
+        width: 24px;
+        height: 24px;
+        flex-basis: 24px;
+    }
+
+    body.home-page .today-sea-data-grid dt {
+        margin-bottom: 8px;
+        font-size: 0.66rem;
+    }
+
+    body.home-page .today-sea-data-grid dd {
+        font-size: clamp(0.9rem, 0.95vw, 1.05rem);
+    }
+
+    body.home-page .today-sea-progress-panel {
+        grid-template-columns: 62px minmax(0, 1fr);
+        gap: 8px 14px;
+    }
+
+    body.home-page .today-sea-progress-orbit {
+        width: 56px;
+        height: 56px;
+    }
+
+    body.home-page .today-sea-progress-orbit span {
+        inset: 11px;
+    }
+
+    body.home-page .today-sea-progress-copy p {
+        font-size: 0.72rem;
+        line-height: 1.42;
+    }
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-content,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-content {
+    padding-left: clamp(30px, 2.6vw, 38px);
+    padding-right: clamp(24px, 2.2vw, 34px);
+    background:
+        linear-gradient(180deg, rgba(2, 13, 24, 0.02), rgba(2, 13, 24, 0.66) 40%, rgba(1, 9, 18, 0.96) 100%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-content {
+    padding-left: clamp(72px, 7vw, 118px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-title,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-title {
+    color: rgba(239, 252, 255, 0.92);
+    text-shadow: 0 9px 22px rgba(1, 9, 18, 0.74);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-tagline,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-tagline,
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-footer,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-footer {
+    color: rgba(221, 240, 247, 0.82);
+}
+
+/* 今日海域：修正卡片上沿裁切与 Sea Position 小地图显示 */
+body.home-page .hero-bamboo-scroll-container {
+    height: clamp(348px, 38vh, 430px);
+}
+
+body.home-page .hero-bamboo-cards-wrapper {
+    padding-top: clamp(18px, 2vh, 26px);
+    padding-bottom: clamp(12px, 1.4vh, 18px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-cards-content {
+    min-height: calc(100% + 18px);
+    padding-block: clamp(12px, 1.3vh, 18px);
+    align-items: center;
+}
+
+body.home-page .today-sea-maplet {
+    position: relative;
+    aspect-ratio: 1.22;
+    min-height: 72px;
+    border-radius: 12px;
+    background:
+        radial-gradient(ellipse at 78% 22%, rgba(152, 226, 244, 0.22), rgba(152, 226, 244, 0) 24%),
+        radial-gradient(ellipse at 24% 76%, rgba(220, 249, 255, 0.13), rgba(220, 249, 255, 0) 26%),
+        linear-gradient(145deg, rgba(12, 57, 80, 0.72), rgba(4, 22, 36, 0.54));
+    overflow: hidden;
+}
+
+body.home-page .today-sea-maplet::before,
+body.home-page .today-sea-maplet::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+}
+
+body.home-page .today-sea-maplet::before {
+    left: 9%;
+    right: 9%;
+    top: 18%;
+    bottom: 16%;
+    border-radius: 50%;
+    border: 1px solid rgba(180, 226, 240, 0.09);
+    background:
+        linear-gradient(148deg, transparent 0 44%, rgba(181, 229, 242, 0.18) 45% 47%, transparent 49%),
+        radial-gradient(ellipse at 72% 35%, rgba(167, 232, 247, 0.18), rgba(167, 232, 247, 0) 26%),
+        radial-gradient(ellipse at 24% 69%, rgba(223, 249, 255, 0.12), rgba(223, 249, 255, 0) 26%);
+}
+
+body.home-page .today-sea-maplet::after {
+    left: 17%;
+    right: 18%;
+    top: 58%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(191, 231, 243, 0), rgba(224, 250, 255, 0.8) 46%, rgba(139, 214, 236, 0.16));
+    box-shadow: 0 0 14px rgba(126, 207, 235, 0.25);
+    transform: rotate(-22deg);
+    transform-origin: center;
+}
+
+body.home-page .today-sea-maplet-grid,
+body.home-page .today-sea-maplet-wake,
+body.home-page .today-sea-maplet-route,
+body.home-page .today-sea-maplet-ring,
+body.home-page .today-sea-maplet-dot {
+    position: absolute;
+}
+
+body.home-page .today-sea-maplet-grid {
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(90deg, rgba(218, 246, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(218, 246, 255, 0.045) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.42;
+}
+
+body.home-page .today-sea-maplet-wake {
+    left: 12%;
+    right: 14%;
+    bottom: 13%;
+    z-index: 2;
+    height: 34%;
+    border-radius: 999px;
+    background:
+        radial-gradient(ellipse at 36% 65%, rgba(185, 236, 249, 0.18), rgba(185, 236, 249, 0) 48%),
+        linear-gradient(160deg, rgba(204, 241, 251, 0), rgba(204, 241, 251, 0.12), rgba(204, 241, 251, 0));
+    filter: blur(0.4px);
+}
+
+body.home-page .today-sea-maplet-route {
+    left: 22%;
+    right: 20%;
+    top: 58%;
+    z-index: 4;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(203, 239, 249, 0), rgba(236, 253, 255, 0.86), rgba(148, 218, 239, 0.16));
+    box-shadow: 0 0 12px rgba(137, 214, 238, 0.28);
+    transform: rotate(-22deg);
+}
+
+body.home-page .today-sea-maplet-ring {
+    right: 20%;
+    top: 28%;
+    z-index: 3;
+    width: 30%;
+    height: 30%;
+    border-color: rgba(211, 244, 253, 0.18);
+    box-shadow:
+        0 0 0 1px rgba(211, 244, 253, 0.05),
+        0 0 18px rgba(126, 207, 235, 0.18);
+}
+
+body.home-page .today-sea-maplet-dot {
+    z-index: 5;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(223, 249, 255, 0.86);
+    box-shadow:
+        0 0 0 5px rgba(126, 207, 235, 0.08),
+        0 0 18px rgba(126, 207, 235, 0.34);
+}
+
+body.home-page .today-sea-maplet-dot.is-origin {
+    left: 26%;
+    bottom: 27%;
+    opacity: 0.52;
+}
+
+body.home-page .today-sea-maplet-dot.is-current {
+    right: 27%;
+    top: 35%;
+}
+
+@media (min-width: 1280px) and (max-height: 960px) {
+    body.home-page .hero-bamboo-scroll-container {
+        height: clamp(326px, 39vh, 368px);
+    }
+
+    body.home-page .hero-bamboo-cards-wrapper {
+        padding-top: 18px;
+        padding-bottom: 12px;
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-cards-content {
+        min-height: calc(100% + 14px);
+        padding-block: 10px 12px;
+    }
+
+    body.home-page .today-sea-maplet {
+        width: 82px;
+        min-height: 68px;
+    }
+}
+
+/* 今日海域：展示稿级质感收束 */
+body.home-page .hero-section {
+    background:
+        radial-gradient(ellipse at 50% 58%, rgba(31, 126, 157, 0.23), rgba(31, 126, 157, 0.08) 28%, rgba(3, 15, 28, 0) 58%),
+        linear-gradient(180deg, #061b2c 0%, #082338 43%, #0a3549 100%);
+    box-shadow:
+        inset 0 0 0 1px rgba(159, 218, 238, 0.045),
+        inset 12vw 0 18vw rgba(1, 8, 17, 0.62),
+        inset -12vw 0 18vw rgba(1, 8, 17, 0.66),
+        inset 0 -16vh 20vh rgba(2, 13, 24, 0.18);
+}
+
+body.home-page .hero-section::before {
+    background:
+        radial-gradient(ellipse at 50% -10%, rgba(238, 252, 255, 0.17), rgba(182, 228, 244, 0.08) 23%, rgba(11, 54, 74, 0.025) 42%, rgba(2, 13, 24, 0) 63%),
+        linear-gradient(105deg, rgba(238, 252, 255, 0) 35%, rgba(236, 252, 255, 0.075) 48%, rgba(236, 252, 255, 0.028) 56%, rgba(236, 252, 255, 0) 69%),
+        linear-gradient(255deg, rgba(238, 252, 255, 0) 37%, rgba(197, 237, 248, 0.055) 50%, rgba(236, 252, 255, 0.018) 59%, rgba(238, 252, 255, 0) 72%);
+    filter: blur(0.2px);
+    opacity: 0.82;
+}
+
+body.home-page .hero-section::after {
+    background:
+        radial-gradient(ellipse at 50% 72%, rgba(63, 161, 191, 0.13), rgba(23, 100, 132, 0.07) 30%, rgba(3, 18, 31, 0) 62%),
+        linear-gradient(180deg, rgba(3, 16, 28, 0), rgba(3, 17, 30, 0.22) 100%);
+    opacity: 0.72;
+}
+
+body.home-page .hero-ocean-glow-one {
+    width: min(34vw, 620px);
+    height: min(56vh, 540px);
+    top: -12vh;
+    background:
+        linear-gradient(180deg, rgba(240, 253, 255, 0.16), rgba(155, 220, 240, 0.07) 42%, rgba(44, 142, 174, 0) 86%),
+        radial-gradient(ellipse at 50% 0%, rgba(241, 253, 255, 0.16), rgba(183, 231, 246, 0.05) 34%, rgba(183, 231, 246, 0) 70%);
+    filter: blur(7px);
+}
+
+body.home-page.hero-awakened .hero-ocean-glow-one {
+    opacity: 0.42;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before {
+    width: min(38vw, 620px);
+    height: min(48vh, 430px);
+    top: -15%;
+    background:
+        linear-gradient(180deg, rgba(239, 253, 255, 0.15), rgba(164, 226, 244, 0.07) 44%, rgba(83, 177, 207, 0) 84%),
+        radial-gradient(ellipse at 50% 6%, rgba(242, 254, 255, 0.12), rgba(187, 232, 246, 0.04) 42%, rgba(187, 232, 246, 0) 72%);
+    filter: blur(8px);
+    opacity: 0.38;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    width: min(48vw, 720px);
+    height: clamp(170px, 24vh, 250px);
+    top: 28%;
+    background:
+        radial-gradient(ellipse at 50% 50%, rgba(99, 193, 221, 0.16), rgba(53, 145, 177, 0.07) 39%, rgba(5, 24, 38, 0) 72%);
+    filter: blur(14px);
+    opacity: 0.48;
+}
+
+body.home-page .hero-hotspots-head {
+    gap: 5px;
+    margin-bottom: clamp(4px, 0.8vh, 10px);
+}
+
+body.home-page .hero-hotspots-kicker {
+    color: rgba(213, 237, 246, 0.72);
+}
+
+body.home-page .hero-hotspots-title {
+    color: rgba(247, 253, 255, 0.95);
+    text-shadow:
+        0 2px 16px rgba(189, 230, 244, 0.18),
+        0 14px 36px rgba(1, 9, 18, 0.54);
+}
+
+body.home-page .hero-hotspots-subtitle,
+body.home-page .hero-observation-chip {
+    color: rgba(228, 244, 250, 0.84);
+}
+
+body.home-page .hero-observation-rail {
+    gap: 14px;
+    opacity: 0.96;
+}
+
+body.home-page .today-sea-drift-copy {
+    color: rgba(219, 241, 248, 0.78);
+    text-shadow: 0 8px 22px rgba(1, 10, 20, 0.42);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    border-color: rgba(222, 247, 255, 0.18);
+    box-shadow:
+        0 26px 62px rgba(1, 9, 18, calc(var(--stage-depth-shadow) + 0.17)),
+        0 0 0 1px rgba(219, 248, 255, 0.035),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active {
+    --card-scale: 1.024;
+    border-color: rgba(241, 253, 255, 0.64);
+    box-shadow:
+        0 52px 112px rgba(0, 7, 16, 0.62),
+        0 18px 52px rgba(7, 61, 82, 0.24),
+        0 0 0 1px rgba(238, 252, 255, 0.34),
+        0 0 62px rgba(128, 214, 240, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.26),
+        inset 0 -1px 0 rgba(165, 225, 244, 0.12);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active::before {
+    opacity: 0.94;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 30%),
+        linear-gradient(100deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 0) 78%, rgba(255, 255, 255, 0.1));
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image {
+    filter: saturate(1.16) contrast(1.1) brightness(1.035);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next {
+    border-color: rgba(224, 248, 255, 0.27);
+    box-shadow:
+        0 30px 62px rgba(1, 9, 18, 0.42),
+        0 0 0 1px rgba(224, 248, 255, 0.065),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-image,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-image {
+    filter: saturate(0.96) contrast(1.04) brightness(0.88);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev:hover,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next:hover {
+    border-color: rgba(232, 251, 255, 0.36);
+    box-shadow:
+        0 34px 68px rgba(1, 9, 18, 0.46),
+        0 0 34px rgba(126, 207, 235, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-content {
+    padding-right: clamp(86px, 6.4vw, 112px);
+    background:
+        linear-gradient(180deg, rgba(2, 13, 24, 0), rgba(2, 13, 24, 0.52) 31%, rgba(1, 8, 17, 0.96) 100%),
+        radial-gradient(ellipse at 22% 92%, rgba(6, 48, 66, 0.38), rgba(6, 48, 66, 0) 62%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-content {
+    padding-bottom: clamp(21px, 2.1vw, 28px);
+    background:
+        linear-gradient(180deg, rgba(2, 13, 24, 0), rgba(2, 13, 24, 0.46) 28%, rgba(1, 8, 17, 0.98) 100%),
+        radial-gradient(ellipse at 18% 94%, rgba(12, 73, 94, 0.45), rgba(12, 73, 94, 0) 64%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-title {
+    color: rgba(248, 253, 255, 0.97);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-footer {
+    justify-content: flex-start;
+    gap: 10px;
+    max-width: calc(100% - 52px);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-price {
+    color: rgba(228, 244, 250, 0.76);
+    font-weight: 600;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px 4px;
+    border: 1px solid rgba(236, 217, 165, 0.18);
+    border-radius: 999px;
+    background: rgba(236, 217, 165, 0.055);
+    color: rgba(243, 221, 166, 0.86);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-entry {
+    right: clamp(18px, 1.7vw, 24px);
+    bottom: clamp(20px, 2vw, 28px);
+    width: 48px;
+    height: 48px;
+    border-color: rgba(236, 252, 255, 0.28);
+    background:
+        radial-gradient(circle at 38% 28%, rgba(249, 254, 255, 0.42), rgba(137, 218, 241, 0.13) 44%, rgba(3, 18, 31, 0.7) 100%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-entry {
+    box-shadow:
+        0 0 0 1px rgba(236, 252, 255, 0.08),
+        0 0 32px rgba(126, 207, 235, 0.25),
+        0 16px 32px rgba(1, 9, 18, 0.42);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active:hover {
+    box-shadow:
+        0 58px 120px rgba(0, 7, 16, 0.66),
+        0 20px 56px rgba(7, 61, 82, 0.26),
+        0 0 0 1px rgba(244, 254, 255, 0.38),
+        0 0 72px rgba(128, 214, 240, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+body.home-page .today-sea-brief {
+    gap: clamp(14px, 1.45vw, 20px);
+}
+
+body.home-page .today-sea-brief-panel {
+    border-color: rgba(221, 247, 255, 0.18);
+    background:
+        linear-gradient(180deg, rgba(13, 47, 68, 0.62), rgba(3, 20, 34, 0.5)),
+        radial-gradient(circle at 18% 0%, rgba(226, 250, 255, 0.16), rgba(226, 250, 255, 0) 56%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 33%);
+    box-shadow:
+        0 24px 52px rgba(1, 9, 18, 0.24),
+        0 0 0 1px rgba(221, 247, 255, 0.035),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13);
+}
+
+body.home-page .today-sea-brief-panel::before {
+    opacity: 0.72;
+}
+
+body.home-page .today-sea-brief-kicker {
+    color: rgba(185, 226, 240, 0.74);
+}
+
+body.home-page .today-sea-position-panel {
+    grid-template-columns: 92px minmax(0, 1fr);
+}
+
+body.home-page .today-sea-brief-copy h3 {
+    color: rgba(248, 253, 255, 0.97);
+    text-shadow: 0 10px 24px rgba(1, 9, 18, 0.42);
+}
+
+body.home-page .today-sea-brief-copy p,
+body.home-page .today-sea-brief-copy span {
+    color: rgba(213, 234, 243, 0.78);
+}
+
+body.home-page .today-sea-brief-link {
+    color: rgba(226, 244, 250, 0.82);
+}
+
+body.home-page .today-sea-maplet {
+    border-color: rgba(221, 247, 255, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -18px 30px rgba(1, 9, 18, 0.16),
+        0 14px 30px rgba(1, 9, 18, 0.22);
+}
+
+body.home-page .today-sea-data-grid {
+    column-gap: clamp(16px, 2vw, 28px);
+}
+
+body.home-page .today-sea-data-item {
+    min-width: 0;
+}
+
+body.home-page .today-sea-data-icon {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+}
+
+body.home-page .today-sea-data-grid dt {
+    color: rgba(186, 224, 238, 0.72);
+}
+
+body.home-page .today-sea-data-grid dd {
+    color: rgba(241, 251, 255, 0.92);
+    text-shadow: 0 8px 22px rgba(1, 9, 18, 0.36);
+    white-space: nowrap;
+}
+
+body.home-page .today-sea-progress-panel {
+    grid-template-columns: 62px minmax(0, 1fr);
+}
+
+body.home-page .today-sea-progress-copy::before {
+    content: "探索进度";
+    display: block;
+    margin-bottom: 4px;
+    color: rgba(185, 226, 240, 0.72);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+}
+
+body.home-page .today-sea-progress-copy strong {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-size: clamp(1.28rem, 1.62vw, 1.78rem);
+}
+
+body.home-page .today-sea-progress-copy strong::after {
+    content: "片海域";
+    color: rgba(211, 234, 242, 0.68);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+}
+
+body.home-page .today-sea-progress-copy span {
+    color: rgba(220, 240, 247, 0.76);
+}
+
+body.home-page .today-sea-progress-copy p {
+    max-width: 25ch;
+    color: rgba(205, 229, 238, 0.78);
+}
+
+body.home-page .today-sea-progress-orbit {
+    background:
+        radial-gradient(circle at 50% 50%, rgba(4, 22, 36, 0.88) 0 42%, rgba(127, 209, 234, 0.22) 43% 45%, transparent 46%),
+        conic-gradient(from -18deg, rgba(177, 232, 246, 0.86) var(--brief-progress), rgba(177, 232, 246, 0.14) 0);
+    box-shadow:
+        inset 0 0 18px rgba(2, 14, 24, 0.48),
+        0 0 28px rgba(126, 207, 235, 0.12);
+}
+
+@media (min-width: 1280px) and (max-height: 960px) {
+    body.home-page .hero-hotspots-head {
+        gap: 3px;
+        margin-bottom: 2px;
+    }
+
+    body.home-page .hero-bamboo-scroll-container {
+        height: clamp(322px, 38vh, 360px);
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-content {
+        padding-right: clamp(78px, 5.8vw, 96px);
+    }
+
+    body.home-page .hero-hotspots-shell .bamboo-card-entry {
+        width: 44px;
+        height: 44px;
+        bottom: 20px;
+    }
+
+    body.home-page .today-sea-progress-copy::before {
+        margin-bottom: 2px;
+        font-size: 0.62rem;
+    }
+
+    body.home-page .today-sea-progress-copy strong::after {
+        font-size: 0.66rem;
+    }
+
+    body.home-page .today-sea-data-grid {
+        column-gap: clamp(12px, 1.55vw, 20px);
+    }
+
+    body.home-page .today-sea-data-grid dd {
+        font-size: clamp(0.86rem, 0.9vw, 1rem);
+    }
+}
+
+/* 今日海域：主图统一与水下光束终稿 */
+body.home-page .hero-section {
+    background:
+        radial-gradient(ellipse at 50% 60%, rgba(34, 132, 163, 0.2), rgba(20, 83, 112, 0.08) 30%, rgba(2, 14, 26, 0) 58%),
+        linear-gradient(180deg, #041625 0%, #061f33 45%, #0a3448 100%);
+    box-shadow:
+        inset 0 0 0 1px rgba(154, 218, 238, 0.04),
+        inset 15vw 0 18vw rgba(1, 7, 15, 0.72),
+        inset -15vw 0 18vw rgba(1, 7, 15, 0.74),
+        inset 0 16vh 20vh rgba(1, 7, 15, 0.22),
+        inset 0 -14vh 18vh rgba(2, 13, 24, 0.24);
+}
+
+body.home-page .hero-section::before {
+    background:
+        linear-gradient(102deg, rgba(236, 252, 255, 0) 38%, rgba(238, 252, 255, 0.052) 49%, rgba(238, 252, 255, 0.014) 58%, rgba(236, 252, 255, 0) 70%),
+        linear-gradient(78deg, rgba(190, 232, 246, 0) 42%, rgba(201, 239, 249, 0.04) 53%, rgba(190, 232, 246, 0) 64%),
+        linear-gradient(118deg, rgba(190, 232, 246, 0) 28%, rgba(203, 239, 249, 0.028) 39%, rgba(190, 232, 246, 0) 50%),
+        radial-gradient(ellipse at 50% -16%, rgba(242, 253, 255, 0.1), rgba(184, 229, 244, 0.034) 31%, rgba(6, 36, 54, 0.012) 49%, rgba(2, 13, 24, 0) 66%);
+    filter: blur(0.1px);
+    opacity: 0.68;
+}
+
+body.home-page .hero-section::after {
+    background:
+        radial-gradient(ellipse at 50% 46%, rgba(68, 166, 195, 0.11), rgba(25, 96, 127, 0.04) 34%, rgba(2, 13, 24, 0) 58%),
+        radial-gradient(ellipse at 3% 48%, rgba(1, 7, 15, 0.74), rgba(1, 7, 15, 0.2) 38%, rgba(1, 7, 15, 0) 58%),
+        radial-gradient(ellipse at 97% 48%, rgba(1, 7, 15, 0.76), rgba(1, 7, 15, 0.2) 38%, rgba(1, 7, 15, 0) 58%),
+        linear-gradient(180deg, rgba(2, 13, 24, 0), rgba(2, 13, 24, 0.3) 100%);
+    filter: blur(8px);
+    opacity: 0.78;
+}
+
+body.home-page .hero-ocean-glow-one {
+    width: min(28vw, 520px);
+    height: min(50vh, 460px);
+    min-width: 300px;
+    min-height: 360px;
+    top: -15vh;
+    background:
+        linear-gradient(180deg, rgba(242, 253, 255, 0.12), rgba(147, 216, 238, 0.045) 42%, rgba(44, 142, 174, 0) 86%),
+        radial-gradient(ellipse at 50% 0%, rgba(245, 254, 255, 0.115), rgba(176, 228, 244, 0.035) 33%, rgba(176, 228, 244, 0) 72%);
+    filter: blur(5px);
+}
+
+body.home-page.hero-awakened .hero-ocean-glow-one {
+    opacity: 0.34;
+}
+
+body.home-page .hero-ocean-glow-two {
+    opacity: 0.32;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::before {
+    width: min(30vw, 540px);
+    height: min(43vh, 390px);
+    top: -18%;
+    background:
+        linear-gradient(180deg, rgba(240, 253, 255, 0.11), rgba(164, 226, 244, 0.045) 42%, rgba(83, 177, 207, 0) 86%),
+        radial-gradient(ellipse at 50% 5%, rgba(244, 254, 255, 0.08), rgba(187, 232, 246, 0.025) 40%, rgba(187, 232, 246, 0) 72%);
+    filter: blur(6px);
+    opacity: 0.28;
+}
+
+body.home-page .hero-hotspots-shell.today-sea-card::after {
+    width: min(40vw, 660px);
+    height: clamp(140px, 20vh, 220px);
+    top: 33%;
+    background:
+        radial-gradient(ellipse at 50% 52%, rgba(83, 177, 207, 0.13), rgba(36, 122, 155, 0.052) 42%, rgba(5, 24, 38, 0) 72%);
+    filter: blur(12px);
+    opacity: 0.36;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image-wrapper::before,
+body.home-page .hero-hotspots-shell .bamboo-card-image-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image-wrapper::before {
+    background:
+        radial-gradient(ellipse at 50% 45%, rgba(1, 7, 15, 0) 42%, rgba(1, 7, 15, 0.34) 100%),
+        linear-gradient(90deg, rgba(1, 7, 15, 0.22), rgba(1, 7, 15, 0) 20%, rgba(1, 7, 15, 0) 80%, rgba(1, 7, 15, 0.24));
+    opacity: 0.82;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card-image-wrapper::after {
+    background:
+        linear-gradient(180deg, rgba(0, 7, 15, 0.12) 0%, rgba(0, 7, 15, 0.03) 34%, rgba(1, 8, 17, 0.62) 75%, rgba(0, 5, 12, 0.94) 100%),
+        radial-gradient(ellipse at 30% 84%, rgba(20, 101, 132, 0.24), rgba(20, 101, 132, 0) 52%);
+    opacity: 0.86;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image {
+    filter: saturate(1.12) contrast(1.13) brightness(0.99);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image-wrapper::before {
+    opacity: 0.76;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image-wrapper::after {
+    background:
+        linear-gradient(180deg, rgba(0, 7, 15, 0.08) 0%, rgba(0, 7, 15, 0.02) 32%, rgba(1, 8, 17, 0.64) 74%, rgba(0, 5, 12, 0.96) 100%),
+        radial-gradient(ellipse at 24% 90%, rgba(18, 102, 134, 0.32), rgba(18, 102, 134, 0) 58%);
+    opacity: 0.92;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-image,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-image {
+    filter: saturate(1.02) contrast(1.07) brightness(0.9);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-image-wrapper::after,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-image-wrapper::after {
+    opacity: 0.78;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev:hover .bamboo-card-image,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next:hover .bamboo-card-image {
+    filter: saturate(1.05) contrast(1.08) brightness(0.95);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-title,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-title {
+    color: rgba(246, 253, 255, 0.95);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-tagline,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-tagline {
+    color: rgba(224, 242, 248, 0.84);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-price,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-price {
+    color: rgba(225, 243, 249, 0.82);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-rating,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-rating {
+    color: rgba(239, 220, 170, 0.82);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-content {
+    background:
+        linear-gradient(180deg, rgba(2, 13, 24, 0), rgba(2, 13, 24, 0.5) 26%, rgba(1, 8, 17, 0.99) 100%),
+        radial-gradient(ellipse at 18% 94%, rgba(13, 82, 104, 0.48), rgba(13, 82, 104, 0) 64%);
+}
+
+body.home-page .today-sea-brief-panel {
+    overflow: hidden;
+    border-color: rgba(218, 247, 255, 0.22);
+    background:
+        linear-gradient(180deg, rgba(15, 53, 74, 0.64), rgba(3, 19, 33, 0.54)),
+        radial-gradient(circle at 16% 0%, rgba(226, 250, 255, 0.14), rgba(226, 250, 255, 0) 48%),
+        linear-gradient(118deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0) 36%);
+}
+
+body.home-page .today-sea-brief-panel::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(90deg, rgba(222, 249, 255, 0.1), rgba(222, 249, 255, 0) 18% 82%, rgba(222, 249, 255, 0.06)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 36%);
+    pointer-events: none;
+    opacity: 0.62;
+}
+
+body.home-page .today-sea-brief-panel > * {
+    position: relative;
+    z-index: 1;
+}
+
+body.home-page .today-sea-maplet {
+    background:
+        radial-gradient(ellipse at 72% 26%, rgba(159, 229, 246, 0.24), rgba(159, 229, 246, 0) 23%),
+        radial-gradient(ellipse at 27% 76%, rgba(220, 249, 255, 0.14), rgba(220, 249, 255, 0) 26%),
+        linear-gradient(145deg, rgba(13, 60, 82, 0.74), rgba(4, 20, 34, 0.58));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.13),
+        inset 0 -18px 30px rgba(1, 9, 18, 0.18),
+        0 0 0 1px rgba(214, 246, 255, 0.08),
+        0 14px 30px rgba(1, 9, 18, 0.22);
+}
+
+body.home-page .today-sea-maplet-grid {
+    background-size: 18px 18px;
+    opacity: 0.5;
+}
+
+body.home-page .today-sea-maplet-ring {
+    border-color: rgba(221, 249, 255, 0.24);
+    box-shadow:
+        0 0 0 1px rgba(221, 249, 255, 0.06),
+        0 0 22px rgba(126, 207, 235, 0.22);
+}
+
+body.home-page .today-sea-data-grid {
+    align-items: start;
+}
+
+body.home-page .today-sea-data-grid dt {
+    letter-spacing: 0.08em;
+}
+
+body.home-page .today-sea-data-icon {
+    opacity: 0.92;
+    box-shadow:
+        0 0 0 1px rgba(211, 246, 255, 0.08),
+        0 0 18px rgba(126, 207, 235, 0.1);
+}
+
+body.home-page .today-sea-progress-orbit {
+    opacity: 0.92;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(4, 22, 36, 0.88) 0 42%, rgba(127, 209, 234, 0.16) 43% 45%, transparent 46%),
+        conic-gradient(from -18deg, rgba(177, 232, 246, 0.78) var(--brief-progress), rgba(177, 232, 246, 0.12) 0);
+}
+
+body.home-page .today-sea-progress-copy strong {
+    letter-spacing: 0.04em;
+}
+
+body.home-page .today-sea-progress-copy p {
+    max-width: 30ch;
+    color: rgba(214, 237, 245, 0.82);
+}
+
+/* 今日海域：入场态压雾与亮图校准 */
+body.home-page.hero-awakened .hero-section::before {
+    opacity: 0.62;
+}
+
+body.home-page.hero-awakened .hero-section::after {
+    opacity: 0.72;
+}
+
+body.home-page.hero-awakened .hero-hotspots-shell.today-sea-card::before {
+    opacity: 0.24;
+}
+
+body.home-page.hero-awakened .hero-hotspots-shell.today-sea-card::after {
+    opacity: 0.32;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image {
+    filter: saturate(1.12) contrast(1.14) brightness(0.97);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image-wrapper::before {
+    background:
+        linear-gradient(180deg, rgba(0, 7, 15, 0.18), rgba(0, 7, 15, 0.03) 30%, rgba(0, 7, 15, 0) 52%),
+        radial-gradient(ellipse at 50% 45%, rgba(1, 7, 15, 0) 40%, rgba(1, 7, 15, 0.38) 100%),
+        linear-gradient(90deg, rgba(1, 7, 15, 0.24), rgba(1, 7, 15, 0) 20%, rgba(1, 7, 15, 0) 80%, rgba(1, 7, 15, 0.26));
+    opacity: 0.82;
 }

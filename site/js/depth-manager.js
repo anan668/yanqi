@@ -43,6 +43,8 @@
     });
     const HOME_DIVE_MATCH_SEMANTIC_RANGE = 6;
     const HOME_DIVE_MATCH_SECTION_PUSH_MAX = 3;
+    const HOME_SCROLL_FAST_GAUGE_INTERVAL_MS = 180;
+    const HOME_SCROLL_FAST_OVERLAY_INTERVAL_MS = 160;
 
     const MIN_DEPTH = -60;
     const MAX_DEPTH = 0;
@@ -136,16 +138,16 @@
             navFreshMs: 10000
         }),
         loginHome: Object.freeze({
-            blueMs: 1260,
-            bubbleDelayMs: 320,
-            slideStartMs: 1580,
-            navigateMs: 1860,
-            depthMs: 1740,
-            blueOpacity: 0.78,
-            entryMs: 1460,
-            entryBlueMs: 1320,
-            bubbleFadeStartMs: 320,
-            bubbleCount: 16
+            blueMs: 1480,
+            bubbleDelayMs: 220,
+            slideStartMs: 1620,
+            navigateMs: 2060,
+            depthMs: 1980,
+            blueOpacity: 0.84,
+            entryMs: 1660,
+            entryBlueMs: 1480,
+            bubbleFadeStartMs: 520,
+            bubbleCount: 24
         }),
         oceanNav: Object.freeze({
             diveExitMs: 1180,
@@ -1140,6 +1142,7 @@
             this.specialBlueAnimationId = 0;
             this.interactionAnimationId = 0;
             this.cleanupTimerId = 0;
+            this.transitionWatchdogTimerId = 0;
             this.navigateTimerId = 0;
             this.interactionResetTimerId = 0;
             this.specialTransitionMode = null;
@@ -1160,6 +1163,7 @@
             this.pageScrollManagedActive = false;
             this.pageScrollManagedUntil = 0;
             this.pageScrollManagedMinIntervalMs = this.pageId === 'home' ? 120 : 96;
+            this.pageScrollManagedProgressLastAt = 0;
             this.pageScrollLastQueuedAt = 0;
             this.pageScrollLastQueuedScrollY = this.pageScrollLastScrollY;
             this.pageScrollLastInputAt = 0;
@@ -1168,6 +1172,11 @@
             this.lastGlideTapeDepth = null;
             this.lastGlideOverlayRenderAt = 0;
             this.lastGlideOverlayDepth = null;
+            this.homeScrollFastRenderAt = 0;
+            this.homeScrollFastGaugeBucket = null;
+            this.homeScrollFastOverlayAt = 0;
+            this.homeScrollFastOverlayBucket = null;
+            this.homeScrollPendingFullRenderDepth = null;
             this.pageScrollManagedResumeEnabled = false;
             this.pageScrollManagedFinishTimerId = 0;
             this.pageScrollResumeBlockedUntil = 0;
@@ -1199,6 +1208,7 @@
             this.leftCurrent = document.getElementById('leftGaugeCurrent');
             this.rightCurrent = document.getElementById('rightGaugeCurrent');
             this.bubbleContainer = null;
+            this.spotlightElement = null;
 
             this.applyPageIdentityData();
             this.ensureSpecialOverlayLayers();
@@ -1322,23 +1332,23 @@
 
             if (this.pageId === 'home') {
                 this.handleHomeInteractionChange = (event) => {
+                    const scrollActive = Boolean(event?.detail?.scrollActive);
                     const scrollMode = typeof event?.detail?.scrollMode === 'string'
                         ? event.detail.scrollMode
                         : 'normal';
 
-                    if (scrollMode === 'glide') {
+                    if (scrollActive || scrollMode !== 'normal') {
                         this.resetHomeGlideRenderCaches({ preserveText: true });
                         return;
                     }
 
-                    if (scrollMode === 'traveling' || scrollMode === 'settling') {
-                        this.resetHomeGlideRenderCaches({ preserveText: true });
-                        return;
-                    }
+                    window.requestAnimationFrame(() => {
+                        if (this.resolveHomeScrollRenderMode() !== 'normal') {
+                            return;
+                        }
 
-                    this.resetHomeGlideRenderCaches();
-                    this.lastRenderedDepthText = '';
-                    this.renderDepth(this.currentDepth, { forceFull: true });
+                        this.flushHomeScrollFastRender();
+                    });
                 };
                 window.addEventListener('homeinteractionchange', this.handleHomeInteractionChange);
             }
@@ -1350,18 +1360,29 @@
          * @returns {void} - 无返回值，直接补齐遮罩层结构
          */
         ensureSpecialOverlayLayers() {
-            if (!this.overlayElement || this.overlayElement.querySelector('.page-transition-bubbles')) {
-                this.bubbleContainer = this.overlayElement
-                    ? this.overlayElement.querySelector('.page-transition-bubbles')
-                    : null;
+            if (!this.overlayElement) {
+                this.bubbleContainer = null;
+                this.spotlightElement = null;
                 return;
             }
 
-            const bubbleContainer = document.createElement('div');
-            bubbleContainer.className = 'page-transition-bubbles';
-            bubbleContainer.setAttribute('aria-hidden', 'true');
-            this.overlayElement.appendChild(bubbleContainer);
-            this.bubbleContainer = bubbleContainer;
+            this.bubbleContainer = this.overlayElement.querySelector('.page-transition-bubbles');
+            if (!this.bubbleContainer) {
+                const bubbleContainer = document.createElement('div');
+                bubbleContainer.className = 'page-transition-bubbles';
+                bubbleContainer.setAttribute('aria-hidden', 'true');
+                this.overlayElement.appendChild(bubbleContainer);
+                this.bubbleContainer = bubbleContainer;
+            }
+
+            this.spotlightElement = this.overlayElement.querySelector('.page-transition-spotlight');
+            if (!this.spotlightElement) {
+                const spotlightElement = document.createElement('div');
+                spotlightElement.className = 'page-transition-spotlight';
+                spotlightElement.setAttribute('aria-hidden', 'true');
+                this.overlayElement.appendChild(spotlightElement);
+                this.spotlightElement = spotlightElement;
+            }
         }
 
         /**
@@ -1784,6 +1805,11 @@
                 this.cleanupTimerId = 0;
             }
 
+            if (this.transitionWatchdogTimerId) {
+                window.clearTimeout(this.transitionWatchdogTimerId);
+                this.transitionWatchdogTimerId = 0;
+            }
+
             if (this.pageScrollFrameId) {
                 cancelAnimationFrame(this.pageScrollFrameId);
                 this.pageScrollFrameId = 0;
@@ -1857,6 +1883,40 @@
                 cancelAnimationFrame(this.pageScrollFrameId);
                 this.pageScrollFrameId = 0;
             }
+        }
+
+        /**
+         * syncManagedScrollProgress() - 程序化滚动中低频推进深度计，避免结束后才追上目标海层
+         * @returns {void}
+         */
+        syncManagedScrollProgress() {
+            if (
+                !this.hasScrollDepthConfig() ||
+                !this.pageScrollManagedActive ||
+                !this.isPageScrollManagedActive() ||
+                this.isNavigating ||
+                this.specialTransitionMode
+            ) {
+                return;
+            }
+
+            const now = performance.now();
+            const minInterval = Math.max(this.pageScrollManagedMinIntervalMs || 96, 72);
+            if (now - this.pageScrollManagedProgressLastAt < minInterval) {
+                return;
+            }
+
+            this.pageScrollManagedProgressLastAt = now;
+            if (this.pageScrollFrameId) {
+                return;
+            }
+
+            this.pageScrollFrameId = requestAnimationFrame(() => {
+                this.stepPageScrollDepth({
+                    managedScroll: true,
+                    allowWhenDisabled: true
+                });
+            });
         }
 
         isHomeGuideVirtualTravelActive() {
@@ -2141,7 +2201,11 @@
         }
 
         isHomeTravelingFastPathActive() {
-            return this.resolveHomeScrollRenderMode() === 'traveling';
+            return this.isHomeScrollFastPathActive();
+        }
+
+        isHomeScrollFastPathActive(mode = this.resolveHomeScrollRenderMode()) {
+            return this.pageId === 'home' && mode !== 'normal';
         }
 
         resetHomeGlideRenderCaches(options = {}) {
@@ -2150,9 +2214,81 @@
             this.lastGlideTapeDepth = null;
             this.lastGlideOverlayRenderAt = 0;
             this.lastGlideOverlayDepth = null;
+            this.homeScrollFastRenderAt = 0;
+            this.homeScrollFastGaugeBucket = null;
+            this.homeScrollFastOverlayAt = 0;
+            this.homeScrollFastOverlayBucket = null;
+
+            if (!options.preservePendingFullRender) {
+                this.homeScrollPendingFullRenderDepth = null;
+            }
 
             if (!options.preserveText) {
                 this.lastRenderedDepthText = '';
+            }
+        }
+
+        flushHomeScrollFastRender() {
+            const pendingDepth = readNumber(this.homeScrollPendingFullRenderDepth);
+            const scrollDepth = this.hasScrollDepthConfig()
+                ? readNumber(this.computePageScrollDepth())
+                : null;
+            const depth = clamp(scrollDepth ?? pendingDepth ?? this.currentDepth, MIN_DEPTH, MAX_DEPTH);
+
+            this.homeScrollPendingFullRenderDepth = null;
+            this.currentDepth = depth;
+            this.resetHomeGlideRenderCaches();
+            this.lastRenderedDepthText = '';
+            this.renderDepth(depth, { forceFull: true });
+        }
+
+        renderHomeScrollFastDepth(safeDepth, gaugeDepthForRender, now = performance.now()) {
+            const gaugeDepthBucket = Math.round(gaugeDepthForRender);
+            const overlayBoostBucket = Math.round(clamp(this.overlayBoost, 0, 0.45) * 10) / 10;
+            const overlayBucket = `${gaugeDepthBucket}:${overlayBoostBucket.toFixed(1)}`;
+            const shouldRefreshGauge = this.homeScrollFastRenderAt <= 0
+                || now - this.homeScrollFastRenderAt >= HOME_SCROLL_FAST_GAUGE_INTERVAL_MS;
+            const shouldRefreshOverlay = this.homeScrollFastOverlayAt <= 0
+                || (
+                    overlayBucket !== this.homeScrollFastOverlayBucket
+                    && now - this.homeScrollFastOverlayAt >= HOME_SCROLL_FAST_OVERLAY_INTERVAL_MS
+                );
+
+            this.homeScrollPendingFullRenderDepth = safeDepth;
+
+            if (shouldRefreshGauge) {
+                const depthText = formatDepth(gaugeDepthBucket);
+                const markerDepthChanged = this.homeScrollFastGaugeBucket !== gaugeDepthBucket;
+
+                if (this.leftCurrent && this.lastRenderedDepthText !== depthText) {
+                    this.leftCurrent.textContent = depthText;
+                }
+
+                if (this.rightCurrent && this.lastRenderedDepthText !== depthText) {
+                    this.rightCurrent.textContent = depthText;
+                }
+
+                if (markerDepthChanged) {
+                    this.updateMarkersForContainer(this.leftMarkersContainer, gaugeDepthBucket);
+                    this.updateMarkersForContainer(this.rightMarkersContainer, gaugeDepthBucket);
+                    this.updateDetailGaugeTapePosition(this.leftMarkersContainer, gaugeDepthBucket);
+                    this.updateDetailGaugeTapePosition(this.rightMarkersContainer, gaugeDepthBucket);
+                }
+
+                this.lastRenderedDepthText = depthText;
+                this.homeTravelingGaugeDepth = gaugeDepthBucket;
+                this.homeScrollFastGaugeBucket = gaugeDepthBucket;
+                this.homeScrollFastRenderAt = now;
+                this.lastGlideTapeRenderAt = now;
+                this.lastGlideTapeDepth = gaugeDepthBucket;
+            }
+
+            if (shouldRefreshOverlay) {
+                this.setOverlayState(gaugeDepthBucket, overlayBoostBucket);
+                this.homeScrollFastOverlayBucket = overlayBucket;
+                this.homeScrollFastOverlayAt = now;
+                this.lastGlideOverlayRenderAt = now;
+                this.lastGlideOverlayDepth = gaugeDepthBucket;
             }
         }
 
@@ -2226,12 +2362,19 @@
             const homeTraveling = homeRenderMode === 'traveling';
             const homeGlide = homeRenderMode === 'glide';
             const forceFull = Boolean(options.forceFull);
+            const homeScrollFastRender = this.isHomeScrollFastPathActive(homeRenderMode) && !forceFull;
             const renderedGaugeDepth = this.getRenderedGaugeDepth(safeDepth);
-            const gaugeDepthForRender = homeTraveling
+            const gaugeDepthForRender = homeScrollFastRender || homeTraveling
                 ? Math.round(renderedGaugeDepth)
                 : renderedGaugeDepth;
-            const depthText = formatDepth(gaugeDepthForRender);
             const now = performance.now();
+
+            if (homeScrollFastRender) {
+                this.renderHomeScrollFastDepth(safeDepth, gaugeDepthForRender, now);
+                return;
+            }
+
+            const depthText = formatDepth(gaugeDepthForRender);
 
             if (this.leftCurrent && (forceFull || this.lastRenderedDepthText !== depthText)) {
                 this.leftCurrent.textContent = depthText;
@@ -2306,10 +2449,45 @@
                 return;
             }
 
-            markers.forEach((markerMeta) => {
-                markerMeta.node.classList.toggle('is-reached', markerMeta.depth >= currentDepth);
-                markerMeta.node.classList.toggle('is-current', markerMeta.depth === nearestDepth);
-            });
+            if (!(container._depthMarkerByDepth instanceof Map) || container._depthMarkerByDepth.size !== markers.length) {
+                container._depthMarkerByDepth = new Map();
+                markers.forEach((markerMeta) => {
+                    container._depthMarkerByDepth.set(markerMeta.depth, markerMeta.node);
+                });
+            }
+
+            const markerByDepth = container._depthMarkerByDepth;
+            const updateReachedMarker = (depth) => {
+                const node = markerByDepth.get(depth);
+                if (node) {
+                    node.classList.toggle('is-reached', depth >= reachedDepth);
+                }
+            };
+
+            if (!Number.isFinite(container._lastReachedDepth)) {
+                markers.forEach((markerMeta) => {
+                    markerMeta.node.classList.toggle('is-reached', markerMeta.depth >= reachedDepth);
+                });
+            } else if (container._lastReachedDepth !== reachedDepth) {
+                const fromDepth = Math.min(container._lastReachedDepth, reachedDepth);
+                const toDepth = Math.max(container._lastReachedDepth, reachedDepth);
+                for (let depth = fromDepth; depth <= toDepth; depth += 1) {
+                    updateReachedMarker(depth);
+                }
+            }
+
+            if (container._lastNearestDepth !== nearestDepth) {
+                const previousCurrent = markerByDepth.get(container._lastNearestDepth);
+                if (previousCurrent) {
+                    previousCurrent.classList.remove('is-current');
+                }
+
+                const nextCurrent = markerByDepth.get(nearestDepth);
+                if (nextCurrent) {
+                    nextCurrent.classList.add('is-current');
+                }
+            }
+
             container._lastReachedDepth = reachedDepth;
             container._lastNearestDepth = nearestDepth;
         }
@@ -3125,7 +3303,7 @@
             const minIntervalMs = isManaged
                 ? this.pageScrollManagedMinIntervalMs
                 : (isHomeScrollTraveling
-                    ? Math.max(this.pageScrollHomeMinIntervalMs, 96)
+                    ? Math.max(this.pageScrollHomeMinIntervalMs, 64)
                     : isHomeScrollGlide
                     ? 12
                     : this.pageScrollHomeMinIntervalMs);
@@ -3293,7 +3471,7 @@
 
             if (
                 !this.hasScrollDepthConfig() ||
-                !this.pageScrollDepthEnabled ||
+                (!this.pageScrollDepthEnabled && !options.allowWhenDisabled) ||
                 this.isNavigating ||
                 this.specialTransitionMode
             ) {
@@ -3330,6 +3508,15 @@
             // 这里不用 animateDepth 做固定时长动画，而是每帧按差值推进，形成更像水下阻尼的深度变化。
             const targetDepth = clamp(this.computePageScrollDepth(), MIN_DEPTH, MAX_DEPTH);
             this.pageScrollTargetDepth = targetDepth;
+
+            if (this.pageId === 'home' && this.isHomeScrollFastPathActive(homeScrollRenderMode) && !managedScroll) {
+                this.pageScrollShouldSnap = false;
+                this.currentDepth = targetDepth;
+                this.renderDepth(targetDepth);
+                this.persistCurrentDepth(targetDepth);
+                return;
+            }
+
             const delta = targetDepth - this.currentDepth;
             const deltaMagnitude = Math.abs(delta);
             const shouldSnapToTarget = !isHomeScrollGlide
@@ -3337,11 +3524,8 @@
                 && deltaMagnitude >= (managedScroll ? 0.55 : 0.85);
 
             if (shouldSnapToTarget) {
+                // 大跨度滚动仍走阻尼贴合，避免深度计突然跳层；后面的响应因子会临时加速追上目标。
                 this.pageScrollShouldSnap = false;
-                this.currentDepth = targetDepth;
-                this.renderDepth(targetDepth);
-                this.persistCurrentDepth(targetDepth, true);
-                return;
             }
 
             const settleThreshold = this.pageId === 'detail'
@@ -3377,8 +3561,11 @@
             const velocityBoost = isHomeScrollGlide
                 ? clamp(scrollVelocity * 0.018, 0, 0.14)
                 : clamp(scrollVelocity * (managedScroll ? 0.02 : 0.045), 0, managedScroll ? 0.08 : 0.12);
+            const snapPressureBoost = shouldSnapToTarget
+                ? (managedScroll ? 0.18 : 0.24)
+                : 0;
             const responseFactor = clamp(
-                baseResponseFactor + deltaBoost + velocityBoost,
+                baseResponseFactor + deltaBoost + velocityBoost + snapPressureBoost,
                 baseResponseFactor,
                 maxResponseFactor
             );
@@ -3537,12 +3724,35 @@
 
             for (let index = 0; index < count; index += 1) {
                 const bubble = document.createElement('span');
+                const layerRatio = count > 1 ? index / (count - 1) : 0;
+                const foregroundBias = Math.random() > 0.58;
+                const size = foregroundBias
+                    ? randomBetween(18, 42)
+                    : randomBetween(5, 22);
+                const duration = foregroundBias
+                    ? randomBetween(2.35, 3.05)
+                    : randomBetween(3.0, 4.2);
+                const delay = Math.max(0, randomBetween(-0.08, 1.18) + layerRatio * 0.18);
+                const drift = randomBetween(-54, 54) + Math.sin(index * 1.7) * 18;
+                const blur = foregroundBias ? randomBetween(0, 0.7) : randomBetween(0.5, 2.6);
+                const bottom = randomBetween(-22, -8);
+                const peakOpacity = foregroundBias ? randomBetween(0.62, 0.88) : randomBetween(0.28, 0.58);
+                const core = document.createElement('span');
+
                 bubble.className = 'page-transition-bubble';
-                bubble.style.setProperty('--bubble-size', `${randomBetween(10, 34).toFixed(1)}px`);
+                core.className = 'page-transition-bubble-core';
+                bubble.style.setProperty('--bubble-size', `${size.toFixed(1)}px`);
                 bubble.style.setProperty('--bubble-left', `${randomBetween(4, 96).toFixed(1)}%`);
-                bubble.style.setProperty('--bubble-duration', `${randomBetween(2.45, 3.25).toFixed(2)}s`);
-                bubble.style.setProperty('--bubble-delay', `${randomBetween(0, 1.25).toFixed(2)}s`);
-                bubble.style.setProperty('--bubble-drift', `${randomBetween(-36, 36).toFixed(1)}px`);
+                bubble.style.setProperty('--bubble-bottom', `${bottom.toFixed(1)}vh`);
+                bubble.style.setProperty('--bubble-duration', `${duration.toFixed(2)}s`);
+                bubble.style.setProperty('--bubble-delay', `${delay.toFixed(2)}s`);
+                bubble.style.setProperty('--bubble-drift', `${drift.toFixed(1)}px`);
+                bubble.style.setProperty('--bubble-blur', `${blur.toFixed(2)}px`);
+                bubble.style.setProperty('--bubble-peak-opacity', peakOpacity.toFixed(2));
+                bubble.style.setProperty('--bubble-start-scale', foregroundBias ? '0.42' : '0.28');
+                bubble.style.setProperty('--bubble-mid-scale', foregroundBias ? '0.8' : '0.58');
+                bubble.style.setProperty('--bubble-end-scale', foregroundBias ? '1.18' : '0.92');
+                bubble.appendChild(core);
                 fragment.appendChild(bubble);
             }
 
@@ -3566,6 +3776,11 @@
 
             if (this.bubbleContainer) {
                 this.bubbleContainer.innerHTML = '';
+            }
+
+            if (this.spotlightElement) {
+                this.spotlightElement.remove();
+                this.spotlightElement = null;
             }
         }
 
@@ -3635,6 +3850,43 @@
         }
 
         /**
+         * clearTransitionWatchdog() - 清理页面过渡兜底计时器
+         * @returns {void}
+         */
+        clearTransitionWatchdog() {
+            if (!this.transitionWatchdogTimerId) {
+                return;
+            }
+
+            window.clearTimeout(this.transitionWatchdogTimerId);
+            this.transitionWatchdogTimerId = 0;
+        }
+
+        /**
+         * armTransitionWatchdog(delayMs) - 防止过渡锁滚状态异常残留
+         * @param {number} delayMs - 兜底清理延迟
+         * @returns {void}
+         */
+        armTransitionWatchdog(delayMs = 5200) {
+            this.clearTransitionWatchdog();
+
+            const safeDelay = clamp(readNumber(delayMs) ?? 5200, 240, 7200);
+            this.transitionWatchdogTimerId = window.setTimeout(() => {
+                this.transitionWatchdogTimerId = 0;
+
+                if (!this.body.classList.contains('page-transition-active')) {
+                    return;
+                }
+
+                this.clearTransitionClasses();
+                this.clearSpecialTransitionState();
+                this.overlayBoost = 0;
+                this.isNavigating = false;
+                this.setOverlayState(this.currentDepth, 0);
+            }, safeDelay);
+        }
+
+        /**
          * applyTransitionMotionPreset(presetName, className, visualDirection) - 根据路由类型写入本次切页的运动参数
          * @param {string} presetName - 预设名
          * @param {string} className - 当前动画 class
@@ -3682,6 +3934,7 @@
             );
             this.clearTransitionContext();
             this.clearTransitionMotionPreset();
+            this.clearTransitionWatchdog();
 
             if (this.cleanupTimerId) {
                 window.clearTimeout(this.cleanupTimerId);
@@ -3715,6 +3968,7 @@
             this.clearTransitionClasses();
             this.forceTransitionReflow();
             this.body.classList.add('page-transition-active');
+            this.armTransitionWatchdog();
 
             const visualDirection = options.visualDirection
                 || options.context?.visualDirection
@@ -3883,6 +4137,7 @@
             this.cancelActiveAnimations();
             this.clearTransitionClasses();
             this.clearSpecialTransitionState();
+            this.ensureSpecialOverlayLayers();
 
             this.specialTransitionMode = SPECIAL_TRANSITION_LOGIN_HOME;
             this.setTransitionContext({
@@ -3893,6 +4148,8 @@
                 visualDirection: 'forward'
             });
             this.body.classList.add('page-transition-active', 'page-login-home-special-active');
+            this.armTransitionWatchdog(LOGIN_HOME_SPECIAL.navigateMs + 2200);
+            this.applyTransitionMotionPreset('loginSurface', 'page-exit-up', 'forward');
             this.buildSpecialBubbles();
             this.setSpecialBlueOpacity(0);
             this.overlayBoost = 0;
@@ -3925,6 +4182,7 @@
                 overlayBoost: TRANSITION.overlayBoost,
                 specialTransition: SPECIAL_TRANSITION_LOGIN_HOME,
                 specialBlueOpacity: LOGIN_HOME_SPECIAL.blueOpacity,
+                motionPreset: 'loginSurface',
                 animatedOnSource: true,
                 at: Date.now()
             };
@@ -3955,6 +4213,7 @@
             this.cancelActiveAnimations();
             this.clearTransitionClasses();
             this.clearSpecialTransitionState();
+            this.ensureSpecialOverlayLayers();
 
             this.specialTransitionMode = SPECIAL_TRANSITION_LOGIN_HOME;
             this.overlayBoost = clamp(incomingState.overlayBoost, 0, 0.45);
@@ -3962,6 +4221,7 @@
             this.renderDepth(this.currentDepth);
             this.setSpecialBlueOpacity(specialBlueOpacity);
             this.buildSpecialBubbles();
+            this.applyTransitionMotionPreset(incomingState.motionPreset || 'loginSurface', 'page-enter-from-bottom', incomingState.visualDirection);
             this.setTransitionContext({
                 phase: 'enter',
                 fromPage: incomingState.fromPage,
@@ -3975,6 +4235,7 @@
                 'page-login-home-special-active',
                 'page-enter-from-bottom'
             );
+            this.armTransitionWatchdog(LOGIN_HOME_SPECIAL.entryMs + 2200);
 
             this.queueSpecialTimer(() => {
                 this.body.classList.add('page-login-home-bubbles');
@@ -4165,6 +4426,14 @@
         setupPageShowHandler() {
             window.addEventListener('pageshow', (event) => {
                 const isBackForwardRestore = getNavigationEntryType() === 'back_forward';
+                const hasUnmanagedTransitionLock = this.body.classList.contains('page-transition-active')
+                    && !this.cleanupTimerId
+                    && !this.specialTransitionMode
+                    && !this.isNavigating;
+                if (hasUnmanagedTransitionLock) {
+                    this.armTransitionWatchdog(900);
+                }
+
                 if (!event.persisted && !isBackForwardRestore) {
                     return;
                 }

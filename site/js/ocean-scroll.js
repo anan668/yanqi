@@ -307,6 +307,20 @@
                 const nextY = startY + distance * eased;
 
                 window.scrollTo(0, nextY);
+                if (animation.managedDepthSync && window.DepthManager && typeof window.DepthManager.syncManagedScrollProgress === 'function') {
+                    window.DepthManager.syncManagedScrollProgress(progress);
+                }
+
+                if (typeof settings.onProgress === 'function') {
+                    settings.onProgress({
+                        progress,
+                        eased,
+                        currentY: nextY,
+                        startY,
+                        destination,
+                        distance
+                    });
+                }
 
                 if (progress < 1) {
                     animation.frameId = requestAnimationFrame(step);
@@ -314,6 +328,9 @@
                 }
 
                 window.scrollTo(0, destination);
+                if (animation.managedDepthSync && window.DepthManager && typeof window.DepthManager.syncManagedScrollProgress === 'function') {
+                    window.DepthManager.syncManagedScrollProgress(1);
+                }
                 teardownAnimation(animation, true);
             }
 

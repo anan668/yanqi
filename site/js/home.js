@@ -1590,6 +1590,177 @@ const divingSpotsData = withHomeImageDescriptors(convertSpotCardPrices(injectCat
     }
 ])));
 
+const todaySeaBriefData = Object.freeze({
+    1: {
+        region: '马来西亚 · 沙巴外海',
+        coordinates: '北纬 4.20°，东经 118.60°',
+        temperature: '28°C',
+        current: '中强流',
+        tide: '清晨缓推',
+        visibility: '15-30米',
+        season: '3月-10月',
+        progress: '01 / 14',
+        progressValue: 7,
+        note: '陡降海墙与鱼群风暴，适合把呼吸交给更有张力的蓝。'
+    },
+    2: {
+        region: '帕劳 · 洛克群岛外缘',
+        coordinates: '北纬 7.30°，东经 134.50°',
+        temperature: '28°C',
+        current: '中强流',
+        tide: '蓝洞光窗',
+        visibility: '20-35米',
+        season: '11月-次年5月',
+        progress: '02 / 14',
+        progressValue: 14,
+        note: '蓝洞、断层和光柱，会把海面以下的空间慢慢切开。'
+    },
+    3: {
+        region: '伯利兹 · 灯塔礁环礁',
+        coordinates: '北纬 17.30°，西经 87.50°',
+        temperature: '27°C',
+        current: '低流',
+        tide: '深蓝静窗',
+        visibility: '25-40米',
+        season: '4月-6月',
+        progress: '03 / 14',
+        progressValue: 21,
+        note: '近乎垂直的蓝色井口，适合把敬畏留给准备好的下潜。'
+    },
+    4: {
+        region: '印度尼西亚 · 东努沙登加拉',
+        coordinates: '南纬 10.20°，东经 123.60°',
+        temperature: '27°C',
+        current: '缓流',
+        tide: '午后柔光',
+        visibility: '12-25米',
+        season: '4月-11月',
+        progress: '04 / 14',
+        progressValue: 29,
+        note: '珊瑚坡与岸线节奏更从容，适合慢慢停在一片柔蓝里。'
+    },
+    5: {
+        region: '密克罗尼西亚 · 波纳佩环礁',
+        coordinates: '北纬 6.90°，东经 158.20°',
+        temperature: '28°C',
+        current: '轻流',
+        tide: '微距静水',
+        visibility: '8-18米',
+        season: '全年适宜',
+        progress: '05 / 14',
+        progressValue: 36,
+        note: '雾蓝水色与小型生态，把注意力从远景收回到细节。'
+    },
+    6: {
+        region: '印度尼西亚 · 北苏拉威西',
+        coordinates: '北纬 1.60°，东经 124.80°',
+        temperature: '28°C',
+        current: '中流',
+        tide: '海墙晨光',
+        visibility: '18-32米',
+        season: '3月-11月',
+        progress: '06 / 14',
+        progressValue: 43,
+        note: '海墙、礁坡与海龟，会让一条长线潜水变得清楚。'
+    },
+    7: {
+        region: '印度尼西亚 · 小巽他群岛',
+        coordinates: '南纬 8.60°，东经 119.50°',
+        temperature: '27°C',
+        current: '强流',
+        tide: '流区窗口',
+        visibility: '15-28米',
+        season: '4月-11月',
+        progress: '07 / 14',
+        progressValue: 50,
+        note: '冷热海流交汇处，大鱼与地形会把节奏推得更立体。'
+    },
+    8: {
+        region: '法属波利尼西亚 · 环礁通道',
+        coordinates: '南纬 16.10°，西经 145.00°',
+        temperature: '27°C',
+        current: '通道流',
+        tide: '晨间进水',
+        visibility: '25-40米',
+        season: '5月-10月',
+        progress: '08 / 14',
+        progressValue: 57,
+        note: '玻璃蓝通道与大鱼活动，让整片水域显得开阔。'
+    },
+    9: {
+        region: '马来西亚 · 仙本那外海',
+        coordinates: '北纬 4.25°，东经 118.63°',
+        temperature: '29°C',
+        current: '轻流',
+        tide: '码头慢潮',
+        visibility: '10-22米',
+        season: '3月-10月',
+        progress: '09 / 14',
+        progressValue: 64,
+        note: '水屋、木栈道与浅礁，把潜水和停驻感放在一起。'
+    },
+    10: {
+        region: '马尔代夫 · 马累与阿里环礁',
+        coordinates: '北纬 4.30°，东经 73.50°',
+        temperature: '29°C',
+        current: '中流',
+        tide: '船宿晨窗',
+        visibility: '18-30米',
+        season: '11月-次年4月',
+        progress: '10 / 14',
+        progressValue: 71,
+        note: '多片环礁被同一段船宿节奏串起，适合连续读海。'
+    },
+    11: {
+        region: '菲律宾 · 巴拉望科隆',
+        coordinates: '北纬 11.99°，东经 120.20°',
+        temperature: '29°C',
+        current: '缓流',
+        tide: '沉船静窗',
+        visibility: '10-25米',
+        season: '11月-次年5月',
+        progress: '11 / 14',
+        progressValue: 79,
+        note: '黑石海湾、浅礁和沉船线索，适合慢慢排进同一片蓝。'
+    },
+    12: {
+        region: '菲律宾 · 薄荷岛邦劳外侧',
+        coordinates: '北纬 9.53°，东经 123.68°',
+        temperature: '29°C',
+        current: '轻流',
+        tide: '白沙浅潮',
+        visibility: '12-22米',
+        season: '11月-次年6月',
+        progress: '12 / 14',
+        progressValue: 86,
+        note: '白沙岸线与短船程，会让一次轻一点的假期更容易成立。'
+    },
+    13: {
+        region: '泰国 · 普吉外海',
+        coordinates: '北纬 7.60°，东经 98.37°',
+        temperature: '29°C',
+        current: '缓流',
+        tide: '清晨入海',
+        visibility: '12-25米',
+        season: '11月-次年4月',
+        progress: '13 / 14',
+        progressValue: 93,
+        note: '玻璃蓝与缓坡珊瑚，适合把第一眼海色慢慢放平。'
+    },
+    14: {
+        region: '马来西亚 · 登嘉楼外海',
+        coordinates: '北纬 5.78°，东经 103.03°',
+        temperature: '29°C',
+        current: '轻流',
+        tide: '礁坡晨光',
+        visibility: '12-25米',
+        season: '3月-10月',
+        progress: '14 / 14',
+        progressValue: 100,
+        note: '这片海适合慢慢放轻节奏，等第一眼蓝色靠近。'
+    }
+});
+
 // 精选目的地数据：用于海域档案陈列廊的主舞台卡和右侧样本卡切换。
 const destinationsData = withHomeImageDescriptors(injectCatalogIdentityForHomeList([
     {
@@ -2098,6 +2269,7 @@ const HOME_INTERACTION_STATE = {
     lockUntil: 0,
     unlockTimer: 0,
     scrollTraveling: false,
+    scrollActive: false,
     scrollMode: 'normal',
     programmaticTraveling: false,
     manualTraveling: false,
@@ -2108,7 +2280,9 @@ const HOME_INTERACTION_STATE = {
     manualGlideAccumulatedDelta: 0,
     scrollSettlingUntil: 0,
     scrollSettlingTimer: 0,
+    scrollRestoringTimer: 0,
     lastDatasetLocked: false,
+    lastDatasetScrollActive: false,
     lastDatasetScrollSettling: false,
     lastDatasetScrollMode: 'normal',
     manualLastScrollY: 0,
@@ -2124,6 +2298,7 @@ const HOME_MANUAL_SCROLL_GLIDE_IDLE_RESET_MS = 180;
 const HOME_MANUAL_SCROLL_SETTLING_MS = 460;
 const HOME_MANUAL_SCROLL_SETTLING_DELTA_MIN = 140;
 const HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS = 560;
+const HOME_SCROLL_RESTORE_MS = 260;
 
 function isHomeScrollSettlingActive() {
     return performance.now() < HOME_INTERACTION_STATE.scrollSettlingUntil;
@@ -2136,6 +2311,87 @@ function isHomeScrollGlideActive() {
 }
 
 window.isHomeScrollGlideActive = isHomeScrollGlideActive;
+
+function isHomeVerticalScrollActive() {
+    return Boolean(
+        HOME_INTERACTION_STATE.programmaticTraveling
+        || HOME_INTERACTION_STATE.manualTraveling
+        || isHomeScrollSettlingActive()
+        || isHomeScrollGlideActive()
+    );
+}
+
+window.isHomeVerticalScrollActive = isHomeVerticalScrollActive;
+
+function isHomeScrollActiveMode(mode) {
+    return mode !== 'normal';
+}
+
+let homePageWheelFallbackRafId = 0;
+let homePageWheelFallbackDelta = 0;
+let homePageWheelFallbackStartY = 0;
+let homePageWheelFallbackDirection = 0;
+
+function scheduleHomePageWheelFallback(deltaY, startScrollY) {
+    const safeDelta = Number(deltaY) || 0;
+    const direction = Math.sign(safeDelta);
+    if (!Number.isFinite(safeDelta) || Math.abs(safeDelta) < 0.5 || direction === 0) {
+        return;
+    }
+
+    if (homePageWheelFallbackDirection !== direction) {
+        homePageWheelFallbackDelta = 0;
+        homePageWheelFallbackStartY = Number(startScrollY) || 0;
+        homePageWheelFallbackDirection = direction;
+    } else if (!homePageWheelFallbackRafId) {
+        homePageWheelFallbackStartY = Number(startScrollY) || 0;
+    }
+
+    homePageWheelFallbackDelta += safeDelta;
+
+    if (homePageWheelFallbackRafId) {
+        return;
+    }
+
+    homePageWheelFallbackRafId = requestAnimationFrame(() => {
+        homePageWheelFallbackRafId = 0;
+
+        const pendingDelta = homePageWheelFallbackDelta;
+        const pendingDirection = homePageWheelFallbackDirection;
+        const fallbackStartY = homePageWheelFallbackStartY;
+        homePageWheelFallbackDelta = 0;
+        homePageWheelFallbackDirection = 0;
+
+        if (!Number.isFinite(pendingDelta) || Math.abs(pendingDelta) < 0.5) {
+            return;
+        }
+
+        const currentScrollY = window.scrollY || window.pageYOffset || 0;
+        const scrolledWithWheel = pendingDirection > 0
+            ? currentScrollY > fallbackStartY + 1
+            : currentScrollY < fallbackStartY - 1;
+        if (scrolledWithWheel) {
+            return;
+        }
+
+        const scrollingElement = document.scrollingElement || document.documentElement;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const maxScrollY = Math.max((scrollingElement?.scrollHeight || 0) - viewportHeight, 0);
+        if ((pendingDirection < 0 && currentScrollY <= 0) || (pendingDirection > 0 && currentScrollY >= maxScrollY - 1)) {
+            return;
+        }
+
+        if (typeof markHomeScrollSettling === 'function') {
+            markHomeScrollSettling(HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS);
+        }
+
+        window.scrollBy({
+            top: pendingDelta,
+            left: 0,
+            behavior: 'auto'
+        });
+    });
+}
 
 function resolveHomeScrollMode() {
     if (HOME_INTERACTION_STATE.programmaticTraveling || HOME_INTERACTION_STATE.manualTraveling) {
@@ -2178,6 +2434,31 @@ function stopHomeManualGlide() {
     }
 
     setHomeManualGlideActive(false);
+}
+
+function clearHomeScrollRestoringState() {
+    if (HOME_INTERACTION_STATE.scrollRestoringTimer) {
+        window.clearTimeout(HOME_INTERACTION_STATE.scrollRestoringTimer);
+        HOME_INTERACTION_STATE.scrollRestoringTimer = 0;
+    }
+
+    document.body?.classList.remove('home-scroll-restoring');
+}
+
+function scheduleHomeScrollRestoringState() {
+    if (!document.body) {
+        return;
+    }
+
+    if (HOME_INTERACTION_STATE.scrollRestoringTimer) {
+        window.clearTimeout(HOME_INTERACTION_STATE.scrollRestoringTimer);
+    }
+
+    document.body.classList.add('home-scroll-restoring');
+    HOME_INTERACTION_STATE.scrollRestoringTimer = window.setTimeout(() => {
+        HOME_INTERACTION_STATE.scrollRestoringTimer = 0;
+        document.body?.classList.remove('home-scroll-restoring');
+    }, HOME_SCROLL_RESTORE_MS);
 }
 
 function scheduleHomeManualGlideStop() {
@@ -2238,32 +2519,52 @@ function syncHomeInteractionDataset() {
 
     const nextScrollTraveling = HOME_INTERACTION_STATE.programmaticTraveling || HOME_INTERACTION_STATE.manualTraveling;
     const nextScrollMode = resolveHomeScrollMode();
+    const nextScrollActive = isHomeScrollActiveMode(nextScrollMode);
     const previousLocked = HOME_INTERACTION_STATE.lastDatasetLocked;
     const previousScrollTraveling = HOME_INTERACTION_STATE.scrollTraveling;
+    const previousScrollActive = HOME_INTERACTION_STATE.lastDatasetScrollActive;
     const previousScrollSettling = HOME_INTERACTION_STATE.lastDatasetScrollSettling;
-    const previousScrollMode = HOME_INTERACTION_STATE.lastDatasetScrollMode;
     const isLocked = HOME_INTERACTION_STATE.guideOpen || performance.now() < HOME_INTERACTION_STATE.lockUntil;
     const nextScrollSettling = isHomeScrollSettlingActive();
     HOME_INTERACTION_STATE.scrollTraveling = nextScrollTraveling;
+    HOME_INTERACTION_STATE.scrollActive = nextScrollActive;
     HOME_INTERACTION_STATE.scrollMode = nextScrollMode;
     HOME_INTERACTION_STATE.lastDatasetLocked = isLocked;
+    HOME_INTERACTION_STATE.lastDatasetScrollActive = nextScrollActive;
     HOME_INTERACTION_STATE.lastDatasetScrollSettling = nextScrollSettling;
     HOME_INTERACTION_STATE.lastDatasetScrollMode = nextScrollMode;
 
-    document.body.dataset.homeInteraction = isLocked ? 'locked' : 'idle';
-    document.body.dataset.homeScrollMode = nextScrollMode;
-    document.body.classList.toggle('home-scroll-traveling', nextScrollTraveling);
+    const nextInteraction = isLocked ? 'locked' : 'idle';
+    if (document.body.dataset.homeInteraction !== nextInteraction) {
+        document.body.dataset.homeInteraction = nextInteraction;
+    }
+    const nextDatasetScrollMode = nextScrollActive ? 'active' : 'normal';
+    if (document.body.dataset.homeScrollMode !== nextDatasetScrollMode) {
+        document.body.dataset.homeScrollMode = nextDatasetScrollMode;
+    }
+    if (document.body.classList.contains('home-scroll-traveling') !== nextScrollTraveling) {
+        document.body.classList.toggle('home-scroll-traveling', nextScrollTraveling);
+    }
+    if (document.body.classList.contains('home-scroll-active') !== nextScrollActive) {
+        document.body.classList.toggle('home-scroll-active', nextScrollActive);
+    }
+    if (nextScrollActive) {
+        clearHomeScrollRestoringState();
+    } else if (previousScrollActive) {
+        scheduleHomeScrollRestoringState();
+    }
 
     if (
         previousLocked !== isLocked
-        || previousScrollTraveling !== nextScrollTraveling
-        || previousScrollSettling !== nextScrollSettling
-        || previousScrollMode !== nextScrollMode
+        || previousScrollActive !== nextScrollActive
+        || (previousScrollTraveling !== nextScrollTraveling && !previousScrollActive && !nextScrollActive)
+        || (previousScrollSettling !== nextScrollSettling && !previousScrollActive && !nextScrollActive)
     ) {
         window.dispatchEvent(new CustomEvent('homeinteractionchange', {
             detail: {
                 isLocked,
                 scrollTraveling: nextScrollTraveling,
+                scrollActive: nextScrollActive,
                 scrollSettling: nextScrollSettling,
                 scrollMode: nextScrollMode
             }
@@ -2657,6 +2958,12 @@ class BambooScroll {
 
         this.hoveredCard = null;
         this.activeCard = null;
+        this.centeredCard = null;
+        this.prevCard = null;
+        this.nextCard = null;
+        this.cardPositionRange = null;
+        this.centeredSpotId = 0;
+        this.todaySeaBriefElements = this.resolveTodaySeaBriefElements();
         this.pointerInsideWrapper = false;
         this.pointerClientX = 0;
         this.pointerClientY = 0;
@@ -2676,14 +2983,16 @@ class BambooScroll {
         this.autoStep = null;
         this.autoTimer = null;
         this.autoStepCount = 0;
-        this.autoIntervalMs = this.performanceProfile.lite ? 4200 : 3000;
-        this.autoIntervalJitterMinMs = this.performanceProfile.lite ? -320 : -420;
-        this.autoIntervalJitterMaxMs = this.performanceProfile.lite ? 320 : 420;
-        this.autoInitialDelayMs = this.performanceProfile.lite ? 2600 : 1200;
-        this.autoInitialDelayJitterMinMs = this.performanceProfile.lite ? -220 : -220;
-        this.autoInitialDelayJitterMaxMs = this.performanceProfile.lite ? 220 : 220;
+        this.autoIntervalMs = this.performanceProfile.lite ? 5600 : 4800;
+        this.autoIntervalJitterMinMs = this.performanceProfile.lite ? -360 : -420;
+        this.autoIntervalJitterMaxMs = this.performanceProfile.lite ? 360 : 420;
+        this.autoInitialDelayMs = this.performanceProfile.lite ? 4400 : 3600;
+        this.autoInitialDelayJitterMinMs = this.performanceProfile.lite ? -260 : -280;
+        this.autoInitialDelayJitterMaxMs = this.performanceProfile.lite ? 260 : 280;
         this.autoStepDurationMin = this.performanceProfile.lite ? 1.08 : 1.02;
         this.autoStepDurationMax = this.performanceProfile.lite ? 1.24 : 1.18;
+        this.autoResumeAfterManualDelayMs = this.performanceProfile.lite ? 4600 : 4200;
+        this.autoResumeAfterManualUntil = 0;
         this.motionLiteVelocityThreshold = 900;
 
         this.shakeEnergy = 0;
@@ -2813,6 +3122,12 @@ class BambooScroll {
                             onerror="${buildImageErrorHandler(spot.name, heroImageSlot)}"
                         >
                     </div>
+                    <span class="bamboo-card-badge">今日推荐</span>
+                    <span class="bamboo-card-entry" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M8 12h8.4M13 7.2l4.8 4.8-4.8 4.8" />
+                        </svg>
+                    </span>
                     <div class="bamboo-card-content">
                         <h3 class="bamboo-card-title">${spot.name}</h3>
                         <p class="bamboo-card-tagline">${spot.tagline}</p>
@@ -2831,6 +3146,118 @@ class BambooScroll {
         this.content.appendChild(fragment);
         this.cards = Array.from(this.content.querySelectorAll('.bamboo-card'));
         this.cardPhysics = this.cards.map(() => this.createCardPhysicsState());
+    }
+
+    /**
+     * resolveTodaySeaBriefElements() - 收集首屏下方当前海域承接层节点
+     * @returns {Object} - 当前海域承接层 DOM 引用集合
+     */
+    resolveTodaySeaBriefElements() {
+        const root = document.querySelector('[data-today-sea-brief]');
+        return {
+            root,
+            name: document.getElementById('todaySeaBriefName'),
+            region: document.getElementById('todaySeaBriefRegion'),
+            coordinates: document.getElementById('todaySeaBriefCoords'),
+            temperature: document.getElementById('todaySeaBriefTemp'),
+            current: document.getElementById('todaySeaBriefCurrent'),
+            tide: document.getElementById('todaySeaBriefTide'),
+            visibility: document.getElementById('todaySeaBriefVisibility'),
+            progress: document.getElementById('todaySeaBriefProgress'),
+            season: document.getElementById('todaySeaBriefSeason'),
+            note: document.getElementById('todaySeaBriefNote'),
+            detailButton: document.querySelector('[data-today-sea-detail]')
+        };
+    }
+
+    /**
+     * resolveTodaySeaBriefData(spot) - 读取当前海域承接层展示数据
+     * @param {Object|null} spot - 当前居中海域数据
+     * @returns {Object} - 当前海域承接层数据
+     */
+    resolveTodaySeaBriefData(spot) {
+        const spotId = Number(spot?.id || 0);
+        const catalogSpot = getCatalogSpotById(spotId);
+        const fallbackSeason = catalogSpot?.season || spot?.season || '全年可看';
+
+        return todaySeaBriefData[spotId] || {
+            region: catalogSpot?.englishName || spot?.name || '盐憩海图',
+            coordinates: '海图待展开',
+            temperature: '28°C',
+            current: '缓流',
+            tide: '清晨入海',
+            visibility: '12-25米',
+            season: fallbackSeason,
+            progress: `${String(Math.max(spotId, 1)).padStart(2, '0')} / ${String(this.totalCards || 14).padStart(2, '0')}`,
+            progressValue: this.totalCards ? Math.round((Math.max(spotId, 1) / this.totalCards) * 100) : 12,
+            note: spot?.tagline || '先让这一片蓝靠近，再决定是否继续下潜。'
+        };
+    }
+
+    /**
+     * updateTodaySeaBrief(spot) - 根据当前主卡刷新首屏下方信息承接层
+     * @param {Object|null} spot - 当前居中的海域数据
+     * @returns {void}
+     */
+    updateTodaySeaBrief(spot) {
+        const elements = this.todaySeaBriefElements;
+        if (!elements?.root || !spot) {
+            return;
+        }
+
+        const data = this.resolveTodaySeaBriefData(spot);
+        elements.root.dataset.activeSpotId = String(spot.id);
+        elements.root.style.setProperty('--brief-progress', `${this.clamp(Number(data.progressValue) || 0, 0, 100)}%`);
+
+        if (elements.name) {
+            elements.name.textContent = spot.name || '今日海域';
+        }
+        if (elements.region) {
+            elements.region.textContent = data.region;
+        }
+        if (elements.coordinates) {
+            elements.coordinates.textContent = data.coordinates;
+        }
+        if (elements.temperature) {
+            elements.temperature.textContent = data.temperature;
+        }
+        if (elements.current) {
+            elements.current.textContent = data.current;
+        }
+        if (elements.tide) {
+            elements.tide.textContent = data.tide;
+        }
+        if (elements.visibility) {
+            elements.visibility.textContent = data.visibility;
+        }
+        if (elements.progress) {
+            elements.progress.textContent = data.progress;
+        }
+        if (elements.season) {
+            elements.season.textContent = data.season;
+        }
+        if (elements.note) {
+            elements.note.textContent = data.note;
+        }
+        if (elements.detailButton) {
+            elements.detailButton.dataset.navigationUrl = `detail.html?id=${spot.id}`;
+            elements.detailButton.setAttribute('aria-label', `查看${spot.name}的海域档案`);
+        }
+    }
+
+    /**
+     * openCenteredSpotDetail() - 从承接层进入当前居中海域详情页
+     * @returns {void}
+     */
+    openCenteredSpotDetail() {
+        const spotId = Number(this.centeredSpotId || getHomeHeroInitialSpotId());
+        if (!Number.isFinite(spotId) || spotId <= 0) {
+            return;
+        }
+
+        runHeroDeparture(() => {
+            navigateWithDepth(`detail.html?id=${spotId}`);
+        }, { shouldReset: false, callbackDelay: HERO_ROUTE_READY_DELAY });
     }
 
     /**
@@ -2930,9 +3357,17 @@ class BambooScroll {
             });
         }
 
+        if (this.todaySeaBriefElements?.detailButton) {
+            this.todaySeaBriefElements.detailButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                this.openCenteredSpotDetail();
+            });
+        }
+
         this.wrapper.style.touchAction = 'pan-y';
 
         this.wrapper.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
+        this.wrapper.addEventListener('wheel', (event) => this.handleWrapperWheel(event), { passive: true });
         this.wrapper.addEventListener('pointermove', (event) => this.handlePointerMove(event));
         this.wrapper.addEventListener('pointerup', (event) => this.handlePointerUp(event));
         this.wrapper.addEventListener('pointercancel', (event) => this.handlePointerUp(event));
@@ -2992,6 +3427,9 @@ class BambooScroll {
      */
     handlePointerDown(event) {
         if (event.pointerType === 'mouse' && event.button !== 0) {
+            if (event.button === 1) {
+                this.prepareForPageVerticalScroll(HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS);
+            }
             return;
         }
 
@@ -3019,10 +3457,63 @@ class BambooScroll {
         this.trackPositionDirty = false;
 
         this.wrapper.classList.add('is-dragging');
+        this.syncWrapperMotionState();
         this.ensureFrameLoop();
 
         if (this.wrapper.setPointerCapture) {
             this.wrapper.setPointerCapture(event.pointerId);
+        }
+    }
+
+    /**
+     * handleWrapperWheel(event) - 鼠标在今日海域轨道上纵向滚动时，把主线程让给页面下潜。
+     * @param {WheelEvent} event
+     * @returns {void}
+     */
+    handleWrapperWheel(event) {
+        if (
+            event.defaultPrevented
+            || event.ctrlKey
+            || Math.abs(Number(event.deltaX) || 0) > Math.abs(Number(event.deltaY) || 0)
+        ) {
+            return;
+        }
+
+        const deltaY = normalizeWheelDeltaY(event);
+        const startScrollY = window.scrollY || window.pageYOffset || 0;
+        this.prepareForPageVerticalScroll(HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS);
+        scheduleHomePageWheelFallback(deltaY, startScrollY);
+    }
+
+    /**
+     * prepareForPageVerticalScroll(durationMs) - 暂停轮播物理和悬停效果，避免与页面滚动争帧。
+     * @param {number} durationMs
+     * @returns {void}
+     */
+    prepareForPageVerticalScroll(durationMs = HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS) {
+        if (this.isDragging) {
+            return;
+        }
+
+        if (this.autoStep) {
+            this.finishStepScrollImmediately();
+        }
+
+        this.cancelAutoStep();
+        this.inertia.active = false;
+        this.snap.active = false;
+        this.snap.velocity = 0;
+        this.snap.energy = 0;
+        this.trackVelocity = 0;
+        this.shakeEnergy = 0;
+        this.trackPositionDirty = false;
+        this.pointerInsideWrapper = false;
+        this.setHoveredCard(null);
+        this.cancelPointerMoveFrame();
+        this.stopFrameLoop();
+
+        if (typeof markHomeScrollSettling === 'function') {
+            markHomeScrollSettling(durationMs);
         }
     }
 
@@ -3133,10 +3624,13 @@ class BambooScroll {
         this.isDragging = false;
         this.pointerId = null;
         this.wrapper.classList.remove('is-dragging');
+        this.syncWrapperMotionState();
 
         if (this.dragMoved) {
             this.suppressClickUntil = releaseTime + 180;
             this.pressedCard = null;
+            this.dampenHeroReleasePhysics();
+            this.deferAutoStepAfterManual();
         }
 
         if (this.wrapper.releasePointerCapture && this.wrapper.hasPointerCapture(event.pointerId)) {
@@ -3208,10 +3702,6 @@ class BambooScroll {
             return;
         }
 
-        if (card.getAttribute('aria-hidden') === 'true' || card.tabIndex < 0) {
-            return;
-        }
-
         if (this.autoStep) {
             this.finishStepScrollImmediately();
         }
@@ -3263,14 +3753,26 @@ class BambooScroll {
             this.inertia.boostTime = 0;
             this.inertia.boostAccel = 0;
             if (this.isHeroPhysics) {
-                this.startSnapToNearest(releaseVelocity * 0.08);
+                this.startSnapToNearest(releaseVelocity * 0.04);
             }
+            this.syncWrapperMotionState();
             return;
         }
 
-        const clamped = this.clamp(releaseVelocity, -3200, 3200);
+        const velocityLimit = this.isHeroPhysics ? 1500 : 3200;
+        const lowVelocityThreshold = this.isHeroPhysics ? 90 : 40;
+        const clamped = this.clamp(releaseVelocity, -velocityLimit, velocityLimit);
 
-        if (Math.abs(clamped) < 40) {
+        if (this.isHeroPhysics) {
+            this.trackVelocity = 0;
+            this.inertia.active = false;
+            this.inertia.boostTime = 0;
+            this.inertia.boostAccel = 0;
+            this.startSnapToNearest(clamped);
+            return;
+        }
+
+        if (Math.abs(clamped) < lowVelocityThreshold) {
             this.trackVelocity = 0;
             this.inertia.active = false;
             this.inertia.boostTime = 0;
@@ -3278,6 +3780,7 @@ class BambooScroll {
             if (this.isHeroPhysics) {
                 this.startSnapToNearest(clamped);
             }
+            this.syncWrapperMotionState();
             return;
         }
 
@@ -3288,8 +3791,40 @@ class BambooScroll {
         this.inertia.boostTime = 0;
         this.inertia.boostAccel = 0;
         this.trackVelocity = clamped;
-        this.injectShake(Math.abs(this.trackVelocity) * 1.1);
+        if (!this.isHeroPhysics) {
+            this.injectShake(Math.abs(this.trackVelocity) * 1.1);
+        }
+        this.syncWrapperMotionState();
         this.ensureFrameLoop();
+    }
+
+    /**
+     * resolveCenteredTrackTarget(projectedPosition, mode) - 将任意轨道位置换算成最近的卡片居中位置
+     * @param {number} projectedPosition - 需要吸附的轨道位置
+     * @param {'nearest'|'floor'|'ceil'} mode - 卡位取整方式
+     * @returns {number} - 对齐观察窗中心的轨道位置
+     */
+    resolveCenteredTrackTarget(projectedPosition, mode = 'nearest') {
+        if (
+            !Number.isFinite(projectedPosition) ||
+            this.cardCenterOffsets.length === 0 ||
+            !Number.isFinite(this.wrapperCenter)
+        ) {
+            return projectedPosition;
+        }
+
+        const stride = Math.max(this.cardStride, 1);
+        const firstCenter = this.cardCenterOffsets[0];
+        if (!Number.isFinite(firstCenter)) {
+            return projectedPosition;
+        }
+
+        const rawIndex = (projectedPosition + this.wrapperCenter - firstCenter) / stride;
+        const targetIndex = mode === 'ceil'
+            ? Math.ceil(rawIndex)
+            : (mode === 'floor' ? Math.floor(rawIndex) : Math.round(rawIndex));
+
+        return firstCenter + targetIndex * stride - this.wrapperCenter;
     }
 
     /**
@@ -3304,15 +3839,16 @@ class BambooScroll {
             return;
         }
 
-        const projectedPosition = this.trackPosition + this.clamp(seedVelocity, -900, 900) * 0.08;
-        const target = Math.round(projectedPosition / this.cardStride) * this.cardStride;
+        const projectedPosition = this.trackPosition + this.clamp(seedVelocity, -420, 420) * 0.035;
+        const target = this.resolveCenteredTrackTarget(projectedPosition);
 
         this.inertia.active = false;
         this.snap.active = true;
         this.snap.target = target;
-        this.snap.energy = this.clamp(Math.abs(seedVelocity) / 780, 0, 1);
-        this.snap.velocity = this.clamp(seedVelocity, -780, 780) * (0.2 + this.snap.energy * 0.12);
+        this.snap.energy = this.clamp(Math.abs(seedVelocity) / 1200, 0, 0.45);
+        this.snap.velocity = this.clamp(seedVelocity, -360, 360) * (0.1 + this.snap.energy * 0.06);
         this.trackVelocity = this.snap.velocity;
+        this.syncWrapperMotionState();
         this.ensureFrameLoop();
     }
 
@@ -3366,13 +3902,18 @@ class BambooScroll {
             from,
             to,
             direction: normalizedDirection,
-            duration: this.randomBetween(this.autoStepDurationMin, this.autoStepDurationMax),
+            duration: isAutoStep
+                ? this.randomBetween(this.autoStepDurationMin, this.autoStepDurationMax)
+                : (this.isHeroPhysics ? 0.62 : 0.54),
             elapsed: 0,
             brakeImpulseApplied: false
         };
+        this.syncWrapperMotionState();
 
         if (isAutoStep) {
             this.autoStepCount += 1;
+        } else {
+            this.deferAutoStepAfterManual();
         }
 
         this.injectShake(1000);
@@ -3386,11 +3927,19 @@ class BambooScroll {
     }
 
     /**
+     * deferAutoStepAfterManual() - 手动拖拽或拨片操作后，延后下一次自动漂移
+     * @returns {void}
+     */
+    deferAutoStepAfterManual() {
+        this.autoResumeAfterManualUntil = performance.now() + this.autoResumeAfterManualDelayMs;
+    }
+
+    /**
      * scheduleAutoStep() - 安排下一次自动滚动的触发时间
      * @returns {void} - 无返回值，直接设置定时器
      */
     scheduleAutoStep() {
-        if (!this.enableAutoStep || HOME_INTERACTION_STATE.scrollTraveling || this.isPageScrollSettlingActive()) {
+        if (!this.enableAutoStep || isHomeVerticalScrollActive()) {
             return;
         }
 
@@ -3404,7 +3953,8 @@ class BambooScroll {
         const jitterMin = isFirstAutoStep ? this.autoInitialDelayJitterMinMs : this.autoIntervalJitterMinMs;
         const jitterMax = isFirstAutoStep ? this.autoInitialDelayJitterMaxMs : this.autoIntervalJitterMaxMs;
         const randomJitter = this.randomBetween(jitterMin, jitterMax);
-        const delay = Math.max(isFirstAutoStep ? 900 : 1600, baseDelay + randomJitter);
+        const manualCooldownRemaining = Math.max(this.autoResumeAfterManualUntil - performance.now(), 0);
+        const delay = Math.max(isFirstAutoStep ? 2400 : 2400, baseDelay + randomJitter, manualCooldownRemaining);
         this.autoTimer = setTimeout(() => {
             // `pointerInsideWrapper` 只靠 mouseenter / mouseleave 维护，可能出现状态残留；
             // 这里用真实 hover 状态兜底，把“视觉已离开但内部仍判定悬停”的情况清掉。
@@ -3414,7 +3964,7 @@ class BambooScroll {
                 this.lastHoverSyncTs = 0;
             }
 
-            if (!this.canAnimateFrame() || HOME_INTERACTION_STATE.scrollTraveling || this.isPageScrollSettlingActive()) {
+            if (!this.canAnimateFrame() || isHomeVerticalScrollActive()) {
                 this.scheduleAutoStep();
                 return;
             }
@@ -3434,6 +3984,7 @@ class BambooScroll {
      */
     cancelAutoStep() {
         this.autoStep = null;
+        this.syncWrapperMotionState();
         if (this.autoTimer) {
             clearTimeout(this.autoTimer);
             this.autoTimer = null;
@@ -3505,9 +4056,9 @@ class BambooScroll {
     }
 
     onHomeInteractionChange() {
-        const isSettling = this.isPageScrollSettlingActive();
+        const isVerticalScrollActive = isHomeVerticalScrollActive();
 
-        if (HOME_INTERACTION_STATE.scrollTraveling || isSettling) {
+        if (isVerticalScrollActive) {
             if (this.autoStep) {
                 this.finishStepScrollImmediately();
             }
@@ -3526,12 +4077,12 @@ class BambooScroll {
             return;
         }
 
-        if (isSettling && !this.isDragging) {
+        if (isVerticalScrollActive && !this.isDragging) {
             this.stopFrameLoop();
             return;
         }
 
-        if (this.enableAutoStep && !this.isDragging && !this.pointerInsideWrapper && !isSettling) {
+        if (this.enableAutoStep && !this.isDragging && !this.pointerInsideWrapper && !isVerticalScrollActive) {
             this.scheduleAutoStep();
         }
 
@@ -3543,7 +4094,10 @@ class BambooScroll {
      * @returns {boolean}
      */
     canAnimateFrame() {
-        return this.isPageVisible && this.isWrapperVisible && (!isHomeInteractionLocked() || this.isDragging);
+        return this.isPageVisible
+            && this.isWrapperVisible
+            && (!isHomeInteractionLocked() || this.isDragging)
+            && (!isHomeVerticalScrollActive() || this.isDragging);
     }
 
     /**
@@ -3559,7 +4113,7 @@ class BambooScroll {
             return false;
         }
 
-        if (this.isPageScrollSettlingActive() && !this.isDragging && !this.pendingPointerMove) {
+        if (isHomeVerticalScrollActive() && !this.isDragging && !this.pendingPointerMove) {
             return false;
         }
 
@@ -3681,8 +4235,8 @@ class BambooScroll {
             }
         } else if (this.snap.active && !this.isDragging) {
             const targetDelta = this.snap.target - this.trackPosition;
-            const spring = this.isHeroPhysics ? 54 : 58;
-            const damping = this.isHeroPhysics ? 16.5 : 14;
+            const spring = this.isHeroPhysics ? 86 : 58;
+            const damping = this.isHeroPhysics ? 19 : 14;
             const accel = targetDelta * spring - this.snap.velocity * damping;
 
             this.snap.velocity += accel * dt;
@@ -3702,6 +4256,8 @@ class BambooScroll {
                 this.trackVelocity = 0;
             }
         }
+
+        this.syncWrapperMotionState();
 
         if (this.trackPosition !== previous) {
             const trackDelta = this.trackPosition - previous;
@@ -3809,17 +4365,41 @@ class BambooScroll {
     }
 
     /**
+     * dampenHeroReleasePhysics() - 拖拽松手时收掉首屏卡片残余的弹跳速度
+     * @returns {void}
+     */
+    dampenHeroReleasePhysics() {
+        if (!this.isHeroPhysics) {
+            return;
+        }
+
+        this.shakeEnergy *= 0.28;
+        this.forEachActivePhysics((state) => {
+            state.jitterV *= 0.3;
+            state.lagV *= 0.36;
+            state.gravityV *= 0.4;
+            state.tiltV *= 0.36;
+            state.rollV *= 0.36;
+        });
+    }
+
+    /**
      * injectShake(speedPxPerSecond) - 向轨道注入一次刹停抖动能量
      * @param {number} speedPxPerSecond - 当前滚动速度
      * @returns {void} - 无返回值，直接更新抖动能量
      */
     injectShake(speedPxPerSecond) {
         const normalized = this.clamp(speedPxPerSecond / 1600, 0, 1);
-        this.shakeEnergy = this.clamp(this.shakeEnergy + 0.22 + normalized * 0.82, 0, 1.28);
+        const energyBoost = this.isHeroPhysics
+            ? (0.08 + normalized * 0.24)
+            : (0.22 + normalized * 0.82);
+        const energyLimit = this.isHeroPhysics ? 0.56 : 1.28;
+        this.shakeEnergy = this.clamp(this.shakeEnergy + energyBoost, 0, energyLimit);
 
         this.forEachActivePhysics((state, index) => {
             const centerWeight = this.getCenterWeightByIndex(index);
-            const impulse = (120 + normalized * 340) * centerWeight * this.randomBetween(0.85, 1.35);
+            const impulseBase = this.isHeroPhysics ? (52 + normalized * 118) : (120 + normalized * 340);
+            const impulse = impulseBase * centerWeight * this.randomBetween(0.85, 1.35);
             const direction = Math.random() < 0.5 ? -1 : 1;
             state.jitterV += direction * impulse;
         });
@@ -3839,13 +4419,14 @@ class BambooScroll {
         const speedNorm = this.clamp(Math.abs(velocity) / 1900, 0, 1);
         const accelNorm = this.clamp(Math.abs(accel) / 7000, 0, 1);
         const direction = -Math.sign(velocity || accel || 1);
-        const impulseBase = 80 + speedNorm * 180 + accelNorm * 140;
+        const impulseBase = (80 + speedNorm * 180 + accelNorm * 140) * (this.isHeroPhysics ? 0.48 : 1);
+        const jitterScale = this.isHeroPhysics ? 0.16 : 0.33;
 
         this.forEachActivePhysics((state, index) => {
             const centerWeight = this.getCenterWeightByIndex(index);
             const impulse = impulseBase * state.recoilScale * centerWeight * this.randomBetween(0.8, 1.2);
             state.lagV += direction * impulse;
-            state.jitterV += (-direction * impulse) * 0.33;
+            state.jitterV += (-direction * impulse) * jitterScale;
         });
     }
 
@@ -3961,6 +4542,180 @@ class BambooScroll {
     }
 
     /**
+     * resetCardStageStyle(card) - 收回卡片在首屏观察窗里的层级变量
+     * @param {HTMLElement|null} card - 目标卡片
+     * @returns {void}
+     */
+    resetCardStageStyle(card) {
+        if (!card) {
+            return;
+        }
+
+        card.style.removeProperty('--stage-scale');
+        card.style.removeProperty('--stage-y');
+        card.style.removeProperty('--stage-rotate-y');
+        card.style.removeProperty('--stage-rotate-z');
+        card.style.removeProperty('--stage-opacity');
+        card.style.removeProperty('--stage-saturate');
+        card.style.removeProperty('--stage-brightness');
+        card.style.removeProperty('--stage-blur');
+        card.style.removeProperty('--stage-depth-shadow');
+        card.style.removeProperty('--stage-z');
+    }
+
+    /**
+     * resetPreviousCardPositionRange(range) - 清理上一帧活跃范围之外的卡片层级变量
+     * @param {{start:number,end:number}|null} range - 新的活跃范围
+     * @returns {void}
+     */
+    resetPreviousCardPositionRange(range) {
+        const previousRange = this.cardPositionRange;
+        this.cardPositionRange = range;
+
+        if (!previousRange) {
+            return;
+        }
+
+        for (let i = previousRange.start; i <= previousRange.end; i += 1) {
+            const stillActive = range && i >= range.start && i <= range.end;
+            if (!stillActive) {
+                this.resetCardStageStyle(this.cards[i]);
+            }
+        }
+    }
+
+    /**
+     * setCardRole(card, role, shouldApply) - 切换主卡/侧卡语义状态
+     * @param {HTMLElement|null} card - 目标卡片
+     * @param {string} role - 状态类名
+     * @param {boolean} shouldApply - 是否应用状态
+     * @returns {void}
+     */
+    setCardRole(card, role, shouldApply) {
+        if (!card) {
+            return;
+        }
+
+        card.classList.toggle(role, Boolean(shouldApply));
+        if (role === 'is-active') {
+            card.setAttribute('aria-current', shouldApply ? 'true' : 'false');
+        }
+    }
+
+    /**
+     * syncCardPositionState(force) - 根据轨道位置同步主卡、左右侧卡和承接层信息
+     * @param {boolean} force - 是否强制刷新
+     * @returns {void}
+     */
+    syncCardPositionState(force = false) {
+        if (!this.isHeroPhysics || this.cards.length === 0 || this.cardCenterOffsets.length === 0 || !this.wrapperWidth) {
+            return;
+        }
+
+        const firstCenter = this.cardCenterOffsets[0];
+        if (!Number.isFinite(firstCenter) || !Number.isFinite(this.cardStride) || this.cardStride <= 0) {
+            return;
+        }
+
+        const centerPosition = this.trackPosition + this.wrapperCenter;
+        const nearestIndex = this.clamp(Math.round((centerPosition - firstCenter) / this.cardStride), 0, this.cards.length - 1);
+        const prevIndex = nearestIndex - 1;
+        const nextIndex = nearestIndex + 1;
+        const nextCenteredCard = this.cards[nearestIndex] || null;
+        const nextPrevCard = this.cards[prevIndex] || null;
+        const nextNextCard = this.cards[nextIndex] || null;
+
+        if (force || nextCenteredCard !== this.centeredCard) {
+            this.setCardRole(this.centeredCard, 'is-active', false);
+            this.setCardRole(nextCenteredCard, 'is-active', true);
+            this.centeredCard = nextCenteredCard;
+        }
+
+        if (force || nextPrevCard !== this.prevCard) {
+            this.setCardRole(this.prevCard, 'is-prev', false);
+            this.setCardRole(nextPrevCard, 'is-prev', true);
+            this.prevCard = nextPrevCard;
+        }
+
+        if (force || nextNextCard !== this.nextCard) {
+            this.setCardRole(this.nextCard, 'is-next', false);
+            this.setCardRole(nextNextCard, 'is-next', true);
+            this.nextCard = nextNextCard;
+        }
+
+        const range = {
+            start: this.clamp(nearestIndex - 4, 0, this.cards.length - 1),
+            end: this.clamp(nearestIndex + 4, 0, this.cards.length - 1)
+        };
+        this.resetPreviousCardPositionRange(range);
+
+        for (let i = range.start; i <= range.end; i += 1) {
+            const card = this.cards[i];
+            const cardCenter = this.cardCenterOffsets[i] - this.trackPosition;
+            const deltaFromCenter = cardCenter - this.wrapperCenter;
+            const signedStep = this.clamp(deltaFromCenter / Math.max(this.cardStride, 1), -2.4, 2.4);
+            const centerWeight = this.clamp(1 - Math.abs(signedStep) / 2.1, 0, 1);
+            const isMainCard = i === nearestIndex;
+
+            const stageScale = isMainCard
+                ? 1.072
+                : 0.835 + centerWeight * 0.15;
+            const stageY = isMainCard
+                ? -10
+                : 15 - centerWeight * 9;
+            const rotateY = isMainCard
+                ? 0
+                : this.clamp(-signedStep * 8.5, -11, 11);
+            const rotateZ = isMainCard
+                ? 0
+                : this.clamp(signedStep * 1.1, -1.8, 1.8);
+            const opacity = isMainCard
+                ? 1
+                : this.clamp(0.63 + centerWeight * 0.31, 0.6, 0.9);
+            const blur = isMainCard
+                ? 0
+                : this.clamp(0.48 - centerWeight * 0.36, 0.02, 0.36);
+            const brightness = isMainCard
+                ? 1.1
+                : this.clamp(0.78 + centerWeight * 0.2, 0.74, 0.98);
+            const saturate = isMainCard
+                ? 1.12
+                : this.clamp(0.82 + centerWeight * 0.18, 0.78, 1);
+
+            card.style.setProperty('--stage-scale', stageScale.toFixed(3));
+            card.style.setProperty('--stage-y', `${stageY.toFixed(2)}px`);
+            card.style.setProperty('--stage-rotate-y', `${rotateY.toFixed(2)}deg`);
+            card.style.setProperty('--stage-rotate-z', `${rotateZ.toFixed(2)}deg`);
+            card.style.setProperty('--stage-opacity', opacity.toFixed(3));
+            card.style.setProperty('--stage-saturate', saturate.toFixed(3));
+            card.style.setProperty('--stage-brightness', brightness.toFixed(3));
+            card.style.setProperty('--stage-blur', `${blur.toFixed(2)}px`);
+            card.style.setProperty('--stage-depth-shadow', (0.18 + centerWeight * 0.22).toFixed(3));
+            card.style.setProperty('--stage-z', String(Math.round(centerWeight * 10) + (isMainCard ? 20 : 1)));
+        }
+
+        const spotId = Number(nextCenteredCard?.dataset?.spotId || 0);
+        if (spotId && (force || spotId !== this.centeredSpotId)) {
+            this.centeredSpotId = spotId;
+            this.wrapper.dataset.activeSpotId = String(spotId);
+            const spot = divingSpotsData.find((item) => item.id === spotId) || null;
+            this.updateTodaySeaBrief(spot);
+        }
+    }
+
+    /**
+     * syncWrapperMotionState() - 给轨道外壳标记当前是否正在柔和漂移
+     * @returns {void}
+     */
+    syncWrapperMotionState() {
+        if (!this.wrapper) {
+            return;
+        }
+
+        this.wrapper.classList.toggle('is-animating', Boolean(this.autoStep || this.inertia.active || this.snap.active));
+    }
+
+    /**
      * updateTrackPosition() - 将当前轨道位移同步到 DOM transform
      * @returns {void} - 无返回值，直接更新轨道样式
      */
@@ -3971,6 +4726,7 @@ class BambooScroll {
 
         this.lastAppliedTrackPosition = this.trackPosition;
         this.content.style.transform = `translate3d(${-this.trackPosition}px, 0, 0)`;
+        this.syncCardPositionState(force);
     }
 
     /**
@@ -3988,6 +4744,7 @@ class BambooScroll {
         this.snap.active = false;
         this.snap.velocity = 0;
         this.snap.energy = 0;
+        this.syncWrapperMotionState();
         this.recenterTrack();
         this.updateTrackPosition();
         this.trackPositionDirty = false;
@@ -4004,17 +4761,14 @@ class BambooScroll {
         }
 
         const normalizedDirection = Math.sign(direction || 0) || 1;
-        const stride = Math.max(this.cardStride, 1);
-        const stepIndex = normalizedDirection > 0
-            ? Math.ceil(this.trackPosition / stride)
-            : Math.floor(this.trackPosition / stride);
-
-        this.trackPosition = stepIndex * stride;
+        const targetMode = normalizedDirection > 0 ? 'ceil' : 'floor';
+        this.trackPosition = this.resolveCenteredTrackTarget(this.trackPosition, targetMode);
         this.autoStep = null;
         this.trackVelocity = 0;
         this.snap.active = false;
         this.snap.velocity = 0;
         this.snap.energy = 0;
+        this.syncWrapperMotionState();
         this.recenterTrack();
         this.updateTrackPosition();
         this.trackPositionDirty = false;
@@ -4548,22 +5302,22 @@ class CuratedWatersStage {
             this.syncActiveNav();
 
             requestAnimationFrame(() => {
-                this.navRail.classList.remove('is-cycling');
                 this.navRail.classList.add('is-cycle-prime');
 
-                requestAnimationFrame(() => {
+                window.setTimeout(() => {
+                    this.navRail.classList.remove('is-cycling');
                     this.navRail.classList.remove('is-cycle-prime');
                     this.navRail.classList.add('is-cycle-reveal');
 
                     this.batchRevealTimer = window.setTimeout(() => {
                         this.navRail.classList.remove('is-cycle-reveal');
                         this.batchRevealTimer = 0;
-                    }, 980);
-                });
+                    }, 1100);
+                }, 90);
             });
 
             this.batchSwitchTimer = 0;
-        }, 240);
+        }, 320);
     }
 
     /**
@@ -4828,13 +5582,39 @@ class CuratedWatersStage {
         });
     }
 
-    triggerRevealSequence() {
+    triggerRevealSequence(options = {}) {
+        const { immediate = false } = options;
         if (this.section.classList.contains('is-stage-visible')) {
             return;
         }
 
         this.section.classList.add('is-visible');
         this.section.classList.remove('is-stage-settled');
+
+        if (immediate) {
+            if (this.revealIntroRafId) {
+                cancelAnimationFrame(this.revealIntroRafId);
+                this.revealIntroRafId = 0;
+            }
+
+            if (this.revealStageRafId) {
+                cancelAnimationFrame(this.revealStageRafId);
+                this.revealStageRafId = 0;
+            }
+
+            if (this.revealTimer) {
+                window.clearTimeout(this.revealTimer);
+                this.revealTimer = 0;
+            }
+
+            if (this.stageSettleTimer) {
+                window.clearTimeout(this.stageSettleTimer);
+                this.stageSettleTimer = 0;
+            }
+
+            this.section.classList.add('is-intro-visible', 'is-stage-visible', 'is-stage-settled');
+            return;
+        }
 
         if (!this.section.classList.contains('is-intro-visible')) {
             if (this.revealIntroRafId) {
@@ -4873,6 +5653,32 @@ class CuratedWatersStage {
         }, 220);
     }
 
+    completeInitialHydration() {
+        if (this.initialHydrationComplete) {
+            return;
+        }
+
+        if (this.initialHydrationRafId) {
+            cancelAnimationFrame(this.initialHydrationRafId);
+            this.initialHydrationRafId = 0;
+        }
+
+        this.cancelPendingNavRailHydration();
+        this.renderNavRail();
+        this.renderMainCard(this.currentIndex, { immediate: true, skipPreload: true });
+        this.syncActiveNav();
+        this.section.classList.add('is-stage-hydrated');
+        this.initialHydrationComplete = true;
+        this.initialHydrationStep = 3;
+        scheduleHomeHydrationViewportRefresh({ force: true });
+        this.scheduleInitialPreload(this.currentIndex);
+    }
+
+    prepareForApproach() {
+        this.completeInitialHydration();
+        this.triggerRevealSequence({ immediate: true });
+    }
+
     /**
      * setupReveal() - 进入视口时唤醒档案墙
      */
@@ -4880,8 +5686,8 @@ class CuratedWatersStage {
         observeOnceInViewport(this.section, () => {
             this.triggerRevealSequence();
         }, {
-            threshold: 0.18,
-            rootMargin: '0px 0px -8% 0px'
+            threshold: 0.01,
+            rootMargin: '80% 0px 40% 0px'
         });
     }
 }
@@ -6154,7 +6960,8 @@ class DiveMatchStage {
         });
     }
 
-    scheduleStageSettledState() {
+    scheduleStageSettledState(options = {}) {
+        const { immediate = false } = options;
         if (!this.section) {
             return;
         }
@@ -6162,6 +6969,12 @@ class DiveMatchStage {
         this.section.classList.remove('is-stage-settled');
         if (this.stageSettleTimer) {
             window.clearTimeout(this.stageSettleTimer);
+        }
+
+        if (immediate) {
+            this.section.classList.add('is-stage-settled');
+            this.stageSettleTimer = 0;
+            return;
         }
 
         this.stageSettleTimer = window.setTimeout(() => {
@@ -6298,7 +7111,7 @@ class DiveMatchStage {
     }
 
     hydrateMatchSurfaceCards(surface, match, options = {}) {
-        const { markInitialReady = false } = options;
+        const { markInitialReady = false, immediate = false } = options;
         const grid = surface?.querySelector('.dive-match-card-grid');
         if (!grid) {
             if (markInitialReady) {
@@ -6331,7 +7144,12 @@ class DiveMatchStage {
         this.cancelInitialCardHydrationTask();
         this.cancelInitialCardHydrationTask = () => {};
 
-        if (!cardsMarkup) {
+        if (this.initialCardHydrationRafId) {
+            cancelAnimationFrame(this.initialCardHydrationRafId);
+            this.initialCardHydrationRafId = 0;
+        }
+
+        if (!cardsMarkup || immediate) {
             commitCards();
             return;
         }
@@ -6356,7 +7174,7 @@ class DiveMatchStage {
                 }
 
                 commitCards();
-            }, markInitialReady ? 1200 : 280);
+            }, markInitialReady ? 360 : 280);
         });
     }
 
@@ -6370,7 +7188,7 @@ class DiveMatchStage {
         if (this.section?.classList.contains('is-display-visible')) {
             this.scheduleSurfaceActivation(surface);
         }
-        this.hydrateMatchSurfaceCards(surface, match, { markInitialReady: true });
+        this.hydrateMatchSurfaceCards(surface, match, { markInitialReady: true, immediate: true });
     }
 
     /**
@@ -6609,18 +7427,34 @@ class DiveMatchStage {
         this.section.classList.add('is-stage-visible');
     }
 
-    revealDisplay() {
+    revealDisplay(options = {}) {
+        const { immediate = false } = options;
         if (!this.section || this.section.classList.contains('is-display-visible')) {
             return;
         }
 
         this.section.classList.add('is-display-visible');
-        this.scheduleStageSettledState();
+        this.scheduleStageSettledState({ immediate });
 
         const initialSurface = this.display?.querySelector('.dive-match-surface:not(.is-active):not(.is-leaving)');
         if (initialSurface) {
-            this.scheduleSurfaceActivation(initialSurface);
+            if (!this.initialSurfaceReady) {
+                this.hydrateMatchSurfaceCards(initialSurface, getDiveMatchEntry(this.activeKey), {
+                    markInitialReady: true,
+                    immediate: true
+                });
+            }
+
+            this.scheduleSurfaceActivation(initialSurface, {
+                settleImmediately: immediate
+            });
         }
+    }
+
+    prepareForApproach() {
+        this.revealIntro();
+        this.revealStageShell();
+        this.revealDisplay({ immediate: true });
     }
 
     /**
@@ -6631,22 +7465,22 @@ class DiveMatchStage {
         observeOnceInViewport(this.section, () => {
             this.revealIntro();
         }, {
-            threshold: 0.18,
-            rootMargin: '0px 0px -8% 0px'
+            threshold: 0.01,
+            rootMargin: '90% 0px 55% 0px'
         });
 
         observeOnceInViewport(this.stage, () => {
             this.revealStageShell();
         }, {
-            threshold: 0.12,
-            rootMargin: '0px 0px 0px 0px'
+            threshold: 0.01,
+            rootMargin: '90% 0px 45% 0px'
         });
 
         observeOnceInViewport(this.display, () => {
             this.revealDisplay();
         }, {
-            threshold: 0.08,
-            rootMargin: '0px 0px -6% 0px'
+            threshold: 0.01,
+            rootMargin: '95% 0px 45% 0px'
         });
     }
 }
@@ -6882,9 +7716,17 @@ function primeHomeScrollTarget(targetSelector) {
         primedNewLayout = true;
     }
 
+    if (shouldPrimeCurated) {
+        curatedWatersStageInstance?.prepareForApproach?.();
+    }
+
     if (shouldPrimeDiveMatch && !diveMatchStageInstance) {
         ensureDiveMatchStage();
         primedNewLayout = true;
+    }
+
+    if (shouldPrimeDiveMatch) {
+        diveMatchStageInstance?.prepareForApproach?.();
     }
 
     if (shouldPrimeStory && !homeStoryRevealInitialized) {
@@ -7208,15 +8050,14 @@ function setupHeroHotspotsStageResize() {
     const savedSize = safeReadHeroHotspotsStageSize();
 
     if (!isStageDebugModeEnabled) {
-        if (desktopQuery.matches && savedSize) {
-            applyHeroHotspotsStageSize(heroHotspotsStageShell, savedSize);
-            heroHotspotsStageShell.dataset.stageSizeMode = 'custom';
-        } else {
-            heroHotspotsStageShell.dataset.stageSizeMode = 'default';
-            heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-width');
-            heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-height');
-            heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-shift-x');
+        if (savedSize) {
+            clearHeroHotspotsStageSize(heroHotspotsStageShell);
         }
+
+        heroHotspotsStageShell.dataset.stageSizeMode = 'default';
+        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-width');
+        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-height');
+        heroHotspotsStageShell.style.removeProperty('--hero-hotspots-stage-shift-x');
 
         heroHotspotsStageShell.classList.remove('is-resizing');
         document.body.classList.remove('is-resizing-hero-hotspots');
@@ -7526,7 +8367,7 @@ function setupStoryReveal() {
                 const rect = item.getBoundingClientRect();
                 const isStoryCard = item.classList.contains('story-card');
                 const triggerLine = viewportHeight * (isStoryCard ? 0.88 : 0.86);
-                const isWithinViewportBand = rect.top < viewportHeight && rect.bottom > 0;
+                const isWithinViewportBand = rect.top < viewportHeight * 1.12 && rect.bottom > 0;
 
                 if (!isWithinViewportBand || rect.top > triggerLine) {
                     return;
@@ -8116,6 +8957,74 @@ function setupHomeLayerFlow() {
     }
 }
 
+/**
+ * normalizeWheelDeltaY(event) - 把不同 wheel delta 单位统一成像素位移
+ * @param {WheelEvent} event - wheel 事件对象
+ * @returns {number} - 归一化后的纵向滚动距离
+ */
+function normalizeWheelDeltaY(event) {
+    const rawDelta = Number(event?.deltaY) || 0;
+    if (event?.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+        return rawDelta * 16;
+    }
+
+    if (event?.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+        return rawDelta * Math.max(window.innerHeight || 0, 1);
+    }
+
+    return rawDelta;
+}
+
+/**
+ * canScrollElementVertically(element, deltaY) - 判断内部滚动层是否还能消化当前滚轮
+ * @param {HTMLElement} element - 需要检查的滚动容器
+ * @param {number} deltaY - 纵向滚动距离
+ * @returns {boolean} - 当前滚轮是否应留给容器自身处理
+ */
+function canScrollElementVertically(element, deltaY) {
+    if (!element || Math.abs(deltaY) < 0.5) {
+        return true;
+    }
+
+    const maxScrollTop = element.scrollHeight - element.clientHeight;
+    if (maxScrollTop <= 1) {
+        return false;
+    }
+
+    if (deltaY < 0) {
+        return element.scrollTop > 1;
+    }
+
+    return element.scrollTop < maxScrollTop - 1;
+}
+
+/**
+ * setupHomeWheelBoundaryPassthrough() - 避免首页内部视觉层吞掉页面纵向滚动
+ * @returns {void}
+ */
+function setupHomeWheelBoundaryPassthrough() {
+    document.addEventListener('wheel', (event) => {
+        const passthroughTarget = event.target?.closest?.(
+            '.curated-waters-stage, .curated-display, .curated-display-surface, .curated-nav-rail, .sea-guide-home .sea-guide-panel'
+        );
+        if (!passthroughTarget || event.defaultPrevented || event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+            return;
+        }
+
+        const deltaY = normalizeWheelDeltaY(event);
+        const startScrollY = window.scrollY || window.pageYOffset || 0;
+        const internalPanel = event.target?.closest?.('.sea-guide-home .sea-guide-panel');
+        if (internalPanel && canScrollElementVertically(internalPanel, deltaY)) {
+            return;
+        }
+
+        // 不主动 preventDefault，优先交给浏览器原生滚动链。
+        // 某些展示容器即使没有真实可滚内容也会吃掉第一帧滚轮；
+        // 如果原生链下一帧仍没推进页面，再用同一段 delta 做一次兜底。
+        scheduleHomePageWheelFallback(deltaY, startScrollY);
+    }, { passive: true });
+}
+
 // 页面初始化：创建首页主要组件，并绑定头像退出、首屏、故事区等交互。
 /**
  * document DOMContentLoaded 回调 - 初始化首页的主要组件和页面级交互
@@ -8147,6 +9056,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     setupHomeNavState();
     setupHomeScrollLinks();
     new HomeSeaGuide();
+    setupHomeWheelBoundaryPassthrough();
     setupHomeLayerFlow();
     homeViewportCoordinator.requestMeasure();
     ensureStoryReveal();
@@ -8154,18 +9064,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     createDeferredSectionBootstrap('#featured-destinations', ensureCuratedWatersStage, {
         immediate: shouldBootstrapCuratedImmediately,
         enableIdleBootstrap: true,
-        idleTimeoutMs: shouldBootstrapCuratedImmediately ? 900 : 1500,
-        rootMargin: '0px 0px 10% 0px',
-        viewportLeadRatio: shouldBootstrapCuratedImmediately ? 1.4 : 0.78,
-        viewportBottomRatio: -0.16
+        idleTimeoutMs: shouldBootstrapCuratedImmediately ? 240 : 520,
+        rootMargin: '120% 0px 80% 0px',
+        viewportLeadRatio: shouldBootstrapCuratedImmediately ? 1.6 : 1.45,
+        viewportBottomRatio: -0.28
     });
     createDeferredSectionBootstrap('#dive-match', ensureDiveMatchStage, {
         immediate: shouldBootstrapDiveMatchImmediately,
         enableIdleBootstrap: true,
-        idleTimeoutMs: shouldBootstrapDiveMatchImmediately ? 1200 : 1900,
-        rootMargin: '0px 0px 12% 0px',
-        viewportLeadRatio: shouldBootstrapDiveMatchImmediately ? 1.4 : 0.56,
-        viewportBottomRatio: -0.12
+        idleTimeoutMs: shouldBootstrapDiveMatchImmediately ? 360 : 820,
+        rootMargin: '130% 0px 90% 0px',
+        viewportLeadRatio: shouldBootstrapDiveMatchImmediately ? 1.65 : 1.35,
+        viewportBottomRatio: -0.22
     });
     consumePendingHomeScrollTarget();
     setupHeroAnimationPause();

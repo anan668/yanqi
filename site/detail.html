@@ -232,21 +232,6 @@
             </script>
         </section>
 
-        <section class="detail-readiness-bridge" aria-labelledby="detailReadinessTitle">
-            <div class="detail-readiness-card" id="detailReadinessCard" data-readiness-card data-readiness-tone="quiet">
-                <div class="detail-readiness-status">
-                    <span class="detail-readiness-glow" aria-hidden="true"></span>
-                    <p class="detail-readiness-kicker">Dive Readiness</p>
-                    <h2 class="detail-readiness-title" id="detailReadinessTitle">适潜判断正在浮现</h2>
-                    <p class="detail-readiness-copy">等海域资料完全载入后，会把深度、季节、能见度和流况一起压进这一张判断卡里。</p>
-                </div>
-                <div class="detail-readiness-actions">
-                    <a href="#spotOverview" class="detail-readiness-link">继续看海域档案</a>
-                    <a href="#bookingPackages" class="detail-readiness-link detail-readiness-link-secondary">对照右侧安排</a>
-                </div>
-            </div>
-        </section>
-
         <!-- 内容主体：
              这一层把“阅读”和“预订”拆成左右两栏。
              左侧负责慢慢读懂这片海，右侧负责把它收进行程。 -->
@@ -290,6 +275,21 @@
                         <p><strong>平均水温：</strong>26-28°C</p>
                         <p><strong>能见度：</strong>15-30米</p>
                     </div>
+
+                    <section class="detail-readiness-bridge" aria-labelledby="detailReadinessTitle">
+                        <div class="detail-readiness-card" id="detailReadinessCard" data-readiness-card data-readiness-tone="quiet">
+                            <div class="detail-readiness-status">
+                                <span class="detail-readiness-glow" aria-hidden="true"></span>
+                                <p class="detail-readiness-kicker">Dive Readiness</p>
+                                <h2 class="detail-readiness-title" id="detailReadinessTitle">适潜判断正在浮现</h2>
+                                <p class="detail-readiness-copy">读完海域档案后，再把深度、季节、能见度和流况一起压进这一张判断卡里。</p>
+                            </div>
+                            <div class="detail-readiness-actions">
+                                <a href="#spotMapSection" class="detail-readiness-link">继续看海图</a>
+                                <a href="#bookingPackages" class="detail-readiness-link detail-readiness-link-secondary">对照右侧安排</a>
+                            </div>
+                        </div>
+                    </section>
 
                     <!-- 海域定位台：
                          不直接写死静态图片，而交给 JS 按当前潜点生成对应的地图 / 海图内容。 -->

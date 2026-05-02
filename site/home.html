@@ -83,16 +83,8 @@
                 <span class="hero-plankton hero-plankton-five"></span>
                 <span class="hero-plankton hero-plankton-six"></span>
             </div>
-            <!-- ?? 文案与今日海域卡片：负责首页首屏的品牌开场和两个主要行动入口。 -->
+            <!-- 今日海域观察舞台：把首屏重心直接交给海域卡片与横向潜游。 -->
             <div class="hero-content">
-                <h1 class="hero-title hero-stage-copy">把下一次下潜，让海面先慢慢沉静</h1>
-                <p class="hero-subtitle hero-stage-copy">在海洋生命的节奏里，缓缓把目光交还给海</p>
-                <div class="hero-memory-ribbon hero-stage-copy" aria-label="海面速记">
-                    <span class="hero-memory-label">Surface Log</span>
-                    <span class="hero-memory-divider" aria-hidden="true"></span>
-                    <span class="hero-memory-note">今天适合先在观察台停一停，再决定要从哪片蓝开始靠近。</span>
-                </div>
-
                 <div class="hero-hotspots-stage-shell" id="heroHotspotsStageShell">
                     <div class="hero-hotspots-resize-layer" aria-hidden="true">
                         <button type="button" class="hero-hotspots-resize-handle is-west" data-hotspots-resize-direction="w" tabindex="-1" aria-hidden="true"></button>
@@ -122,12 +114,11 @@
                             <p class="hero-hotspots-kicker">Yanqi Journal</p>
                             <div class="hero-hotspots-copy">
                                 <h2 class="hero-hotspots-title" id="heroHotspotsTitle">今日海域</h2>
-                                <p class="hero-hotspots-subtitle">海流把几片值得停下来的蓝，慢慢推到了眼前</p>
+                                <p class="hero-hotspots-subtitle">几片蓝正在靠近，先停一会儿。</p>
                             </div>
-                            <div class="hero-observation-rail" aria-label="今日海域观察台说明">
-                                <span class="hero-observation-chip">观察台已展开</span>
-                                <span class="hero-observation-chip">适合横向比较海流与光线</span>
-                                <span class="hero-observation-chip">拖动卡片让下一片蓝慢慢靠近</span>
+                            <div class="hero-observation-rail" aria-label="今日海域浏览提示">
+                                <span class="hero-observation-chip">横向潜游</span>
+                                <span class="hero-observation-chip">轻拖看下一片海</span>
                             </div>
                         </div>
 
@@ -162,9 +153,66 @@
                         </button>
                     </div>
 
-                    <div class="today-sea-actions hero-hotspots-actions">
-                        <button type="button" class="sea-action sea-action-primary" data-scroll-target="#featured-destinations">探索海域</button>
-                        <button type="button" class="sea-action sea-action-secondary" data-navigation-url="trip.html#plannerDeskControl">去我的行程</button>
+                    <div class="today-sea-drift-hint" aria-label="今日海域交互提示">
+                        <span class="today-sea-drift-line" aria-hidden="true"></span>
+                        <span class="today-sea-drift-copy">轻拖卡片，沿海流看下一片海</span>
+                        <span class="today-sea-drift-line" aria-hidden="true"></span>
+                    </div>
+
+                    <div class="today-sea-brief" data-today-sea-brief aria-label="当前海域概览">
+                        <article class="today-sea-brief-panel today-sea-position-panel">
+                            <p class="today-sea-brief-kicker">Sea Position</p>
+                            <div class="today-sea-maplet" aria-hidden="true">
+                                <span class="today-sea-maplet-grid"></span>
+                                <span class="today-sea-maplet-wake"></span>
+                                <span class="today-sea-maplet-route"></span>
+                                <span class="today-sea-maplet-ring"></span>
+                                <span class="today-sea-maplet-dot is-origin"></span>
+                                <span class="today-sea-maplet-dot is-current"></span>
+                            </div>
+                            <div class="today-sea-brief-copy">
+                                <h3 id="todaySeaBriefName">皇帝岛</h3>
+                                <p id="todaySeaBriefRegion">泰国 · 普吉外海</p>
+                                <span id="todaySeaBriefCoords">北纬 7.60°，东经 98.37°</span>
+                            </div>
+                            <button type="button" class="today-sea-brief-link" data-today-sea-detail>
+                                查看档案
+                            </button>
+                        </article>
+
+                        <article class="today-sea-brief-panel today-sea-data-panel">
+                            <p class="today-sea-brief-kicker">Dive Reading</p>
+                            <dl class="today-sea-data-grid">
+                                <div class="today-sea-data-item is-temp">
+                                    <dt><span class="today-sea-data-icon" aria-hidden="true"></span>水温</dt>
+                                    <dd id="todaySeaBriefTemp">29°C</dd>
+                                </div>
+                                <div class="today-sea-data-item is-current">
+                                    <dt><span class="today-sea-data-icon" aria-hidden="true"></span>海流</dt>
+                                    <dd id="todaySeaBriefCurrent">缓流</dd>
+                                </div>
+                                <div class="today-sea-data-item is-tide">
+                                    <dt><span class="today-sea-data-icon" aria-hidden="true"></span>潮汐</dt>
+                                    <dd id="todaySeaBriefTide">清晨入海</dd>
+                                </div>
+                                <div class="today-sea-data-item is-visibility">
+                                    <dt><span class="today-sea-data-icon" aria-hidden="true"></span>能见度</dt>
+                                    <dd id="todaySeaBriefVisibility">12-25米</dd>
+                                </div>
+                            </dl>
+                        </article>
+
+                        <article class="today-sea-brief-panel today-sea-progress-panel">
+                            <p class="today-sea-brief-kicker">Exploration</p>
+                            <div class="today-sea-progress-orbit" aria-hidden="true">
+                                <span></span>
+                            </div>
+                            <div class="today-sea-progress-copy">
+                                <strong id="todaySeaBriefProgress">13 / 14</strong>
+                                <span id="todaySeaBriefSeason">11月-次年4月</span>
+                                <p id="todaySeaBriefNote">玻璃蓝与缓坡珊瑚，适合把第一眼海色慢慢放平。</p>
+                            </div>
+                        </article>
                     </div>
                 </section>
                 </div>

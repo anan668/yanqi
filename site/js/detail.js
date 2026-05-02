@@ -29,10 +29,10 @@ const PACKAGE_MODAL_DURATION_MIN_DAYS = 2;
 const PACKAGE_MODAL_PRESET_DURATION_MAX_DAYS = 6;
 const PACKAGE_MODAL_CUSTOM_DURATION_MAX_DAYS = 12;
 const BOOKING_MATCH_CONFIRM_CLOSE_DURATION = 380;
-const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS = 560;
-const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_FALLBACK_MS = BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS + 200;
-const BOOKING_STICKY_FOCUS_CONTEXT_ENTER_FADE_MS = 280;
-const BOOKING_STICKY_FOCUS_CONTEXT_EXIT_FADE_MS = 180;
+const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS = 760;
+const BOOKING_STICKY_FOCUS_CONTEXT_MOTION_FALLBACK_MS = BOOKING_STICKY_FOCUS_CONTEXT_MOTION_DURATION_MS + 240;
+const BOOKING_STICKY_FOCUS_CONTEXT_ENTER_FADE_MS = 360;
+const BOOKING_STICKY_FOCUS_CONTEXT_EXIT_FADE_MS = 220;
 const BOOKING_STICKY_DESKTOP_FOCUS_CONTEXT_MIN_WIDTH = 1025;
 const DETAIL_SPOT_DATA_SCRIPT_SRC_ATTRIBUTE = 'data-detail-spot-data-src';
 const DETAIL_SPOT_DATA_SCRIPT_ID_ATTRIBUTE = 'data-detail-spot-data-id';
@@ -1771,7 +1771,8 @@ class DetailPage {
         this.bookingReadingGuideMetrics = [];
         this.bookingReadingGuideSpecialMetrics = {
             reviews: null,
-            firstReview: null
+            firstReview: null,
+            secondReview: null
         };
         this.seaGuideMetrics = [];
         this.reviewCardMetrics = [];
@@ -1859,11 +1860,17 @@ class DetailPage {
         this.reviewDetailCloseTimer = 0;
         this.reviewLightboxCloseTimer = 0;
         this.bookingConfirmCloseTimer = 0;
+        this.overlayLockFallbackTimer = 0;
         this.packagePriceObserver = null;
         this.relatedTextLayoutController = null;
         this.bookingFeedbackTimer = 0;
         this.seaGuideOpen = false;
         this.seaGuideUpdateRaf = 0;
+        this.seaGuideDeferredRevealLastAt = 0;
+        this.seaGuideDeferredRevealTimer = 0;
+        this.seaGuideLastVisible = null;
+        this.seaGuideLastDeep = null;
+        this.seaGuideLastCurrentKey = '';
         this.detailScrollMetricsResizeObserver = null;
         this.footerRevealObserver = null;
         this.relatedRevealObserver = null;
@@ -1909,6 +1916,9 @@ class DetailPage {
         this.bookingStickyFocusContextShift = 0;
         this.bookingStickyListContextScrollTop = this.bookingSticky?.scrollTop || 0;
         this.activeDetailReadingSectionKey = '';
+        this.readinessDraft = null;
+        this.isReadinessEditing = false;
+        this.readinessSettleTimer = 0;
         this.activeReviewLinkedPackageId = null;
         this.bookingStickyScrollTargetTop = 0;
         this.bookingStickyScrollRaf = 0;
@@ -1968,6 +1978,7 @@ class DetailPage {
         this.renderSpotData();
         this.applyIncomingRelatedTransition();
         this.setupEventListeners();
+        this.setupOverlayLockRecovery();
         this.setupSeaGuide();
         this.setupBookingStickyStack();
         this.setupBookingCopyReveal();
@@ -3974,35 +3985,27 @@ class DetailPage {
 
     /**
      * shouldCollapseBookingCopy() - 判断陪读文案是否该在更深阅读位置暂时收起。
-     * 早段评论仍保留 booking-copy 与焦点舱并行，滑到更深层后再把空间让给套餐焦点舱。
+     * 评论区第一条评论保留 booking-copy 与焦点舱并行，进入第二条评论后再让空间给套餐焦点舱。
      * @returns {boolean} - 是否应该折叠 booking-copy
      */
     shouldCollapseBookingCopy() {
         const currentKey = this.activeBookingGuideKey || this.getCurrentBookingReadingGuideKey();
-        if (currentKey !== 'reviews' && currentKey !== 'related') {
-            return false;
-        }
-
         if (currentKey === 'related') {
             return true;
         }
 
-        const reviewsMetric = this.bookingReadingGuideSpecialMetrics.reviews;
-        if (!reviewsMetric) {
+        if (currentKey !== 'reviews') {
+            return false;
+        }
+
+        const secondReviewMetric = this.bookingReadingGuideSpecialMetrics.secondReview;
+        if (!secondReviewMetric) {
             return false;
         }
 
         const scrollY = window.scrollY || window.pageYOffset || 0;
-        const probeY = scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.28, 240);
-        const firstReviewMetric = this.bookingReadingGuideSpecialMetrics.firstReview;
-        if (firstReviewMetric) {
-            const collapseStart = firstReviewMetric.top + (
-                firstReviewMetric.height * (firstReviewMetric.hasFeaturePhoto ? 0.82 : 0.92)
-            );
-            return probeY >= collapseStart;
-        }
-
-        return probeY >= (reviewsMetric.top + reviewsMetric.height * 0.42);
+        const probeY = scrollY + this.getSeaGuideOffset() + Math.min(window.innerHeight * 0.2, 180);
+        return probeY >= secondReviewMetric.top - 24;
     }
 
     /**
@@ -4014,7 +4017,9 @@ class DetailPage {
             return;
         }
 
-        this.bookingCopy.classList.toggle('is-collapsed-for-focus', this.shouldCollapseBookingCopy());
+        const shouldCollapse = this.shouldCollapseBookingCopy();
+        this.bookingCopy.classList.toggle('is-collapsed-for-focus', shouldCollapse);
+        this.bookingSticky?.classList.toggle('is-booking-copy-collapsed', shouldCollapse);
     }
 
     /**
@@ -4169,8 +4174,13 @@ class DetailPage {
         );
         const reviewsMetric = sectionMetricMap.get('reviews') || null;
         const relatedMetric = sectionMetricMap.get('related') || null;
-        const firstReviewCard = this.reviewsSection?.querySelector('.review-card');
+        const reviewCards = this.reviewsSection
+            ? Array.from(this.reviewsSection.querySelectorAll('.review-card'))
+            : [];
+        const firstReviewCard = reviewCards[0] || null;
+        const secondReviewCard = reviewCards[1] || null;
         const firstReviewRect = firstReviewCard?.getBoundingClientRect();
+        const secondReviewRect = secondReviewCard?.getBoundingClientRect();
 
         this.bookingReadingGuideSpecialMetrics = {
             reviews: reviewsMetric,
@@ -4179,6 +4189,11 @@ class DetailPage {
                 top: firstReviewRect.top + scrollY,
                 height: firstReviewRect.height,
                 hasFeaturePhoto: firstReviewCard.classList.contains('has-feature-photo')
+            } : null,
+            secondReview: secondReviewCard && secondReviewRect ? {
+                top: secondReviewRect.top + scrollY,
+                height: secondReviewRect.height,
+                hasFeaturePhoto: secondReviewCard.classList.contains('has-feature-photo')
             } : null
         };
 
@@ -4509,8 +4524,8 @@ class DetailPage {
     }
 
     /**
-     * isBookingFocusOnlyContext() - 判断当前阅读语境是否应该切换到更安静的单焦点侧栏。
-     * 评论区和相邻海域区都优先只保留焦点舱，不再让右侧成为第二条滚动时间线。
+     * isBookingFocusOnlyContext() - 判断当前阅读语境是否应该切换到更安静的 focus-only 侧栏。
+     * 评论区仍进入第二阶段语境，但由样式保留陪读评价和焦点舱并行停驻。
      * @param {string} [sectionKey=this.activeBookingGuideKey || 'overview'] - 当前阅读区块 key
      * @returns {boolean} - 是否进入单焦点侧栏模式
      */
@@ -8407,30 +8422,85 @@ class DetailPage {
         return `<span class="detail-readiness-chip">${escapeHtml(chip)}</span>`;
     }
 
-    createReadinessCertificationMarkup(currentLevel = '') {
+    createReadinessChoiceButtonMarkup(option, context = {}) {
+        const {
+            currentValue = '',
+            dataAttribute = 'data-readiness-cert',
+            delay = 0
+        } = context;
+        const isCurrent = currentValue === option.value;
+
+        return `
+            <button
+                class="detail-readiness-cert ${isCurrent ? 'is-current' : ''}"
+                type="button"
+                ${dataAttribute}="${escapeHtml(option.value)}"
+                aria-pressed="${isCurrent ? 'true' : 'false'}"
+                style="--readiness-cert-delay: ${delay}ms"
+            >
+                <span>${escapeHtml(option.label)}</span>
+                <small>${escapeHtml(option.note)}</small>
+            </button>
+        `;
+    }
+
+    createReadinessCertificationMarkup(profile = {}, options = {}) {
+        const safeProfile = sharedDiverProfile?.normalizeProfile?.(profile) || profile || {};
+        const {
+            isEditing = false,
+            hasStoredProfile = false,
+            selectedCertification = '',
+            selectedRecentState = ''
+        } = options;
         const certificationOptions = [
             { value: 'beginner', label: '体验 / 刚开始', note: '先在浅层找呼吸' },
             { value: 'ow', label: 'OW', note: '开放水域节奏' },
             { value: 'aow', label: 'AOW', note: '可进入更深一层' },
             { value: 'advanced', label: 'AOW+', note: '流区与深蓝经验' }
         ];
+        const recentOptions = [
+            { value: 'recent', label: '近 6 个月有潜', note: '身体还记得海的节奏' },
+            { value: 'returning', label: '6-12 个月内有潜', note: '适合先留一点适应' },
+            { value: 'rusty', label: '一年以上没潜', note: '先慢慢找回状态' }
+        ];
+        const currentCertification = selectedCertification || (hasStoredProfile ? safeProfile.certificationLevel : '') || '';
+        const currentRecentState = selectedRecentState || (hasStoredProfile ? safeProfile.recentDiveState : '') || '';
+        const isReadyToSave = Boolean(currentCertification && currentRecentState);
+        const introCopy = hasStoredProfile
+            ? '这里可以重新调整证书和近期下潜状态。两枚刻度都会影响这片海是否适合现在进入。'
+            : '先落下证书和近期下潜状态两枚刻度，这张卡会立刻按你的状态重新判断。';
 
         return `
             <div class="detail-readiness-cert-panel">
-                <p class="detail-readiness-cert-intro">还没有读到你的潜水者档案。先落下一枚证书刻度，这张卡会立刻按你的层级重新判断。</p>
-                <div class="detail-readiness-cert-grid" role="group" aria-label="选择潜水证书水平">
-                    ${certificationOptions.map((option, index) => `
-                        <button
-                            class="detail-readiness-cert ${currentLevel === option.value ? 'is-current' : ''}"
-                            type="button"
-                            data-readiness-cert="${escapeHtml(option.value)}"
-                            aria-pressed="${currentLevel === option.value ? 'true' : 'false'}"
-                            style="--readiness-cert-delay: ${index * 70}ms"
-                        >
-                            <span>${escapeHtml(option.label)}</span>
-                            <small>${escapeHtml(option.note)}</small>
-                        </button>
-                    `).join('')}
+                <p class="detail-readiness-cert-intro">${escapeHtml(introCopy)}</p>
+                <div class="detail-readiness-choice-group">
+                    <span class="detail-readiness-choice-label">证书水层</span>
+                    <div class="detail-readiness-cert-grid" role="group" aria-label="选择潜水证书水平">
+                        ${certificationOptions.map((option, index) => this.createReadinessChoiceButtonMarkup(option, {
+                            currentValue: currentCertification,
+                            dataAttribute: 'data-readiness-cert',
+                            delay: index * 55
+                        })).join('')}
+                    </div>
+                </div>
+                <div class="detail-readiness-choice-group">
+                    <span class="detail-readiness-choice-label">近期下潜</span>
+                    <div class="detail-readiness-cert-grid detail-readiness-cert-grid-recent" role="group" aria-label="选择近期下潜状态">
+                        ${recentOptions.map((option, index) => this.createReadinessChoiceButtonMarkup(option, {
+                            currentValue: currentRecentState,
+                            dataAttribute: 'data-readiness-recent',
+                            delay: 220 + (index * 55)
+                        })).join('')}
+                    </div>
+                </div>
+                <div class="detail-readiness-edit-actions">
+                    <button
+                        class="detail-readiness-save"
+                        type="button"
+                        data-readiness-save
+                        ${isReadyToSave ? '' : 'disabled'}
+                    >${hasStoredProfile ? '更新判断' : '生成判断'}</button>
+                    ${isEditing ? '<button class="detail-readiness-cancel" type="button" data-readiness-cancel>收起调整</button>' : ''}
                 </div>
             </div>
         `;
@@ -8445,7 +8515,10 @@ class DetailPage {
 
         return `
             <div class="detail-readiness-profile" aria-label="已保存的潜水者档案">
-                <span class="detail-readiness-profile-label">已按你的证书判断</span>
+                <div class="detail-readiness-profile-head">
+                    <span class="detail-readiness-profile-label">已按你的证书判断</span>
+                    <button class="detail-readiness-adjust" type="button" data-readiness-edit>重新调整</button>
+                </div>
                 <div class="detail-readiness-profile-grid">
                     ${profileItems.map(([label, value]) => `
                         <span class="detail-readiness-profile-item">
@@ -8458,15 +8531,38 @@ class DetailPage {
         `;
     }
 
+    runReadinessSettleMotion() {
+        if (!this.readinessCard) {
+            return;
+        }
+
+        window.clearTimeout(this.readinessSettleTimer);
+        this.readinessCard.classList.remove('is-settling');
+        void this.readinessCard.offsetWidth;
+        this.readinessCard.classList.add('is-settling');
+        this.readinessSettleTimer = window.setTimeout(() => {
+            this.readinessCard?.classList.remove('is-settling');
+            this.readinessSettleTimer = 0;
+        }, 920);
+    }
+
     renderReadinessCard() {
         if (!this.readinessCard || !sharedDiverProfile?.evaluateSpotReadiness) {
             return;
         }
 
         const hasStoredProfile = Boolean(sharedDiverProfile.hasStoredProfile?.());
-        const profile = hasStoredProfile
+        const storedProfile = hasStoredProfile
             ? sharedDiverProfile.getProfile?.()
             : sharedDiverProfile.getDefaultProfile?.();
+        const draftProfile = this.readinessDraft
+            ? sharedDiverProfile.normalizeProfile?.({
+                ...storedProfile,
+                ...this.readinessDraft
+            })
+            : null;
+        const profile = draftProfile || storedProfile;
+        const isEditing = Boolean(this.isReadinessEditing || !hasStoredProfile);
         const atlas = this.buildSeaAtlasData();
         const readiness = sharedDiverProfile.evaluateSpotReadiness({
             spotId: this.spotId,
@@ -8489,8 +8585,19 @@ class DetailPage {
             ));
         const chipMarkup = displayChips.map((chip) => this.createReadinessChipMarkup(chip)).join('');
         const profileMarkup = hasStoredProfile
-            ? this.createReadinessProfileMarkup(profile, readiness)
-            : this.createReadinessCertificationMarkup('');
+            ? (isEditing
+                ? this.createReadinessCertificationMarkup(profile, {
+                    isEditing: true,
+                    hasStoredProfile: true,
+                    selectedCertification: this.readinessDraft?.certificationLevel || profile?.certificationLevel || '',
+                    selectedRecentState: this.readinessDraft?.recentDiveState || profile?.recentDiveState || ''
+                })
+                : this.createReadinessProfileMarkup(profile, readiness))
+            : this.createReadinessCertificationMarkup(this.readinessDraft || {}, {
+                hasStoredProfile: false,
+                selectedCertification: this.readinessDraft?.certificationLevel || '',
+                selectedRecentState: this.readinessDraft?.recentDiveState || ''
+            });
         const certificationPanelTitle = hasStoredProfile
             ? readiness.certificationLabel
             : '待选择证书';
@@ -8501,7 +8608,7 @@ class DetailPage {
             : `这片海建议 ${readiness.requiredCert} 起，先把你的证书刻度落下来。`;
         const conditionPanelCopy = hasStoredProfile
             ? `近期状态：${readiness.recentNote || '待确认'}；偏好：${readiness.comfortNote || '待确认'}。`
-            : '近期状态与海况偏好会先沿用默认慢潜档案，之后可在首页匹配里补细。';
+            : '近期状态会参与这次判断；海况偏好先沿用默认慢潜档案，之后可在首页匹配里补细。';
         const conditionPanelTitle = hasStoredProfile
             ? readiness.currentNote
             : '先按这片海的流况与季节做轻判断';
@@ -8539,7 +8646,7 @@ class DetailPage {
             ${profileMarkup}
 
             <div class="detail-readiness-actions">
-                <a href="#spotOverview" class="detail-readiness-link">继续看海域档案</a>
+                <a href="#spotMapSection" class="detail-readiness-link">继续看海图</a>
                 <a href="#bookingPackages" class="detail-readiness-link detail-readiness-link-secondary">对照右侧安排</a>
             </div>
         `;
@@ -13296,40 +13403,164 @@ class DetailPage {
         }, 960);
     }
 
-    // 遮罩锁定：在套餐弹窗、评论详情、图片放大层打开时统一锁住背景滚动。
     /**
-     * syncOverlayLock() - 根据弹层状态同步页面滚动锁定状态
-     * @returns {void} - 无返回值，直接切换页面锁定 class
+     * getOverlayLockState() - 汇总当前弹层是否仍需要锁住背景滚动
+     * @param {Object} options - 检查选项
+     * @returns {Object} - 当前锁页状态
      */
-    syncOverlayLock() {
+    getOverlayLockState(options = {}) {
+        const requireVisible = Boolean(options.requireVisible);
+        const includeClosing = options.includeClosing !== false;
+        const isVisibleOverlay = (element) => (
+            !requireVisible ||
+            Boolean(element && element.getAttribute('aria-hidden') !== 'true')
+        );
         const hasActiveBookingModal = Boolean(
             this.bookingModal &&
             this.bookingModal.classList.contains('active') &&
+            isVisibleOverlay(this.bookingModal) &&
             !this.bookingModalNavigationAway
         );
         const hasClosingBookingModal = Boolean(
+            includeClosing &&
             this.bookingModal &&
-            this.bookingModal.classList.contains('is-closing')
+            this.bookingModal.classList.contains('is-closing') &&
+            isVisibleOverlay(this.bookingModal)
+        );
+        const hasBookingConfirmFeedback = Boolean(
+            this.bookingConfirmFeedback &&
+            this.bookingConfirmFeedback.classList.contains('active') &&
+            isVisibleOverlay(this.bookingConfirmFeedback)
+        );
+        const hasReviewDetailModal = Boolean(
+            this.reviewDetailModal &&
+            this.reviewDetailModal.classList.contains('active') &&
+            isVisibleOverlay(this.reviewDetailModal)
+        );
+        const hasReviewLightbox = Boolean(
+            this.reviewLightbox &&
+            this.reviewLightbox.classList.contains('active') &&
+            isVisibleOverlay(this.reviewLightbox)
+        );
+        const hasSeaAtlasFullscreen = Boolean(
+            this.seaAtlasFullscreenOpen &&
+            (
+                !requireVisible ||
+                (
+                    this.seaAtlasFullscreen &&
+                    this.seaAtlasFullscreen.classList.contains('is-open') &&
+                    this.seaAtlasFullscreen.getAttribute('aria-hidden') !== 'true'
+                )
+            )
         );
         const hasActiveOverlay = Boolean(
             hasActiveBookingModal ||
             hasClosingBookingModal ||
-            (this.bookingConfirmFeedback && this.bookingConfirmFeedback.classList.contains('active')) ||
-            (this.reviewDetailModal && this.reviewDetailModal.classList.contains('active')) ||
-            (this.reviewLightbox && this.reviewLightbox.classList.contains('active')) ||
-            this.seaAtlasFullscreenOpen
+            hasBookingConfirmFeedback ||
+            hasReviewDetailModal ||
+            hasReviewLightbox ||
+            hasSeaAtlasFullscreen
         );
         const hasBookingModalOpen = Boolean(
             hasActiveBookingModal || hasClosingBookingModal
         );
         const hasBookingModalListContext = Boolean(hasActiveBookingModal);
 
-        document.documentElement.classList.toggle('has-overlay-lock', hasActiveOverlay);
-        document.body.classList.toggle('has-overlay-lock', hasActiveOverlay);
-        document.body.classList.toggle('has-booking-modal-open', hasBookingModalOpen);
-        this.itineraryList?.classList.toggle('is-modal-open', hasBookingModalListContext);
+        return {
+            hasActiveOverlay,
+            hasBookingModalOpen,
+            hasBookingModalListContext
+        };
+    }
+
+    clearOverlayLockFallbackTimer() {
+        if (!this.overlayLockFallbackTimer) {
+            return;
+        }
+
+        window.clearTimeout(this.overlayLockFallbackTimer);
+        this.overlayLockFallbackTimer = 0;
+    }
+
+    scheduleOverlayLockFallback(hasActiveOverlay) {
+        this.clearOverlayLockFallbackTimer();
+
+        if (!hasActiveOverlay) {
+            return;
+        }
+
+        this.overlayLockFallbackTimer = window.setTimeout(() => {
+            this.overlayLockFallbackTimer = 0;
+            this.clearStaleOverlayLock();
+        }, 3600);
+    }
+
+    clearStaleOverlayLock() {
+        const visibleState = this.getOverlayLockState({
+            includeClosing: false,
+            requireVisible: true
+        });
+
+        if (visibleState.hasActiveOverlay) {
+            this.scheduleOverlayLockFallback(true);
+            return false;
+        }
+
+        this.bookingModal?.classList.remove('active', 'is-closing', 'is-navigating-away', 'is-returning-to-focus-panel');
+        this.bookingModal?.setAttribute('aria-hidden', 'true');
+        this.bookingConfirmFeedback?.classList.remove('active', 'is-closing');
+        this.bookingConfirmFeedback?.setAttribute('aria-hidden', 'true');
+        this.reviewDetailModal?.classList.remove('active', 'is-closing');
+        this.reviewDetailModal?.setAttribute('aria-hidden', 'true');
+        this.reviewLightbox?.classList.remove('active', 'is-closing');
+        this.reviewLightbox?.setAttribute('aria-hidden', 'true');
+
+        if (this.seaAtlasFullscreen?.getAttribute('aria-hidden') === 'true') {
+            this.seaAtlasFullscreenOpen = false;
+            this.seaAtlasFullscreen.classList.remove('is-open');
+        }
+
+        document.documentElement.classList.remove('has-overlay-lock');
+        document.body.classList.remove('has-overlay-lock', 'has-booking-modal-open');
+        this.itineraryList?.classList.remove('is-modal-open');
+        this.clearOverlayLockFallbackTimer();
+        return true;
+    }
+
+    // 遮罩锁定：在套餐弹窗、评论详情、图片放大层打开时统一锁住背景滚动。
+    /**
+     * syncOverlayLock() - 根据弹层状态同步页面滚动锁定状态
+     * @returns {void} - 无返回值，直接切换页面锁定 class
+     */
+    syncOverlayLock() {
+        const overlayState = this.getOverlayLockState();
+        document.documentElement.classList.toggle('has-overlay-lock', overlayState.hasActiveOverlay);
+        document.body.classList.toggle('has-overlay-lock', overlayState.hasActiveOverlay);
+        document.body.classList.toggle('has-booking-modal-open', overlayState.hasBookingModalOpen);
+        this.itineraryList?.classList.toggle('is-modal-open', overlayState.hasBookingModalListContext);
+        this.scheduleOverlayLockFallback(overlayState.hasActiveOverlay);
         // 同时锁 html 和 body，是为了兼容不同浏览器对滚动容器的处理，
         // 避免弹层打开后背景还能继续偷偷滚动。
+    }
+
+    setupOverlayLockRecovery() {
+        const refreshOverlayLock = () => {
+            window.setTimeout(() => {
+                if (!this.clearStaleOverlayLock()) {
+                    this.syncOverlayLock();
+                }
+            }, 0);
+        };
+
+        window.addEventListener('pageshow', refreshOverlayLock);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refreshOverlayLock();
+            }
+        });
+        window.addEventListener('pagehide', () => {
+            this.clearOverlayLockFallbackTimer();
+        });
     }
 
     /**
@@ -14406,24 +14637,77 @@ class DetailPage {
 
         if (this.readinessCard) {
             this.readinessCard.addEventListener('click', (event) => {
+                const editButton = event.target.closest('[data-readiness-edit]');
+                if (editButton && this.readinessCard.contains(editButton)) {
+                    this.readinessDraft = sharedDiverProfile?.getProfile?.() || sharedDiverProfile?.getDefaultProfile?.() || {};
+                    this.isReadinessEditing = true;
+                    this.renderReadinessCard();
+                    return;
+                }
+
+                const cancelButton = event.target.closest('[data-readiness-cancel]');
+                if (cancelButton && this.readinessCard.contains(cancelButton)) {
+                    this.readinessDraft = null;
+                    this.isReadinessEditing = false;
+                    this.renderReadinessCard();
+                    return;
+                }
+
                 const certButton = event.target.closest('[data-readiness-cert]');
-                if (!certButton || !this.readinessCard.contains(certButton)) {
+                if (certButton && this.readinessCard.contains(certButton)) {
+                    const certificationLevel = certButton.dataset.readinessCert;
+                    const certificationOptions = sharedDiverProfile?.FIELD_OPTIONS?.certificationLevel || {};
+                    if (!certificationLevel || !Object.prototype.hasOwnProperty.call(certificationOptions, certificationLevel)) {
+                        return;
+                    }
+
+                    this.readinessDraft = {
+                        ...(this.readinessDraft || {}),
+                        certificationLevel
+                    };
+                    this.renderReadinessCard();
                     return;
                 }
 
-                const certificationLevel = certButton.dataset.readinessCert;
-                const certificationOptions = sharedDiverProfile?.FIELD_OPTIONS?.certificationLevel || {};
-                if (!certificationLevel || !Object.prototype.hasOwnProperty.call(certificationOptions, certificationLevel)) {
+                const recentButton = event.target.closest('[data-readiness-recent]');
+                if (recentButton && this.readinessCard.contains(recentButton)) {
+                    const recentDiveState = recentButton.dataset.readinessRecent;
+                    const recentOptions = sharedDiverProfile?.FIELD_OPTIONS?.recentDiveState || {};
+                    if (!recentDiveState || !Object.prototype.hasOwnProperty.call(recentOptions, recentDiveState)) {
+                        return;
+                    }
+
+                    this.readinessDraft = {
+                        ...(this.readinessDraft || {}),
+                        recentDiveState
+                    };
+                    this.renderReadinessCard();
                     return;
                 }
 
-                this.diverProfile = sharedDiverProfile.saveProfile({
-                    ...(sharedDiverProfile.getDefaultProfile?.() || {}),
-                    certificationLevel
-                });
-                this.renderReadinessCard();
-                this.renderItineraries();
-                this.syncBookingReadingGuide({ force: true, immediate: true });
+                const saveButton = event.target.closest('[data-readiness-save]');
+                if (saveButton && this.readinessCard.contains(saveButton)) {
+                    if (saveButton.disabled) {
+                        return;
+                    }
+
+                    const nextDraft = this.readinessDraft || {};
+                    if (!nextDraft.certificationLevel || !nextDraft.recentDiveState) {
+                        return;
+                    }
+
+                    this.diverProfile = sharedDiverProfile.saveProfile({
+                        ...(sharedDiverProfile.getDefaultProfile?.() || {}),
+                        ...(sharedDiverProfile.hasStoredProfile?.() ? sharedDiverProfile.getProfile?.() : {}),
+                        ...nextDraft
+                    });
+                    this.readinessDraft = null;
+                    this.isReadinessEditing = false;
+                    this.renderReadinessCard();
+                    this.runReadinessSettleMotion();
+                    this.renderItineraries();
+                    this.syncBookingReadingGuide({ force: true, immediate: true });
+                }
             });
         }
 
@@ -15171,6 +15455,37 @@ class DetailPage {
     }
 
     /**
+     * runSeaGuideDeferredRevealWork() - 将评论/档案 reveal 扫描从滚动帧中节流出来
+     * @param {Object} options - 执行配置
+     * @returns {void}
+     */
+    runSeaGuideDeferredRevealWork(options = {}) {
+        const force = Boolean(options.force);
+        const now = performance.now();
+        const minInterval = 120;
+
+        if (!force && now - this.seaGuideDeferredRevealLastAt < minInterval) {
+            if (!this.seaGuideDeferredRevealTimer) {
+                const waitMs = Math.max(24, minInterval - (now - this.seaGuideDeferredRevealLastAt));
+                this.seaGuideDeferredRevealTimer = window.setTimeout(() => {
+                    this.seaGuideDeferredRevealTimer = 0;
+                    this.runSeaGuideDeferredRevealWork({ force: true });
+                }, waitMs);
+            }
+            return;
+        }
+
+        this.seaGuideDeferredRevealLastAt = now;
+        this.scheduleIntroCardShellReveal();
+        this.scheduleIntroCardContentReveal();
+        this.scheduleReviewCardShellReveal();
+        if (!this.reviewGalleryPhotoObserver) {
+            this.revealReviewGalleryPhotos();
+        }
+        this.scheduleReviewCardContentReveal();
+    }
+
+    /**
      * updateSeaGuideState() - 同步海图导览的显隐、深层状态和当前区块高亮
      * @returns {void} - 无返回值，直接更新导览状态
      */
@@ -15179,11 +15494,7 @@ class DetailPage {
         this.syncBookingCopyDepthState();
         this.syncBookingStickyScrollWithReading();
         this.syncPackageSelectionFromCurrentReview();
-        this.scheduleIntroCardShellReveal();
-        this.scheduleIntroCardContentReveal();
-        this.scheduleReviewCardShellReveal();
-        this.revealReviewGalleryPhotos();
-        this.scheduleReviewCardContentReveal();
+        this.runSeaGuideDeferredRevealWork();
 
         if (!this.seaGuide || !this.seaGuideEntries.length) {
             return;
@@ -15194,15 +15505,25 @@ class DetailPage {
         const isDeep = scrollTop > Math.max(window.innerHeight * 0.85, 760);
         const currentKey = this.getCurrentSeaGuideKey();
 
-        this.seaGuide.classList.toggle('is-visible', isVisible);
-        this.seaGuide.classList.toggle('is-deep', isDeep);
-        this.seaGuide.setAttribute('aria-hidden', String(!isVisible));
+        if (this.seaGuideLastVisible !== isVisible) {
+            this.seaGuide.classList.toggle('is-visible', isVisible);
+            this.seaGuide.setAttribute('aria-hidden', String(!isVisible));
+            this.seaGuideLastVisible = isVisible;
+        }
 
-        this.seaGuideEntries.forEach((entry) => {
-            const isCurrent = entry.dataset.key === currentKey;
-            entry.classList.toggle('is-current', isCurrent);
-            entry.setAttribute('aria-current', isCurrent ? 'true' : 'false');
-        });
+        if (this.seaGuideLastDeep !== isDeep) {
+            this.seaGuide.classList.toggle('is-deep', isDeep);
+            this.seaGuideLastDeep = isDeep;
+        }
+
+        if (this.seaGuideLastCurrentKey !== currentKey) {
+            this.seaGuideEntries.forEach((entry) => {
+                const isCurrent = entry.dataset.key === currentKey;
+                entry.classList.toggle('is-current', isCurrent);
+                entry.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+            });
+            this.seaGuideLastCurrentKey = currentKey;
+        }
     }
 
     /**
