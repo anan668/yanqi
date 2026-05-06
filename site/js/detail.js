@@ -1436,6 +1436,31 @@ const HOME_DIVE_MATCH_LINK_MAP = Object.freeze({
     '进阶海况': 'advanced-conditions'
 });
 
+const SEA_ATLAS_WAYPOINT_LABEL_PRESETS = Object.freeze({
+    sipadan: ['Barracuda Point', 'Turtle Patch', 'Coral Garden', 'Hanging Gardens', 'Whitetip Avenue'],
+    palau: ['Blue Corner', 'Dropoff Shelf', 'Current Gate', 'Blue Window', 'Shark Bend'],
+    'blue-hole': ['Great Blue Hole', 'Cathedral Rim', 'Stalactite Shelf', 'Reef Ring', 'Outer Blue Edge'],
+    timor: ['Atauro Reef', 'Coral Step', 'Turtle Pass', 'Blue Ridge', 'Drift Shelf'],
+    pohnpei: ['Manta Road', 'Lagoon Shelf', 'Coral Garden', 'Blue Entry', 'Drift Window'],
+    bunaken: ['Lekuan Wall', 'Turtle Terrace', 'Coral Shelf', 'Blue Edge', 'Dropoff Bend'],
+    komodo: ['Batu Bolong', 'Current Gate', 'Manta Lane', 'Coral Ridge', 'Blue Channel'],
+    tuamotu: ['Tiputa Pass', 'Channel Edge', 'Blue Window', 'Shark Line', 'Reef Shelf'],
+    mabul: ['Mabul House Reef', 'Jetty Garden', 'Coral Patch', 'Blue Step', 'Night Drift'],
+    'maldives-liveaboard': ['Maaya Thila', 'Atoll Pass', 'Blue Channel', 'Manta Ridge', 'Shark Shelf'],
+    coron: ['Skeleton Wreck', 'Cargo Hold', 'Jetty Drop', 'Coral Slip', 'Bay Echo'],
+    bohol: ['Balicasag Wall', 'Turtle Plateau', 'Coral Shelf', 'Blue Entry', 'Dropoff Bend'],
+    racha: ['Racha Yai Bay', 'Coral Garden', 'White Sand Line', 'Blue Edge', 'Training Shelf'],
+    redang: ['Redang Reef Line', 'Lagoon Patch', 'Coral Slope', 'Blue Passage', 'Turtle Line']
+});
+
+const SEA_ATLAS_PREVIEW_MARKER_POSITIONS = Object.freeze([
+    Object.freeze({ left: '16%', top: '64%' }),
+    Object.freeze({ left: '32%', top: '48%' }),
+    Object.freeze({ left: '48%', top: '60%' }),
+    Object.freeze({ left: '66%', top: '40%' }),
+    Object.freeze({ left: '82%', top: '54%' })
+]);
+
 /**
  * buildHomeDiveMatchUrl(matchKey) - 构建跳回首页潜水匹配模块的目标地址
  * @param {string} matchKey - 首页匹配分类键名
@@ -5966,7 +5991,7 @@ class DetailPage {
         });
 
         return `
-            <div class="sea-atlas-shell" id="seaAtlasShell">
+            <div class="sea-atlas-shell" id="seaAtlasShell" data-atlas-stage="holding">
                 <div class="sea-atlas-resize-layer" aria-hidden="true">
                     <button type="button" class="sea-atlas-resize-handle is-east" data-sea-atlas-resize="e" tabindex="-1" aria-hidden="true"></button>
                     <button type="button" class="sea-atlas-resize-handle is-south" data-sea-atlas-resize="s" tabindex="-1" aria-hidden="true"></button>
@@ -6130,15 +6155,22 @@ class DetailPage {
         `;
     }
 
-    createSeaAtlasStageMarkup({ fullscreen = false } = {}) {
+    createSeaAtlasStageMarkup({
+        fullscreen = false,
+        atlas = this.seaAtlasCurrentAtlasData,
+        mapData = this.seaAtlasCurrentMapData
+    } = {}) {
         return `
-            <div class="sea-atlas-map is-live-map${fullscreen ? ' is-fullscreen' : ''}" data-sea-atlas-map-stage>
+            <div class="sea-atlas-map is-live-map${fullscreen ? ' is-fullscreen' : ''}" data-sea-atlas-map-stage data-map-stage-state="loading">
                 <div class="sea-atlas-map-base" data-sea-atlas-map-base>
                     <div class="sea-atlas-map-canvas" data-sea-atlas-map-canvas></div>
                     <div class="sea-atlas-map-tint" aria-hidden="true"></div>
                     <div class="sea-atlas-map-fog" aria-hidden="true"></div>
                     <div class="sea-atlas-map-currents" aria-hidden="true"></div>
                     <div class="sea-atlas-map-vignette" aria-hidden="true"></div>
+                    <div class="sea-atlas-loading-state" data-sea-atlas-loading-state>
+                        ${this.createSeaAtlasLoadingStateMarkup(atlas, mapData)}
+                    </div>
                     <div class="sea-atlas-map-fallback" data-sea-atlas-fallback hidden></div>
                 </div>
                 <div class="sea-atlas-route-overlay" data-sea-atlas-route-overlay aria-hidden="true">
@@ -6165,6 +6197,7 @@ class DetailPage {
         this.seaAtlasMapBase = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-map-base]') || null;
         this.seaAtlasRouteOverlay = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-route-overlay]') || null;
         this.seaAtlasInfoRoot = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-info-root]') || null;
+        this.seaAtlasLoadingState = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-loading-state]') || null;
         this.seaAtlasFallback = this.seaAtlasMapMount?.querySelector('[data-sea-atlas-fallback]') || null;
         return this.seaAtlasMapMount;
     }
@@ -6182,6 +6215,7 @@ class DetailPage {
         this.seaAtlasFullscreenMapBase = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-map-base]') || null;
         this.seaAtlasFullscreenRouteOverlay = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-route-overlay]') || null;
         this.seaAtlasFullscreenInfoRoot = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-info-root]') || null;
+        this.seaAtlasFullscreenLoadingState = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-loading-state]') || null;
         this.seaAtlasFullscreenFallback = this.seaAtlasFullscreenMapMount?.querySelector('[data-sea-atlas-fallback]') || null;
         return this.seaAtlasFullscreenMapMount;
     }
@@ -6284,6 +6318,110 @@ class DetailPage {
         this.syncSeaAtlasResetButtonState('fullscreen');
     }
 
+    getSeaAtlasVisibilityLabel() {
+        return this.spotData?.features?.weather?.visibility
+            || this.seaAtlasCurrentMapData?.visibility
+            || '15-30m';
+    }
+
+    getSeaAtlasClusterLabels(mapData = this.seaAtlasCurrentMapData) {
+        const presetKey = String(mapData?.key || this.spotData?.map?.key || this.spotData?.key || '').trim();
+        const presetLabels = SEA_ATLAS_WAYPOINT_LABEL_PRESETS[presetKey] || [];
+        const mainLabel = mapData?.spotLabel || this.spotData?.name || '';
+        return [mainLabel, ...presetLabels]
+            .filter(Boolean)
+            .filter((label, index, labels) => labels.indexOf(label) === index)
+            .slice(0, 5);
+    }
+
+    getSeaAtlasClusterSummary(mapData = this.seaAtlasCurrentMapData) {
+        const clusterLabels = this.getSeaAtlasClusterLabels(mapData).slice(0, SEA_ATLAS_PREVIEW_MARKER_POSITIONS.length);
+        return clusterLabels.length > 1
+            ? `${clusterLabels[0]} 等 ${clusterLabels.length} 个点位`
+            : (clusterLabels[0] || mapData?.spotLabel || this.spotData?.name || '当前潜点');
+    }
+
+    getSeaAtlasClusterMarkers(mapData = this.seaAtlasCurrentMapData) {
+        if (
+            !mapData
+            || !Array.isArray(mapData.spotCoords)
+            || mapData.spotCoords.length < 2
+            || !Array.isArray(mapData.mapBounds)
+            || mapData.mapBounds.length !== 2
+        ) {
+            return [];
+        }
+
+        const [[south, west], [north, east]] = mapData.mapBounds;
+        if (![south, west, north, east].every((value) => Number.isFinite(Number(value)))) {
+            return [];
+        }
+
+        const [spotLat, spotLng] = mapData.spotCoords;
+        const latitudeSpan = north - south;
+        const longitudeSpan = east - west;
+        const labels = this.getSeaAtlasClusterLabels(mapData).slice(1, 5);
+
+        return labels.map((label, index) => {
+            const previewPosition = SEA_ATLAS_PREVIEW_MARKER_POSITIONS[index + 1] || SEA_ATLAS_PREVIEW_MARKER_POSITIONS[index] || SEA_ATLAS_PREVIEW_MARKER_POSITIONS[0];
+            const normalizedLeft = ((parseFloat(previewPosition.left) / 100) - 0.5) * 2;
+            const normalizedTop = (0.5 - (parseFloat(previewPosition.top) / 100)) * 2;
+            return {
+                label,
+                coords: [
+                    spotLat + (latitudeSpan * 0.12 * normalizedTop),
+                    spotLng + (longitudeSpan * 0.12 * normalizedLeft)
+                ]
+            };
+        });
+    }
+
+    createSeaAtlasLoadingStateMarkup(atlas = this.seaAtlasCurrentAtlasData, mapData = this.seaAtlasCurrentMapData) {
+        const depthLayerLabel = mapData?.depthRange || atlas?.depth || '12-25m';
+        const visibilityLabel = this.getSeaAtlasVisibilityLabel();
+        const regionLabel = mapData?.regionTag
+            || [atlas?.country, atlas?.sea].filter(Boolean).join(' · ')
+            || this.spotData?.mapLocation
+            || '当前海域';
+        const clusterLabels = this.getSeaAtlasClusterLabels(mapData).slice(0, SEA_ATLAS_PREVIEW_MARKER_POSITIONS.length);
+
+        return `
+            <div class="sea-atlas-loading-copy">
+                <p class="sea-atlas-loading-kicker">SEA ATLAS</p>
+                <h4 class="sea-atlas-loading-title">海图正在慢慢浮现</h4>
+                <p class="sea-atlas-loading-text">正在同步海图剖面、潜点位置与靠近路线...</p>
+            </div>
+            <div class="sea-atlas-loading-board" aria-hidden="true">
+                <span class="sea-atlas-loading-grid"></span>
+                <span class="sea-atlas-loading-contour is-primary"></span>
+                <span class="sea-atlas-loading-contour is-secondary"></span>
+                <span class="sea-atlas-loading-route"></span>
+                <span class="sea-atlas-loading-scan"></span>
+                <span class="sea-atlas-loading-ring is-outer"></span>
+                <span class="sea-atlas-loading-ring is-mid"></span>
+                <span class="sea-atlas-loading-ring is-inner"></span>
+                ${clusterLabels.map((label, index) => {
+                    const markerPosition = SEA_ATLAS_PREVIEW_MARKER_POSITIONS[index] || SEA_ATLAS_PREVIEW_MARKER_POSITIONS[0];
+                    return `
+                        <span
+                            class="sea-atlas-loading-marker${index === 0 ? ' is-primary' : ''}"
+                            style="--sea-preview-left:${markerPosition.left}; --sea-preview-top:${markerPosition.top};"
+                        >
+                            <em></em>
+                            <strong>${escapeHtml(label)}</strong>
+                        </span>
+                    `;
+                }).join('')}
+            </div>
+            <div class="sea-atlas-loading-meta">
+                <span class="sea-atlas-loading-pill">Sea Layer 02</span>
+                <span class="sea-atlas-loading-pill">深度层：${escapeHtml(depthLayerLabel)}</span>
+                <span class="sea-atlas-loading-pill">能见度：${escapeHtml(visibilityLabel)}</span>
+            </div>
+            <p class="sea-atlas-loading-region">${escapeHtml(regionLabel)}</p>
+        `.trim();
+    }
+
     getSeaRouteStageNodes(layout, atlas = this.seaAtlasCurrentAtlasData, mapData = this.seaAtlasCurrentMapData) {
         const route = atlas?.route || {};
         const spotLabel = mapData?.spotLabel || this.spotData.name;
@@ -6380,7 +6518,9 @@ class DetailPage {
 
         const portCardVisible = target === 'fullscreen'
             ? this.seaAtlasFullscreenPortCardVisible
-            : this.seaAtlasPortCardVisible;
+            : true;
+        const visibilityLabel = this.getSeaAtlasVisibilityLabel();
+        const clusterSummary = this.getSeaAtlasClusterSummary(mapData);
 
         if (kind === 'port') {
             return `
@@ -6391,6 +6531,14 @@ class DetailPage {
                         <span class="sea-atlas-info-pill">${mapData.regionTag}</span>
                     </div>
                     <p class="sea-atlas-info-route">${mapData.routeLabel}</p>
+                    <button
+                        type="button"
+                        class="sea-atlas-info-action"
+                        data-sea-atlas-view-shortcut="underwater"
+                        aria-label="切换到 Sea Atlas 水下剖面视图"
+                    >
+                        查看剖面
+                    </button>
                 </article>
             `;
         }
@@ -6403,6 +6551,12 @@ class DetailPage {
                     <span class="sea-atlas-info-pill">${mapData.seasonLabel}</span>
                 </div>
                 <p class="sea-atlas-info-route">${mapData.routeLabel}</p>
+                <div class="sea-atlas-info-legend" aria-label="Sea Atlas 图例摘要">
+                    <span class="sea-atlas-info-chip is-legend">图例</span>
+                    <span class="sea-atlas-info-chip">Sea Layer 02</span>
+                    <span class="sea-atlas-info-chip">能见度：${visibilityLabel}</span>
+                </div>
+                <p class="sea-atlas-info-caption">${escapeHtml(clusterSummary)}</p>
             </article>
         `;
     }
@@ -6419,10 +6573,41 @@ class DetailPage {
             : this.seaAtlasFallback;
     }
 
+    getSeaAtlasLoadingStateNode(target = 'inline') {
+        return target === 'fullscreen'
+            ? this.seaAtlasFullscreenLoadingState
+            : this.seaAtlasLoadingState;
+    }
+
     getSeaAtlasMountNode(target = 'inline') {
         return target === 'fullscreen'
             ? this.seaAtlasFullscreenMapMount
             : this.seaAtlasMapMount;
+    }
+
+    syncSeaAtlasLoadingStateMarkup(target = 'inline') {
+        const loadingNode = this.getSeaAtlasLoadingStateNode(target);
+        if (!loadingNode) {
+            return;
+        }
+
+        loadingNode.innerHTML = this.createSeaAtlasLoadingStateMarkup(
+            this.seaAtlasCurrentAtlasData,
+            this.seaAtlasCurrentMapData
+        );
+    }
+
+    setSeaAtlasStageState(state = 'loading', target = 'inline') {
+        const mount = this.getSeaAtlasMountNode(target);
+        const nextState = ['loading', 'ready', 'fallback'].includes(state) ? state : 'loading';
+        if (!mount) {
+            return;
+        }
+
+        mount.dataset.mapStageState = nextState;
+        mount.classList.toggle('is-map-loading', nextState === 'loading');
+        mount.classList.toggle('is-map-ready', nextState === 'ready');
+        mount.classList.toggle('is-map-fallback', nextState === 'fallback');
     }
 
     getSeaAtlasBaseNode(target = 'inline') {
@@ -6518,7 +6703,9 @@ class DetailPage {
     }
 
     setSeaAtlasPortCardVisible(isVisible, target = 'inline') {
-        const visible = Boolean(isVisible);
+        const visible = target === 'fullscreen'
+            ? Boolean(isVisible)
+            : true;
         const card = target === 'fullscreen'
             ? this.seaAtlasFullscreenPortCard
             : this.seaAtlasPortCard;
@@ -6541,11 +6728,12 @@ class DetailPage {
 
     createSeaAtlasMarkerIcon(kind, label, isActive = false) {
         const isSpot = kind === 'spot';
-        const size = isSpot ? 56 : 44;
+        const isWaypoint = kind === 'waypoint';
+        const size = isSpot ? 56 : isWaypoint ? 40 : 44;
         return window.L.divIcon({
             className: `sea-atlas-marker-shell is-${kind}`,
             html: `
-                <div class="sea-atlas-marker is-${kind}${isActive ? ' is-active' : ''}" style="--sea-marker-delay:${isSpot ? 320 : 180}ms;">
+                <div class="sea-atlas-marker is-${kind}${isActive ? ' is-active' : ''}" style="--sea-marker-delay:${isSpot ? 320 : isWaypoint ? 240 : 180}ms;">
                     <span class="sea-atlas-marker-label">${escapeHtml(label)}</span>
                 </div>
             `,
@@ -6567,13 +6755,21 @@ class DetailPage {
             keyboard: false,
             riseOnHover: false
         };
+        const waypointMarkers = this.getSeaAtlasClusterMarkers(mapData).map((markerData) => window.L.marker(markerData.coords, {
+            ...markerOptions,
+            interactive: false,
+            zIndexOffset: 520,
+            icon: this.createSeaAtlasMarkerIcon('waypoint', markerData.label, false)
+        }));
 
         const spotMarker = window.L.marker(mapData.spotCoords, {
             ...markerOptions,
+            zIndexOffset: 760,
             icon: this.createSeaAtlasMarkerIcon('spot', mapData.spotLabel || this.spotData.name, true)
         });
         const portMarker = window.L.marker(mapData.portCoords, {
             ...markerOptions,
+            zIndexOffset: 640,
             icon: this.createSeaAtlasMarkerIcon('port', mapData.portLabel || 'Departure', false)
         });
 
@@ -6587,15 +6783,18 @@ class DetailPage {
         });
         spotMarker.on('click', () => this.setSeaAtlasPortCardVisible(false, target));
 
+        waypointMarkers.forEach((marker) => marker.addTo(markerLayer));
         spotMarker.addTo(markerLayer);
         portMarker.addTo(markerLayer);
 
         if (target === 'fullscreen') {
+            this.seaAtlasFullscreenWaypointMarkers = waypointMarkers;
             this.seaAtlasFullscreenSpotMarker = spotMarker;
             this.seaAtlasFullscreenPortMarker = portMarker;
             return;
         }
 
+        this.seaAtlasWaypointMarkers = waypointMarkers;
         this.seaAtlasSpotMarker = spotMarker;
         this.seaAtlasPortMarker = portMarker;
     }
@@ -6626,28 +6825,60 @@ class DetailPage {
         }
 
         const mapData = this.seaAtlasCurrentMapData;
-        let fallbackCopy = `离线海图暂时没有完整显现，但你仍可以先记住 ${mapData?.regionTag || this.spotData.mapLocation || '当前海域'}、${mapData?.portLabel || '出发码头'}，以及 ${mapData?.routeLabel || '这一程的靠近方式'}。`;
+        const fallbackLabels = this.getSeaAtlasClusterLabels(mapData).slice(0, 3);
+        const visibilityLabel = this.getSeaAtlasVisibilityLabel();
+        let fallbackTitle = '暂无完整海图';
+        let fallbackCopy = `正在等待这片海的下一次记录。你仍可以先记住 ${mapData?.regionTag || this.spotData.mapLocation || '当前海域'}、${mapData?.portLabel || '出发码头'}，以及 ${mapData?.routeLabel || '这一程的靠近方式'}。`;
         if (reason === 'missing') {
-            fallbackCopy = `当前海域的离线海图包还没有随项目一起打包，底图因此没有完整显现。你仍可以先阅读 ${mapData?.regionTag || this.spotData.mapLocation || '这片海'}、${mapData?.portLabel || '出发码头'} 与 ${mapData?.routeLabel || '靠近方式'}。`;
+            fallbackCopy = `当前海域的离线海图包还没有随项目一起打包，底图因此没有完整显现。先沿海域档案记住 ${mapData?.regionTag || this.spotData.mapLocation || '这片海'}、${mapData?.portLabel || '出发码头'} 与 ${mapData?.routeLabel || '靠近方式'}。`;
         } else if (reason === 'path') {
             fallbackCopy = `离线海图包路径没有对上，底图暂时无法显现。请检查 ${mapData?.offlineTilePack || '当前海图包路径'} 是否存在。`;
         } else if (reason === 'init') {
+            fallbackTitle = 'SEA ATLAS 正在重新对齐';
             fallbackCopy = '海图舞台正在重新整理，稍后会把这片海的位置重新显现出来。';
         }
 
         fallbackNode.hidden = false;
         fallbackNode.innerHTML = `
-            <p class="sea-atlas-map-fallback-title">这片海暂时没有完整显影</p>
-            <p class="sea-atlas-map-fallback-copy">${fallbackCopy}</p>
+            <div class="sea-atlas-map-fallback-board" aria-hidden="true">
+                <span class="sea-atlas-map-fallback-shore is-main"></span>
+                <span class="sea-atlas-map-fallback-shore is-secondary"></span>
+                <span class="sea-atlas-map-fallback-route"></span>
+                <span class="sea-atlas-map-fallback-ping"></span>
+            </div>
+            <div class="sea-atlas-map-fallback-copy-wrap">
+                <p class="sea-atlas-map-fallback-eyebrow">SEA ATLAS</p>
+                <p class="sea-atlas-map-fallback-title">${fallbackTitle}</p>
+                <p class="sea-atlas-map-fallback-copy">${fallbackCopy}</p>
+            </div>
+            <div class="sea-atlas-map-fallback-meta">
+                <span class="sea-atlas-map-fallback-pill">Sea Layer 02</span>
+                <span class="sea-atlas-map-fallback-pill">深度层：${escapeHtml(mapData?.depthRange || this.seaAtlasCurrentAtlasData?.depth || '12-25m')}</span>
+                <span class="sea-atlas-map-fallback-pill">能见度：${escapeHtml(visibilityLabel)}</span>
+                ${fallbackLabels.map((label) => `<span class="sea-atlas-map-fallback-pill">${escapeHtml(label)}</span>`).join('')}
+            </div>
+            <div class="sea-atlas-map-fallback-actions">
+                <button
+                    type="button"
+                    class="sea-atlas-map-fallback-action"
+                    data-sea-atlas-reset-view
+                    data-sea-atlas-target="${target}"
+                >
+                    重新拾取
+                </button>
+                <a href="#spotOverview" class="sea-atlas-map-fallback-action is-link">查看海域档案</a>
+            </div>
         `;
 
         if (infoRoot) {
             infoRoot.hidden = true;
         }
+        this.setSeaAtlasStageState('fallback', target);
         mount?.classList.add('is-fallback-active');
     }
 
-    hideSeaAtlasFallback(target = 'inline') {
+    hideSeaAtlasFallback(target = 'inline', options = {}) {
+        const { preserveStageState = false } = options;
         const fallbackNode = this.getSeaAtlasFallbackNode(target);
         const infoRoot = this.getSeaAtlasInfoRoot(target);
         const mount = this.getSeaAtlasMountNode(target);
@@ -6660,12 +6891,17 @@ class DetailPage {
         if (infoRoot) {
             infoRoot.hidden = false;
         }
+        if (!preserveStageState) {
+            this.setSeaAtlasStageState('ready', target);
+        }
         mount?.classList.remove('is-fallback-active');
     }
 
     syncSeaAtlasTileLayerForSpot(target = 'inline') {
         const map = this.getSeaAtlasMapInstance(target);
         const mapData = this.seaAtlasCurrentMapData;
+        this.syncSeaAtlasLoadingStateMarkup(target);
+        this.setSeaAtlasStageState('loading', target);
         if (!map || !window.L) {
             this.showSeaAtlasFallback('init', target);
             return false;
@@ -6686,6 +6922,10 @@ class DetailPage {
             : this.seaAtlasTileLayer;
 
         if (tileLayer && activeTemplate === nextTemplate) {
+            this.hideSeaAtlasFallback(target, {
+                preserveStageState: true
+            });
+            this.setSeaAtlasStageState('ready', target);
             return true;
         }
 
@@ -6788,6 +7028,8 @@ class DetailPage {
         if (target === 'inline') {
             this.syncSeaAtlasMapStageCopy();
         }
+        this.syncSeaAtlasLoadingStateMarkup(target);
+        this.setSeaAtlasStageState('loading', target);
 
         if (!mount || !this.seaAtlasCurrentMapData) {
             this.showSeaAtlasFallback('init', target);
@@ -6891,7 +7133,7 @@ class DetailPage {
         }
 
         card.style.left = `${inset}px`;
-        card.style.bottom = `${inset}px`;
+        card.style.top = `${inset}px`;
     }
 
     buildSeaAtlasRoutePath(routePoints, controlPoint = null) {
@@ -7283,7 +7525,11 @@ class DetailPage {
             this.seaAtlasTileErrorCount = 0;
         }
 
-        this.hideSeaAtlasFallback(target);
+        this.syncSeaAtlasLoadingStateMarkup(target);
+        this.setSeaAtlasStageState('loading', target);
+        this.hideSeaAtlasFallback(target, {
+            preserveStageState: true
+        });
         this.syncSeaAtlasTileLayerForSpot(target);
         this.setSeaAtlasPortCardVisible(false, target);
         this.updateSeaAtlasMarkers(target);
@@ -8035,6 +8281,8 @@ class DetailPage {
         this.bindSeaAtlasControls();
         this.attachSeaAtlasMapMount();
         this.attachSeaRouteBoardMount();
+        this.syncSeaAtlasLoadingStateMarkup('inline');
+        this.setSeaAtlasStageState('loading', 'inline');
         this.renderSeaRouteStageLayout();
         this.syncSeaAtlasMapStageCopy();
         this.renderSeaAtlasInfoCards('inline');
@@ -8885,7 +9133,7 @@ class DetailPage {
         }
 
         const measuredHeight = Math.ceil(this.itineraryList.scrollHeight || 0);
-        const safeHeight = Math.max(measuredHeight + 32, 480);
+        const safeHeight = Math.max(measuredHeight + 84, 560);
         this.itineraryList.style.setProperty('--booking-itinerary-list-open-height', `${safeHeight}px`);
         this.measureBookingStickyFocusContextShift();
     }
@@ -14715,6 +14963,13 @@ class DetailPage {
             this.mapContainer.addEventListener('click', (event) => {
                 const tabButton = event.target.closest('.sea-atlas-tab');
                 if (!tabButton) {
+                    const shortcutButton = event.target.closest('[data-sea-atlas-view-shortcut]');
+                    if (shortcutButton) {
+                        event.preventDefault();
+                        this.setSeaAtlasView(shortcutButton.dataset.seaAtlasViewShortcut);
+                        return;
+                    }
+
                     const resetViewButton = event.target.closest('[data-sea-atlas-reset-view]');
                     if (resetViewButton) {
                         event.preventDefault();
@@ -14742,6 +14997,13 @@ class DetailPage {
                 if (closeButton) {
                     event.preventDefault();
                     this.closeSeaAtlasFullscreen();
+                    return;
+                }
+
+                const shortcutButton = event.target.closest('[data-sea-atlas-view-shortcut]');
+                if (shortcutButton) {
+                    event.preventDefault();
+                    this.setSeaAtlasView(shortcutButton.dataset.seaAtlasViewShortcut);
                     return;
                 }
 

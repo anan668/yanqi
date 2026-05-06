@@ -1761,6 +1761,720 @@ const todaySeaBriefData = Object.freeze({
     }
 });
 
+const todaySeaMapletStates = Object.freeze({
+    1: Object.freeze({
+        key: 'sipadan',
+        bearing: 'NE',
+        mainX: '70%',
+        mainY: '31%',
+        subX: '54%',
+        subY: '45%',
+        originX: '30%',
+        originY: '72%',
+        routeX: '28%',
+        routeY: '55%',
+        routeW: '48%',
+        routeH: '30%',
+        routeRotate: '-28deg',
+        coastX: '-10%',
+        coastY: '-4%',
+        coastRotate: '6deg',
+        coastScale: '0.96',
+        coastOpacity: '0.92',
+        islandX: '60%',
+        islandY: '37%',
+        islandSmallX: '76%',
+        islandSmallY: '49%',
+        glowX: '72%',
+        glowY: '24%',
+        shadowX: '32%',
+        shadowY: '78%',
+        gridX: '2px',
+        gridY: '0px',
+        outerRotate: '-22deg',
+        innerRotate: '-28deg',
+        shelfRotate: '22deg'
+    }),
+    2: Object.freeze({
+        key: 'palau',
+        bearing: 'E',
+        mainX: '62%',
+        mainY: '28%',
+        subX: '76%',
+        subY: '43%',
+        originX: '28%',
+        originY: '61%',
+        routeX: '29%',
+        routeY: '49%',
+        routeW: '50%',
+        routeH: '26%',
+        routeRotate: '-12deg',
+        coastX: '2%',
+        coastY: '-10%',
+        coastRotate: '-14deg',
+        coastScale: '0.86',
+        coastOpacity: '0.78',
+        islandX: '48%',
+        islandY: '31%',
+        islandSmallX: '70%',
+        islandSmallY: '38%',
+        glowX: '64%',
+        glowY: '24%',
+        shadowX: '20%',
+        shadowY: '70%',
+        gridX: '7px',
+        gridY: '3px',
+        outerRotate: '-10deg',
+        innerRotate: '-18deg',
+        shelfRotate: '34deg'
+    }),
+    3: Object.freeze({
+        key: 'belize',
+        bearing: 'NW',
+        mainX: '52%',
+        mainY: '49%',
+        subX: '67%',
+        subY: '34%',
+        originX: '27%',
+        originY: '76%',
+        routeX: '24%',
+        routeY: '61%',
+        routeW: '45%',
+        routeH: '32%',
+        routeRotate: '-38deg',
+        coastX: '-15%',
+        coastY: '10%',
+        coastRotate: '18deg',
+        coastScale: '0.78',
+        coastOpacity: '0.56',
+        islandX: '54%',
+        islandY: '48%',
+        islandSmallX: '67%',
+        islandSmallY: '30%',
+        glowX: '52%',
+        glowY: '48%',
+        shadowX: '22%',
+        shadowY: '86%',
+        gridX: '0px',
+        gridY: '8px',
+        outerRotate: '-35deg',
+        innerRotate: '-42deg',
+        shelfRotate: '12deg'
+    }),
+    4: Object.freeze({
+        key: 'alor',
+        bearing: 'SE',
+        mainX: '66%',
+        mainY: '62%',
+        subX: '45%',
+        subY: '48%',
+        originX: '25%',
+        originY: '30%',
+        routeX: '25%',
+        routeY: '43%',
+        routeW: '54%',
+        routeH: '34%',
+        routeRotate: '20deg',
+        coastX: '-18%',
+        coastY: '32%',
+        coastRotate: '-6deg',
+        coastScale: '0.82',
+        coastOpacity: '0.7',
+        islandX: '58%',
+        islandY: '56%',
+        islandSmallX: '40%',
+        islandSmallY: '42%',
+        glowX: '66%',
+        glowY: '62%',
+        shadowX: '24%',
+        shadowY: '30%',
+        gridX: '5px',
+        gridY: '10px',
+        outerRotate: '9deg',
+        innerRotate: '2deg',
+        shelfRotate: '46deg'
+    }),
+    5: Object.freeze({
+        key: 'lembeh',
+        bearing: 'N',
+        mainX: '43%',
+        mainY: '59%',
+        subX: '60%',
+        subY: '70%',
+        originX: '31%',
+        originY: '32%',
+        routeX: '27%',
+        routeY: '46%',
+        routeW: '43%',
+        routeH: '37%',
+        routeRotate: '34deg',
+        coastX: '-4%',
+        coastY: '4%',
+        coastRotate: '8deg',
+        coastScale: '0.9',
+        coastOpacity: '0.86',
+        islandX: '42%',
+        islandY: '58%',
+        islandSmallX: '60%',
+        islandSmallY: '70%',
+        glowX: '44%',
+        glowY: '61%',
+        shadowX: '76%',
+        shadowY: '20%',
+        gridX: '10px',
+        gridY: '2px',
+        outerRotate: '-5deg',
+        innerRotate: '-10deg',
+        shelfRotate: '58deg'
+    }),
+    6: Object.freeze({
+        key: 'bunaken',
+        bearing: 'NE',
+        mainX: '73%',
+        mainY: '43%',
+        subX: '55%',
+        subY: '30%',
+        originX: '28%',
+        originY: '67%',
+        routeX: '26%',
+        routeY: '55%',
+        routeW: '52%',
+        routeH: '24%',
+        routeRotate: '-20deg',
+        coastX: '-12%',
+        coastY: '-8%',
+        coastRotate: '2deg',
+        coastScale: '1',
+        coastOpacity: '0.9',
+        islandX: '70%',
+        islandY: '42%',
+        islandSmallX: '54%',
+        islandSmallY: '31%',
+        glowX: '74%',
+        glowY: '42%',
+        shadowX: '24%',
+        shadowY: '72%',
+        gridX: '4px',
+        gridY: '6px',
+        outerRotate: '-18deg',
+        innerRotate: '-30deg',
+        shelfRotate: '20deg'
+    }),
+    7: Object.freeze({
+        key: 'komodo',
+        bearing: 'SW',
+        mainX: '58%',
+        mainY: '70%',
+        subX: '74%',
+        subY: '54%',
+        originX: '29%',
+        originY: '35%',
+        routeX: '26%',
+        routeY: '46%',
+        routeW: '52%',
+        routeH: '38%',
+        routeRotate: '28deg',
+        coastX: '0%',
+        coastY: '24%',
+        coastRotate: '-22deg',
+        coastScale: '0.9',
+        coastOpacity: '0.74',
+        islandX: '58%',
+        islandY: '68%',
+        islandSmallX: '75%',
+        islandSmallY: '53%',
+        glowX: '58%',
+        glowY: '68%',
+        shadowX: '18%',
+        shadowY: '26%',
+        gridX: '9px',
+        gridY: '9px',
+        outerRotate: '12deg',
+        innerRotate: '4deg',
+        shelfRotate: '64deg'
+    }),
+    8: Object.freeze({
+        key: 'rangiroa',
+        bearing: 'W',
+        mainX: '49%',
+        mainY: '35%',
+        subX: '69%',
+        subY: '56%',
+        originX: '24%',
+        originY: '59%',
+        routeX: '23%',
+        routeY: '48%',
+        routeW: '54%',
+        routeH: '24%',
+        routeRotate: '-4deg',
+        coastX: '-20%',
+        coastY: '52%',
+        coastRotate: '28deg',
+        coastScale: '0.66',
+        coastOpacity: '0.42',
+        islandX: '50%',
+        islandY: '34%',
+        islandSmallX: '69%',
+        islandSmallY: '57%',
+        glowX: '50%',
+        glowY: '34%',
+        shadowX: '78%',
+        shadowY: '76%',
+        gridX: '3px',
+        gridY: '12px',
+        outerRotate: '-45deg',
+        innerRotate: '-34deg',
+        shelfRotate: '6deg'
+    }),
+    9: Object.freeze({
+        key: 'mabul',
+        bearing: 'NE',
+        mainX: '61%',
+        mainY: '45%',
+        subX: '43%',
+        subY: '63%',
+        originX: '23%',
+        originY: '72%',
+        routeX: '22%',
+        routeY: '58%',
+        routeW: '50%',
+        routeH: '22%',
+        routeRotate: '-18deg',
+        coastX: '-7%',
+        coastY: '8%',
+        coastRotate: '10deg',
+        coastScale: '0.88',
+        coastOpacity: '0.84',
+        islandX: '61%',
+        islandY: '44%',
+        islandSmallX: '43%',
+        islandSmallY: '63%',
+        glowX: '61%',
+        glowY: '44%',
+        shadowX: '24%',
+        shadowY: '76%',
+        gridX: '8px',
+        gridY: '1px',
+        outerRotate: '-18deg',
+        innerRotate: '-24deg',
+        shelfRotate: '30deg'
+    }),
+    10: Object.freeze({
+        key: 'maldives',
+        bearing: 'S',
+        mainX: '55%',
+        mainY: '27%',
+        subX: '66%',
+        subY: '72%',
+        originX: '35%',
+        originY: '42%',
+        routeX: '34%',
+        routeY: '41%',
+        routeW: '36%',
+        routeH: '48%',
+        routeRotate: '66deg',
+        coastX: '-21%',
+        coastY: '-16%',
+        coastRotate: '0deg',
+        coastScale: '0.6',
+        coastOpacity: '0.32',
+        islandX: '55%',
+        islandY: '27%',
+        islandSmallX: '66%',
+        islandSmallY: '72%',
+        glowX: '56%',
+        glowY: '28%',
+        shadowX: '70%',
+        shadowY: '78%',
+        gridX: '0px',
+        gridY: '4px',
+        outerRotate: '-52deg',
+        innerRotate: '-46deg',
+        shelfRotate: '28deg'
+    }),
+    11: Object.freeze({
+        key: 'coron',
+        bearing: 'NW',
+        mainX: '39%',
+        mainY: '44%',
+        subX: '62%',
+        subY: '54%',
+        originX: '73%',
+        originY: '28%',
+        routeX: '37%',
+        routeY: '38%',
+        routeW: '42%',
+        routeH: '30%',
+        routeRotate: '148deg',
+        coastX: '58%',
+        coastY: '-2%',
+        coastRotate: '-20deg',
+        coastScale: '0.82',
+        coastOpacity: '0.72',
+        islandX: '39%',
+        islandY: '44%',
+        islandSmallX: '62%',
+        islandSmallY: '54%',
+        glowX: '39%',
+        glowY: '44%',
+        shadowX: '80%',
+        shadowY: '22%',
+        gridX: '6px',
+        gridY: '7px',
+        outerRotate: '-28deg',
+        innerRotate: '-15deg',
+        shelfRotate: '40deg'
+    }),
+    12: Object.freeze({
+        key: 'bohol',
+        bearing: 'E',
+        mainX: '68%',
+        mainY: '56%',
+        subX: '47%',
+        subY: '37%',
+        originX: '22%',
+        originY: '50%',
+        routeX: '22%',
+        routeY: '49%',
+        routeW: '52%',
+        routeH: '22%',
+        routeRotate: '8deg',
+        coastX: '-14%',
+        coastY: '38%',
+        coastRotate: '14deg',
+        coastScale: '0.82',
+        coastOpacity: '0.66',
+        islandX: '68%',
+        islandY: '56%',
+        islandSmallX: '47%',
+        islandSmallY: '37%',
+        glowX: '69%',
+        glowY: '56%',
+        shadowX: '24%',
+        shadowY: '48%',
+        gridX: '11px',
+        gridY: '5px',
+        outerRotate: '2deg',
+        innerRotate: '-8deg',
+        shelfRotate: '52deg'
+    }),
+    13: Object.freeze({
+        key: 'racha',
+        bearing: 'N',
+        mainX: '63%',
+        mainY: '36%',
+        subX: '45%',
+        subY: '58%',
+        originX: '27%',
+        originY: '71%',
+        routeX: '25%',
+        routeY: '55%',
+        routeW: '48%',
+        routeH: '26%',
+        routeRotate: '-24deg',
+        coastX: '-9%',
+        coastY: '0%',
+        coastRotate: '16deg',
+        coastScale: '0.88',
+        coastOpacity: '0.76',
+        islandX: '63%',
+        islandY: '36%',
+        islandSmallX: '45%',
+        islandSmallY: '58%',
+        glowX: '64%',
+        glowY: '36%',
+        shadowX: '28%',
+        shadowY: '76%',
+        gridX: '5px',
+        gridY: '2px',
+        outerRotate: '-20deg',
+        innerRotate: '-27deg',
+        shelfRotate: '24deg'
+    }),
+    14: Object.freeze({
+        key: 'redang',
+        bearing: 'NE',
+        mainX: '72%',
+        mainY: '52%',
+        subX: '52%',
+        subY: '31%',
+        originX: '25%',
+        originY: '60%',
+        routeX: '24%',
+        routeY: '49%',
+        routeW: '55%',
+        routeH: '20%',
+        routeRotate: '-8deg',
+        coastX: '-6%',
+        coastY: '14%',
+        coastRotate: '6deg',
+        coastScale: '0.9',
+        coastOpacity: '0.82',
+        islandX: '72%',
+        islandY: '52%',
+        islandSmallX: '52%',
+        islandSmallY: '31%',
+        glowX: '72%',
+        glowY: '52%',
+        shadowX: '26%',
+        shadowY: '70%',
+        gridX: '1px',
+        gridY: '10px',
+        outerRotate: '-12deg',
+        innerRotate: '-20deg',
+        shelfRotate: '36deg'
+    })
+});
+
+const TODAY_SEA_MAPLET_DEFAULT_STATE = todaySeaMapletStates[13];
+const TODAY_SEA_MAPLET_STYLE_MAP = Object.freeze({
+    mainX: '--map-main-x',
+    mainY: '--map-main-y',
+    subX: '--map-sub-x',
+    subY: '--map-sub-y',
+    originX: '--map-origin-x',
+    originY: '--map-origin-y',
+    routeX: '--map-route-x',
+    routeY: '--map-route-y',
+    routeW: '--map-route-w',
+    routeH: '--map-route-h',
+    routeRotate: '--map-route-rotate',
+    coastX: '--map-coast-x',
+    coastY: '--map-coast-y',
+    coastRotate: '--map-coast-rotate',
+    coastScale: '--map-coast-scale',
+    coastOpacity: '--map-coast-opacity',
+    islandX: '--map-island-x',
+    islandY: '--map-island-y',
+    islandSmallX: '--map-small-x',
+    islandSmallY: '--map-small-y',
+    glowX: '--map-glow-x',
+    glowY: '--map-glow-y',
+    shadowX: '--map-shadow-x',
+    shadowY: '--map-shadow-y',
+    gridX: '--map-grid-x',
+    gridY: '--map-grid-y',
+    outerRotate: '--map-outer-rotate',
+    innerRotate: '--map-inner-rotate',
+    shelfRotate: '--map-shelf-rotate'
+});
+
+const TODAY_SEA_MAPLET_SVG_DATA = Object.freeze({
+    sipadan: Object.freeze({
+        coastPath: 'M6 6 C21 1 36 6 43 17 C34 22 39 33 27 38 C20 41 18 52 8 58 C4 45 2 22 6 6 Z',
+        shelfPath: 'M14 55 C30 45 51 47 70 52 C60 64 35 68 15 61 Z',
+        routePath: 'M28 55 C42 45 55 38 70 29',
+        contourOuter: 'M9 60 C19 41 35 25 58 16 C73 10 88 14 94 27',
+        contourInner: 'M22 59 C32 47 46 38 63 33 C74 30 83 32 91 39',
+        mainPoint: { x: 70, y: 29 },
+        subPoints: [{ x: 52, y: 38 }, { x: 37, y: 48 }]
+    }),
+    palau: Object.freeze({
+        coastPath: 'M20 5 C36 0 55 7 62 19 C55 28 66 35 55 43 C42 52 30 43 18 57 C9 45 10 17 20 5 Z',
+        shelfPath: 'M54 45 C68 39 83 43 93 53 C84 66 63 66 49 56 Z',
+        routePath: 'M24 52 C39 42 51 34 63 27 C73 22 82 23 89 29',
+        contourOuter: 'M10 54 C24 34 43 21 67 15 C79 12 90 14 96 22',
+        contourInner: 'M25 58 C38 44 52 36 67 32 C78 29 87 32 93 40',
+        mainPoint: { x: 63, y: 27 },
+        subPoints: [{ x: 76, y: 39 }, { x: 50, y: 49 }]
+    }),
+    belize: Object.freeze({
+        coastPath: 'M4 18 C20 9 39 8 54 16 C44 25 53 35 41 45 C30 54 14 50 5 61 C0 45 -2 29 4 18 Z',
+        shelfPath: 'M38 28 C53 20 73 23 86 36 C76 50 55 52 41 43 Z',
+        routePath: 'M24 60 C34 47 43 39 53 33 C63 27 72 27 82 33',
+        contourOuter: 'M14 62 C21 42 35 26 56 18 C72 12 88 14 97 28',
+        contourInner: 'M33 58 C42 46 52 39 63 36 C74 33 84 36 91 43',
+        mainPoint: { x: 53, y: 33 },
+        subPoints: [{ x: 67, y: 29 }, { x: 42, y: 47 }]
+    }),
+    alor: Object.freeze({
+        coastPath: 'M0 38 C14 25 28 20 43 24 C37 35 50 43 41 54 C30 66 13 61 2 69 C-2 58 -3 47 0 38 Z',
+        shelfPath: 'M42 43 C58 36 80 39 96 52 C83 66 57 66 39 56 Z',
+        routePath: 'M21 31 C35 40 48 49 64 60',
+        contourOuter: 'M5 24 C25 33 45 44 68 57 C79 63 88 67 97 68',
+        contourInner: 'M23 23 C36 32 50 41 65 49 C76 55 86 58 94 59',
+        mainPoint: { x: 64, y: 60 },
+        subPoints: [{ x: 46, y: 49 }, { x: 35, y: 39 }]
+    }),
+    lembeh: Object.freeze({
+        coastPath: 'M14 4 C29 1 42 8 46 22 C39 31 43 43 33 52 C23 61 12 55 4 66 C0 47 2 17 14 4 Z',
+        shelfPath: 'M35 50 C47 42 68 44 83 56 C72 67 48 68 32 59 Z',
+        routePath: 'M31 27 C36 39 43 50 53 62',
+        contourOuter: 'M7 15 C24 28 38 43 48 61 C58 65 72 67 92 66',
+        contourInner: 'M22 13 C34 26 43 39 50 53 C60 57 73 59 86 59',
+        mainPoint: { x: 53, y: 62 },
+        subPoints: [{ x: 42, y: 48 }, { x: 61, y: 58 }]
+    }),
+    bunaken: Object.freeze({
+        coastPath: 'M7 3 C22 0 39 5 48 17 C40 27 50 35 38 44 C26 52 13 48 4 61 C0 43 -1 14 7 3 Z',
+        shelfPath: 'M50 32 C64 24 83 28 94 42 C83 56 61 56 48 45 Z',
+        routePath: 'M25 56 C41 46 55 38 72 34',
+        contourOuter: 'M6 63 C21 44 39 30 61 23 C77 18 91 21 98 33',
+        contourInner: 'M22 60 C36 49 51 41 68 39 C78 38 88 41 94 49',
+        mainPoint: { x: 72, y: 34 },
+        subPoints: [{ x: 55, y: 36 }, { x: 41, y: 47 }]
+    }),
+    komodo: Object.freeze({
+        coastPath: 'M0 20 C17 10 33 13 48 24 C39 33 56 42 43 53 C30 64 12 58 2 69 C-3 53 -4 34 0 20 Z',
+        shelfPath: 'M43 49 C60 42 81 46 97 59 C82 70 58 70 41 61 Z',
+        routePath: 'M24 28 C37 40 49 52 60 65',
+        contourOuter: 'M4 22 C24 35 43 49 65 64 C75 69 87 71 98 70',
+        contourInner: 'M20 20 C34 31 48 43 63 54 C74 61 84 64 94 64',
+        mainPoint: { x: 60, y: 65 },
+        subPoints: [{ x: 76, y: 52 }, { x: 44, y: 48 }]
+    }),
+    rangiroa: Object.freeze({
+        coastPath: 'M13 14 C29 3 51 6 64 20 C55 31 67 42 52 51 C39 59 23 54 11 66 C4 51 3 28 13 14 Z',
+        shelfPath: 'M22 42 C38 28 65 25 86 37 C75 52 46 58 24 51 Z',
+        routePath: 'M24 52 C38 43 50 36 63 32 C73 29 82 31 91 38',
+        contourOuter: 'M10 55 C22 35 42 21 67 17 C81 15 92 19 98 30',
+        contourInner: 'M28 57 C40 46 54 39 70 37 C79 36 88 39 94 47',
+        mainPoint: { x: 63, y: 32 },
+        subPoints: [{ x: 72, y: 52 }, { x: 48, y: 41 }]
+    }),
+    mabul: Object.freeze({
+        coastPath: 'M6 9 C20 2 36 5 45 16 C37 25 44 36 32 44 C22 51 13 49 5 60 C0 44 0 20 6 9 Z',
+        shelfPath: 'M31 46 C48 36 72 39 88 51 C76 64 51 66 32 57 Z',
+        routePath: 'M23 58 C35 50 49 42 62 39',
+        contourOuter: 'M7 62 C19 43 37 30 59 23 C73 19 87 22 96 33',
+        contourInner: 'M22 59 C34 48 49 42 64 41 C75 40 84 43 91 51',
+        mainPoint: { x: 62, y: 39 },
+        subPoints: [{ x: 43, y: 54 }, { x: 72, y: 48 }]
+    }),
+    maldives: Object.freeze({
+        coastPath: 'M32 4 C45 1 59 8 62 21 C54 29 61 39 51 48 C41 56 29 51 19 64 C12 49 17 15 32 4 Z',
+        shelfPath: 'M41 18 C56 12 77 17 91 31 C79 43 55 43 39 33 Z',
+        routePath: 'M36 36 C44 29 51 24 58 21 C66 18 75 20 84 26',
+        contourOuter: 'M16 62 C27 43 43 27 65 18 C79 12 91 16 98 27',
+        contourInner: 'M31 59 C42 47 54 39 68 34 C79 31 88 34 94 42',
+        mainPoint: { x: 58, y: 21 },
+        subPoints: [{ x: 70, y: 58 }, { x: 48, y: 36 }]
+    }),
+    coron: Object.freeze({
+        coastPath: 'M56 2 C72 0 90 8 97 22 C87 32 93 44 80 53 C67 62 53 54 42 67 C34 48 39 13 56 2 Z',
+        shelfPath: 'M13 28 C29 20 49 23 62 36 C50 49 28 50 14 39 Z',
+        routePath: 'M78 20 C66 27 54 35 40 43',
+        contourOuter: 'M4 41 C21 25 43 17 67 14 C80 12 92 15 99 24',
+        contourInner: 'M8 54 C24 41 41 34 59 30 C72 28 84 31 93 39',
+        mainPoint: { x: 40, y: 43 },
+        subPoints: [{ x: 61, y: 50 }, { x: 74, y: 30 }]
+    }),
+    bohol: Object.freeze({
+        coastPath: 'M0 36 C15 24 33 21 48 29 C40 38 53 46 42 57 C30 68 12 62 2 70 C-3 58 -3 45 0 36 Z',
+        shelfPath: 'M45 33 C62 26 82 31 96 45 C83 58 60 58 44 47 Z',
+        routePath: 'M22 43 C37 44 52 47 68 55',
+        contourOuter: 'M3 36 C23 37 45 43 68 54 C79 60 89 64 98 64',
+        contourInner: 'M20 32 C35 36 50 42 65 49 C76 54 86 57 94 58',
+        mainPoint: { x: 68, y: 55 },
+        subPoints: [{ x: 48, y: 36 }, { x: 57, y: 48 }]
+    }),
+    racha: Object.freeze({
+        coastPath: 'M8 8 C23 2 39 7 47 20 C39 29 48 38 36 48 C25 57 13 52 5 64 C0 47 0 20 8 8 Z',
+        shelfPath: 'M35 43 C51 34 73 38 88 51 C76 63 52 65 34 55 Z',
+        routePath: 'M23 57 C36 48 49 38 63 32',
+        contourOuter: 'M7 64 C18 44 35 30 58 21 C73 15 88 18 96 31',
+        contourInner: 'M24 59 C36 48 50 40 66 37 C76 35 86 38 92 46',
+        mainPoint: { x: 63, y: 32 },
+        subPoints: [{ x: 45, y: 52 }, { x: 74, y: 45 }]
+    }),
+    redang: Object.freeze({
+        coastPath: 'M5 18 C19 8 37 9 49 20 C41 31 55 39 43 50 C31 61 13 57 4 68 C-2 51 -2 30 5 18 Z',
+        shelfPath: 'M47 39 C63 31 84 35 96 49 C83 62 59 62 45 51 Z',
+        routePath: 'M23 51 C38 43 53 42 72 49',
+        contourOuter: 'M4 54 C22 39 43 32 66 35 C80 37 92 43 99 54',
+        contourInner: 'M20 61 C36 51 52 47 68 49 C79 51 88 55 94 62',
+        mainPoint: { x: 72, y: 49 },
+        subPoints: [{ x: 52, y: 29 }, { x: 61, y: 44 }]
+    })
+});
+
+const TODAY_SEA_MAPLET_CARTOGRAPHY_OVERRIDES = Object.freeze({
+    sipadan: Object.freeze({
+        coastPath: 'M7 6 L21 3 L35 7 L43 17 L34 23 L39 32 L27 39 L20 49 L8 58 L4 44 L3 23 Z',
+        shelfPath: 'M11 55 L26 48 L45 47 L62 50 L74 57 L58 64 L33 65 L15 60 Z',
+        contourOuter: 'M8 62 L18 48 L31 35 L48 24 L65 17 L83 18 L96 27',
+        contourInner: 'M23 60 L34 49 L49 40 L64 34 L78 34 L91 40'
+    }),
+    palau: Object.freeze({
+        coastPath: 'M19 5 L36 2 L54 8 L63 20 L55 29 L66 36 L55 44 L42 52 L31 45 L19 57 L10 45 L11 18 Z',
+        shelfPath: 'M52 44 L67 39 L84 43 L94 53 L84 64 L64 65 L49 56 Z',
+        contourOuter: 'M10 55 L24 38 L43 24 L64 16 L81 14 L96 23',
+        contourInner: 'M24 58 L38 45 L53 37 L68 33 L82 34 L94 42'
+    }),
+    belize: Object.freeze({
+        coastPath: 'M5 18 L21 10 L39 9 L55 16 L45 25 L53 35 L41 46 L29 54 L15 50 L5 62 L1 45 L0 29 Z',
+        shelfPath: 'M38 28 L54 21 L73 24 L87 36 L76 50 L55 53 L41 43 Z',
+        contourOuter: 'M14 63 L22 43 L36 27 L56 18 L74 14 L97 29',
+        contourInner: 'M33 59 L43 47 L54 40 L64 36 L76 35 L92 44'
+    }),
+    alor: Object.freeze({
+        coastPath: 'M0 38 L14 26 L29 21 L44 25 L38 35 L50 43 L41 55 L30 66 L14 62 L2 70 L-2 58 L-3 47 Z',
+        shelfPath: 'M41 43 L58 36 L80 40 L97 52 L83 66 L57 67 L39 56 Z',
+        contourOuter: 'M4 24 L24 33 L45 44 L68 58 L84 65 L98 68',
+        contourInner: 'M22 23 L36 32 L50 41 L65 50 L78 56 L95 60'
+    }),
+    lembeh: Object.freeze({
+        coastPath: 'M14 4 L29 2 L42 9 L47 22 L39 31 L43 43 L33 53 L23 61 L13 56 L4 67 L1 47 L2 17 Z',
+        shelfPath: 'M34 50 L47 42 L68 45 L84 56 L72 67 L48 69 L32 60 Z',
+        contourOuter: 'M7 15 L24 28 L38 43 L48 61 L63 66 L92 66',
+        contourInner: 'M22 13 L34 26 L43 39 L50 53 L64 58 L86 59'
+    }),
+    bunaken: Object.freeze({
+        coastPath: 'M7 3 L22 1 L39 6 L49 17 L41 27 L50 35 L38 45 L26 53 L13 49 L4 62 L1 43 L0 14 Z',
+        shelfPath: 'M50 32 L65 24 L83 28 L95 42 L83 56 L61 57 L48 45 Z',
+        contourOuter: 'M6 64 L21 45 L40 30 L61 23 L78 19 L98 34',
+        contourInner: 'M22 61 L36 49 L51 42 L68 39 L80 40 L94 50'
+    }),
+    komodo: Object.freeze({
+        coastPath: 'M0 20 L17 11 L33 14 L49 24 L40 33 L56 42 L43 54 L30 65 L13 59 L2 70 L-3 53 L-4 34 Z',
+        shelfPath: 'M43 49 L60 42 L81 46 L98 59 L82 70 L58 70 L41 61 Z',
+        contourOuter: 'M4 22 L24 35 L43 49 L65 64 L82 70 L98 70',
+        contourInner: 'M20 20 L34 31 L48 43 L63 54 L76 62 L94 64'
+    }),
+    rangiroa: Object.freeze({
+        coastPath: 'M13 14 L29 4 L51 7 L65 20 L56 31 L67 42 L52 52 L39 60 L24 55 L11 67 L4 51 L3 28 Z',
+        shelfPath: 'M22 42 L38 29 L65 26 L87 37 L75 52 L46 59 L24 51 Z',
+        contourOuter: 'M10 56 L22 36 L42 22 L67 17 L82 16 L98 31',
+        contourInner: 'M28 58 L40 47 L54 40 L70 37 L81 38 L94 48'
+    }),
+    mabul: Object.freeze({
+        coastPath: 'M6 9 L20 3 L36 6 L46 16 L38 25 L44 36 L32 45 L22 52 L13 50 L5 61 L1 44 L1 20 Z',
+        shelfPath: 'M31 46 L48 37 L72 39 L89 51 L76 64 L51 66 L32 57 Z',
+        contourOuter: 'M7 63 L19 44 L37 30 L59 23 L74 20 L96 34',
+        contourInner: 'M22 60 L34 49 L49 43 L64 41 L76 41 L92 52'
+    }),
+    maldives: Object.freeze({
+        coastPath: 'M32 4 L45 2 L59 9 L63 21 L55 29 L61 39 L51 49 L41 57 L30 52 L19 65 L12 49 L17 15 Z',
+        shelfPath: 'M41 18 L56 12 L77 17 L92 31 L79 43 L55 44 L39 33 Z',
+        contourOuter: 'M16 63 L27 44 L43 28 L65 18 L80 13 L98 28',
+        contourInner: 'M31 60 L42 48 L54 40 L68 34 L80 32 L94 43'
+    }),
+    coron: Object.freeze({
+        coastPath: 'M56 2 L72 1 L90 9 L98 22 L88 32 L94 44 L80 54 L67 63 L54 55 L42 68 L34 48 L39 13 Z',
+        shelfPath: 'M13 28 L29 20 L49 23 L63 36 L50 49 L28 51 L14 39 Z',
+        contourOuter: 'M4 42 L21 26 L43 17 L67 14 L82 13 L99 25',
+        contourInner: 'M8 55 L24 42 L41 35 L59 30 L73 29 L93 40'
+    }),
+    bohol: Object.freeze({
+        coastPath: 'M0 36 L15 25 L33 22 L49 29 L41 38 L53 46 L42 58 L30 69 L13 63 L2 71 L-3 58 L-3 45 Z',
+        shelfPath: 'M45 33 L62 27 L82 31 L97 45 L83 58 L60 59 L44 47 Z',
+        contourOuter: 'M3 36 L23 38 L45 43 L68 54 L82 61 L98 64',
+        contourInner: 'M20 32 L35 36 L50 42 L65 49 L78 55 L94 58'
+    }),
+    racha: Object.freeze({
+        coastPath: 'M7 10 L22 5 L38 9 L47 21 L39 29 L47 38 L35 48 L24 56 L13 51 L5 64 L1 47 L1 22 Z',
+        shelfPath: 'M34 42 L50 35 L72 38 L87 50 L75 61 L52 64 L34 55 Z',
+        contourOuter: 'M7 64 L18 45 L35 31 L58 21 L74 16 L97 32',
+        contourInner: 'M24 60 L36 49 L50 41 L66 37 L78 37 L93 47'
+    }),
+    redang: Object.freeze({
+        coastPath: 'M5 18 L19 9 L37 10 L50 20 L42 31 L55 39 L43 51 L31 62 L14 58 L4 69 L-2 51 L-2 30 Z',
+        shelfPath: 'M47 39 L63 31 L84 36 L97 49 L83 62 L59 63 L45 51 Z',
+        contourOuter: 'M4 55 L22 40 L43 33 L66 35 L82 39 L99 55',
+        contourInner: 'M20 62 L36 52 L52 48 L68 49 L80 53 L95 63'
+    })
+});
+
 // 精选目的地数据：用于海域档案陈列廊的主舞台卡和右侧样本卡切换。
 const destinationsData = withHomeImageDescriptors(injectCatalogIdentityForHomeList([
     {
@@ -2298,7 +3012,252 @@ const HOME_MANUAL_SCROLL_GLIDE_IDLE_RESET_MS = 180;
 const HOME_MANUAL_SCROLL_SETTLING_MS = 460;
 const HOME_MANUAL_SCROLL_SETTLING_DELTA_MIN = 140;
 const HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS = 560;
+const HOME_INTERACTION_LOCK_MAX_MS = 10000;
+const HOME_SCROLL_SETTLING_MAX_MS = 2000;
+const HOME_BAMBOO_HORIZONTAL_INTENT_MIN_PX = 5;
+const HOME_BAMBOO_VERTICAL_RELEASE_MIN_PX = 9;
+const HOME_BAMBOO_VERTICAL_RELEASE_RATIO = 1;
 const HOME_SCROLL_RESTORE_MS = 260;
+const HOME_HERO_WHEEL_FALLBACK_MIN_DELTA_PX = 24;
+const HOME_WHEEL_FALLBACK_CONFIRM_DELAY_MS = 180;
+const HOME_WHEEL_FALLBACK_MAX_DELTA_PX = 320;
+const HOME_WHEEL_FALLBACK_DIRECT_SELECTOR = [
+    '#hero-home',
+    '.hero-section',
+    '#featured-destinations',
+    '#dive-match',
+    '#why-yanqi',
+    '#homeFooter',
+    '.footer',
+    '#pageStage',
+    '.page-stage'
+].join(', ');
+const HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR = [
+    '.hero-hotspots-shell.today-sea-card',
+    '.hero-bamboo-cards-wrapper',
+    '.curated-waters-shell',
+    '.curated-waters-stage',
+    '.curated-display',
+    '.curated-display-surface',
+    '#dive-match',
+    '.dive-match-stage',
+    '.dive-match-profile-panel',
+    '.dive-match-surface',
+    '.story-shell',
+    '.story-card',
+    '.footer-shell',
+    '.footer-brand-stage',
+    '.footer-companion',
+    '.footer-arrival-bridge'
+].join(', ');
+const HOME_WHEEL_FALLBACK_SEEN_EVENTS = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
+let pendingHomeWheelFallbackTask = null;
+
+function getHomeWheelDeltaY(event) {
+    const rawDelta = Number(event?.deltaY) || 0;
+    if (!event || event.deltaMode === 0) {
+        return rawDelta;
+    }
+
+    if (event.deltaMode === 1) {
+        return rawDelta * 16;
+    }
+
+    if (event.deltaMode === 2) {
+        return rawDelta * Math.max(window.innerHeight || 0, 1);
+    }
+
+    return rawDelta;
+}
+
+function clampHomeWheelFallbackDelta(deltaY) {
+    const safeDelta = Number(deltaY) || 0;
+    const direction = Math.sign(safeDelta);
+    if (!direction) {
+        return 0;
+    }
+
+    return direction * Math.min(Math.abs(safeDelta), HOME_WHEEL_FALLBACK_MAX_DELTA_PX);
+}
+
+function markHomeWheelFallbackEvent(event) {
+    if (!event || !HOME_WHEEL_FALLBACK_SEEN_EVENTS) {
+        return true;
+    }
+
+    if (HOME_WHEEL_FALLBACK_SEEN_EVENTS.has(event)) {
+        return false;
+    }
+
+    HOME_WHEEL_FALLBACK_SEEN_EVENTS.add(event);
+    return true;
+}
+
+function clearPendingHomeWheelFallbackTask() {
+    if (!pendingHomeWheelFallbackTask) {
+        return;
+    }
+
+    if (pendingHomeWheelFallbackTask.rafId) {
+        window.cancelAnimationFrame(pendingHomeWheelFallbackTask.rafId);
+    }
+    if (pendingHomeWheelFallbackTask.timerId) {
+        window.clearTimeout(pendingHomeWheelFallbackTask.timerId);
+    }
+
+    pendingHomeWheelFallbackTask = null;
+}
+
+function hasHomeWheelNativeScrollMoved(startScrollY) {
+    const currentScrollY = window.scrollY || window.pageYOffset || 0;
+    return Math.abs(currentScrollY - startScrollY) > 0.5;
+}
+
+function runPendingHomeWheelFallbackTask(task) {
+    if (!task || pendingHomeWheelFallbackTask !== task) {
+        return;
+    }
+
+    task.rafId = 0;
+    if (hasHomeWheelNativeScrollMoved(task.startScrollY)) {
+        pendingHomeWheelFallbackTask = null;
+        return;
+    }
+
+    task.timerId = window.setTimeout(() => {
+        task.timerId = 0;
+        task.rafId = window.requestAnimationFrame(() => {
+            task.rafId = 0;
+            if (pendingHomeWheelFallbackTask !== task) {
+                return;
+            }
+
+            const currentScrollY = window.scrollY || window.pageYOffset || 0;
+            if (Math.abs(currentScrollY - task.startScrollY) > 0.5) {
+                pendingHomeWheelFallbackTask = null;
+                return;
+            }
+
+            const maxScrollY = Math.max(
+                Math.max(
+                    document.documentElement?.scrollHeight || 0,
+                    document.body?.scrollHeight || 0
+                ) - Math.max(window.innerHeight || 0, 1),
+                0
+            );
+            if ((task.deltaY < 0 && currentScrollY <= 0) || (task.deltaY > 0 && currentScrollY >= maxScrollY - 1)) {
+                pendingHomeWheelFallbackTask = null;
+                return;
+            }
+
+            pendingHomeWheelFallbackTask = null;
+            window.scrollBy({
+                top: task.deltaY,
+                left: 0,
+                behavior: 'auto'
+            });
+        });
+    }, HOME_WHEEL_FALLBACK_CONFIRM_DELAY_MS);
+}
+
+function scheduleNarrowHomeWheelFallback(event) {
+    if (
+        event?.defaultPrevented
+        || event?.ctrlKey
+        || document.body?.classList.contains('page-transition-active')
+    ) {
+        return;
+    }
+
+    const deltaX = Math.abs(Number(event?.deltaX) || 0);
+    const deltaY = getHomeWheelDeltaY(event);
+    if (Math.abs(deltaY) < HOME_HERO_WHEEL_FALLBACK_MIN_DELTA_PX || deltaX > Math.abs(deltaY)) {
+        return;
+    }
+
+    if (!markHomeWheelFallbackEvent(event)) {
+        return;
+    }
+
+    const startScrollY = window.scrollY || window.pageYOffset || 0;
+    const fallbackDeltaY = clampHomeWheelFallbackDelta(deltaY);
+    if (!fallbackDeltaY) {
+        return;
+    }
+
+    clearPendingHomeWheelFallbackTask();
+
+    pendingHomeWheelFallbackTask = {
+        startScrollY,
+        deltaY: fallbackDeltaY,
+        rafId: 0,
+        timerId: 0
+    };
+    pendingHomeWheelFallbackTask.rafId = window.requestAnimationFrame(() => {
+        runPendingHomeWheelFallbackTask(pendingHomeWheelFallbackTask);
+    });
+}
+
+function applyNarrowHomeWheelManualFallback(event) {
+    if (
+        event?.defaultPrevented
+        || event?.ctrlKey
+        || document.body?.classList.contains('page-transition-active')
+    ) {
+        return;
+    }
+
+    const deltaX = Math.abs(Number(event?.deltaX) || 0);
+    const deltaY = getHomeWheelDeltaY(event);
+    if (Math.abs(deltaY) < HOME_HERO_WHEEL_FALLBACK_MIN_DELTA_PX || deltaX > Math.abs(deltaY)) {
+        return;
+    }
+
+    const fallbackDeltaY = clampHomeWheelFallbackDelta(deltaY);
+    if (!fallbackDeltaY || !markHomeWheelFallbackEvent(event)) {
+        return;
+    }
+
+    const currentScrollY = window.scrollY || window.pageYOffset || 0;
+    const maxScrollY = Math.max(
+        Math.max(
+            document.documentElement?.scrollHeight || 0,
+            document.body?.scrollHeight || 0
+        ) - Math.max(window.innerHeight || 0, 1),
+        0
+    );
+    if ((fallbackDeltaY < 0 && currentScrollY <= 0) || (fallbackDeltaY > 0 && currentScrollY >= maxScrollY - 1)) {
+        return;
+    }
+
+    clearPendingHomeWheelFallbackTask();
+    if (event.cancelable) {
+        event.preventDefault();
+    }
+
+    window.scrollBy({
+        top: fallbackDeltaY,
+        left: 0,
+        behavior: 'auto'
+    });
+}
+
+function setupNarrowHomeWheelFallback() {
+    if (!document.body?.classList.contains('home-page')) {
+        return;
+    }
+
+    document.addEventListener('wheel', (event) => {
+        const target = event.target;
+        const isDirectFallbackTarget = target?.matches?.(HOME_WHEEL_FALLBACK_DIRECT_SELECTOR);
+        const containedFallbackTarget = target?.closest?.(HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR);
+        if (!isDirectFallbackTarget && !containedFallbackTarget) {
+            return;
+        }
+
+        applyNarrowHomeWheelManualFallback(event);
+    }, { capture: true, passive: false });
+}
 
 function isHomeScrollSettlingActive() {
     return performance.now() < HOME_INTERACTION_STATE.scrollSettlingUntil;
@@ -2324,73 +3283,7 @@ function isHomeVerticalScrollActive() {
 window.isHomeVerticalScrollActive = isHomeVerticalScrollActive;
 
 function isHomeScrollActiveMode(mode) {
-    return mode !== 'normal';
-}
-
-let homePageWheelFallbackRafId = 0;
-let homePageWheelFallbackDelta = 0;
-let homePageWheelFallbackStartY = 0;
-let homePageWheelFallbackDirection = 0;
-
-function scheduleHomePageWheelFallback(deltaY, startScrollY) {
-    const safeDelta = Number(deltaY) || 0;
-    const direction = Math.sign(safeDelta);
-    if (!Number.isFinite(safeDelta) || Math.abs(safeDelta) < 0.5 || direction === 0) {
-        return;
-    }
-
-    if (homePageWheelFallbackDirection !== direction) {
-        homePageWheelFallbackDelta = 0;
-        homePageWheelFallbackStartY = Number(startScrollY) || 0;
-        homePageWheelFallbackDirection = direction;
-    } else if (!homePageWheelFallbackRafId) {
-        homePageWheelFallbackStartY = Number(startScrollY) || 0;
-    }
-
-    homePageWheelFallbackDelta += safeDelta;
-
-    if (homePageWheelFallbackRafId) {
-        return;
-    }
-
-    homePageWheelFallbackRafId = requestAnimationFrame(() => {
-        homePageWheelFallbackRafId = 0;
-
-        const pendingDelta = homePageWheelFallbackDelta;
-        const pendingDirection = homePageWheelFallbackDirection;
-        const fallbackStartY = homePageWheelFallbackStartY;
-        homePageWheelFallbackDelta = 0;
-        homePageWheelFallbackDirection = 0;
-
-        if (!Number.isFinite(pendingDelta) || Math.abs(pendingDelta) < 0.5) {
-            return;
-        }
-
-        const currentScrollY = window.scrollY || window.pageYOffset || 0;
-        const scrolledWithWheel = pendingDirection > 0
-            ? currentScrollY > fallbackStartY + 1
-            : currentScrollY < fallbackStartY - 1;
-        if (scrolledWithWheel) {
-            return;
-        }
-
-        const scrollingElement = document.scrollingElement || document.documentElement;
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const maxScrollY = Math.max((scrollingElement?.scrollHeight || 0) - viewportHeight, 0);
-        if ((pendingDirection < 0 && currentScrollY <= 0) || (pendingDirection > 0 && currentScrollY >= maxScrollY - 1)) {
-            return;
-        }
-
-        if (typeof markHomeScrollSettling === 'function') {
-            markHomeScrollSettling(HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS);
-        }
-
-        window.scrollBy({
-            top: pendingDelta,
-            left: 0,
-            behavior: 'auto'
-        });
-    });
+    return mode === 'traveling';
 }
 
 function resolveHomeScrollMode() {
@@ -2441,24 +3334,94 @@ function clearHomeScrollRestoringState() {
         window.clearTimeout(HOME_INTERACTION_STATE.scrollRestoringTimer);
         HOME_INTERACTION_STATE.scrollRestoringTimer = 0;
     }
-
-    document.body?.classList.remove('home-scroll-restoring');
 }
 
 function scheduleHomeScrollRestoringState() {
-    if (!document.body) {
-        return;
-    }
-
     if (HOME_INTERACTION_STATE.scrollRestoringTimer) {
         window.clearTimeout(HOME_INTERACTION_STATE.scrollRestoringTimer);
     }
 
-    document.body.classList.add('home-scroll-restoring');
     HOME_INTERACTION_STATE.scrollRestoringTimer = window.setTimeout(() => {
         HOME_INTERACTION_STATE.scrollRestoringTimer = 0;
-        document.body?.classList.remove('home-scroll-restoring');
     }, HOME_SCROLL_RESTORE_MS);
+}
+
+function isHomeScrollBusyForHeavyWork() {
+    return Boolean(
+        HOME_INTERACTION_STATE.scrollActive
+        || HOME_INTERACTION_STATE.scrollTraveling
+        || HOME_INTERACTION_STATE.programmaticTraveling
+        || HOME_INTERACTION_STATE.manualTraveling
+        || isHomeScrollGlideActive()
+    );
+}
+
+function scheduleHomeScrollIdleTask(callback, options = {}) {
+    if (typeof callback !== 'function') {
+        return () => {};
+    }
+
+    const delayMs = Math.max(0, Number(options.delayMs) || 0);
+    const fallbackMs = Math.max(delayMs + 120, Number(options.fallbackMs) || (HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS + HOME_SCROLL_RESTORE_MS + 180));
+    let done = false;
+    let fallbackTimer = 0;
+    let retryTimer = 0;
+
+    const cleanup = () => {
+        window.removeEventListener('homeinteractionchange', tryFinish);
+        if (fallbackTimer) {
+            window.clearTimeout(fallbackTimer);
+            fallbackTimer = 0;
+        }
+        if (retryTimer) {
+            window.clearTimeout(retryTimer);
+            retryTimer = 0;
+        }
+    };
+
+    const run = () => {
+        if (done) {
+            return;
+        }
+
+        done = true;
+        cleanup();
+        window.setTimeout(() => {
+            window.requestAnimationFrame(callback);
+        }, delayMs);
+    };
+
+    function tryFinish() {
+        if (done) {
+            return;
+        }
+
+        if (!isHomeScrollBusyForHeavyWork()) {
+            run();
+            return;
+        }
+
+        if (!retryTimer) {
+            retryTimer = window.setTimeout(() => {
+                retryTimer = 0;
+                tryFinish();
+            }, HOME_SCROLL_RESTORE_MS + 48);
+        }
+    }
+
+    if (!isHomeScrollBusyForHeavyWork()) {
+        window.requestAnimationFrame(callback);
+        return () => {};
+    }
+
+    window.addEventListener('homeinteractionchange', tryFinish);
+    fallbackTimer = window.setTimeout(run, fallbackMs);
+    tryFinish();
+
+    return () => {
+        done = true;
+        cleanup();
+    };
 }
 
 function scheduleHomeManualGlideStop() {
@@ -2545,9 +3508,6 @@ function syncHomeInteractionDataset() {
     if (document.body.classList.contains('home-scroll-traveling') !== nextScrollTraveling) {
         document.body.classList.toggle('home-scroll-traveling', nextScrollTraveling);
     }
-    if (document.body.classList.contains('home-scroll-active') !== nextScrollActive) {
-        document.body.classList.toggle('home-scroll-active', nextScrollActive);
-    }
     if (nextScrollActive) {
         clearHomeScrollRestoringState();
     } else if (previousScrollActive) {
@@ -2578,10 +3538,14 @@ function markHomeScrollSettling(durationMs = HOME_MANUAL_SCROLL_SETTLING_MS) {
         return;
     }
 
+    const now = performance.now();
     stopHomeManualGlide();
-    HOME_INTERACTION_STATE.scrollSettlingUntil = Math.max(
-        HOME_INTERACTION_STATE.scrollSettlingUntil,
-        performance.now() + safeDuration
+    HOME_INTERACTION_STATE.scrollSettlingUntil = Math.min(
+        Math.max(
+            HOME_INTERACTION_STATE.scrollSettlingUntil,
+            now + safeDuration
+        ),
+        now + HOME_SCROLL_SETTLING_MAX_MS
     );
     syncHomeInteractionDataset();
 
@@ -2638,8 +3602,12 @@ function scheduleHomeInteractionRefresh(delayMs = 0) {
  * @returns {void}
  */
 function beginHomeInteractionLock(durationMs = 0) {
-    const nextUntil = performance.now() + Math.max(0, durationMs);
-    HOME_INTERACTION_STATE.lockUntil = Math.max(HOME_INTERACTION_STATE.lockUntil, nextUntil);
+    const now = performance.now();
+    const nextUntil = now + Math.max(0, durationMs);
+    HOME_INTERACTION_STATE.lockUntil = Math.min(
+        Math.max(HOME_INTERACTION_STATE.lockUntil, nextUntil),
+        now + HOME_INTERACTION_LOCK_MAX_MS
+    );
     syncHomeInteractionDataset();
     scheduleHomeInteractionRefresh(Math.max(0, Math.ceil(HOME_INTERACTION_STATE.lockUntil - performance.now()) + 48));
 }
@@ -2707,37 +3675,12 @@ function setupHomeManualScrollTraveling() {
         const now = performance.now();
         const delta = Math.abs(currentScrollY - HOME_INTERACTION_STATE.manualLastScrollY);
         const elapsed = Math.max(now - HOME_INTERACTION_STATE.manualLastScrollAt, 1);
-        const glideLargeStepThreshold = Math.max(
-            (window.innerHeight || 0) * 0.18,
-            HOME_MANUAL_SCROLL_BURST_DELTA_MIN
-        );
-        const settleDeltaThreshold = Math.max(
-            (window.innerHeight || 0) * 0.08,
-            HOME_MANUAL_SCROLL_SETTLING_DELTA_MIN
-        );
+
+        HOME_INTERACTION_STATE.manualLastScrollY = currentScrollY;
+        HOME_INTERACTION_STATE.manualLastScrollAt = now;
 
         if (HOME_INTERACTION_STATE.programmaticTraveling) {
-            HOME_INTERACTION_STATE.manualLastScrollY = currentScrollY;
-            HOME_INTERACTION_STATE.manualLastScrollAt = now;
             return;
-        }
-
-        if (
-            delta > 0
-            && delta <= HOME_MANUAL_SCROLL_GLIDE_STEP_MAX_PX
-        ) {
-            recordHomeManualGlideDelta(delta, now);
-        } else if (delta >= glideLargeStepThreshold) {
-            stopHomeManualGlide();
-        } else if (delta >= settleDeltaThreshold && HOME_INTERACTION_STATE.manualGliding) {
-            stopHomeManualGlide();
-        }
-
-        if (
-            elapsed <= HOME_MANUAL_SCROLL_BURST_RESET_MS
-            && delta >= settleDeltaThreshold
-        ) {
-            markHomeScrollSettling();
         }
 
         if (
@@ -2746,9 +3689,6 @@ function setupHomeManualScrollTraveling() {
         ) {
             markHomeManualScrollTraveling();
         }
-
-        HOME_INTERACTION_STATE.manualLastScrollY = currentScrollY;
-        HOME_INTERACTION_STATE.manualLastScrollAt = now;
     };
 
     window.addEventListener('scroll', () => {
@@ -2765,30 +3705,10 @@ function setupHomeManualScrollTraveling() {
         }
 
         const deltaY = Math.abs(Number(event?.deltaY) || 0);
-        const glideLargeStepThreshold = Math.max(
-            (window.innerHeight || 0) * 0.18,
-            HOME_MANUAL_SCROLL_BURST_DELTA_MIN
-        );
-        const wheelSettleThreshold = Math.max(
-            (window.innerHeight || 0) * 0.1,
-            HOME_MANUAL_SCROLL_SETTLING_DELTA_MIN
-        );
         const wheelBurstThreshold = Math.max(
             (window.innerHeight || 0) * 0.18,
             HOME_MANUAL_SCROLL_BURST_DELTA_MIN
         );
-
-        if (deltaY > 0 && deltaY <= HOME_MANUAL_SCROLL_GLIDE_STEP_MAX_PX) {
-            recordHomeManualGlideDelta(deltaY, performance.now());
-        } else if (deltaY >= glideLargeStepThreshold) {
-            stopHomeManualGlide();
-        } else if (deltaY >= wheelSettleThreshold && HOME_INTERACTION_STATE.manualGliding) {
-            stopHomeManualGlide();
-        }
-
-        if (deltaY >= wheelSettleThreshold) {
-            markHomeScrollSettling(HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS);
-        }
 
         if (deltaY >= wheelBurstThreshold) {
             markHomeManualScrollTraveling();
@@ -2946,6 +3866,7 @@ class BambooScroll {
         this.physicsRangeRadius = this.performanceProfile.lite ? 4 : 5;
 
         this.isDragging = false;
+        this.pointerIntentPending = false;
         this.pointerId = null;
         this.startPointerX = 0;
         this.startTrackPosition = 0;
@@ -2955,6 +3876,9 @@ class BambooScroll {
         this.dragMoved = false;
         this.suppressClickUntil = 0;
         this.pressedCard = null;
+        this.manualStepLockUntil = 0;
+        this.manualStepLockTimer = null;
+        this.manualStepLockDurationMs = this.isHeroPhysics ? 620 : 540;
 
         this.hoveredCard = null;
         this.activeCard = null;
@@ -2964,6 +3888,12 @@ class BambooScroll {
         this.cardPositionRange = null;
         this.centeredSpotId = 0;
         this.todaySeaBriefElements = this.resolveTodaySeaBriefElements();
+        this.todaySeaBriefSwapTimer = null;
+        this.todaySeaBriefReadyTimer = null;
+        this.todaySeaBriefSequence = 0;
+        this.todaySeaBriefSwapDelayMs = this.performanceProfile.lite ? 0 : 150;
+        this.todaySeaBriefMotionMs = this.performanceProfile.lite ? 0 : 480;
+        this.prefersReducedMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
         this.pointerInsideWrapper = false;
         this.pointerClientX = 0;
         this.pointerClientY = 0;
@@ -3156,6 +4086,15 @@ class BambooScroll {
         const root = document.querySelector('[data-today-sea-brief]');
         return {
             root,
+            maplet: root?.querySelector('.today-sea-maplet') || null,
+            mapBearing: root?.querySelector('[data-map-bearing]') || null,
+            mapCoast: root?.querySelector('[data-map-coast]') || null,
+            mapShelf: root?.querySelector('[data-map-shelf]') || null,
+            mapRoute: root?.querySelector('[data-map-route]') || null,
+            mapContourOuter: root?.querySelector('[data-map-contour-outer]') || null,
+            mapContourInner: root?.querySelector('[data-map-contour-inner]') || null,
+            mapMainPoint: root?.querySelector('[data-map-main-point]') || null,
+            mapSubPoints: Array.from(root?.querySelectorAll('[data-map-sub-point]') || []),
             name: document.getElementById('todaySeaBriefName'),
             region: document.getElementById('todaySeaBriefRegion'),
             coordinates: document.getElementById('todaySeaBriefCoords'),
@@ -3168,6 +4107,69 @@ class BambooScroll {
             note: document.getElementById('todaySeaBriefNote'),
             detailButton: document.querySelector('[data-today-sea-detail]')
         };
+    }
+
+    /**
+     * applyTodaySeaMapletState(spotId) - 将当前海域的小海图路径与潜点同步到 SVG
+     * @param {number} spotId - 当前海域 id
+     * @returns {void}
+     */
+    applyTodaySeaMapletState(spotId) {
+        const elements = this.todaySeaBriefElements;
+        const maplet = elements?.maplet;
+        if (!maplet) {
+            return;
+        }
+
+        const mapState = todaySeaMapletStates[spotId] || TODAY_SEA_MAPLET_DEFAULT_STATE;
+        const baseSvgState = TODAY_SEA_MAPLET_SVG_DATA[mapState.key] || TODAY_SEA_MAPLET_SVG_DATA.racha;
+        const svgState = {
+            ...baseSvgState,
+            ...(TODAY_SEA_MAPLET_CARTOGRAPHY_OVERRIDES[mapState.key] || {})
+        };
+        maplet.dataset.map = mapState.key || 'yanqi';
+
+        if (elements.mapCoast) {
+            elements.mapCoast.setAttribute('d', svgState.coastPath || '');
+        }
+        if (elements.mapShelf) {
+            elements.mapShelf.setAttribute('d', svgState.shelfPath || '');
+        }
+        if (elements.mapRoute) {
+            elements.mapRoute.setAttribute('d', svgState.routePath || '');
+        }
+        if (elements.mapContourOuter) {
+            elements.mapContourOuter.setAttribute('d', svgState.contourOuter || '');
+        }
+        if (elements.mapContourInner) {
+            elements.mapContourInner.setAttribute('d', svgState.contourInner || '');
+        }
+        if (elements.mapMainPoint && svgState.mainPoint) {
+            elements.mapMainPoint.setAttribute('cx', String(svgState.mainPoint.x));
+            elements.mapMainPoint.setAttribute('cy', String(svgState.mainPoint.y));
+        }
+
+        elements.mapSubPoints?.forEach((pointNode, index) => {
+            const point = svgState.subPoints?.[index];
+            if (!point) {
+                pointNode.setAttribute('opacity', '0');
+                return;
+            }
+
+            pointNode.setAttribute('cx', String(point.x));
+            pointNode.setAttribute('cy', String(point.y));
+            pointNode.removeAttribute('opacity');
+        });
+
+        if (elements.mapBearing) {
+            elements.mapBearing.textContent = mapState.bearing || 'NE';
+        }
+
+        if (!this.prefersReducedMotion) {
+            maplet.classList.remove('is-changing');
+            void maplet.offsetWidth;
+            maplet.classList.add('is-changing');
+        }
     }
 
     /**
@@ -3195,19 +4197,20 @@ class BambooScroll {
     }
 
     /**
-     * updateTodaySeaBrief(spot) - 根据当前主卡刷新首屏下方信息承接层
-     * @param {Object|null} spot - 当前居中的海域数据
+     * applyTodaySeaBriefContent(spot, data) - 将海域档案数据写入承接层
+     * @param {Object} spot - 当前海域
+     * @param {Object} data - 当前海域承接层数据
      * @returns {void}
      */
-    updateTodaySeaBrief(spot) {
+    applyTodaySeaBriefContent(spot, data) {
         const elements = this.todaySeaBriefElements;
         if (!elements?.root || !spot) {
             return;
         }
 
-        const data = this.resolveTodaySeaBriefData(spot);
         elements.root.dataset.activeSpotId = String(spot.id);
         elements.root.style.setProperty('--brief-progress', `${this.clamp(Number(data.progressValue) || 0, 0, 100)}%`);
+        this.applyTodaySeaMapletState(Number(spot.id || 0));
 
         if (elements.name) {
             elements.name.textContent = spot.name || '今日海域';
@@ -3246,6 +4249,80 @@ class BambooScroll {
     }
 
     /**
+     * updateTodaySeaBrief(spot) - 根据当前主卡刷新首屏下方信息承接层
+     * @param {Object|null} spot - 当前居中的海域数据
+     * @returns {void}
+     */
+    updateTodaySeaBrief(spot) {
+        const elements = this.todaySeaBriefElements;
+        if (!elements?.root || !spot) {
+            return;
+        }
+
+        const data = this.resolveTodaySeaBriefData(spot);
+        const previousSpotId = Number(elements.root.dataset.activeSpotId || 0);
+        const nextSpotId = Number(spot.id || 0);
+        const shouldAnimate = Boolean(
+            previousSpotId
+            && nextSpotId
+            && previousSpotId !== nextSpotId
+            && !this.prefersReducedMotion
+            && this.todaySeaBriefMotionMs > 0
+        );
+
+        if (this.todaySeaBriefSwapTimer) {
+            clearTimeout(this.todaySeaBriefSwapTimer);
+            this.todaySeaBriefSwapTimer = null;
+        }
+        if (this.todaySeaBriefReadyTimer) {
+            clearTimeout(this.todaySeaBriefReadyTimer);
+            this.todaySeaBriefReadyTimer = null;
+        }
+
+        this.todaySeaBriefSequence += 1;
+        const sequence = this.todaySeaBriefSequence;
+
+        elements.root.classList.remove('is-ready', 'is-reading');
+
+        if (!shouldAnimate) {
+            elements.root.classList.remove('is-updating');
+            this.applyTodaySeaBriefContent(spot, data);
+            requestAnimationFrame(() => {
+                if (sequence === this.todaySeaBriefSequence) {
+                    elements.root.classList.add('is-ready');
+                }
+            });
+            return;
+        }
+
+        elements.root.dataset.pendingSpotId = String(nextSpotId);
+        elements.root.classList.add('is-updating');
+
+        this.todaySeaBriefSwapTimer = setTimeout(() => {
+            if (sequence !== this.todaySeaBriefSequence) {
+                return;
+            }
+
+            this.applyTodaySeaBriefContent(spot, data);
+            elements.root.classList.remove('is-updating');
+            elements.root.classList.add('is-reading');
+
+            this.todaySeaBriefReadyTimer = setTimeout(() => {
+                if (sequence !== this.todaySeaBriefSequence) {
+                    return;
+                }
+
+                elements.root.classList.remove('is-reading');
+                elements.root.classList.add('is-ready');
+                delete elements.root.dataset.pendingSpotId;
+                this.todaySeaBriefReadyTimer = null;
+            }, this.todaySeaBriefMotionMs);
+
+            this.todaySeaBriefSwapTimer = null;
+        }, this.todaySeaBriefSwapDelayMs);
+    }
+
+    /**
      * openCenteredSpotDetail() - 从承接层进入当前居中海域详情页
      * @returns {void}
      */
@@ -3258,6 +4335,56 @@ class BambooScroll {
         runHeroDeparture(() => {
             navigateWithDepth(`detail.html?id=${spotId}`);
         }, { shouldReset: false, callbackDelay: HERO_ROUTE_READY_DELAY });
+    }
+
+    /**
+     * isManualStepLocked() - 判断手动按钮切换是否仍在锁定窗口
+     * @returns {boolean}
+     */
+    isManualStepLocked() {
+        return performance.now() < this.manualStepLockUntil;
+    }
+
+    /**
+     * setStepControlsLocked(isLocked) - 同步按钮和轨道的轻量锁定态
+     * @param {boolean} isLocked
+     * @returns {void}
+     */
+    setStepControlsLocked(isLocked) {
+        this.wrapper?.classList.toggle('is-step-locked', Boolean(isLocked));
+
+        [this.leftBtn, this.rightBtn].forEach((button) => {
+            if (!button) {
+                return;
+            }
+
+            button.classList.toggle('is-step-locked', Boolean(isLocked));
+            button.disabled = Boolean(isLocked);
+            button.setAttribute('aria-disabled', isLocked ? 'true' : 'false');
+        });
+    }
+
+    /**
+     * lockManualStep() - 手动按钮触发后短暂锁住下一次步进，避免连续点击抖动
+     * @returns {void}
+     */
+    lockManualStep() {
+        this.manualStepLockUntil = performance.now() + this.manualStepLockDurationMs;
+        this.setStepControlsLocked(true);
+
+        if (this.manualStepLockTimer) {
+            clearTimeout(this.manualStepLockTimer);
+        }
+
+        this.manualStepLockTimer = setTimeout(() => {
+            if (this.isManualStepLocked()) {
+                this.manualStepLockTimer = setTimeout(() => this.setStepControlsLocked(false), 80);
+                return;
+            }
+
+            this.manualStepLockTimer = null;
+            this.setStepControlsLocked(false);
+        }, this.manualStepLockDurationMs);
     }
 
     /**
@@ -3368,7 +4495,7 @@ class BambooScroll {
 
         this.wrapper.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
         this.wrapper.addEventListener('wheel', (event) => this.handleWrapperWheel(event), { passive: true });
-        this.wrapper.addEventListener('pointermove', (event) => this.handlePointerMove(event));
+        this.wrapper.addEventListener('pointermove', (event) => this.handlePointerMove(event), { passive: true });
         this.wrapper.addEventListener('pointerup', (event) => this.handlePointerUp(event));
         this.wrapper.addEventListener('pointercancel', (event) => this.handlePointerUp(event));
         this.wrapper.addEventListener('lostpointercapture', (event) => this.handleLostPointerCapture(event));
@@ -3404,6 +4531,14 @@ class BambooScroll {
                 this.pointerInsideWrapper = false;
                 this.setHoveredCard(null);
                 this.lastHoverSyncTs = 0;
+                if (this.pointerIntentPending) {
+                    this.clearPointerDragState({ clearPressed: true });
+                    if (this.enableAutoStep && !HOME_INTERACTION_STATE.scrollTraveling) {
+                        this.scheduleAutoStep();
+                    }
+                    return;
+                }
+
                 if (!this.isDragging) {
                     this.scheduleAutoStep();
                 }
@@ -3428,7 +4563,7 @@ class BambooScroll {
     handlePointerDown(event) {
         if (event.pointerType === 'mouse' && event.button !== 0) {
             if (event.button === 1) {
-                this.prepareForPageVerticalScroll(HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS);
+                this.prepareForPageVerticalScroll({ markSettling: false });
             }
             return;
         }
@@ -3441,9 +4576,11 @@ class BambooScroll {
         this.snap.energy = 0;
         this.trackVelocity = 0;
 
-        this.isDragging = true;
+        this.isDragging = false;
+        this.pointerIntentPending = true;
         this.pointerId = event.pointerId;
         this.startPointerX = event.clientX;
+        this.startPointerY = event.clientY;
         this.startTrackPosition = this.trackPosition;
         this.lastPointerX = event.clientX;
         this.lastPointerTime = performance.now();
@@ -3456,13 +4593,8 @@ class BambooScroll {
         this.setHoveredCard(null);
         this.trackPositionDirty = false;
 
-        this.wrapper.classList.add('is-dragging');
+        this.wrapper.classList.remove('is-dragging');
         this.syncWrapperMotionState();
-        this.ensureFrameLoop();
-
-        if (this.wrapper.setPointerCapture) {
-            this.wrapper.setPointerCapture(event.pointerId);
-        }
     }
 
     /**
@@ -3479,10 +4611,22 @@ class BambooScroll {
             return;
         }
 
-        const deltaY = normalizeWheelDeltaY(event);
-        const startScrollY = window.scrollY || window.pageYOffset || 0;
-        this.prepareForPageVerticalScroll(HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS);
-        scheduleHomePageWheelFallback(deltaY, startScrollY);
+        this.prepareForPageVerticalScroll({
+            markSettling: false
+        });
+
+        if (this.isHeroPhysics) {
+            this.scheduleHeroWheelFallback(event);
+        }
+    }
+
+    /**
+     * scheduleHeroWheelFallback(event) - 只在首屏轮播命中区原生滚动完全没推进时补一帧页面滚动
+     * @param {WheelEvent} event
+     * @returns {void}
+     */
+    scheduleHeroWheelFallback(event) {
+        scheduleNarrowHomeWheelFallback(event);
     }
 
     /**
@@ -3490,10 +4634,15 @@ class BambooScroll {
      * @param {number} durationMs
      * @returns {void}
      */
-    prepareForPageVerticalScroll(durationMs = HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS) {
+    prepareForPageVerticalScroll(options = {}) {
         if (this.isDragging) {
             return;
         }
+
+        const settings = typeof options === 'number'
+            ? { durationMs: options }
+            : (options || {});
+        const durationMs = Number(settings.durationMs) || HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS;
 
         if (this.autoStep) {
             this.finishStepScrollImmediately();
@@ -3512,7 +4661,7 @@ class BambooScroll {
         this.cancelPointerMoveFrame();
         this.stopFrameLoop();
 
-        if (typeof markHomeScrollSettling === 'function') {
+        if (settings.markSettling === true && typeof markHomeScrollSettling === 'function') {
             markHomeScrollSettling(durationMs);
         }
     }
@@ -3528,6 +4677,55 @@ class BambooScroll {
         }
 
         this.pendingPointerMove = null;
+    }
+
+    releasePointerCaptureSafely(event) {
+        if (!event || !this.wrapper.releasePointerCapture) {
+            return;
+        }
+
+        try {
+            if (!this.wrapper.hasPointerCapture || this.wrapper.hasPointerCapture(event.pointerId)) {
+                this.wrapper.releasePointerCapture(event.pointerId);
+            }
+        } catch (error) {
+            // 捕获可能已由浏览器释放，只需保证本地拖拽状态已退出。
+        }
+    }
+
+    clearPointerDragState(options = {}) {
+        const event = options.event || null;
+
+        this.cancelPointerMoveFrame();
+        this.pointerIntentPending = false;
+        this.isDragging = false;
+        this.pointerId = null;
+        this.dragMoved = false;
+        this.trackVelocity = 0;
+        this.wrapper.classList.remove('is-dragging');
+        this.syncWrapperMotionState();
+        this.releasePointerCaptureSafely(event);
+
+        if (options.clearPressed) {
+            this.pressedCard = null;
+        }
+
+        if (options.suppressClick) {
+            this.suppressClickUntil = performance.now() + 180;
+        }
+    }
+
+    beginHorizontalPointerDrag(event) {
+        this.pointerIntentPending = false;
+        this.isDragging = true;
+        this.wrapper.classList.add('is-dragging');
+        this.syncWrapperMotionState();
+
+        if (this.wrapper.setPointerCapture) {
+            this.wrapper.setPointerCapture(event.pointerId);
+        }
+
+        this.ensureFrameLoop();
     }
 
     /**
@@ -3579,7 +4777,7 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接更新轨道位置
      */
     handlePointerMove(event) {
-        if (!this.isDragging || event.pointerId !== this.pointerId) {
+        if ((!this.isDragging && !this.pointerIntentPending) || event.pointerId !== this.pointerId) {
             return;
         }
 
@@ -3587,6 +4785,38 @@ class BambooScroll {
         // stop the drag on the next move back into the region.
         if (event.pointerType === 'mouse' && (event.buttons & 1) === 0) {
             this.handlePointerUp(event);
+            return;
+        }
+
+        const absDx = Math.abs(event.clientX - this.startPointerX);
+        const absDy = Math.abs(event.clientY - this.startPointerY);
+
+        if (this.pointerIntentPending) {
+            if (absDy >= absDx || absDy > HOME_BAMBOO_VERTICAL_RELEASE_MIN_PX) {
+                this.clearPointerDragState({
+                    event,
+                    clearPressed: true,
+                    suppressClick: true
+                });
+                this.prepareForPageVerticalScroll({ markSettling: false });
+                return;
+            }
+
+            if (absDx <= HOME_BAMBOO_HORIZONTAL_INTENT_MIN_PX || absDx <= absDy) {
+                return;
+            }
+
+            this.beginHorizontalPointerDrag(event);
+        } else if (
+            absDy > HOME_BAMBOO_VERTICAL_RELEASE_MIN_PX
+            && absDy > absDx * HOME_BAMBOO_VERTICAL_RELEASE_RATIO
+        ) {
+            this.clearPointerDragState({
+                event,
+                clearPressed: true,
+                suppressClick: true
+            });
+            this.prepareForPageVerticalScroll({ markSettling: false });
             return;
         }
 
@@ -3612,6 +4842,15 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接结束拖拽流程
      */
     handlePointerUp(event) {
+        if (this.pointerIntentPending && event.pointerId === this.pointerId) {
+            this.pointerIntentPending = false;
+            this.pointerId = null;
+            if (this.enableAutoStep && !HOME_INTERACTION_STATE.scrollTraveling) {
+                this.scheduleAutoStep();
+            }
+            return;
+        }
+
         if (!this.isDragging || event.pointerId !== this.pointerId) {
             return;
         }
@@ -3622,6 +4861,7 @@ class BambooScroll {
         const releaseVelocity = this.resolveReleaseVelocity(releaseTime);
 
         this.isDragging = false;
+        this.pointerIntentPending = false;
         this.pointerId = null;
         this.wrapper.classList.remove('is-dragging');
         this.syncWrapperMotionState();
@@ -3633,9 +4873,7 @@ class BambooScroll {
             this.deferAutoStepAfterManual();
         }
 
-        if (this.wrapper.releasePointerCapture && this.wrapper.hasPointerCapture(event.pointerId)) {
-            this.wrapper.releasePointerCapture(event.pointerId);
-        }
+        this.releasePointerCaptureSafely(event);
 
         if (this.dragMoved) {
             this.startInertiaFromRelease(releaseVelocity);
@@ -3673,6 +4911,11 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接恢复组件状态
      */
     handleLostPointerCapture(event) {
+        if (this.pointerIntentPending && event.pointerId === this.pointerId) {
+            this.clearPointerDragState({ event, clearPressed: true });
+            return;
+        }
+
         if (!this.isDragging || event.pointerId !== this.pointerId) {
             return;
         }
@@ -3691,7 +4934,7 @@ class BambooScroll {
             return;
         }
 
-        if (this.isDragging) {
+        if (this.isDragging || this.pointerIntentPending) {
             this.pressedCard = null;
             return;
         }
@@ -3859,7 +5102,7 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接启动步进滚动
      */
     startStepScroll(direction, isAutoStep) {
-        if (this.isDragging) {
+        if (this.isDragging || this.pointerIntentPending) {
             return false;
         }
 
@@ -3872,6 +5115,14 @@ class BambooScroll {
         }
 
         const normalizedDirection = Math.sign(direction || 0) || 1;
+
+        if (!isAutoStep && this.isManualStepLocked()) {
+            return false;
+        }
+
+        if (!isAutoStep && (this.autoStep || this.inertia.active || this.snap.active)) {
+            return false;
+        }
 
         if (this.autoStep && isAutoStep) {
             return false;
@@ -3910,13 +5161,22 @@ class BambooScroll {
         };
         this.syncWrapperMotionState();
 
+        if (!isAutoStep) {
+            this.lockManualStep();
+        }
+
         if (isAutoStep) {
             this.autoStepCount += 1;
         } else {
             this.deferAutoStepAfterManual();
         }
 
-        this.injectShake(1000);
+        const stepShake = isAutoStep
+            ? (this.isHeroPhysics ? 220 : 900)
+            : (this.isHeroPhysics ? 0 : 420);
+        if (stepShake > 0) {
+            this.injectShake(stepShake);
+        }
 
         if (!isAutoStep && this.enableAutoStep) {
             this.scheduleAutoStep();
@@ -4106,6 +5366,10 @@ class BambooScroll {
      */
     shouldRunFrame() {
         if (!this.canAnimateFrame()) {
+            return false;
+        }
+
+        if (this.pointerIntentPending && !this.pendingPointerMove) {
             return false;
         }
 
@@ -4460,6 +5724,7 @@ class BambooScroll {
             !this.enableHoverTracking ||
             !this.pointerInsideWrapper ||
             this.isDragging ||
+            this.pointerIntentPending ||
             isHomeInteractionLocked() ||
             this.isPageScrollSettlingActive() ||
             (!this.autoStep && !this.inertia.active && !this.snap.active)
@@ -4781,14 +6046,18 @@ class BambooScroll {
      */
     applyStepBrakeImpulse(direction) {
         const brakeDirection = -Math.sign(direction || 1);
-        this.shakeEnergy = this.clamp(this.shakeEnergy + 0.08, 0, 1.12);
+        const isHero = this.isHeroPhysics;
+        this.shakeEnergy = this.clamp(this.shakeEnergy + (isHero ? 0.025 : 0.08), 0, isHero ? 0.42 : 1.12);
 
         this.forEachActivePhysics((state, index) => {
             const centerWeight = this.getCenterWeightByIndex(index);
-            const impulse = (42 + centerWeight * 30) * state.recoilScale * this.randomBetween(0.92, 1.12);
+            const impulseBase = isHero
+                ? (16 + centerWeight * 14)
+                : (42 + centerWeight * 30);
+            const impulse = impulseBase * state.recoilScale * this.randomBetween(0.92, 1.08);
 
             state.lagV += brakeDirection * impulse;
-            state.jitterV += (-brakeDirection * impulse) * 0.16;
+            state.jitterV += (-brakeDirection * impulse) * (isHero ? 0.05 : 0.16);
         });
     }
 
@@ -5022,6 +6291,7 @@ class CuratedWatersStage {
         this.initialHydrationStep = 0;
         this.initialHydrationComplete = false;
         this.chunkedNavRailRafId = 0;
+        this.cancelDeferredRevealTask = () => {};
         this.cancelInitialPreloadTask = () => {};
         this.preloadedImageSources = new Set();
         this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
@@ -5591,6 +6861,15 @@ class CuratedWatersStage {
         this.section.classList.add('is-visible');
         this.section.classList.remove('is-stage-settled');
 
+        if (!immediate && isHomeScrollBusyForHeavyWork()) {
+            this.cancelDeferredRevealTask();
+            this.cancelDeferredRevealTask = scheduleHomeScrollIdleTask(() => {
+                this.cancelDeferredRevealTask = () => {};
+                this.triggerRevealSequence({ immediate: true });
+            }, { delayMs: 40 });
+            return;
+        }
+
         if (immediate) {
             if (this.revealIntroRafId) {
                 cancelAnimationFrame(this.revealIntroRafId);
@@ -5730,6 +7009,8 @@ class DiveMatchStage {
         this.initialSurfaceReady = false;
         this.surfaceActivationRafId = 0;
         this.initialCardHydrationRafId = 0;
+        this.cancelDeferredStageRevealTask = () => {};
+        this.cancelDeferredDisplayRevealTask = () => {};
         this.cancelInitialCardHydrationTask = () => {};
         this.shouldAutoFocus = window.location.hash === '#dive-match' || Boolean(getDiveMatchKeyFromLocation());
         this.announceSummary = createBufferedLiveAnnouncer(this.liveSummary);
@@ -7423,13 +8704,32 @@ class DiveMatchStage {
         this.section.classList.add('is-visible');
     }
 
-    revealStageShell() {
+    revealStageShell(options = {}) {
+        const { immediate = false } = options;
+        if (!immediate && isHomeScrollBusyForHeavyWork()) {
+            this.cancelDeferredStageRevealTask();
+            this.cancelDeferredStageRevealTask = scheduleHomeScrollIdleTask(() => {
+                this.cancelDeferredStageRevealTask = () => {};
+                this.revealStageShell({ immediate: true });
+            }, { delayMs: 40 });
+            return;
+        }
+
         this.section.classList.add('is-stage-visible');
     }
 
     revealDisplay(options = {}) {
         const { immediate = false } = options;
         if (!this.section || this.section.classList.contains('is-display-visible')) {
+            return;
+        }
+
+        if (!immediate && isHomeScrollBusyForHeavyWork()) {
+            this.cancelDeferredDisplayRevealTask();
+            this.cancelDeferredDisplayRevealTask = scheduleHomeScrollIdleTask(() => {
+                this.cancelDeferredDisplayRevealTask = () => {};
+                this.revealDisplay({ immediate: true });
+            }, { delayMs: 60 });
             return;
         }
 
@@ -7931,6 +9231,13 @@ const HERO_ROUTE_READY_DELAY = 300;
  * @returns {void} - 无返回值，直接注册交互事件
  */
 function setupHeroActions() {
+    const todaySeaCard = document.querySelector('.hero-hotspots-shell.today-sea-card');
+    if (todaySeaCard) {
+        todaySeaCard.addEventListener('wheel', (event) => {
+            scheduleNarrowHomeWheelFallback(event);
+        }, { passive: true });
+    }
+
     const todaySeaSpot = document.querySelector('.today-sea-spot-link');
     if (todaySeaSpot) {
         todaySeaSpot.addEventListener('click', (event) => {
@@ -8741,6 +10048,20 @@ class HomeSeaGuide {
             });
         });
 
+        if (this.panel) {
+            this.panel.addEventListener('wheel', (event) => {
+                const deltaY = getHomeWheelDeltaY(event);
+                const scrollSlack = Math.max(this.panel.scrollHeight - this.panel.clientHeight, 0);
+                const atTop = this.panel.scrollTop <= 1;
+                const atBottom = this.panel.scrollTop >= scrollSlack - 1;
+                const shouldPreferPage = scrollSlack <= 32 || (deltaY < 0 && atTop) || (deltaY > 0 && atBottom);
+
+                if (shouldPreferPage) {
+                    scheduleNarrowHomeWheelFallback(event);
+                }
+            }, { passive: true });
+        }
+
         document.addEventListener('click', (event) => {
             if (!this.isOpen || this.guide.contains(event.target)) {
                 return;
@@ -8957,74 +10278,6 @@ function setupHomeLayerFlow() {
     }
 }
 
-/**
- * normalizeWheelDeltaY(event) - 把不同 wheel delta 单位统一成像素位移
- * @param {WheelEvent} event - wheel 事件对象
- * @returns {number} - 归一化后的纵向滚动距离
- */
-function normalizeWheelDeltaY(event) {
-    const rawDelta = Number(event?.deltaY) || 0;
-    if (event?.deltaMode === WheelEvent.DOM_DELTA_LINE) {
-        return rawDelta * 16;
-    }
-
-    if (event?.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
-        return rawDelta * Math.max(window.innerHeight || 0, 1);
-    }
-
-    return rawDelta;
-}
-
-/**
- * canScrollElementVertically(element, deltaY) - 判断内部滚动层是否还能消化当前滚轮
- * @param {HTMLElement} element - 需要检查的滚动容器
- * @param {number} deltaY - 纵向滚动距离
- * @returns {boolean} - 当前滚轮是否应留给容器自身处理
- */
-function canScrollElementVertically(element, deltaY) {
-    if (!element || Math.abs(deltaY) < 0.5) {
-        return true;
-    }
-
-    const maxScrollTop = element.scrollHeight - element.clientHeight;
-    if (maxScrollTop <= 1) {
-        return false;
-    }
-
-    if (deltaY < 0) {
-        return element.scrollTop > 1;
-    }
-
-    return element.scrollTop < maxScrollTop - 1;
-}
-
-/**
- * setupHomeWheelBoundaryPassthrough() - 避免首页内部视觉层吞掉页面纵向滚动
- * @returns {void}
- */
-function setupHomeWheelBoundaryPassthrough() {
-    document.addEventListener('wheel', (event) => {
-        const passthroughTarget = event.target?.closest?.(
-            '.curated-waters-stage, .curated-display, .curated-display-surface, .curated-nav-rail, .sea-guide-home .sea-guide-panel'
-        );
-        if (!passthroughTarget || event.defaultPrevented || event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
-            return;
-        }
-
-        const deltaY = normalizeWheelDeltaY(event);
-        const startScrollY = window.scrollY || window.pageYOffset || 0;
-        const internalPanel = event.target?.closest?.('.sea-guide-home .sea-guide-panel');
-        if (internalPanel && canScrollElementVertically(internalPanel, deltaY)) {
-            return;
-        }
-
-        // 不主动 preventDefault，优先交给浏览器原生滚动链。
-        // 某些展示容器即使没有真实可滚内容也会吃掉第一帧滚轮；
-        // 如果原生链下一帧仍没推进页面，再用同一段 delta 做一次兜底。
-        scheduleHomePageWheelFallback(deltaY, startScrollY);
-    }, { passive: true });
-}
-
 // 页面初始化：创建首页主要组件，并绑定头像退出、首屏、故事区等交互。
 /**
  * document DOMContentLoaded 回调 - 初始化首页的主要组件和页面级交互
@@ -9048,6 +10301,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     setupStageDebugToggle();
     applyHomePerformanceProfile(homePerformanceProfile);
+    setupNarrowHomeWheelFallback();
     setupHomeManualScrollTraveling();
     new BambooScroll();
     setupHeroImmersion();
@@ -9056,7 +10310,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     setupHomeNavState();
     setupHomeScrollLinks();
     new HomeSeaGuide();
-    setupHomeWheelBoundaryPassthrough();
     setupHomeLayerFlow();
     homeViewportCoordinator.requestMeasure();
     ensureStoryReveal();

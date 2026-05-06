@@ -5843,29 +5843,6 @@ body.page-transition-active .login-stage-hud {
     }
 }
 
-@keyframes yanqi-v4-glass-breathe {
-    0%,
-    100% {
-        transform: translate3d(0, 0, 0);
-        box-shadow:
-            0 20px 48px rgba(1, 9, 18, 0.28),
-            0 0 0 1px rgba(187, 229, 244, 0.04),
-            0 0 28px rgba(118, 198, 227, 0.04),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.026);
-    }
-
-    50% {
-        transform: translate3d(0.5px, -1px, 0);
-        box-shadow:
-            0 22px 52px rgba(1, 9, 18, 0.3),
-            0 0 0 1px rgba(187, 229, 244, 0.048),
-            0 0 31px rgba(118, 198, 227, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.165),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.026);
-    }
-}
-
 /* 第四张参考图二次收束：化开右侧大面板和中线硬切，压回更深的静水底色。 */
 @media (min-width: 981px) {
     .gradient-bg {
@@ -5996,6 +5973,581 @@ body.page-transition-active .login-stage-hud {
             0 0 28px rgba(118, 198, 227, 0.042),
             inset 0 1px 0 rgba(255, 255, 255, 0.145),
             inset 0 -1px 0 rgba(255, 255, 255, 0.022);
+    }
+}
+
+/* 入口档案与进度抛光层：只强化左侧记忆点、入口动作和背景参与感。 */
+@media (min-width: 981px) {
+    .gradient-bg::before {
+        background:
+            linear-gradient(180deg, rgba(1, 11, 20, 0.1) 0%, rgba(3, 22, 39, 0.24) 36%, rgba(2, 14, 27, 0.62) 100%),
+            url("../assets/images/sipadan.jpg") center center / cover no-repeat;
+        transform: scale(1.035);
+        filter: saturate(0.56) contrast(1.06) brightness(0.45);
+    }
+
+    .gradient-bg::after {
+        background:
+            linear-gradient(96deg, transparent 34%, rgba(226, 247, 254, 0.07) 48%, transparent 61%),
+            radial-gradient(ellipse at 52% -6%, rgba(248, 254, 255, 0.11), rgba(210, 239, 250, 0.032) 30%, transparent 58%),
+            linear-gradient(180deg, rgba(80, 151, 190, 0.018), rgba(0, 9, 18, 0.18));
+        opacity: 0.48;
+    }
+
+    .glass-card {
+        background:
+            linear-gradient(132deg, rgba(233, 249, 253, 0.028), rgba(93, 159, 190, 0.01) 42%, rgba(1, 15, 27, 0.115)),
+            linear-gradient(180deg, rgba(5, 30, 49, 0.085), rgba(1, 14, 26, 0.215)),
+            rgba(3, 19, 34, 0.125);
+        backdrop-filter: blur(12px) saturate(110%) brightness(0.92);
+        -webkit-backdrop-filter: blur(12px) saturate(110%) brightness(0.92);
+    }
+
+    .side-observatory {
+        padding: 14px 16px 12px;
+        border-color: rgba(222, 246, 252, 0.18);
+        background:
+            linear-gradient(145deg, rgba(245, 253, 255, 0.07), rgba(72, 151, 190, 0.018)),
+            linear-gradient(90deg, rgba(5, 29, 47, 0.16), rgba(2, 19, 34, 0.075));
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.095),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.02),
+            0 10px 22px rgba(1, 11, 22, 0.055),
+            0 0 0 1px rgba(129, 206, 232, 0.02);
+    }
+
+    .side-observatory::before {
+        content: "";
+        position: absolute;
+        inset: 1px;
+        border-radius: inherit;
+        background:
+            linear-gradient(120deg, rgba(255, 255, 255, 0.075), transparent 18%, transparent 78%, rgba(150, 218, 240, 0.05)),
+            radial-gradient(ellipse at 85% 12%, rgba(218, 246, 253, 0.05), transparent 28%);
+        pointer-events: none;
+        opacity: 0.75;
+    }
+
+    .side-observatory::after {
+        content: "";
+        position: absolute;
+        top: 49px;
+        bottom: 15px;
+        left: 17px;
+        width: 1px;
+        background: linear-gradient(180deg, rgba(218, 244, 252, 0.2), rgba(122, 201, 230, 0.055));
+        opacity: 0.72;
+        pointer-events: none;
+    }
+
+    .side-observatory-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        color: rgba(246, 252, 254, 0.9);
+        letter-spacing: 0.15em;
+        text-shadow: 0 8px 18px rgba(0, 10, 20, 0.2);
+    }
+
+    .side-observatory-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(221, 244, 252, 0.16), transparent);
+    }
+
+    .side-observatory-title span {
+        color: rgba(250, 254, 255, 0.94);
+    }
+
+    .side-observatory-item {
+        grid-template-columns: minmax(50px, 0.36fr) minmax(0, 1fr);
+        gap: 12px;
+        padding: 6px 0 6px 20px;
+        border-top-color: rgba(218, 242, 250, 0.06);
+    }
+
+    .side-observatory-item::before {
+        left: 7px;
+        width: 4px;
+        height: 4px;
+        opacity: 0.64;
+        background: rgba(229, 248, 254, 0.82);
+        box-shadow:
+            0 0 10px rgba(176, 230, 247, 0.22),
+            0 0 18px rgba(94, 184, 220, 0.08);
+    }
+
+    .side-observatory-label {
+        color: rgba(226, 244, 250, 0.78);
+        font-size: 0.66rem;
+    }
+
+    .side-observatory-item strong {
+        color: rgba(250, 254, 255, 0.93);
+        font-weight: 540;
+    }
+
+    .login-page[data-auth-progress-step="recognizing"] .side-observatory-item[data-observatory-item="entrance"],
+    .login-page[data-auth-progress-step="opening"] .side-observatory-item[data-observatory-item="rhythm"],
+    .login-page[data-auth-progress-step="keying"] .side-observatory-item[data-observatory-item="rhythm"],
+    .login-page[data-auth-progress-step="confirming"] .side-observatory-item[data-observatory-item="rhythm"],
+    .login-page[data-auth-progress-step="anchored"] .side-observatory-item[data-observatory-item="entrance"],
+    .login-page[data-auth-progress-step="accord"] .side-observatory-item[data-observatory-item="entrance"],
+    .login-page[data-auth-progress-step="ready"] .side-observatory-item[data-observatory-item="layer"] {
+        background: linear-gradient(90deg, rgba(212, 244, 253, 0.045), transparent 72%);
+        border-color: rgba(222, 246, 252, 0.14);
+    }
+
+    .side-waterline {
+        gap: 9px;
+        padding-top: 11px;
+    }
+
+    .side-waterline::before {
+        background: linear-gradient(90deg, rgba(221, 245, 252, 0.16), rgba(126, 204, 232, 0.06), transparent 78%);
+        opacity: 0.84;
+    }
+
+    .side-waterline-label {
+        color: rgba(238, 250, 253, 0.9);
+        font-size: 0.7rem;
+        letter-spacing: 0.25em;
+    }
+
+    .side-waterline-value {
+        color: rgba(250, 254, 255, 0.94);
+        font-weight: 650;
+        text-shadow: 0 0 14px rgba(159, 225, 244, 0.16);
+    }
+
+    .side-waterline-track {
+        height: 9px;
+        border-color: rgba(223, 246, 252, 0.24);
+        background:
+            linear-gradient(90deg, rgba(1, 13, 25, 0.58), rgba(7, 39, 61, 0.36)),
+            rgba(223, 246, 252, 0.055);
+        box-shadow:
+            inset 0 1px 3px rgba(0, 0, 0, 0.28),
+            0 0 0 1px rgba(190, 232, 246, 0.035),
+            0 0 18px rgba(113, 198, 229, 0.07);
+    }
+
+    .side-waterline-track::before {
+        opacity: 0.78;
+    }
+
+    .side-waterline-track::after {
+        width: 26px;
+        background: radial-gradient(circle at 50% 50%, rgba(239, 252, 255, 0.66), rgba(153, 222, 243, 0.2) 45%, transparent 74%);
+    }
+
+    .side-waterline-fill {
+        background:
+            linear-gradient(90deg, rgba(244, 253, 255, 0.92), rgba(177, 234, 248, 0.62) 52%, rgba(93, 190, 225, 0.42)),
+            rgba(152, 218, 240, 0.28);
+        box-shadow:
+            0 0 16px rgba(174, 230, 247, 0.26),
+            0 0 30px rgba(104, 196, 229, 0.12);
+        opacity: 1;
+    }
+
+    .side-waterline-status {
+        color: rgba(246, 252, 254, 0.92);
+        font-size: 0.8rem;
+        text-shadow: 0 7px 18px rgba(0, 10, 20, 0.26);
+    }
+
+    .auth-cta {
+        background:
+            radial-gradient(ellipse at 24% 0%, rgba(247, 254, 255, 0.22), transparent 42%),
+            linear-gradient(135deg, rgba(151, 225, 237, 0.6), rgba(59, 150, 180, 0.48) 46%, rgba(6, 62, 102, 0.62)),
+            rgba(7, 53, 87, 0.44);
+        border-color: rgba(218, 247, 253, 0.31);
+        box-shadow:
+            0 13px 26px rgba(0, 10, 21, 0.2),
+            0 0 18px rgba(126, 218, 241, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.24),
+            inset 0 -12px 22px rgba(0, 20, 42, 0.16);
+        text-shadow: 0 8px 18px rgba(0, 9, 18, 0.28);
+    }
+
+    .auth-cta::before {
+        opacity: 0.18;
+    }
+
+    .auth-cta::after {
+        opacity: 0.48;
+    }
+
+    .auth-cta:hover {
+        border-color: rgba(234, 252, 255, 0.48);
+        box-shadow:
+            0 17px 30px rgba(0, 10, 21, 0.24),
+            0 0 26px rgba(147, 226, 248, 0.16),
+            inset 0 1px 0 rgba(255, 255, 255, 0.28),
+            inset 0 -13px 24px rgba(0, 20, 42, 0.17);
+        filter: saturate(1.04) brightness(1.02);
+    }
+
+    .auth-cta:active {
+        box-shadow:
+            0 9px 20px rgba(0, 10, 21, 0.27),
+            0 0 18px rgba(104, 205, 238, 0.12),
+            inset 0 9px 22px rgba(0, 20, 42, 0.22);
+        filter: saturate(1.02) brightness(0.97);
+    }
+
+    .login-page[data-auth-progress-state="complete"] .auth-cta {
+        background:
+            radial-gradient(ellipse at 24% 0%, rgba(249, 254, 255, 0.24), transparent 42%),
+            linear-gradient(135deg, rgba(166, 232, 242, 0.64), rgba(70, 160, 189, 0.52) 46%, rgba(8, 67, 108, 0.64)),
+            rgba(7, 57, 93, 0.46);
+    }
+}
+
+@media (min-width: 981px) and (max-height: 820px) {
+    .side-observatory {
+        padding: 11px 14px 9px;
+    }
+
+    .side-observatory::after {
+        top: 42px;
+        bottom: 12px;
+        left: 15px;
+    }
+
+    .side-observatory-item {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+    .side-waterline-track {
+        height: 8px;
+    }
+}
+
+/* 最终展示微调：补足玻璃边线、档案刻度、进度填充和入口按钮的细节层。 */
+@media (min-width: 981px) {
+    .gradient-bg::before {
+        background:
+            linear-gradient(180deg, rgba(1, 11, 20, 0.07) 0%, rgba(3, 22, 39, 0.2) 36%, rgba(2, 14, 27, 0.58) 100%),
+            url("../assets/images/sipadan.jpg") center center / cover no-repeat;
+        filter: saturate(0.58) contrast(1.08) brightness(0.47);
+    }
+
+    /* 玻璃卡：大屏下强化边框微光和四层阴影，让卡片浮在深海背景上的层次更分明。 */
+    .glass-card {
+        border-color: rgba(229, 248, 253, 0.15);
+        box-shadow:
+            0 18px 44px rgba(0, 8, 17, 0.3),
+            0 0 0 1px rgba(203, 238, 249, 0.045),
+            0 0 26px rgba(118, 198, 227, 0.045),
+            inset 0 1px 0 rgba(255, 255, 255, 0.16),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.026);
+    }
+
+    /* 玻璃卡表面高光：三向渐变叠加模拟海面反射扫过玻璃的质感。 */
+    .glass-card::before {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0) 12%),
+            linear-gradient(90deg, transparent 7%, rgba(232, 250, 255, 0.13) 24%, transparent 42%),
+            linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, transparent 18%, transparent 78%, rgba(205, 238, 249, 0.07) 100%);
+        opacity: 0.62;
+    }
+
+    /* 玻璃卡纹理细节：斜向扫光 + 两点微尘 + 底部暗角，给玻璃增加微妙的材质层。 */
+    .glass-card::after {
+        background-image:
+            linear-gradient(104deg, transparent 0 42%, rgba(227, 246, 252, 0.024) 50%, transparent 60%),
+            radial-gradient(circle at 18% 22%, rgba(238, 251, 254, 0.03) 0.55px, transparent 1.1px),
+            radial-gradient(circle at 72% 66%, rgba(207, 238, 249, 0.026) 0.55px, transparent 1.1px),
+            linear-gradient(180deg, transparent 56%, rgba(0, 10, 20, 0.2) 100%);
+        opacity: 0.15;
+    }
+
+    /* 认证面板内边距：大屏下用流体 clamp 控制上下呼吸空间。 */
+    .auth-panel-inner {
+        padding-top: clamp(18px, 1.85vw, 25px);
+        padding-bottom: clamp(18px, 1.85vw, 25px);
+    }
+
+    /* 认证水位线：用 --login-console-gap 比例的底边距替代固定值，保持伸缩节奏。 */
+    .auth-waterline {
+        margin-bottom: calc(var(--login-console-gap) * 0.78);
+    }
+
+    /* 表单品牌区和标签区：共享 --login-console-gap 比例的底边距，维持统一的纵向节奏。 */
+    .form-brand,
+    .tab-section {
+        margin-bottom: calc(var(--login-console-gap) * 0.9);
+    }
+
+    /* 侧边观察舱：大屏下强化边框颜色和四层阴影，内发光+外微影让观测舱更立体。 */
+    .side-observatory {
+        border-color: rgba(226, 248, 253, 0.2);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.11),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.024),
+            0 10px 22px rgba(1, 11, 22, 0.065),
+            0 0 0 1px rgba(129, 206, 232, 0.026);
+    }
+
+    /* 观测舱标题底部装饰线：从左到右渐隐的微光横线。 */
+    .side-observatory-title::after {
+        background: linear-gradient(90deg, rgba(226, 248, 253, 0.22), rgba(126, 204, 232, 0.055), transparent);
+    }
+
+    /* 观测舱数据条目：顶部微弱的青白分割线。 */
+    .side-observatory-item {
+        border-top-color: rgba(224, 246, 252, 0.075);
+    }
+
+    /* 条目数值：纯白高亮 + 深色投影，让关键数据从观测舱中跳出。 */
+    .side-observatory-item strong {
+        color: rgba(252, 254, 255, 0.96);
+        text-shadow: 0 7px 16px rgba(0, 10, 20, 0.18);
+    }
+
+    /* 水位线标签：高亮白字，作为刻度尺的标识文字。 */
+    .side-waterline-label {
+        color: rgba(242, 251, 254, 0.94);
+    }
+
+    /* 水位线轨道：10px 高度 + 暗底渐变 + 竖条纹纹理，模拟仪器面板的刻度槽。 */
+    .side-waterline-track {
+        height: 10px;
+        border-color: rgba(227, 248, 253, 0.28);
+        background:
+            repeating-linear-gradient(90deg, rgba(236, 250, 254, 0.08) 0 1px, transparent 1px 42px),
+            linear-gradient(90deg, rgba(1, 13, 25, 0.6), rgba(7, 39, 61, 0.38)),
+            rgba(223, 246, 252, 0.06);
+    }
+
+    /* 水位线填充条：蓝白渐变从左到右由亮转暗，模拟液体填充进度。 */
+    .side-waterline-fill {
+        inset: 1px;
+        min-width: 0;
+        background:
+            linear-gradient(90deg, rgba(248, 254, 255, 0.96), rgba(178, 235, 249, 0.7) 52%, rgba(88, 190, 227, 0.48)),
+            rgba(152, 218, 240, 0.32);
+    }
+
+    /* 水位线百分比文字：高亮白字标注当前进度数值。 */
+    .side-waterline-status {
+        color: rgba(248, 253, 255, 0.94);
+    }
+
+    /* 输入组间距：大屏下收紧至 9px 让表单更紧凑。 */
+    .input-group {
+        margin-bottom: 9px;
+    }
+
+    /* 输入框默认态：半透明边框 + 微亮渐变底，融入深色玻璃面板。 */
+    .input-group input {
+        border-color: rgba(225, 247, 253, 0.27);
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(173, 213, 232, 0.04)),
+            rgba(5, 29, 48, 0.31);
+    }
+
+    /* 输入框聚焦态：边框提亮 + 三层外发光 + 内顶高光线，给出清晰的输入焦点反馈。 */
+    .input-group input:focus {
+        border-color: rgba(198, 241, 252, 0.6);
+        box-shadow:
+            0 0 0 3px rgba(117, 205, 234, 0.11),
+            0 0 22px rgba(126, 214, 240, 0.14),
+            0 12px 22px rgba(2, 13, 23, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    /* 输入框已填态：边框和阴影微提亮，提示用户"这一项已完成"。 */
+    .input-group.is-filled input {
+        border-color: rgba(211, 241, 250, 0.42);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.13),
+            0 12px 22px rgba(2, 13, 23, 0.1),
+            0 0 0 1px rgba(198, 231, 243, 0.075),
+            0 0 16px rgba(116, 202, 232, 0.055);
+    }
+
+    /* 认证按钮：大屏下展开字间距，让"继续向海而行"在更宽的舞台上呼吸。 */
+    .auth-cta {
+        letter-spacing: 0.105em;
+    }
+
+    /* hover 时按钮顶部扫光提亮，强化可点击暗示。 */
+    .auth-cta:hover::before {
+        opacity: 0.26;
+    }
+
+    /* hover 时箭头右移 + 发光投影，模拟"向前推进"的动效。 */
+    .auth-cta:hover .icon {
+        transform: translate3d(10px, 0, 0);
+        filter: drop-shadow(0 0 7px rgba(234, 252, 255, 0.38));
+    }
+
+    /* active 时箭头再推进一点并下沉 1px，给出按下的物理反馈。 */
+    .auth-cta:active .icon {
+        transform: translate3d(12px, 1px, 0);
+    }
+}
+
+/* 矮屏大屏 (≤820px 高度)：压缩认证面板内边距、水位线轨道和输入间距，
+   避免内容在较矮的屏幕上被截断或挤压。 */
+@media (min-width: 981px) and (max-height: 820px) {
+    .auth-panel-inner {
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+
+    .side-waterline-track {
+        height: 8px;
+    }
+
+    .input-group {
+        margin-bottom: 6px;
+    }
+}
+
+/* 终验投屏可读性微调：只提高清晰度和状态反馈，不改变入口结构。 */
+@media (min-width: 981px) {
+    /* 玻璃卡终验微调：边框和阴影略微提亮，增强大屏上的玻璃层次感。 */
+    .glass-card {
+        border-color: rgba(234, 250, 254, 0.17);
+        box-shadow:
+            0 18px 44px rgba(0, 8, 17, 0.3),
+            0 0 0 1px rgba(211, 243, 252, 0.055),
+            0 0 28px rgba(122, 204, 232, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.18),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    /* 玻璃卡表面高光终验微调：提高伪元素可见度。 */
+    .glass-card::before {
+        opacity: 0.68;
+    }
+
+    .side-title {
+        color: rgba(253, 255, 255, 1);
+        text-shadow:
+            0 14px 34px rgba(0, 9, 18, 0.42),
+            0 0 20px rgba(221, 248, 255, 0.14);
+    }
+
+    .side-observatory-title,
+    .side-observatory-label,
+    .side-observatory-item strong {
+        text-rendering: geometricPrecision;
+    }
+
+    .side-observatory-item strong {
+        color: rgba(253, 255, 255, 0.98);
+        font-weight: 560;
+    }
+
+    .side-observatory-label {
+        color: rgba(232, 248, 253, 0.84);
+    }
+
+    .side-observatory::after {
+        background: linear-gradient(180deg, rgba(226, 248, 253, 0.25), rgba(126, 207, 235, 0.08));
+    }
+
+    .side-observatory-item::before {
+        opacity: 0.74;
+    }
+
+    .side-waterline-value {
+        color: rgba(253, 255, 255, 0.98);
+    }
+
+    .side-waterline-status {
+        color: rgba(250, 254, 255, 0.96);
+        font-weight: 520;
+    }
+
+    .side-waterline-track {
+        height: 10px;
+        border-color: rgba(231, 250, 254, 0.3);
+    }
+
+    .side-waterline-fill {
+        box-shadow:
+            0 0 18px rgba(183, 236, 250, 0.3),
+            0 0 34px rgba(111, 204, 235, 0.14);
+    }
+
+    /* 认证面板整体上移 12px，大屏上视觉居中更佳。 */
+    .auth-panel-shell {
+        translate: 0 -12px;
+    }
+
+    .form-title {
+        color: rgba(253, 255, 255, 0.98);
+    }
+
+    .form-subtitle,
+    .auth-waterline-copy {
+        color: rgba(240, 250, 253, 0.86);
+    }
+
+    .input-group label {
+        color: rgba(252, 255, 255, 0.97);
+    }
+
+    .input-group input {
+        border-color: rgba(230, 250, 254, 0.3);
+        color: rgba(253, 255, 255, 1);
+    }
+
+    .input-group input::placeholder {
+        color: rgba(235, 248, 252, 0.8);
+    }
+
+    .input-group input:focus {
+        border-color: rgba(207, 245, 254, 0.66);
+        box-shadow:
+            0 0 0 3px rgba(122, 211, 239, 0.13),
+            0 0 24px rgba(134, 221, 244, 0.16),
+            0 12px 22px rgba(2, 13, 23, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+
+    .input-group.is-filled input,
+    .input-group.is-complete input {
+        border-color: rgba(217, 246, 253, 0.48);
+    }
+
+    /* 认证按钮终验微调：强化外投影和内发光，让 CTA 在大屏上更有"按下去"的质感。 */
+    .auth-cta {
+        box-shadow:
+            0 13px 26px rgba(0, 10, 21, 0.22),
+            0 0 20px rgba(130, 222, 244, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.26),
+            inset 0 -12px 22px rgba(0, 20, 42, 0.16);
+    }
+
+    /* hover 微提饱和度和亮度，按钮暖和地"亮起来"。 */
+    .auth-cta:hover {
+        filter: saturate(1.05) brightness(1.035);
+    }
+
+    /* active 微降亮度，按下时短暂变暗。 */
+    .auth-cta:active {
+        filter: saturate(1.02) brightness(0.965);
+    }
+}
+
+@media (min-width: 981px) and (max-height: 820px) {
+    .auth-panel-shell {
+        translate: 0 -8px;
+    }
+
+    .side-waterline-track {
+        height: 9px;
     }
 }
 

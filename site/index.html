@@ -14,47 +14,74 @@
     <link rel="stylesheet" href="css/depth-gauge.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
+<!--
+    data-auth-mode: 当前认证模式（login / register），由 JS 根据标签页切换来修改。
+    data-auth-progress-state: 认证流程状态机（idle / validating / success / error / pending）。
+    data-auth-progress-step: 细分步骤（idle / collecting / checking / verified），用于驱动左侧进度条动画。
+    is-auth-login: 默认以登录模式进入，注册模式会替换为 is-auth-register。
+    这些属性是页面内所有交互（进度条、表单切换、CTA 文案）的唯一状态来源，JS 只读/写它们，不自行维护额外状态变量。
+-->
 <body class="login-page is-auth-login" data-auth-mode="login" data-auth-progress-state="idle" data-auth-progress-step="idle">
-    <!-- 页面过渡遮罩：登录页进入首页时会先经过这一层，避免跳转像普通切页。 -->
+    <!-- 页面过渡遮罩：登录页进入首页时会先经过这一层，避免跳转像普通切页。
+         工作方式：auth.js 在认证成功后先触发 page-transition.css 的进场动画，
+         等遮罩完全覆盖视口后再执行 window.location 跳转，从而让跨页体验像"正在下潜"而非生硬切换。 -->
     <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
 
-    <!-- 舞台调试入口：仅用于开发时查看门厅舞台尺寸，不属于用户常规操作。 -->
+    <!-- 舞台调试入口：仅用于开发时查看门厅舞台尺寸，不属于用户常规操作。
+         点击后切换 body 上的 data-stage-debug 属性，激活 login.css 中的调试态样式：
+         显示舞台外壳尺寸标签、拖拽手柄和重置按钮。 -->
     <button type="button" class="stage-debug-toggle" data-stage-debug-toggle aria-pressed="false" title="开启舞台调试">
         <span class="stage-debug-toggle-dot" aria-hidden="true"></span>
+        <!-- 调试按钮上的"舞台 调试中"文案区域 -->
         <span class="stage-debug-toggle-copy">
             <span class="stage-debug-toggle-label">舞台</span>
             <span class="stage-debug-toggle-state" data-stage-debug-state>调试中</span>
         </span>
     </button>
 
-    <!-- 左侧深度计：登录页虽然还在海面附近，但仍沿用整站统一的深度语言。 -->
+    <!-- 左侧深度计：登录页虽然还在海面附近（0m），但仍沿用整站统一的深度语言。
+         这是整站深度系统的一部分——每个页面的深度值不同（登录页 0m，首页 ~30m，行程页 ~60m，详情页 ~90m），
+         深度计会在页面切换时由 depth-manager.js 驱动做平滑过渡动画。 -->
     <div class="depth-gauge left" aria-hidden="true">
         <div class="gauge-current" id="leftGaugeCurrent">0m</div>
         <div class="gauge-markers" id="leftGaugeMarkers"></div>
     </div>
 
-    <!-- 右侧深度计：和左侧共同夹住门厅，让入口页也保持“在海里”的空间感。 -->
+    <!-- 右侧深度计：和左侧共同夹住门厅，让入口页也保持"在海里"的空间感。
+         左右各一个深度计形成垂直参照线，用户在任意滚动位置都能看到当前深度，
+         强化"整站都在水下"的空间叙事。 -->
     <div class="depth-gauge right" aria-hidden="true">
         <div class="gauge-current" id="rightGaugeCurrent">0m</div>
         <div class="gauge-markers" id="rightGaugeMarkers"></div>
     </div>
 
-    <!-- 页面主舞台：登录页的所有氛围层、门厅卡片和 HUD 都在这一层一起进退。 -->
+    <!-- 页面主舞台：登录页的所有氛围层、门厅卡片和 HUD 都在这一层一起进退。
+         page-transition.css 在跳转时通过 transform/opacity 控制整个 #pageStage 的退出动画，
+         所以所有可见内容必须放在这一层内才能被过渡系统捕获。 -->
     <div class="page-stage" id="pageStage">
-        <!-- 背景氛围层：负责海面渐变、波纹和盐粒漂浮，不承载真实交互。 -->
+        <!-- 背景氛围层：负责海面渐变、波纹和盐粒漂浮，不承载真实交互。
+             aria-hidden="true" 确保屏幕阅读器跳过纯装饰层。
+             整个 bg-container 是独立于门厅卡片的底层，给用户"站在海面附近"的空间感。 -->
         <div class="bg-container" aria-hidden="true">
+            <!-- 渐变背景：从深海蓝渐变到海面白，模拟从水下往上看海面的光线变化 -->
             <div class="gradient-bg"></div>
+            <!-- 登录页专属氛围层：波纹、海流、涟漪、盐粒 —— 每个 span 是一条独立的 CSS 动画轨道 -->
             <div class="login-atmosphere">
+                <!-- 雾/霾层：模糊的大面积光晕，让海面看起来有厚度，不是纯色背景 -->
                 <span class="atmosphere-haze haze-a"></span>
                 <span class="atmosphere-haze haze-b"></span>
+                <!-- 波浪线：横向移动的半透明曲线，模拟海面波浪的推进感 -->
                 <span class="atmosphere-wave wave-a"></span>
                 <span class="atmosphere-wave wave-b"></span>
                 <span class="atmosphere-wave wave-c"></span>
+                <!-- 海流：缓慢漂移的光带，制造水下暗流涌动的空间深度 -->
                 <span class="atmosphere-current current-a"></span>
                 <span class="atmosphere-current current-b"></span>
                 <span class="atmosphere-current current-c"></span>
+                <!-- 涟漪：以不同节奏扩散/消失的圆形波纹，给静水加一点"活的"感觉 -->
                 <span class="atmosphere-ripple ripple-a"></span>
                 <span class="atmosphere-ripple ripple-b"></span>
+                <!-- 盐粒漂浮：10 个独立 div 各自以不同的延迟和速度做上下浮动 + 淡入淡出，模拟海水中悬浮的盐晶 -->
                 <div class="salt-particles">
                     <div class="particle"></div>
                     <div class="particle"></div>
@@ -70,11 +97,17 @@
             </div>
         </div>
 
-        <!-- 潜前门厅：真正的登录/注册舞台，包含可调尺寸外壳与内部玻璃卡。 -->
+        <!-- 潜前门厅：真正的登录/注册舞台，包含可调尺寸外壳与内部玻璃卡。
+             整个 login-container 用 flex 居中，内部的 login-stage-shell 是可拖拽调整大小的门厅容器。
+             调试模式下四周会显示 resize handles，允许开发者微调门厅尺寸。 -->
         <main class="login-container" aria-label="盐憩登录门厅">
+            <!-- 门厅外壳：承载玻璃卡 + 调试拖拽层 + 外壳发光效果。
+                 login.css 中的 .login-stage-shell 定义了门厅的整体尺寸（通过 CSS 自定义属性 --stage-w / --stage-h 控制）。 -->
             <div class="login-stage-shell" id="loginStageShell">
+                <!-- 外壳发光：门厅外围的径向渐变光晕，让玻璃卡看起来像是从海水中浮现出来的 -->
                 <div class="login-stage-glow" aria-hidden="true"></div>
-                <!-- 舞台拖拽层：调试态才会显示，用来调整门厅尺寸和位置。 -->
+                <!-- 舞台拖拽层：调试态才会显示，用来调整门厅尺寸和位置。
+                     八个方向的 resize handles 覆盖整个外壳边框，鼠标靠近边缘时会显示拖拽光标。 -->
                 <div class="login-stage-resize-layer" aria-hidden="true">
                     <button type="button" class="login-stage-resize-handle is-north" data-resize-direction="n" tabindex="-1" aria-hidden="true"></button>
                     <button type="button" class="login-stage-resize-handle is-east" data-resize-direction="e" tabindex="-1" aria-hidden="true"></button>
@@ -85,43 +118,62 @@
                     <button type="button" class="login-stage-resize-handle is-south-west" data-resize-direction="sw" tabindex="-1" aria-hidden="true"></button>
                     <button type="button" class="login-stage-resize-handle is-north-west" data-resize-direction="nw" tabindex="-1" aria-hidden="true"></button>
                 </div>
+                <!-- 玻璃卡片：门厅的视觉主体，使用 glass-card 样式实现毛玻璃效果（backdrop-filter + 半透明渐变边框）。
+                     内部通过 login-stage-divider 在左品牌区和右认证区之间画一条微弱的分隔线。 -->
                 <div class="glass-card">
                     <div class="login-stage-divider" aria-hidden="true"></div>
                     <div class="card-layout">
-                        <!-- 左侧品牌门厅：先建立“进入盐憩之前先安静下来”的情绪。 -->
+                        <!-- 左侧品牌门厅：先建立"进入盐憩之前先安静下来"的情绪。
+                             这个 aside 不参与表单交互，纯粹是品牌叙事空间。
+                             内部包含：品牌口号、深度标签、引言、静海档案（四列信息卡）、进入进度条。
+                             使用 fade-in-up 动画序列让各元素从下往上依次浮现，营造"慢慢进入"的节奏。 -->
                         <aside class="login-side fade-in-up" style="animation-delay: 0s" aria-labelledby="arrivalHallTitle">
+                            <!-- 左侧装饰层：三个同心椭圆光环缓慢旋转，增加"水底光晕"的视觉深度 -->
                             <div class="login-side-atmosphere" aria-hidden="true">
                                 <span class="login-side-orbit orbit-a"></span>
                                 <span class="login-side-orbit orbit-b"></span>
                                 <span class="login-side-orbit orbit-c"></span>
                             </div>
+                            <!-- 品牌文案区：从氛围口号逐渐过渡到具体信息，模仿"从模糊到清晰"的下潜体验 -->
                             <div class="login-brand-copy">
+                                <!-- 小标签：Arrival Layer —— 提示用户当前处于"刚到达"的层级 -->
                                 <p class="side-kicker">Arrival Layer</p>
+                                <!-- 深度标签：静水门厅 · 0m —— 告诉用户现在在海面，还没开始下潜 -->
                                 <p class="side-depth-tag">静水门厅 · 0m</p>
                                 <h1 class="side-title" id="arrivalHallTitle">盐憩</h1>
+                                <!-- 引言区：用两句简短文案建立情绪——先安静，再进入 -->
                                 <p class="side-quote">先让呼吸慢一点。</p>
                                 <p class="side-meta">海还在前面，你先安静下来。</p>
+                                <!-- 静海档案：四列信息卡片网格，每个 item 都是登录页专属的"海事档案"概念
+                                     data-observatory-item 属性用于 JS 或 CSS 按类型区分展示逻辑 -->
                                 <section class="side-observatory" aria-label="静海档案">
                                     <p class="side-observatory-title"><span>Archive</span> / 静海档案</p>
                                     <div class="side-observatory-grid">
+                                        <!-- 海层：当前所在的海洋层级，登录页在"岸上与海面之间" -->
                                         <p class="side-observatory-item" data-observatory-item="layer">
                                             <span class="side-observatory-label">海层</span>
                                             <strong>岸上与海面之间</strong>
                                         </p>
+                                        <!-- 节奏：当前页面希望用户保持的心理节奏 -->
                                         <p class="side-observatory-item" data-observatory-item="rhythm">
                                             <span class="side-observatory-label">节奏</span>
                                             <strong>慢慢停住</strong>
                                         </p>
+                                        <!-- 入口：登录方式——"号码归岸"呼应手机号登录 -->
                                         <p class="side-observatory-item" data-observatory-item="entrance">
                                             <span class="side-observatory-label">入口</span>
                                             <strong>号码归岸</strong>
                                         </p>
+                                        <!-- 信物：登录凭证——"轻如一页水的重量"呼应密码的轻盈感 -->
                                         <p class="side-observatory-item" data-observatory-item="token">
                                             <span class="side-observatory-label">信物</span>
                                             <strong>轻如一页水的重量</strong>
                                         </p>
                                     </div>
                                 </section>
+                                <!-- 进入进度条（水线）：左侧品牌区的最后一个元素，像潜水深度计一样显示认证流程进度。
+                                     JS 根据 body 上的 data-auth-progress-state/data-auth-progress-step 驱动水线填充动画。
+                                     status 文案由 JS 动态更新，告知用户当前处于认证流程的哪一步。 -->
                                 <div class="side-waterline" aria-label="进入进度">
                                     <div class="side-waterline-head">
                                         <span class="side-waterline-label">Entrance Progress</span>
@@ -135,29 +187,40 @@
                             </div>
                         </aside>
 
-                        <!-- 右侧认证区：承接登录、注册、游客进入和辅助入口。 -->
+                        <!-- 右侧认证区：承接登录、注册、游客进入和辅助入口。
+                             使用 section（而非 aside）因为这个区域承载了用户的主要交互任务。
+                             内部结构：auth-panel-shell（玻璃容器）→ auth-waterline（顶部装饰线）→ form-brand（模式相关标题）→ tab-section（登录/注册切换）→ auth-form（表单主体）→ footer-links（底部辅助入口）。 -->
                         <section class="form-side">
+                            <!-- 认证面板外壳：auth-panel-glass 提供毛玻璃底层（backdrop-filter），auth-panel-inner 提供内边距和滚动 -->
                             <div class="auth-panel-shell fade-in-up" style="animation-delay: 0.08s">
                                 <div class="auth-panel-glass" aria-hidden="true"></div>
                                 <div class="auth-panel-inner">
+                                    <!-- 认证区顶部水线装饰：一条微弱的分隔线 + 引导文案，告诉用户"从这里进入主线" -->
                                     <div class="auth-waterline fade-in-up" style="animation-delay: 0.04s" aria-hidden="true">
                                         <span class="auth-waterline-kicker">Entrance Passage</span>
                                         <span class="auth-waterline-copy">沿这一层静水慢慢进入首页主线</span>
                                     </div>
+                                    <!-- 表单品牌区：根据当前认证模式（登录/注册）显示不同的欢迎标题和副标题。
+                                         form-copy-login 和 form-copy-register 同时存在于 DOM 中，
+                                         JS 通过切换 body 上的 data-auth-mode 属性来显示/隐藏对应的标题块。 -->
                                     <div class="form-brand fade-in-up" style="animation-delay: 0.08s">
                                         <p class="form-kicker">Entrance Console</p>
 
+                                        <!-- 登录模式标题：欢迎回来 -->
                                         <div class="form-copy form-copy-login" id="authModeSummaryLogin">
                                             <h2 class="form-title">欢迎回来</h2>
                                             <p class="form-subtitle">海面先安静下来，再通过手机号回到这层静水。</p>
                                         </div>
 
+                                        <!-- 注册模式标题：留下你的手机号 -->
                                         <div class="form-copy form-copy-register" id="authModeSummaryRegister">
                                             <h2 class="form-title">留下你的手机号</h2>
                                             <p class="form-subtitle">先把号码停在这里，让入口慢慢收住。</p>
                                         </div>
                                     </div>
 
+                                    <!-- 标签页切换区：登录 / 注册两个 tab，切换时 JS 修改 body data-auth-mode 并切换对应 tab-content 的显示。
+                                         role="tablist" + role="tab" + role="tabpanel" 构成标准的无障碍标签页组件。 -->
                                     <div class="tab-section fade-in-up" style="animation-delay: 0.14s">
                                         <div class="tabs" role="tablist" aria-label="登录方式切换">
                                             <button class="tab-btn active" id="auth-tab-login" data-tab="login" type="button" role="tab" aria-controls="login" aria-selected="true">登录</button>
@@ -165,25 +228,34 @@
                                         </div>
                                     </div>
 
+                                    <!-- 认证表单主体：包含登录和注册两个 tab-content 面板（同一时间只显示一个）。
+                                         novalidate 属性禁用浏览器原生表单校验，改用 JS 自定义校验 + 进度条动画反馈。
+                                         aria-describedby 指向当前模式的标题 div，让屏幕阅读器在聚焦表单时读出模式说明。 -->
                                     <form class="auth-form" id="authForm" aria-describedby="authModeSummaryLogin" novalidate>
+                                        <!-- 登录面板：手机号 + 密码 + 记住我 + 提交按钮 -->
                                         <div class="tab-content active" id="login" role="tabpanel" aria-labelledby="auth-tab-login" tabindex="-1">
                                             <div class="input-group fade-in-up" style="animation-delay: 0.18s">
                                                 <label for="login-phone">手机号</label>
+                                                <!-- pattern="^1[3-9]\d{9}$": 中国大陆手机号正则，限定 1 开头 + 第二位 3-9 + 9 位数字 -->
                                                 <input type="tel" id="login-phone" inputmode="numeric" maxlength="11" autocomplete="tel-national" pattern="^1[3-9]\d{9}$" placeholder="写下会把你带回来的号码" required>
                                                 <span class="field-hint">号码只在这层静水里用于本地演示。</span>
                                             </div>
 
                                             <div class="input-group fade-in-up" style="animation-delay: 0.3s">
                                                 <label for="login-password">通行密钥</label>
+                                                <!-- type="password" 确保输入内容在屏幕上不可见 -->
                                                 <input type="password" id="login-password" placeholder="轻轻写下这一层密钥" required>
                                                 <span class="field-hint">密钥写下后，入口会慢慢成形。</span>
                                             </div>
 
+                                            <!-- 记住我复选框：勾选后 auth.js 将手机号存入 localStorage，下次打开页面时自动填充 -->
                                             <div class="checkbox-group fade-in-up" style="animation-delay: 0.42s">
                                                 <input type="checkbox" id="remember-me">
                                                 <label for="remember-me" class="checkbox-label">让这层静水记住这串号码</label>
                                             </div>
 
+                                            <!-- 登录提交按钮：点击后 auth.js 走模拟验证流程 → 更新进度条 → 触发页面过渡 → 跳转首页。
+                                                 data-auth-cta="login" 让 JS 可以区分是登录还是注册按钮被点击。 -->
                                             <button type="submit" class="auth-cta fade-in-up" data-auth-cta="login" style="animation-delay: 0.54s">
                                                 <span>进入首页主线</span>
                                                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -192,6 +264,7 @@
                                             </button>
                                         </div>
 
+                                        <!-- 注册面板：手机号 + 密码 + 确认密码 + 同意协议 + 提交按钮 -->
                                         <div class="tab-content" id="register" role="tabpanel" aria-labelledby="auth-tab-register" tabindex="-1" hidden>
                                             <div class="input-group fade-in-up" style="animation-delay: 0.18s">
                                                 <label for="register-phone">手机号</label>
@@ -205,17 +278,22 @@
                                                 <span class="field-hint">让这把钥匙保持安静、清楚、好记。</span>
                                             </div>
 
+                                            <!-- 确认密码：与上面的密码比对，auth.js 在提交前校验两次输入是否一致 -->
                                             <div class="input-group fade-in-up" style="animation-delay: 0.42s">
                                                 <label for="register-confirm">确认密钥</label>
                                                 <input type="password" id="register-confirm" placeholder="再轻轻确认一次密钥" required>
                                                 <span class="field-hint">两次密钥对齐后，入口会收得更稳。</span>
                                             </div>
 
+                                            <!-- 同意协议复选框：必须勾选才能提交注册。
+                                                 terms.html 和 privacy.html 在同一目录下，用 target="_blank" 在新标签页打开。 -->
                                             <div class="checkbox-group fade-in-up" style="animation-delay: 0.54s">
                                                 <input type="checkbox" id="agree-terms">
                                                 <label for="agree-terms" class="checkbox-label">我已阅读并同意 <a href="terms.html" target="_blank" rel="noopener noreferrer">《用户协议》</a> 与 <a href="privacy.html" target="_blank" rel="noopener noreferrer">《隐私政策》</a></label>
                                             </div>
 
+                                            <!-- 注册提交按钮：和登录按钮共用同一套 auth.js 的提交流程，
+                                                 但注册模式需要额外校验密码一致性 + 协议同意。 -->
                                             <button type="submit" class="auth-cta fade-in-up" data-auth-cta="register" style="animation-delay: 0.66s">
                                                 <span>进入首页主线</span>
                                                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -225,13 +303,18 @@
                                         </div>
                                     </form>
 
+                                    <!-- 底部辅助链接：提供"忘记密码"、"展示航线"、"先逛逛"和"联系我们"四个备选入口，
+                                         用 / 分隔符排成一行，让不想登录的用户也有进入方式。
+                                         这四种进入方式在 auth.js 中对应不同的权限状态（游客 / 展示模式 / 未认证）。 -->
                                     <div class="footer-links fade-in-up" style="animation-delay: 0.86s">
                                         <p class="footer-links-label">别的入口仍然开着</p>
                                         <div class="footer-links-row">
                                             <a href="contact.html#contactStatusSection" class="link-forgot" data-brand-link="forgot">忘记密码</a>
                                             <span class="divider">/</span>
+                                            <!-- 展示航线按钮：以游客身份进入，但展示完整的首页航线轮播（仅浏览，不开放预订） -->
                                             <button type="button" class="link-guest link-demo-voyage" id="demoVoyageButton" data-guest-entry="showcase">展示航线</button>
                                             <span class="divider">/</span>
+                                            <!-- 先逛逛按钮：以最低权限游客身份进入首页（浏览内容受限） -->
                                             <button type="button" class="link-guest" data-guest-entry="soft-browse">先逛逛</button>
                                             <span class="divider">/</span>
                                             <a href="contact.html#contactStatusSection" class="link-forgot" data-brand-link="contact">联系我们</a>
@@ -245,7 +328,9 @@
                 </div>
             </div>
         </main>
-        <!-- 舞台 HUD：开发时显示当前门厅尺寸和重置入口，帮助校准布局节奏。 -->
+        <!-- 舞台 HUD：开发时显示当前门厅尺寸和重置入口，帮助校准布局节奏。
+             仅在 data-stage-debug 激活时显示（通过舞台调试按钮切换）。
+             显示当前门厅的 CSS 自定义属性值（--stage-w / --stage-h），以及一个"重置舞台"按钮恢复到默认尺寸。 -->
         <div class="login-stage-hud" id="loginStageHud">
             <div class="login-stage-hud-copy">
                 <span class="login-stage-hud-label">当前尺寸</span>
@@ -263,7 +348,14 @@
         </div>
     </div>
 
-    <!-- 先初始化整站深度系统，再挂登录页的认证与舞台交互逻辑。 -->
+    <!-- JS 加载顺序说明：
+         1. yanqi-brand-config.js: 品牌常量（颜色、深度值、页面名称映射）—— 全局依赖，最先加载
+         2. yanqi-diver-profile.js: 潜水者状态管理（当前页面、认证状态、深度偏好）—— 依赖品牌配置
+         3. yanqi-showcase-state.js: 展示模式状态（是否以游客/展示模式进入）—— 依赖潜水者档案
+         4. depth-manager.js: 整站深度系统核心（驱动左右深度计、页面间深度过渡动画）—— 依赖品牌配置中的深度值
+         5. auth.js: 登录页专属认证逻辑（表单校验、进度条、标签切换、页面跳转）—— 依赖深度管理器做过渡动画
+         注意：这些脚本在 </body> 之前加载，确保 DOM 已完全解析后再执行逻辑。
+         defer 未使用是因为这些脚本之间有明显依赖顺序，按序加载更可靠。 -->
     <script src="js/yanqi-brand-config.js"></script>
     <script src="js/yanqi-diver-profile.js"></script>
     <script src="js/yanqi-showcase-state.js"></script>

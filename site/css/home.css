@@ -76,13 +76,9 @@ body.home-page.home-guide-custom-travel-active > .navbar {
     transform: translate3d(0, 0, 0);
 }
 
-body.home-scroll-active .featured-destinations,
 body.home-guide-custom-travel-active .featured-destinations,
-body.home-scroll-active .dive-match,
 body.home-guide-custom-travel-active .dive-match,
-body.home-scroll-active .why-yanqi,
 body.home-guide-custom-travel-active .why-yanqi,
-body.home-scroll-active .footer,
 body.home-guide-custom-travel-active .footer {
     transition: opacity 220ms ease;
 }
@@ -97,13 +93,6 @@ body[data-home-interaction='locked'] .scroll-arrow,
 body[data-home-interaction='locked'] .dive-match.is-display-visible .dive-match-surface.is-resting,
 body[data-home-interaction='locked'] .story-river-glow,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger,
-body.home-scroll-active .hero-ocean-glow-one,
-body.home-scroll-active .hero-ocean-glow-two,
-body.home-scroll-active .hero-ocean-wave-one,
-body.home-scroll-active .hero-ocean-wave-two,
-body.home-scroll-active .hero-plankton,
-body.home-scroll-active .home-page.hero-awakened .today-sea-card,
-body.home-scroll-active .scroll-arrow,
 body.home-guide-custom-travel-active .hero-ocean-glow-one,
 body.home-guide-custom-travel-active .hero-ocean-glow-two,
 body.home-guide-custom-travel-active .hero-ocean-wave-one,
@@ -124,34 +113,21 @@ body.home-guide-custom-travel-active .curated-nav-rail.is-cycling .curated-nav-r
     animation-play-state: paused !important;
 }
 
-body.home-scroll-active .curated-display-media::after,
 body.home-guide-custom-travel-active .curated-display-media::after,
-body.home-scroll-active .curated-nav-rail.is-cycling .curated-nav-refresh::after,
 body.home-guide-custom-travel-active .curated-nav-rail.is-cycling .curated-nav-refresh::after,
-body.home-scroll-active .dive-match.is-display-visible .dive-match-surface.is-resting,
 body.home-guide-custom-travel-active .dive-match.is-display-visible .dive-match-surface.is-resting,
-body.home-scroll-active .story-river-glow,
 body.home-guide-custom-travel-active .story-river-glow,
-body.home-scroll-active .sea-guide-home.is-visible .sea-guide-trigger,
 body.home-guide-custom-travel-active .sea-guide-home.is-visible .sea-guide-trigger {
     animation-play-state: paused !important;
 }
 
-body.home-scroll-active .curated-waters-stage,
 body.home-guide-custom-travel-active .curated-waters-stage,
-body.home-scroll-active .curated-display-copy,
 body.home-guide-custom-travel-active .curated-display-copy,
-body.home-scroll-active .dive-match-stage,
 body.home-guide-custom-travel-active .dive-match-stage,
-body.home-scroll-active .dive-match-profile-panel,
 body.home-guide-custom-travel-active .dive-match-profile-panel,
-body.home-scroll-active .dive-match-focus-card,
 body.home-guide-custom-travel-active .dive-match-focus-card,
-body.home-scroll-active .dive-match-card,
 body.home-guide-custom-travel-active .dive-match-card,
-body.home-scroll-active .sea-guide-home .sea-guide-panel,
 body.home-guide-custom-travel-active .sea-guide-home .sea-guide-panel,
-body.home-scroll-active .sea-guide-home .sea-guide-trigger,
 body[data-home-interaction='locked'] .curated-waters-stage,
 body[data-home-interaction='locked'] .curated-display-copy,
 body[data-home-interaction='locked'] .dive-match-stage,
@@ -165,29 +141,17 @@ body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger {
     -webkit-backdrop-filter: none !important;
 }
 
-body.home-scroll-active .curated-waters-stage::before,
 body.home-guide-custom-travel-active .curated-waters-stage::before,
-body.home-scroll-active .curated-waters-stage::after,
 body.home-guide-custom-travel-active .curated-waters-stage::after,
-body.home-scroll-active .curated-display-media::after,
 body.home-guide-custom-travel-active .curated-display-media::after,
-body.home-scroll-active .dive-match::before,
 body.home-guide-custom-travel-active .dive-match::before,
-body.home-scroll-active .dive-match::after,
 body.home-guide-custom-travel-active .dive-match::after,
-body.home-scroll-active .dive-match-stage::before,
 body.home-guide-custom-travel-active .dive-match-stage::before,
-body.home-scroll-active .dive-match-focus-card::before,
 body.home-guide-custom-travel-active .dive-match-focus-card::before,
-body.home-scroll-active .dive-match-focus-card::after,
 body.home-guide-custom-travel-active .dive-match-focus-card::after,
-body.home-scroll-active .dive-match-profile-presets-focus-aura,
 body.home-guide-custom-travel-active .dive-match-profile-presets-focus-aura,
-body.home-scroll-active .story-river-glow,
 body.home-guide-custom-travel-active .story-river-glow,
-body.home-scroll-active .sea-guide-home .sea-guide-trigger::after,
 body.home-guide-custom-travel-active .sea-guide-home .sea-guide-trigger::after,
-body.home-scroll-active .sea-guide-home .sea-guide-panel::before,
 body[data-home-interaction='locked'] .curated-waters-stage::before,
 body[data-home-interaction='locked'] .curated-waters-stage::after,
 body[data-home-interaction='locked'] .curated-display-media::after,
@@ -200,10 +164,6 @@ body[data-home-interaction='locked'] .dive-match-profile-presets-focus-aura,
 body[data-home-interaction='locked'] .story-river-glow,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-trigger::after,
 body[data-home-interaction='locked'] .sea-guide-home .sea-guide-panel::before,
-body.home-scroll-active .hero-bamboo-scroll-container::before,
-body.home-scroll-active .hero-bamboo-cards-wrapper::before,
-body.home-scroll-active .hero-bamboo-cards-wrapper::after,
-body.home-scroll-active .today-sea-card::before,
 body[data-home-interaction='locked'] .hero-bamboo-scroll-container::before,
 body[data-home-interaction='locked'] .hero-bamboo-cards-wrapper::before,
 body[data-home-interaction='locked'] .hero-bamboo-cards-wrapper::after,
@@ -217,11 +177,6 @@ body.home-guide-custom-travel-active .today-sea-card::before {
     opacity: 0.34 !important;
 }
 
-body.home-scroll-active .today-sea-card,
-body.home-scroll-active .hero-hotspots-shell .bamboo-card,
-body.home-scroll-active .bamboo-card,
-body.home-scroll-active .bamboo-card-image,
-body.home-scroll-active .bamboo-card-content,
 body[data-home-interaction='locked'] .today-sea-card,
 body[data-home-interaction='locked'] .hero-hotspots-shell .bamboo-card,
 body[data-home-interaction='locked'] .bamboo-card,
@@ -236,10 +191,6 @@ body.home-guide-custom-travel-active .bamboo-card-content {
     animation-play-state: paused !important;
 }
 
-body.home-scroll-active .today-sea-card,
-body.home-scroll-active .hero-hotspots-shell .bamboo-card,
-body.home-scroll-active .bamboo-card,
-body.home-scroll-active .bamboo-card-content,
 body[data-home-interaction='locked'] .today-sea-card,
 body[data-home-interaction='locked'] .hero-hotspots-shell .bamboo-card,
 body[data-home-interaction='locked'] .bamboo-card,
@@ -254,131 +205,9 @@ body.home-guide-custom-travel-active .bamboo-card-content {
     filter: none !important;
 }
 
-body.home-scroll-active .bamboo-card-image,
 body[data-home-interaction='locked'] .bamboo-card-image,
 body.home-guide-custom-travel-active .bamboo-card-image {
     transform: none !important;
-}
-
-body.home-scroll-active :is(
-    .hero-section,
-    .hero-ocean-glow,
-    .hero-ocean-wave,
-    .hero-plankton,
-    .hero-content,
-    .hero-title,
-    .hero-subtitle,
-    .today-sea-card,
-    .today-sea-head,
-    .today-sea-copy,
-    .today-sea-spot,
-    .today-sea-spot-link,
-    .today-sea-actions,
-    .hero-hotspots-shell,
-    .hero-hotspots-head,
-    .hero-bamboo-scroll-container,
-    .hero-bamboo-cards-wrapper,
-    .curated-reveal,
-    .curated-waters-stage,
-    .curated-archive-wall,
-    .curated-nav-btn,
-    .curated-display-surface,
-    .curated-display-media,
-    .curated-display-copy,
-    .dive-match,
-    .dive-match-reveal,
-    .dive-match-stage,
-    .dive-match-profile-panel,
-    .dive-match-profile-panel-track,
-    .dive-match-profile-presets-focus-aura,
-    .dive-match-profile-presets-track,
-    .dive-match-profile-preset,
-    .dive-match-filter,
-    .dive-match-surface,
-    .dive-match-focus-card,
-    .dive-match-focus-group,
-    .dive-match-focus-head,
-    .dive-match-focus-audience,
-    .dive-match-focus-guidance,
-    .dive-match-focus-note,
-    .dive-match-focus-personal
-) {
-    animation-play-state: paused !important;
-    transition: none !important;
-    will-change: auto !important;
-}
-
-body.home-scroll-restoring :is(
-    .hero-section,
-    .hero-ocean-glow,
-    .hero-ocean-wave,
-    .hero-plankton,
-    .today-sea-card,
-    .hero-hotspots-shell,
-    .bamboo-card,
-    .bamboo-card-content,
-    .curated-waters-stage,
-    .curated-archive-wall,
-    .curated-nav-btn,
-    .curated-display-surface,
-    .curated-display-media,
-    .curated-display-copy,
-    .dive-match,
-    .dive-match-stage,
-    .dive-match-profile-panel,
-    .dive-match-profile-panel-track,
-    .dive-match-profile-presets-track,
-    .dive-match-profile-preset,
-    .dive-match-filter,
-    .dive-match-surface,
-    .dive-match-focus-card,
-    .dive-match-focus-group,
-    .sea-guide-home .sea-guide-panel,
-    .sea-guide-home .sea-guide-trigger
-) {
-    animation-play-state: paused !important;
-    transition: none !important;
-    will-change: auto !important;
-}
-
-body.home-scroll-restoring :is(
-    .hero-section,
-    .featured-destinations,
-    .curated-waters-stage,
-    .curated-archive-wall,
-    .dive-match,
-    .dive-match-stage,
-    .dive-match-focus-card
-)::before,
-body.home-scroll-restoring :is(
-    .hero-section,
-    .featured-destinations,
-    .curated-waters-stage,
-    .curated-archive-wall,
-    .dive-match,
-    .dive-match-focus-card
-)::after,
-body.home-scroll-restoring .curated-display-media::after,
-body.home-scroll-restoring .sea-guide-home .sea-guide-panel::before {
-    animation-play-state: paused !important;
-    transition: none !important;
-}
-
-body.home-scroll-active .hero-section::before,
-body.home-scroll-active .hero-section::after,
-body.home-scroll-active .hero-hotspots-shell::after,
-body.home-scroll-active .featured-destinations::before,
-body.home-scroll-active .featured-destinations::after,
-body.home-scroll-active .curated-waters-stage::before,
-body.home-scroll-active .curated-waters-stage::after,
-body.home-scroll-active .curated-archive-wall::before,
-body.home-scroll-active .curated-archive-wall::after,
-body.home-scroll-active .dive-match::before,
-body.home-scroll-active .dive-match::after,
-body.home-scroll-active .dive-match-stage::before,
-body.home-scroll-active .dive-match-focus-card::before,
-body.home-scroll-active .dive-match-focus-card::after {
-    transition: none !important;
 }
 
 /* ============================================
@@ -3482,7 +3311,7 @@ body[data-home-performance='lite'] .bamboo-card-content {
     padding: clamp(18px, 1.8vw, 24px) 0 clamp(22px, 2vw, 28px);
     max-height: 100%;
     overflow-y: hidden;
-    overscroll-behavior-y: none;
+    overscroll-behavior-y: auto;
     scrollbar-width: none;
 }
 
@@ -8691,6 +8520,7 @@ body.home-page .hero-section {
 body.home-page .hero-content {
     width: min(100%, 1400px);
     max-width: 1400px;
+    display: block;
 }
 
 body.home-page .hero-hotspots-stage-shell {
@@ -9077,6 +8907,9 @@ body.home-page .hero-hotspots-shell .bamboo-card.active {
     filter: saturate(1.04) brightness(1) blur(0);
 }
 
+/* 今日海域卡片内容区：将原版竹简卡收紧为更深海的玻璃资料卡。
+   这里重新设定图片高度、文案区玻璃背景、标题/副文案/价格/评分的颜色与字号，
+   让卡片在深色首屏里不跳脱，而是作为观察窗里的档案页自然浮现。 */
 body.home-page .hero-hotspots-shell .bamboo-card.active::before {
     content: "";
     position: absolute;
@@ -9131,6 +8964,9 @@ body.home-page .hero-hotspots-shell .bamboo-card-rating {
     color: rgba(231, 207, 142, 0.78);
 }
 
+/* 今日海域观察窗左右滚动箭头：用胶囊形玻璃按钮替代原版圆形箭头。
+   左右分列卡片轨道两侧，半透明深海玻璃材质 + 微弱内发光，
+   hover 时略微提亮边框和阴影，不抢夺卡片主视觉。 */
 body.home-page .hero-hotspots-shell .scroll-arrow {
     position: absolute;
     z-index: 4;
@@ -9150,6 +8986,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow {
     -webkit-backdrop-filter: blur(14px);
 }
 
+/* 左箭头靠左悬浮，右箭头靠右悬浮，各自留出呼吸边距 */
 body.home-page .hero-hotspots-shell .scroll-arrow.left {
     left: clamp(4px, 1vw, 14px);
 }
@@ -9158,6 +8995,8 @@ body.home-page .hero-hotspots-shell .scroll-arrow.right {
     right: clamp(4px, 1vw, 14px);
 }
 
+/* 在观察窗胶囊箭头中，原版 button-top/bottom/base 分层结构退化为透明占位，
+   只靠箭头本身承载交互，避免旧版玻璃层叠干扰当前简洁外观。 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
 body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
 body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
@@ -9171,6 +9010,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
     box-shadow: none;
 }
 
+/* 箭头图标：比原版略大，颜色更亮，附带微弱的青光投影以融入深海氛围 */
 body.home-page .hero-hotspots-shell .scroll-arrow-icon {
     width: 26px;
     height: 26px;
@@ -9179,6 +9019,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow-icon {
     filter: drop-shadow(0 0 10px rgba(144, 218, 239, 0.18));
 }
 
+/* hover 时箭头整体微微上浮，背景和边框同步提亮，给出可点击的呼吸感 */
 body.home-page .hero-hotspots-shell .scroll-arrow:hover {
     transform: translateY(-50%) translate3d(0, -1px, 0);
     background:
@@ -9200,6 +9041,8 @@ body.home-page .hero-hotspots-actions {
     gap: 12px;
 }
 
+/* 观察窗底部行动按钮区：用轻柔分隔线托起两个深海玻璃按钮。
+   主按钮用更深的海蓝色调，次按钮用半透明磨砂玻璃，统一胶囊外形。 */
 body.home-page .hero-hotspots-actions::before {
     content: "";
     position: absolute;
@@ -9226,6 +9069,7 @@ body.home-page .hero-hotspots-actions .sea-action {
         0 12px 24px rgba(3, 17, 28, 0.1);
 }
 
+/* 主行动按钮：更深、更亮的蓝调，作为视觉锚点 */
 body.home-page .hero-hotspots-actions .sea-action-primary {
     background:
         linear-gradient(180deg, rgba(202, 238, 248, 0.12), rgba(78, 148, 180, 0.06)),
@@ -9404,63 +9248,98 @@ body.home-page .hero-hotspots-shell .scroll-arrow {
    收回成更开阔的海面观察带。
    ============================================ */
 
+/* 海流带模式下的英雄区容器：
+   不再像原版那样铺满整屏，而是把高度收紧为"视口减去导航栏"，
+   让首屏变成一段横向海面观察带，而不是一片全屏沉浸区。
+   min-height: 100svh - nav-height 保证在导航固定不参与滚动的页面上，
+   英雄区恰好填满剩余空间，既无留白也不溢出。 */
 body.home-page .hero-section {
+    /* 高度：填满视口减去顶部导航高度，让英雄区刚好一屏 */
     min-height: calc(100svh - var(--nav-height, 82px));
+    /* 内边距用 clamp 做弹性呼吸：上下用 vh 单位，左右用 vw 单位，各自有最小/最大值 */
     padding: clamp(24px, 3.4vh, 42px) clamp(30px, 5vw, 72px) clamp(28px, 4vh, 48px);
+    /* 垂直居中：让卡片内容在剩下的空间里上下居中 */
     align-items: center;
 }
 
+/* 英雄区内容宽度：用 min(100%, 1500px) 保证不超出视口，宽屏上限锁死在 1500px，
+   避免海流带内容在超宽屏上被拉伸到视觉空旷。 */
 body.home-page .hero-content {
     width: min(100%, 1500px);
     max-width: 1500px;
 }
 
+/* 舞台外壳在海流带模式下的宽度收紧：
+   用 CSS 自定义属性 --hero-hotspots-stage-width 统一管理宽度，
+   min(100%, 1360px) 在窄屏下填满，宽屏上限 1360px 维持内容密度。
+   单独设 width + max-width 双重兜底，避免某些布局上下文中变量不生效。 */
 body.home-page .hero-hotspots-stage-shell {
     --hero-hotspots-stage-width: min(100%, 1360px);
     width: var(--hero-hotspots-stage-width);
     max-width: min(100%, 1360px);
 }
 
+/* 今日海域卡片在海流带模式下彻底去玻璃化：
+   把原来的玻璃面板（backdrop-filter、渐变背景、圆角、阴影）全部清掉，
+   让卡片变成透明容器，内容直接浮在海面渐变背景上，制造"站在海边看海"的开阔感。
+   overflow: visible 确保滚动箭头可以伸出卡片边界而不被裁切。 */
 body.home-page .hero-hotspots-shell.today-sea-card {
     position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
+    /* min-height: 视口高度减去导航和上下间距的估计值，保证卡片有足够纵向空间承载轮播 */
     min-height: clamp(500px, calc(100svh - 218px), 642px);
     padding: clamp(18px, 2.7vh, 32px) 0 clamp(10px, 2vh, 22px);
     overflow: visible;
     border: 0;
     border-radius: 0;
     background: transparent;
-    box-shadow: none !important;
+    box-shadow: none !important;  /* !important 覆盖原版玻璃卡的阴影，确保彻底清除 */
     animation: none;
+    /* 清掉毛玻璃效果：这是去玻璃化的核心，让卡片不再有"水底面板"的质感 */
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
 
+/* 卡片 ::before——海面渐变底层：
+   三层渐变叠加制造"海平面远处深、中间有光、下方暗"的视觉深度。
+   display: none 表示这个装饰层当前处于关闭状态，可能是布局调试/待启用。
+   mask-image 两端透明渐变让渐变层只在卡片中间区域可见，两侧自然淡出。 */
 body.home-page .hero-hotspots-shell.today-sea-card::before {
     content: "";
     position: absolute;
+    /* inset 上下用 clamp 留出安全区，保证渐变层不会紧贴卡片边缘 */
     inset: clamp(76px, 10vh, 112px) 0 clamp(64px, 8vh, 88px);
     z-index: 0;
     border-radius: 0;
+    /* 三层叠加渐变：
+       第1层：横向暗→透→暗，营造左右两侧的深度消失在远处的感觉
+       第2层：椭圆径向渐变，从顶部中心向下扩散一点暖光
+       第3层：纵向渐变，从微亮到中灰到底部更暗，模拟海面纵向光衰减 */
     background:
         linear-gradient(90deg, rgba(2, 15, 27, 0.76), rgba(2, 15, 27, 0.12) 13%, rgba(2, 15, 27, 0) 46%, rgba(2, 15, 27, 0.12) 87%, rgba(2, 15, 27, 0.78)),
         radial-gradient(ellipse at 50% 0%, rgba(218, 245, 255, 0.16), rgba(218, 245, 255, 0) 54%),
         linear-gradient(180deg, rgba(228, 247, 255, 0.045), rgba(24, 72, 96, 0.08) 48%, rgba(4, 21, 34, 0.2));
     box-shadow: none;
+    /* mask 让渐变层在左右两端渐隐，避免硬切边缘 */
     mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
     pointer-events: none;
     display: none;
 }
 
+/* 卡片 ::after——海面横线装饰：
+   上下两条微弱边框 + 横向渐变光带 + 竖条纹阵列，模拟"海平线 + 水纹"的视觉语言。
+   同样当前处于 display: none 关闭状态。 */
 body.home-page .hero-hotspots-shell.today-sea-card::after {
     content: "";
     position: absolute;
     inset: clamp(92px, 12vh, 132px) clamp(16px, 4vw, 72px) clamp(76px, 10vh, 102px);
     z-index: 0;
+    /* 上下两条微弱边框模拟海平线 */
     border-top: 1px solid rgba(203, 235, 247, 0.18);
     border-bottom: 1px solid rgba(127, 195, 221, 0.12);
+    /* 两层背景叠加：第1层是横向渐变光带，第2层是 90px 周期的竖条纹（模拟水纹） */
     background:
         linear-gradient(90deg, transparent, rgba(220, 244, 252, 0.055), transparent),
         repeating-linear-gradient(90deg, rgba(216, 240, 249, 0.06) 0 1px, transparent 1px 90px);
@@ -9470,6 +9349,9 @@ body.home-page .hero-hotspots-shell.today-sea-card::after {
     display: none;
 }
 
+/* 海域信息头区：两列网格承载左侧标题信息 + 右侧观察条。
+   左列纵向排列 kicker（标签）在上、copy（标题+副标题）在下，
+   右列 hints 跨两行与左列底部齐平，形成"左侧读取、右侧速览"的空间叙事。 */
 body.home-page .hero-hotspots-head {
     position: relative;
     z-index: 2;
@@ -9487,6 +9369,8 @@ body.home-page .hero-hotspots-head {
     text-align: left;
 }
 
+/* 左侧装饰竖线：一条从透明→微亮→透明的细线，夹在标题区左侧边缘，
+   像海面上一道轻微的光痕，为阅读提供一个微弱的左边界支点。 */
 body.home-page .hero-hotspots-head::before {
     content: "";
     position: absolute;
@@ -9498,6 +9382,8 @@ body.home-page .hero-hotspots-head::before {
     opacity: 0.7;
 }
 
+/* 海域标签文字：小号大写字母，高字间距营造"仪器读数"的冷静质感，
+   位于标题区最上方，作为海域信息的第一层视觉引导。 */
 body.home-page .hero-hotspots-kicker {
     grid-area: kicker;
     margin: 0 0 0 16px;
@@ -9508,6 +9394,8 @@ body.home-page .hero-hotspots-kicker {
     color: rgba(207, 234, 244, 0.44);
 }
 
+/* 标题-副标题容器：用 grid 纵向堆放 title 和 subtitle，
+   整体左对齐，让标题与副标题形成连续的纵向阅读流。 */
 body.home-page .hero-hotspots-copy {
     grid-area: copy;
     display: grid;
@@ -9517,6 +9405,8 @@ body.home-page .hero-hotspots-copy {
     margin-left: 16px;
 }
 
+/* 海域标题：大号流体字号，极紧行高 + 微字间距营造"紧密但通透"的海报标题感。
+   深色投影把文字从背景中托起，不透明度 0.96 让白字不要过于刺眼。 */
 body.home-page .hero-hotspots-title {
     margin: 0;
     font-size: clamp(1.96rem, 2.6vw, 2.84rem);
@@ -9527,6 +9417,8 @@ body.home-page .hero-hotspots-title {
     text-shadow: 0 18px 42px rgba(2, 14, 24, 0.24);
 }
 
+/* 海域副标题/描述：30ch 字符宽度限制保证长文本自动换行后仍保持舒适阅读节奏，
+   行高 1.62 适合中文段落阅读，颜色比标题更弱以形成信息层级。 */
 body.home-page .hero-hotspots-subtitle {
     max-width: 30ch;
     margin: 0;
@@ -9536,6 +9428,9 @@ body.home-page .hero-hotspots-subtitle {
     text-align: left;
 }
 
+/* 观察条（hints 区域）：位于标题头区右侧，用 flex 横排承载多个 observation-chip。
+   每个 chip 是一条海域实时小数据（如浪高、水温、能见度），
+   flex-wrap: wrap 保证窄屏时自动换行不溢出。 */
 body.home-page .hero-observation-rail {
     grid-area: hints;
     align-self: end;
@@ -9550,6 +9445,8 @@ body.home-page .hero-observation-rail {
     padding-bottom: 2px;
 }
 
+/* 观察数据芯片：每条海域实时指标的容器，左侧 18px 留给 ::before 光点，
+   无背景无边框，全靠文字和前方光点构成"仪器读数的光学投影"感。 */
 body.home-page .hero-observation-chip {
     position: relative;
     min-height: auto;
@@ -9564,6 +9461,9 @@ body.home-page .hero-observation-chip {
     color: rgba(205, 229, 239, 0.54);
 }
 
+/* 芯片前方光点：一个 7px 宽 1px 高的发光横条，位于芯片文字左侧。
+   通过 border-radius: 999px 收成胶囊形，box-shadow 向外扩散微光，
+   模拟深水仪器面板上一个小小的 LED 指示灯。 */
 body.home-page .hero-observation-chip::before {
     content: "";
     position: absolute;
@@ -9577,6 +9477,8 @@ body.home-page .hero-observation-chip::before {
     transform: translateY(-50%);
 }
 
+/* 竹简滚动容器：承载整个卡片轮播轨道，高度用 42vh 流式控制。
+   左右 padding 给滚动箭头留出入空间，overflow: visible 让箭头可以伸出轨道之外。 */
 body.home-page .hero-bamboo-scroll-container {
     position: relative;
     z-index: 1;
@@ -9590,6 +9492,9 @@ body.home-page .hero-bamboo-scroll-container {
     overflow: visible;
 }
 
+/* 竹简轨道背景氛围层：在卡片轨道后方布设三层叠加渐变，
+   模拟"海底长廊"的纵深光感：左右暗角收束 → 顶部暖光椭圆 → 纵向光衰减，
+   配合 mask-image 让氛围层在左右两端自然渐隐。 */
 body.home-page .hero-bamboo-scroll-container::before {
     content: "";
     position: absolute;
@@ -9608,6 +9513,9 @@ body.home-page .hero-bamboo-scroll-container::before {
     pointer-events: none;
 }
 
+/* 竹简卡片内轨：用 flex 横排放置 bamboo-card，overflow: hidden 裁剪溢出卡片以配合 JS 水平滚动。
+   perspective: 1200px 为卡片 hover 时的 3D 微动效提供空间基准面，
+   touch-action: pan-y 允许触摸屏上水平滑动浏览卡片。 */
 body.home-page .hero-bamboo-cards-wrapper {
     position: relative;
     z-index: 2;
@@ -9625,6 +9533,8 @@ body.home-page .hero-bamboo-cards-wrapper {
     perspective-origin: 50% 55%;
 }
 
+/* 竹简轨道中央光晕：一条居中的柔光柱，在卡片后方形成"长廊顶灯"般的氛围。
+   椭圆径向渐变从顶部向下渐隐，配合半透明青白顶部边框模拟光线入射。 */
 body.home-page .hero-bamboo-cards-wrapper::before {
     content: "";
     position: absolute;
@@ -9644,6 +9554,9 @@ body.home-page .hero-bamboo-cards-wrapper::before {
     pointer-events: none;
 }
 
+/* 满图卡片布局：将卡片改为全幅图片 + 底部渐变文案浮层。
+   图片填满卡片，文案区从底部渐显，让每张卡更像一张海域档案照片而非商品卡。
+   左右边缘用渐变遮罩收束轨道，使卡片在滚动时自然隐入两侧海雾。 */
 body.home-page .hero-bamboo-cards-wrapper::after {
     content: "";
     position: absolute;
@@ -9653,6 +9566,8 @@ body.home-page .hero-bamboo-cards-wrapper::after {
     pointer-events: none;
 }
 
+/* 竹简卡片内容列：flex 横排承载 bamboo-card，用 gap 控制卡片间距。
+   作为 bamboo-cards-wrapper 的直接子级，配合 JS 平移实现水平轮播。 */
 body.home-page .hero-hotspots-shell .bamboo-cards-content {
     position: relative;
     z-index: 3;
@@ -9663,6 +9578,8 @@ body.home-page .hero-hotspots-shell .bamboo-cards-content {
     padding: 0;
 }
 
+/* 满图卡：图片全幅撑满卡片，底部叠加渐变文案区。
+   默认低饱和偏暗，hover/active 时恢复饱和度和亮度，边框和阴影同步提亮。 */
 body.home-page .hero-hotspots-shell .bamboo-card {
     --card-scale: 1;
     position: relative;
@@ -9683,6 +9600,7 @@ body.home-page .hero-hotspots-shell .bamboo-card {
     transform-origin: 50% 72%;
 }
 
+/* 满图卡表面微光层：模拟海面反射的扫光，从顶部和两侧微微透入 */
 body.home-page .hero-hotspots-shell .bamboo-card::before {
     content: "";
     position: absolute;
@@ -9708,6 +9626,8 @@ body.home-page .hero-hotspots-shell .bamboo-card.active {
         inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
+/* 满图卡图片容器：绝对定位填满卡片，图片做轻微放大裁切。
+   hover/active 时图片进一步放大并恢复饱和度，形成向前的沉浸感。 */
 body.home-page .hero-hotspots-shell .bamboo-card-image-wrapper {
     position: absolute;
     inset: 0;
@@ -9715,6 +9635,8 @@ body.home-page .hero-hotspots-shell .bamboo-card-image-wrapper {
     border-radius: inherit;
 }
 
+/* 满图卡图片：覆盖整个卡片，初始微放大 1.035 做裁切构图，
+   低饱和低亮让图片作为背景氛围而非抢眼的焦点。 */
 body.home-page .hero-hotspots-shell .bamboo-card-image {
     width: 100%;
     height: 100%;
@@ -9723,12 +9645,16 @@ body.home-page .hero-hotspots-shell .bamboo-card-image {
     filter: saturate(0.9) contrast(0.96) brightness(0.9);
 }
 
+/* 满图卡 hover/active 图片：进一步放大至 1.065 并恢复全饱和度，
+   配合卡片本身亮度恢复，形成"靠近观察"的沉浸反馈。 */
 body.home-page .hero-hotspots-shell .bamboo-card:hover .bamboo-card-image,
 body.home-page .hero-hotspots-shell .bamboo-card.active .bamboo-card-image {
     transform: scale(1.065);
     filter: saturate(1) contrast(0.98) brightness(0.98);
 }
 
+/* 满图卡底部文案浮层：从透明渐变到深色，标题/副文案/价格在图片之上自然浮现。
+   不依赖 backdrop-filter，靠纯渐变遮罩保证文字对比度。 */
 body.home-page .hero-hotspots-shell .bamboo-card-content {
     position: absolute;
     left: 0;
@@ -9745,6 +9671,8 @@ body.home-page .hero-hotspots-shell .bamboo-card-content {
     -webkit-backdrop-filter: none;
 }
 
+/* 满图卡标题：白色高不透明度，1.22 紧行高保持标题紧凑感，
+   在底部渐变文案区中作为最亮的第一层信息。 */
 body.home-page .hero-hotspots-shell .bamboo-card-title {
     margin: 0 0 7px;
     font-size: clamp(1.02rem, 1.18vw, 1.22rem);
@@ -9753,6 +9681,8 @@ body.home-page .hero-hotspots-shell .bamboo-card-title {
     color: rgba(246, 252, 255, 0.96);
 }
 
+/* 满图卡副文案：30ch 宽度限制 + 1.58 行高适合中文短句，
+   颜色比标题弱一个层级，作为海域描述的补充信息。 */
 body.home-page .hero-hotspots-shell .bamboo-card-tagline {
     max-width: 30ch;
     margin: 0;
@@ -9761,6 +9691,8 @@ body.home-page .hero-hotspots-shell .bamboo-card-tagline {
     color: rgba(211, 231, 240, 0.72);
 }
 
+/* 满图卡底部信息条：flex 横排承载价格和评分，左对齐排列，
+   无顶部分割线，保持与上方文案的视觉连贯性。 */
 body.home-page .hero-hotspots-shell .bamboo-card-footer {
     display: flex;
     justify-content: flex-start;
@@ -9771,6 +9703,7 @@ body.home-page .hero-hotspots-shell .bamboo-card-footer {
     border-top: 0;
 }
 
+/* 满图卡价格与评分共享字号和字距，各自单独覆写颜色。 */
 body.home-page .hero-hotspots-shell .bamboo-card-price,
 body.home-page .hero-hotspots-shell .bamboo-card-rating {
     font-size: 0.74rem;
@@ -9779,14 +9712,19 @@ body.home-page .hero-hotspots-shell .bamboo-card-rating {
     letter-spacing: 0.05em;
 }
 
+/* 满图卡价格：青白色，0.68 不透明度保持低调但不消失。 */
 body.home-page .hero-hotspots-shell .bamboo-card-price {
     color: rgba(220, 239, 247, 0.68);
 }
 
+/* 满图卡评分：暖金色，在冷色调海域卡片中作为微弱的暖色点缀。 */
 body.home-page .hero-hotspots-shell .bamboo-card-rating {
     color: rgba(235, 216, 166, 0.72);
 }
 
+/* 满图卡竖条滚动箭头：用细长半透明条替代圆形按钮，悬浮在卡片轨道两侧。
+   自身不渲染玻璃背景，只在 ::before 伪元素中画一条竖向渐亮光带，
+   hover 时提亮光带并略微横向扩展，给出"向侧滑动"的轻提示。 */
 body.home-page .hero-hotspots-shell .scroll-arrow {
     position: absolute;
     top: 50%;
@@ -9806,6 +9744,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow {
     -webkit-backdrop-filter: none;
 }
 
+/* 左箭头贴左侧，右箭头贴右侧，各留最小呼吸边距 */
 body.home-page .hero-hotspots-shell .scroll-arrow.left {
     left: clamp(2px, 1.2vw, 16px);
 }
@@ -9814,6 +9753,8 @@ body.home-page .hero-hotspots-shell .scroll-arrow.right {
     right: clamp(2px, 1.2vw, 16px);
 }
 
+/* 在竖条箭头中，button-top/bottom/base 三层退化为纯透明容器。
+   button-bottom/base 完全隐藏，只靠 button-top::before 画出光带。 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
 body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
 body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
@@ -9834,11 +9775,13 @@ body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
     -webkit-backdrop-filter: none;
 }
 
+/* 竖条箭头中 button-bottom 和 button-base 完全隐藏，仅保留空壳结构。 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
 body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
     opacity: 0;
 }
 
+/* 竖条光带：从上到下渐亮再渐隐，左侧箭头光带靠左、右侧箭头光带靠右 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
     content: "";
     position: absolute;
@@ -9850,16 +9793,19 @@ body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
     transition: opacity 260ms ease, transform 260ms ease;
 }
 
+/* 右侧箭头光带方向翻转，让光始终从卡片侧照入 */
 body.home-page .hero-hotspots-shell .scroll-arrow.right .button-top::before {
     background:
         linear-gradient(180deg, rgba(223, 245, 252, 0), rgba(223, 245, 252, 0.11) 50%, rgba(223, 245, 252, 0)),
         linear-gradient(270deg, rgba(223, 245, 252, 0.1), rgba(223, 245, 252, 0));
 }
 
+/* 隐藏原版 button-top::after 扫光，竖条箭头不需要额外的流光层 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top::after {
     display: none;
 }
 
+/* 箭头 SVG 图标：稍小号，带微弱青色投影 */
 body.home-page .hero-hotspots-shell .scroll-arrow-icon {
     width: 23px;
     height: 23px;
@@ -9868,6 +9814,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow-icon {
     filter: drop-shadow(0 0 10px rgba(126, 207, 235, 0.16));
 }
 
+/* hover 时箭头整体透明度升到 1，光带提亮并横向扩展，给出手势提示 */
 body.home-page .hero-hotspots-shell .scroll-arrow:hover {
     opacity: 1;
     background: transparent;
@@ -9885,6 +9832,8 @@ body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
     transform: scaleX(1.1);
 }
 
+/* 满图卡底部行动按钮：改为 flex 横排右对齐，在卡片轨道下方形成轻量操作栏。
+   不再使用网格双列布局，按钮靠右放置，给左侧留出海域信息呼吸空间。 */
 body.home-page .hero-hotspots-actions {
     position: relative;
     z-index: 2;
@@ -9899,6 +9848,7 @@ body.home-page .hero-hotspots-actions {
     gap: clamp(18px, 2.2vw, 30px);
 }
 
+/* 行动栏顶部分割线：从左到右渐隐的微光细线，放在按钮后方作为视觉分隔。 */
 body.home-page .hero-hotspots-actions::before {
     content: "";
     position: absolute;
@@ -9912,6 +9862,8 @@ body.home-page .hero-hotspots-actions::before {
     transform: none;
 }
 
+/* 行动按钮：无背景无边框的纯文字链接，min-height: 38px 保证最小触控区域。
+   ::after 伪元素画一条小尾巴短线作为视觉引导。 */
 body.home-page .hero-hotspots-actions .sea-action {
     display: inline-flex;
     align-items: center;
@@ -9932,6 +9884,7 @@ body.home-page .hero-hotspots-actions .sea-action {
     -webkit-backdrop-filter: none;
 }
 
+/* 按钮尾部的引导短线：30px 渐隐光带，hover 时延长至 42px 强化"继续前进"暗示。 */
 body.home-page .hero-hotspots-actions .sea-action::after {
     content: "";
     display: block;
@@ -9942,16 +9895,19 @@ body.home-page .hero-hotspots-actions .sea-action::after {
     transition: width 240ms ease, opacity 240ms ease;
 }
 
+/* 主/次按钮去除全局 sea-action 的背景和阴影残留。 */
 body.home-page .hero-hotspots-actions .sea-action-primary,
 body.home-page .hero-hotspots-actions .sea-action-secondary {
     background: transparent;
     box-shadow: none;
 }
 
+/* 次要按钮颜色更弱，形成主次视觉层级。 */
 body.home-page .hero-hotspots-actions .sea-action-secondary {
     color: rgba(205, 229, 239, 0.62);
 }
 
+/* 按钮 hover：颜色提亮至接近纯白，translate3d 上浮 1px 给出轻微悬浮反馈。 */
 body.home-page .hero-hotspots-actions .sea-action:hover {
     color: rgba(246, 252, 255, 0.94);
     border: 0;
@@ -9959,11 +9915,14 @@ body.home-page .hero-hotspots-actions .sea-action:hover {
     transform: translate3d(0, -1px, 0);
 }
 
+/* hover 时尾部引导线延长至 42px，强化点击欲望。 */
 body.home-page .hero-hotspots-actions .sea-action:hover::after {
     width: 42px;
     opacity: 1;
 }
 
+/* 大屏 (>1600px)：放宽今日海域卡片的 max-width 到 1460px，
+   让超宽屏上卡片不会过于局促。 */
 @media (min-width: 1600px) {
     body.home-page .hero-hotspots-stage-shell {
         --hero-hotspots-stage-width: min(100%, 1460px);
@@ -9971,6 +9930,8 @@ body.home-page .hero-hotspots-actions .sea-action:hover::after {
     }
 }
 
+/* 中屏 (≤1179px)：今日海域头区从两列退化为单列堆叠，
+   观察条从左下角开始排列，卡片高度取消最小限制。 */
 @media (max-width: 1179px) {
     body.home-page .hero-section {
         align-items: flex-start;
@@ -9998,6 +9959,8 @@ body.home-page .hero-hotspots-actions .sea-action:hover::after {
     }
 }
 
+/* 小屏 (≤720px)：今日海域整体收缩，stage-shell 宽度拉满，
+   卡片尺寸大幅缩小，竹简卡片用 vw 单位自适应，滚动箭头贴边放置。 */
 @media (max-width: 720px) {
     body.home-page .hero-section {
         min-height: auto;
@@ -10235,6 +10198,8 @@ body.home-page .hero-bamboo-cards-wrapper::before {
     opacity: 0.7;
 }
 
+/* 清掉旧版容器表面装饰（边缘渐变遮罩和竹简容器 ::before），
+   避免与当前收紧后的卡片重叠产生视觉噪音。 */
 body.home-page .hero-bamboo-cards-wrapper::after {
     content: none !important;
     display: none !important;
@@ -10245,6 +10210,7 @@ body.home-page .hero-bamboo-scroll-container::before {
     display: none !important;
 }
 
+/* 收紧卡片阴影：由上一版较重的投影改为更克制的一层，保持卡片在深色背景中的层次但不拖重 */
 body.home-page .hero-hotspots-shell .bamboo-card {
     box-shadow:
         0 14px 26px rgba(2, 14, 24, 0.14),
@@ -10259,6 +10225,8 @@ body.home-page .hero-hotspots-shell .bamboo-card.active {
         inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
+/* 收窄滚动箭头，降低默认透明度，让它们更轻地漂浮在卡片两侧。
+   光带收在中间一竖条，两端用 mask 渐隐，避免与卡片边缘硬切。 */
 body.home-page .hero-hotspots-shell .scroll-arrow {
     width: clamp(18px, 1.8vw, 26px);
     opacity: 0.5;
@@ -10684,6 +10652,10 @@ body.home-page .hero-bamboo-cards-wrapper.is-animating .bamboo-card.is-active {
         inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
+/* 圆形玻璃滚动按钮：将胶囊/竖条箭头替换为等宽高的圆按钮。
+   button-top 用径向渐变模拟深海玻璃珠的高光和进深，
+   ::before 在外圈画一层雾状光环，::after 在内圈画一圈细描边。
+   hover 时整体放大 1.04x，active 时收缩至 0.96x 给出按压反馈。 */
 body.home-page .hero-hotspots-shell .scroll-arrow {
     width: clamp(48px, 4.2vw, 62px);
     height: clamp(48px, 4.2vw, 62px);
@@ -10701,12 +10673,14 @@ body.home-page .hero-hotspots-shell .scroll-arrow.right {
     right: clamp(20px, 4.2vw, 56px);
 }
 
+/* 三层结构统一圆角，形成完整圆形按钮 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
 body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
 body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
     border-radius: 50%;
 }
 
+/* button-top：径向渐变模拟深海玻璃珠，从左上角高光到右下角深色 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top {
     border: 1px solid rgba(229, 248, 255, 0.22);
     background:
@@ -10718,6 +10692,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow .button-top {
     -webkit-backdrop-filter: blur(13px) saturate(130%);
 }
 
+/* ::before 外圈雾状光环：比按钮大一圈，用半透明径向渐变模拟光晕 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
     inset: -7px;
     border: 1px solid rgba(167, 224, 242, 0.16);
@@ -10728,6 +10703,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
     mask-image: none;
 }
 
+/* ::after 内圈细描边：在按钮内画一圈更轻的描边，增加玻璃层次 */
 body.home-page .hero-hotspots-shell .scroll-arrow .button-top::after {
     content: "";
     display: block;
@@ -10752,6 +10728,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
     transform: scale(1.08);
 }
 
+/* 箭头图标居中，稍小号以保证不溢出按钮内圈描边 */
 body.home-page .hero-hotspots-shell .scroll-arrow-icon {
     width: 23px;
     height: 23px;
@@ -10759,6 +10736,11 @@ body.home-page .hero-hotspots-shell .scroll-arrow-icon {
     stroke-width: 1.8;
 }
 
+/* 今日海域底部信息承接层：在卡片轮播下方形成统一的海域档案摘要区。
+   包含横向漂移提示线、三列信息面板（海域位置/潜水读数/探索进度），
+   用柔光分隔线和轻量玻璃面板把卡片区和详情区自然过渡在一起。 */
+
+/* 横向漂移提示：居中一行轻提示文字，左右用渐变短线装饰，引导横向滑动 */
 body.home-page .today-sea-drift-hint {
     position: relative;
     z-index: 3;
@@ -10775,6 +10757,7 @@ body.home-page .today-sea-drift-hint {
     letter-spacing: 0.11em;
 }
 
+/* 提示文字右侧附加一条呼吸式短线，模拟海流方向 */
 body.home-page .today-sea-drift-copy {
     position: relative;
     white-space: nowrap;
@@ -10791,6 +10774,7 @@ body.home-page .today-sea-drift-copy::after {
     animation: today-sea-hint-tide 2.8s ease-in-out infinite;
 }
 
+/* 提示文字左右两侧的渐隐分隔线 */
 body.home-page .today-sea-drift-line {
     flex: 1;
     max-width: 180px;
@@ -10798,6 +10782,7 @@ body.home-page .today-sea-drift-line {
     background: linear-gradient(90deg, transparent, rgba(174, 224, 241, 0.24), transparent);
 }
 
+/* 三列海域信息面板：用网格布局承接海域位置、潜水读数和探索进度 */
 body.home-page .today-sea-brief {
     --brief-progress: 93%;
     position: relative;
@@ -11112,6 +11097,7 @@ body.home-page .hero-hotspots-actions {
         height: 292px;
     }
 
+    /* 移动端进一步缩小圆形滚动箭头至 40px，贴近卡片边缘 */
     body.home-page .hero-hotspots-shell .scroll-arrow {
         width: 40px;
         height: 40px;
@@ -12686,4 +12672,1199 @@ body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image-wr
         radial-gradient(ellipse at 50% 45%, rgba(1, 7, 15, 0) 40%, rgba(1, 7, 15, 0.38) 100%),
         linear-gradient(90deg, rgba(1, 7, 15, 0.24), rgba(1, 7, 15, 0) 20%, rgba(1, 7, 15, 0) 80%, rgba(1, 7, 15, 0.26));
     opacity: 0.82;
+}
+
+/* 今日海域：Sea Position 小海图修正 */
+body.home-page .today-sea-maplet {
+    --map-main-x: 63%;
+    --map-main-y: 36%;
+    --map-sub-x: 45%;
+    --map-sub-y: 58%;
+    --map-origin-x: 27%;
+    --map-origin-y: 71%;
+    --map-route-x: 25%;
+    --map-route-y: 55%;
+    --map-route-w: 48%;
+    --map-route-h: 26%;
+    --map-route-rotate: -24deg;
+    --map-coast-x: -9%;
+    --map-coast-y: 0%;
+    --map-coast-rotate: 16deg;
+    --map-coast-scale: 0.88;
+    --map-coast-opacity: 0.76;
+    --map-island-x: 63%;
+    --map-island-y: 36%;
+    --map-small-x: 45%;
+    --map-small-y: 58%;
+    --map-glow-x: 64%;
+    --map-glow-y: 36%;
+    --map-shadow-x: 28%;
+    --map-shadow-y: 76%;
+    --map-grid-x: 5px;
+    --map-grid-y: 2px;
+    --map-outer-rotate: -20deg;
+    --map-inner-rotate: -27deg;
+    --map-shelf-rotate: 24deg;
+    width: 92px;
+    min-height: 76px;
+    border: 1px solid rgba(213, 246, 255, 0.2);
+    background:
+        radial-gradient(ellipse at var(--map-glow-x) var(--map-glow-y), rgba(176, 235, 249, 0.22), rgba(176, 235, 249, 0) 23%),
+        radial-gradient(ellipse at var(--map-shadow-x) var(--map-shadow-y), rgba(110, 193, 220, 0.2), rgba(110, 193, 220, 0) 34%),
+        linear-gradient(150deg, rgba(18, 78, 102, 0.78), rgba(7, 34, 54, 0.66) 56%, rgba(4, 19, 33, 0.72));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -18px 34px rgba(1, 9, 18, 0.2),
+        0 0 0 1px rgba(214, 246, 255, 0.075),
+        0 14px 28px rgba(1, 9, 18, 0.2);
+    transition:
+        background-position 320ms ease,
+        border-color 320ms ease,
+        box-shadow 320ms ease;
+}
+
+body.home-page .today-sea-maplet::before {
+    inset: 0;
+    border: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(90deg, transparent 49%, rgba(221, 249, 255, 0.045) 50%, transparent 51%),
+        linear-gradient(180deg, transparent 49%, rgba(221, 249, 255, 0.04) 50%, transparent 51%),
+        radial-gradient(ellipse at var(--map-glow-x) var(--map-glow-y), rgba(224, 250, 255, 0.1), transparent 26%),
+        radial-gradient(ellipse at var(--map-shadow-x) var(--map-shadow-y), rgba(1, 11, 22, 0.2), transparent 48%);
+    opacity: 0.68;
+    transition: opacity 320ms ease;
+}
+
+body.home-page .today-sea-maplet::after {
+    inset: 0;
+    height: auto;
+    border-radius: inherit;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 36%),
+        radial-gradient(ellipse at 50% 50%, transparent 48%, rgba(1, 9, 18, 0.22) 100%);
+    box-shadow: inset 0 0 0 1px rgba(236, 253, 255, 0.045);
+    transform: none;
+}
+
+body.home-page .today-sea-maplet-grid,
+body.home-page .today-sea-maplet-wake,
+body.home-page .today-sea-maplet-route,
+body.home-page .today-sea-maplet-ring,
+body.home-page .today-sea-maplet-dot,
+body.home-page .today-sea-maplet-depth,
+body.home-page .today-sea-maplet-coast,
+body.home-page .today-sea-maplet-island,
+body.home-page .today-sea-maplet-bearing,
+body.home-page .today-sea-maplet-scale {
+    position: absolute;
+    pointer-events: none;
+}
+
+body.home-page .today-sea-maplet-bearing {
+    right: 8px;
+    top: 6px;
+    z-index: 9;
+    color: rgba(214, 244, 250, 0.42);
+    font-size: 0.48rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(126, 207, 235, 0.12);
+}
+
+body.home-page .today-sea-maplet-scale {
+    left: 9px;
+    bottom: 7px;
+    z-index: 9;
+    width: 22px;
+    height: 4px;
+    border-left: 1px solid rgba(218, 248, 255, 0.34);
+    border-right: 1px solid rgba(218, 248, 255, 0.34);
+    border-bottom: 1px solid rgba(218, 248, 255, 0.26);
+    opacity: 0.58;
+}
+
+body.home-page .today-sea-maplet-grid {
+    z-index: 1;
+    background:
+        linear-gradient(90deg, rgba(218, 246, 255, 0.075) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(218, 246, 255, 0.06) 1px, transparent 1px);
+    background-size: 18px 18px;
+    background-position: var(--map-grid-x) var(--map-grid-y);
+    opacity: 0.5;
+    mask-image: radial-gradient(ellipse at 50% 50%, #000 58%, transparent 100%);
+    transition:
+        background-position 320ms ease,
+        opacity 320ms ease;
+}
+
+body.home-page .today-sea-maplet-depth {
+    z-index: 2;
+    border: 1px solid rgba(200, 239, 248, 0.27);
+    border-color: rgba(200, 239, 248, 0.27) transparent transparent rgba(200, 239, 248, 0.2);
+    border-radius: 50%;
+    opacity: 0.62;
+    transition:
+        opacity 320ms ease,
+        transform 320ms ease;
+}
+
+body.home-page .today-sea-maplet-depth.is-outer {
+    left: 8%;
+    top: 14%;
+    width: 72%;
+    height: 78%;
+    transform: rotate(var(--map-outer-rotate));
+}
+
+body.home-page .today-sea-maplet-depth.is-inner {
+    left: 20%;
+    top: 25%;
+    width: 50%;
+    height: 50%;
+    border-color: rgba(226, 251, 255, 0.28) transparent transparent rgba(226, 251, 255, 0.16);
+    transform: rotate(var(--map-inner-rotate));
+}
+
+body.home-page .today-sea-maplet-depth.is-shelf {
+    right: 10%;
+    top: 18%;
+    width: 40%;
+    height: 46%;
+    border-color: rgba(150, 218, 238, 0.16) rgba(150, 218, 238, 0.12) transparent transparent;
+    transform: rotate(var(--map-shelf-rotate));
+    opacity: 0.44;
+}
+
+body.home-page .today-sea-maplet-coast {
+    z-index: 3;
+    left: var(--map-coast-x);
+    top: var(--map-coast-y);
+    width: 50%;
+    height: 68%;
+    border-radius: 38% 62% 52% 42% / 46% 56% 44% 52%;
+    background:
+        radial-gradient(ellipse at 58% 20%, rgba(235, 252, 255, 0.22), transparent 28%),
+        linear-gradient(136deg, rgba(121, 184, 171, 0.44), rgba(48, 113, 104, 0.34) 46%, rgba(20, 68, 72, 0.16) 78%);
+    box-shadow:
+        inset -1px -1px 0 rgba(232, 252, 255, 0.26),
+        1px 0 0 rgba(232, 252, 255, 0.16),
+        6px 8px 18px rgba(1, 11, 22, 0.18);
+    clip-path: polygon(0 0, 75% 0, 92% 18%, 78% 31%, 94% 48%, 68% 58%, 74% 79%, 48% 90%, 32% 76%, 0 84%);
+    opacity: var(--map-coast-opacity);
+    transform: rotate(var(--map-coast-rotate)) scale(var(--map-coast-scale));
+    transform-origin: 35% 42%;
+    transition:
+        left 320ms ease,
+        top 320ms ease,
+        opacity 320ms ease,
+        transform 320ms ease;
+}
+
+body.home-page .today-sea-maplet-coast::after {
+    content: "";
+    position: absolute;
+    right: 8%;
+    top: 10%;
+    width: 38%;
+    height: 78%;
+    border-right: 1px solid rgba(232, 252, 255, 0.42);
+    border-top: 1px solid rgba(232, 252, 255, 0.18);
+    border-radius: 50%;
+    transform: rotate(16deg);
+    filter: blur(0.1px);
+}
+
+body.home-page .today-sea-maplet-island {
+    z-index: 4;
+    border-radius: 48% 52% 45% 55% / 54% 44% 56% 46%;
+    background:
+        linear-gradient(145deg, rgba(224, 252, 252, 0.5), rgba(91, 162, 151, 0.34) 54%, rgba(20, 72, 78, 0.2));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 0 13px rgba(139, 218, 232, 0.18);
+    transition:
+        left 320ms ease,
+        top 320ms ease,
+        opacity 320ms ease,
+        transform 320ms ease;
+}
+
+body.home-page .today-sea-maplet-island::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(230, 253, 255, 0.5);
+    box-shadow: 0 0 9px rgba(126, 207, 235, 0.18);
+    transform: translate(-50%, -50%);
+}
+
+body.home-page .today-sea-maplet-island::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    border: 1px solid rgba(235, 253, 255, 0.22);
+    opacity: 0.72;
+}
+
+body.home-page .today-sea-maplet-island.is-main {
+    left: var(--map-island-x);
+    top: var(--map-island-y);
+    width: 20%;
+    height: 16%;
+    transform: translate(-50%, -50%) rotate(-18deg);
+}
+
+body.home-page .today-sea-maplet-island.is-small {
+    left: var(--map-small-x);
+    top: var(--map-small-y);
+    width: 10%;
+    height: 9%;
+    opacity: 0.86;
+    transform: translate(-50%, -50%) rotate(18deg);
+}
+
+body.home-page .today-sea-maplet-island.is-small::before {
+    width: 3px;
+    height: 3px;
+    opacity: 0.7;
+}
+
+body.home-page .today-sea-maplet-wake {
+    z-index: 2;
+    left: 19%;
+    right: 18%;
+    bottom: 13%;
+    height: 28%;
+    background:
+        radial-gradient(ellipse at 44% 55%, rgba(199, 241, 251, 0.1), rgba(199, 241, 251, 0) 54%),
+        linear-gradient(160deg, transparent, rgba(204, 241, 251, 0.055), transparent);
+    filter: blur(0.25px);
+}
+
+body.home-page .today-sea-maplet-route {
+    z-index: 6;
+    left: var(--map-route-x);
+    top: var(--map-route-y);
+    width: var(--map-route-w);
+    height: var(--map-route-h);
+    border-top: 1px solid rgba(229, 252, 255, 0.58);
+    border-radius: 50%;
+    background: none;
+    box-shadow: 0 -4px 10px rgba(126, 207, 235, 0.1);
+    transform: rotate(var(--map-route-rotate));
+    opacity: 0.82;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    transition:
+        left 320ms ease,
+        top 320ms ease,
+        width 320ms ease,
+        height 320ms ease,
+        opacity 320ms ease,
+        transform 320ms ease;
+}
+
+body.home-page .today-sea-maplet-route::after {
+    content: "";
+    position: absolute;
+    right: 3px;
+    top: -3px;
+    width: 5px;
+    height: 5px;
+    border-top: 1px solid rgba(229, 252, 255, 0.46);
+    border-right: 1px solid rgba(229, 252, 255, 0.46);
+    transform: rotate(28deg);
+}
+
+body.home-page .today-sea-maplet-ring {
+    left: var(--map-main-x);
+    top: var(--map-main-y);
+    z-index: 7;
+    width: 16%;
+    height: 16%;
+    border: 1px solid rgba(232, 252, 255, 0.18);
+    box-shadow:
+        0 0 0 1px rgba(222, 249, 255, 0.03),
+        0 0 10px rgba(126, 207, 235, 0.08);
+    opacity: 0.56;
+    transform: translate(-50%, -50%);
+    transition:
+        left 320ms ease,
+        top 320ms ease,
+        opacity 320ms ease;
+}
+
+body.home-page .today-sea-maplet-dot {
+    z-index: 8;
+    width: 7px;
+    height: 7px;
+    background: rgba(228, 252, 255, 0.88);
+    box-shadow:
+        0 0 0 3px rgba(126, 207, 235, 0.09),
+        0 0 12px rgba(126, 207, 235, 0.3);
+    transform: translate(-50%, -50%);
+    transition:
+        left 320ms ease,
+        top 320ms ease,
+        opacity 320ms ease,
+        box-shadow 320ms ease;
+}
+
+body.home-page .today-sea-maplet-dot.is-origin {
+    left: var(--map-origin-x);
+    top: var(--map-origin-y);
+    width: 4px;
+    height: 4px;
+    background: rgba(214, 244, 250, 0.48);
+    box-shadow: 0 0 7px rgba(126, 207, 235, 0.12);
+    opacity: 0.72;
+}
+
+body.home-page .today-sea-maplet-dot.is-current {
+    left: var(--map-main-x);
+    top: var(--map-main-y);
+}
+
+/* 今日海域：最后一轮投屏可读性小修 */
+body.home-page .today-sea-maplet {
+    background:
+        radial-gradient(ellipse at var(--map-glow-x) var(--map-glow-y), rgba(186, 238, 249, 0.24), rgba(186, 238, 249, 0) 24%),
+        radial-gradient(ellipse at var(--map-shadow-x) var(--map-shadow-y), rgba(112, 195, 220, 0.22), rgba(112, 195, 220, 0) 35%),
+        linear-gradient(150deg, rgba(20, 84, 108, 0.8), rgba(8, 38, 58, 0.68) 56%, rgba(4, 19, 33, 0.72));
+}
+
+body.home-page .today-sea-maplet-grid {
+    opacity: 0.56;
+}
+
+body.home-page .today-sea-maplet-bearing {
+    color: rgba(218, 247, 252, 0.5);
+}
+
+body.home-page .today-sea-maplet-coast {
+    opacity: var(--map-coast-opacity);
+}
+
+body.home-page .today-sea-maplet-depth {
+    opacity: 0.68;
+}
+
+body.home-page .today-sea-maplet-route {
+    border-top-color: rgba(229, 252, 255, 0.52);
+    box-shadow: 0 -3px 8px rgba(126, 207, 235, 0.08);
+    opacity: 0.72;
+}
+
+body.home-page .today-sea-maplet-ring {
+    opacity: 0.42;
+}
+
+body.home-page .today-sea-maplet-dot.is-current {
+    width: 8px;
+    height: 8px;
+    background: rgba(231, 253, 255, 0.9);
+    box-shadow:
+        0 0 0 3px rgba(126, 207, 235, 0.1),
+        0 0 13px rgba(126, 207, 235, 0.34);
+}
+
+body.home-page .today-sea-maplet-route,
+body.home-page .today-sea-maplet-route::after,
+body.home-page .today-sea-maplet-ring,
+body.home-page .today-sea-maplet-dot,
+body.home-page .today-sea-maplet-depth,
+body.home-page .today-sea-maplet-island,
+body.home-page .today-sea-maplet-island::before {
+    display: none;
+}
+
+body.home-page .today-sea-maplet {
+    background:
+        linear-gradient(180deg, rgba(222, 248, 255, 0.035), rgba(222, 248, 255, 0) 32%),
+        radial-gradient(ellipse at var(--map-glow-x) var(--map-glow-y), rgba(138, 215, 235, 0.13), rgba(138, 215, 235, 0) 24%),
+        linear-gradient(150deg, rgba(11, 54, 76, 0.84), rgba(5, 30, 49, 0.8) 55%, rgba(3, 17, 31, 0.86));
+}
+
+body.home-page .today-sea-maplet::before {
+    background:
+        linear-gradient(90deg, transparent 49%, rgba(221, 249, 255, 0.05) 50%, transparent 51%),
+        linear-gradient(180deg, transparent 49%, rgba(221, 249, 255, 0.045) 50%, transparent 51%),
+        repeating-linear-gradient(22deg, transparent 0 12px, rgba(198, 235, 244, 0.035) 12px 13px, transparent 13px 25px);
+    opacity: 0.72;
+}
+
+body.home-page .today-sea-maplet::after {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 30%),
+        radial-gradient(ellipse at 50% 52%, transparent 58%, rgba(1, 9, 18, 0.26) 100%);
+}
+
+body.home-page .today-sea-maplet-coast {
+    width: 58%;
+    height: 74%;
+    border-radius: 32% 68% 50% 42% / 38% 56% 44% 58%;
+    background:
+        linear-gradient(138deg, rgba(122, 177, 165, 0.58), rgba(54, 112, 111, 0.5) 48%, rgba(18, 62, 72, 0.32) 78%),
+        repeating-linear-gradient(155deg, rgba(237, 253, 255, 0.12) 0 1px, transparent 1px 13px);
+    box-shadow:
+        inset -1px -1px 0 rgba(235, 253, 255, 0.36),
+        inset 7px 0 18px rgba(238, 253, 255, 0.08),
+        1px 0 0 rgba(232, 252, 255, 0.24),
+        8px 10px 18px rgba(1, 11, 22, 0.18);
+    clip-path: polygon(0 0, 70% 0, 88% 16%, 76% 27%, 94% 43%, 66% 55%, 76% 73%, 48% 91%, 32% 78%, 0 88%);
+    filter: none;
+    mix-blend-mode: screen;
+}
+
+body.home-page .today-sea-maplet-coast::after {
+    right: 9%;
+    top: 7%;
+    width: 44%;
+    height: 84%;
+    border-right-color: rgba(238, 253, 255, 0.55);
+    border-top-color: rgba(238, 253, 255, 0.24);
+    box-shadow: 8px 0 0 -7px rgba(238, 253, 255, 0.18);
+    opacity: 0.84;
+}
+
+body.home-page .today-sea-maplet-wake {
+    left: 19%;
+    right: 10%;
+    bottom: 14%;
+    height: 32%;
+    border: 1px solid rgba(150, 215, 231, 0.12);
+    border-color: rgba(190, 235, 246, 0.16) transparent transparent rgba(190, 235, 246, 0.08);
+    border-radius: 45% 55% 48% 52% / 62% 42% 58% 38%;
+    background:
+        linear-gradient(150deg, rgba(118, 195, 214, 0.16), rgba(52, 115, 139, 0.11) 52%, rgba(7, 34, 54, 0) 78%),
+        repeating-linear-gradient(172deg, rgba(220, 248, 255, 0.055) 0 1px, transparent 1px 11px);
+    filter: none;
+    opacity: 0.72;
+    transform: rotate(calc(var(--map-route-rotate) * 0.35));
+    transform-origin: center;
+    transition:
+        opacity 320ms ease,
+        transform 320ms ease;
+}
+
+body.home-page .today-sea-maplet[data-map="palau"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="coron"] .today-sea-maplet-coast {
+    clip-path: polygon(12% 0, 78% 0, 100% 20%, 80% 34%, 92% 54%, 66% 63%, 72% 86%, 38% 100%, 18% 75%, 0 58%, 16% 38%, 0 18%);
+    border-radius: 44% 56% 64% 36% / 48% 52% 42% 58%;
+}
+
+body.home-page .today-sea-maplet[data-map="maldives"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="rangiroa"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="belize"] .today-sea-maplet-coast {
+    clip-path: polygon(18% 8%, 58% 0, 86% 18%, 72% 34%, 96% 50%, 68% 60%, 78% 78%, 48% 92%, 22% 84%, 0 64%, 18% 44%, 4% 24%);
+    border-radius: 58% 42% 54% 46% / 42% 62% 38% 58%;
+}
+
+body.home-page .today-sea-maplet[data-map="komodo"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="alor"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="bohol"] .today-sea-maplet-coast {
+    clip-path: polygon(0 18%, 26% 0, 70% 10%, 86% 28%, 70% 42%, 100% 56%, 72% 66%, 80% 90%, 48% 100%, 28% 82%, 8% 90%, 0 62%);
+    border-radius: 28% 72% 40% 60% / 54% 42% 58% 46%;
+}
+
+body.home-page .today-sea-maplet[data-map="lembeh"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="bunaken"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="sipadan"] .today-sea-maplet-coast,
+body.home-page .today-sea-maplet[data-map="mabul"] .today-sea-maplet-coast {
+    clip-path: polygon(0 0, 58% 0, 78% 12%, 68% 28%, 90% 38%, 58% 52%, 66% 72%, 44% 88%, 22% 76%, 4% 88%, 0 58%);
+    border-radius: 34% 66% 46% 54% / 38% 58% 42% 62%;
+}
+
+body.home-page .today-sea-maplet {
+    width: 106px;
+    min-height: 92px;
+    padding: 0;
+    border-color: rgba(211, 243, 252, 0.24);
+    background:
+        linear-gradient(180deg, rgba(226, 247, 252, 0.05), rgba(226, 247, 252, 0) 32%),
+        linear-gradient(150deg, rgba(12, 47, 66, 0.94), rgba(5, 28, 46, 0.92) 56%, rgba(2, 15, 29, 0.94));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 -18px 28px rgba(1, 9, 18, 0.2),
+        0 0 0 1px rgba(214, 246, 255, 0.08),
+        0 14px 28px rgba(1, 9, 18, 0.22);
+}
+
+body.home-page .today-sea-maplet::before,
+body.home-page .today-sea-maplet::after {
+    display: none;
+}
+
+body.home-page .today-sea-maplet-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    display: block;
+}
+
+body.home-page .today-sea-maplet-bg {
+    fill: rgba(5, 28, 47, 0.64);
+}
+
+body.home-page .today-sea-maplet-grid-line {
+    fill: none;
+    stroke: rgba(208, 239, 247, 0.1);
+    stroke-width: 0.55;
+    vector-effect: non-scaling-stroke;
+}
+
+body.home-page .today-sea-maplet-contour {
+    fill: none;
+    stroke: rgba(188, 225, 235, 0.34);
+    stroke-width: 0.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+body.home-page .today-sea-maplet-contour.is-inner {
+    stroke: rgba(188, 225, 235, 0.24);
+    stroke-dasharray: 4 4;
+}
+
+body.home-page .today-sea-maplet-coast-shape {
+    fill: rgba(118, 147, 132, 0.6);
+    stroke: rgba(235, 249, 246, 0.86);
+    stroke-width: 1.35;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(1.5px 2px 2px rgba(0, 9, 18, 0.22));
+    paint-order: stroke fill;
+}
+
+body.home-page .today-sea-maplet-shelf-shape {
+    fill: rgba(75, 147, 166, 0.25);
+    stroke: rgba(198, 236, 241, 0.44);
+    stroke-width: 0.9;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+body.home-page .today-sea-maplet-route-line {
+    fill: none;
+    stroke: rgba(232, 246, 243, 0.58);
+    stroke-width: 0.95;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 4.5 3.2;
+    vector-effect: non-scaling-stroke;
+}
+
+body.home-page .today-sea-maplet-point {
+    vector-effect: non-scaling-stroke;
+}
+
+body.home-page .today-sea-maplet-point.is-main {
+    fill: rgba(5, 31, 48, 0.72);
+    stroke: rgba(238, 251, 248, 0.88);
+    stroke-width: 1.2;
+    filter: none;
+}
+
+body.home-page .today-sea-maplet-point.is-sub {
+    fill: rgba(5, 30, 46, 0.48);
+    stroke: rgba(194, 230, 234, 0.54);
+    stroke-width: 0.9;
+}
+
+body.home-page .today-sea-maplet-bearing {
+    fill: rgba(218, 242, 246, 0.58);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+body.home-page .today-sea-maplet-sounding {
+    fill: rgba(194, 224, 230, 0.42);
+    font-size: 5.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+body.home-page .today-sea-maplet-scale {
+    fill: none;
+    stroke: rgba(218, 243, 246, 0.34);
+    stroke-width: 0.85;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
+body.home-page .today-sea-maplet-coast-shape,
+body.home-page .today-sea-maplet-shelf-shape,
+body.home-page .today-sea-maplet-route-line,
+body.home-page .today-sea-maplet-contour,
+body.home-page .today-sea-maplet-point {
+    transition:
+        opacity 300ms ease,
+        transform 300ms ease;
+    transform-origin: 50% 50%;
+}
+
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-coast-shape,
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-shelf-shape,
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-route-line,
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-contour,
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-point {
+    animation: today-sea-maplet-svg-read 320ms ease-out both;
+}
+
+@keyframes today-sea-maplet-svg-read {
+    0% {
+        opacity: 0.42;
+        transform: translate3d(0, 1.5px, 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image {
+    filter: saturate(1.12) contrast(1.14) brightness(0.965);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-image-wrapper::after {
+    background:
+        linear-gradient(180deg, rgba(0, 7, 15, 0.1) 0%, rgba(0, 7, 15, 0.08) 36%, rgba(1, 8, 17, 0.7) 74%, rgba(0, 5, 12, 0.98) 100%),
+        radial-gradient(ellipse at 24% 88%, rgba(18, 102, 134, 0.36), rgba(18, 102, 134, 0) 58%),
+        linear-gradient(90deg, rgba(0, 7, 15, 0.08), transparent 18%, transparent 82%, rgba(0, 7, 15, 0.08));
+    opacity: 0.94;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-content {
+    background:
+        linear-gradient(180deg, rgba(2, 13, 24, 0), rgba(2, 13, 24, 0.56) 24%, rgba(1, 8, 17, 0.99) 100%),
+        radial-gradient(ellipse at 18% 94%, rgba(13, 82, 104, 0.5), rgba(13, 82, 104, 0) 64%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-image,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-image {
+    filter: saturate(1.04) contrast(1.08) brightness(0.92);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-image-wrapper::after,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-image-wrapper::after {
+    opacity: 0.82;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-content,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-content {
+    background:
+        linear-gradient(180deg, rgba(2, 13, 24, 0.02), rgba(2, 13, 24, 0.61) 38%, rgba(1, 9, 18, 0.96) 100%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-tagline,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-tagline {
+    color: rgba(226, 244, 250, 0.86);
+}
+
+body.home-page .today-sea-progress-copy::before {
+    content: "海层阅读";
+    color: rgba(190, 229, 241, 0.7);
+}
+
+body.home-page .today-sea-progress-copy strong {
+    color: rgba(236, 249, 253, 0.9);
+    font-weight: 650;
+    text-shadow: 0 8px 20px rgba(1, 9, 18, 0.28);
+}
+
+body.home-page .today-sea-progress-copy strong::after {
+    content: "片海域";
+    color: rgba(213, 236, 244, 0.62);
+}
+
+body.home-page .today-sea-progress-orbit {
+    opacity: 0.82;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(4, 22, 36, 0.9) 0 42%, rgba(127, 209, 234, 0.12) 43% 45%, transparent 46%),
+        conic-gradient(from -18deg, rgba(177, 232, 246, 0.66) var(--brief-progress), rgba(177, 232, 246, 0.1) 0);
+}
+
+body.home-page .today-sea-progress-copy p {
+    color: rgba(213, 237, 245, 0.78);
+}
+
+/* 今日海域：下方海域档案承接层精修 */
+body.home-page .today-sea-brief {
+    isolation: isolate;
+    align-items: stretch;
+}
+
+body.home-page .today-sea-brief::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: clamp(34px, 4vw, 58px);
+    right: clamp(34px, 4vw, 58px);
+    top: 13px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(207, 241, 250, 0), rgba(207, 241, 250, 0.16), rgba(207, 241, 250, 0));
+    pointer-events: none;
+}
+
+body.home-page .today-sea-brief-panel {
+    z-index: 1;
+    border-color: rgba(222, 249, 255, 0.2);
+    background:
+        linear-gradient(180deg, rgba(14, 51, 72, 0.66), rgba(3, 20, 33, 0.56)),
+        radial-gradient(circle at 16% 0%, rgba(231, 252, 255, 0.13), rgba(231, 252, 255, 0) 50%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 38%);
+    box-shadow:
+        0 22px 48px rgba(1, 9, 18, 0.26),
+        0 0 0 1px rgba(222, 249, 255, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13),
+        inset 0 -18px 34px rgba(1, 9, 18, 0.12);
+}
+
+body.home-page .today-sea-brief-panel::before {
+    border-top-color: rgba(242, 254, 255, 0.12);
+    background:
+        linear-gradient(90deg, rgba(246, 253, 255, 0.09), rgba(246, 253, 255, 0) 26%),
+        linear-gradient(180deg, rgba(148, 220, 239, 0.06), rgba(148, 220, 239, 0));
+}
+
+body.home-page .today-sea-brief-kicker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(192, 232, 244, 0.78);
+    font-weight: 600;
+}
+
+body.home-page .today-sea-brief-kicker::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    min-width: 20px;
+    background: linear-gradient(90deg, rgba(185, 230, 243, 0.3), rgba(185, 230, 243, 0));
+}
+
+body.home-page .today-sea-position-panel {
+    align-items: center;
+    column-gap: clamp(14px, 1.4vw, 20px);
+}
+
+body.home-page .today-sea-position-panel .today-sea-brief-copy {
+    align-self: end;
+    padding-top: 2px;
+}
+
+body.home-page .today-sea-brief-copy h3 {
+    margin-bottom: 6px;
+}
+
+body.home-page .today-sea-brief-copy p {
+    margin-bottom: 2px;
+}
+
+body.home-page .today-sea-brief-link {
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 24px;
+    color: rgba(229, 247, 253, 0.84);
+    text-shadow: 0 8px 18px rgba(1, 9, 18, 0.24);
+}
+
+body.home-page .today-sea-brief-link::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(173, 230, 243, 0.7);
+    box-shadow: 0 0 10px rgba(126, 207, 235, 0.24);
+}
+
+body.home-page .today-sea-brief-link::after {
+    margin-left: 0;
+    background: linear-gradient(90deg, rgba(173, 230, 243, 0.72), rgba(173, 230, 243, 0));
+}
+
+body.home-page .today-sea-data-panel {
+    gap: clamp(9px, 1vh, 13px);
+}
+
+body.home-page .today-sea-data-grid {
+    position: relative;
+    min-height: clamp(68px, 8vh, 82px);
+    padding: 6px clamp(6px, 0.7vw, 10px);
+    border: 1px solid rgba(218, 247, 255, 0.08);
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgba(7, 37, 56, 0.26), rgba(2, 15, 27, 0.18)),
+        linear-gradient(90deg, rgba(217, 247, 255, 0.04), rgba(217, 247, 255, 0) 22% 78%, rgba(217, 247, 255, 0.03));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -12px 24px rgba(1, 9, 18, 0.1);
+}
+
+body.home-page .today-sea-data-grid::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 8px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(198, 237, 248, 0), rgba(198, 237, 248, 0.09), rgba(198, 237, 248, 0));
+    pointer-events: none;
+    opacity: 0.72;
+}
+
+body.home-page .today-sea-data-item {
+    display: grid;
+    align-content: center;
+    padding: 4px clamp(7px, 0.85vw, 12px);
+    border-radius: 7px;
+    background: linear-gradient(180deg, rgba(229, 252, 255, 0.035), rgba(229, 252, 255, 0));
+}
+
+body.home-page .today-sea-data-item + .today-sea-data-item::before {
+    top: 10px;
+    bottom: 10px;
+    background: linear-gradient(180deg, transparent, rgba(205, 239, 249, 0.18), transparent);
+}
+
+body.home-page .today-sea-data-grid dt {
+    gap: 7px;
+    margin-bottom: 8px;
+    color: rgba(198, 232, 243, 0.82);
+    font-weight: 600;
+}
+
+body.home-page .today-sea-data-icon {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    opacity: 1;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(151, 232, 243, 0.3), rgba(24, 87, 111, 0.28) 62%, rgba(8, 37, 57, 0.18));
+    box-shadow:
+        0 0 0 1px rgba(211, 246, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 0 15px rgba(126, 207, 235, 0.12);
+}
+
+body.home-page .today-sea-data-grid dd {
+    color: rgba(246, 253, 255, 0.94);
+    font-weight: 650;
+    letter-spacing: 0.01em;
+}
+
+body.home-page .today-sea-progress-panel {
+    align-items: center;
+    grid-template-columns: clamp(58px, 5.4vw, 70px) minmax(0, 1fr);
+    column-gap: clamp(12px, 1.25vw, 18px);
+}
+
+body.home-page .today-sea-progress-orbit {
+    width: clamp(56px, 5vw, 66px);
+    height: clamp(56px, 5vw, 66px);
+    align-self: center;
+    justify-self: center;
+    opacity: 0.76;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(4, 22, 36, 0.9) 0 43%, rgba(122, 207, 232, 0.1) 44% 47%, transparent 48%),
+        conic-gradient(from -20deg, rgba(181, 232, 246, 0.58) var(--brief-progress), rgba(181, 232, 246, 0.1) 0);
+    box-shadow:
+        inset 0 0 0 1px rgba(229, 248, 255, 0.1),
+        0 0 22px rgba(126, 207, 235, 0.08);
+}
+
+body.home-page .today-sea-progress-orbit span {
+    inset: clamp(11px, 1vw, 13px);
+    border-color: rgba(229, 248, 255, 0.1);
+}
+
+body.home-page .today-sea-progress-copy {
+    align-self: center;
+    display: grid;
+    gap: 3px;
+}
+
+body.home-page .today-sea-progress-copy::before {
+    content: "海域阅读记录";
+    margin-bottom: 1px;
+    color: rgba(192, 229, 240, 0.72);
+    font-size: 0.62rem;
+    line-height: 1;
+    letter-spacing: 0.18em;
+}
+
+body.home-page .today-sea-progress-copy strong {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    margin-bottom: 0;
+    font-size: clamp(1.08rem, 1.14vw, 1.32rem);
+    font-weight: 620;
+}
+
+body.home-page .today-sea-progress-copy strong::after {
+    margin-left: 0;
+    color: rgba(210, 235, 243, 0.66);
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+}
+
+body.home-page .today-sea-progress-copy span {
+    margin-bottom: 0;
+    color: rgba(215, 238, 246, 0.72);
+    font-size: 0.78rem;
+}
+
+body.home-page .today-sea-progress-copy p {
+    max-width: 23em;
+    color: rgba(213, 237, 245, 0.76);
+    line-height: 1.46;
+}
+
+/* 今日海域：最终间距与读数轻量化微调 */
+body.home-page .today-sea-brief {
+    margin-top: clamp(6px, 0.9vh, 10px);
+}
+
+body.home-page .today-sea-data-grid {
+    border-color: rgba(218, 247, 255, 0.06);
+    background:
+        radial-gradient(ellipse at 18% 0%, rgba(220, 249, 255, 0.055), rgba(220, 249, 255, 0) 56%),
+        linear-gradient(180deg, rgba(13, 58, 78, 0.16), rgba(3, 22, 36, 0.08)),
+        linear-gradient(90deg, rgba(217, 247, 255, 0.028), rgba(217, 247, 255, 0) 24% 76%, rgba(217, 247, 255, 0.024));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.045),
+        inset 0 -10px 20px rgba(1, 9, 18, 0.06);
+}
+
+body.home-page .today-sea-data-grid::before {
+    background: linear-gradient(90deg, rgba(198, 237, 248, 0), rgba(198, 237, 248, 0.065), rgba(198, 237, 248, 0));
+    opacity: 0.58;
+}
+
+body.home-page .today-sea-data-item {
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(229, 252, 255, 0.045), rgba(229, 252, 255, 0) 62%);
+}
+
+body.home-page .today-sea-data-item + .today-sea-data-item::before {
+    background: linear-gradient(180deg, transparent, rgba(205, 239, 249, 0.14), transparent);
+}
+
+body.home-page .today-sea-data-icon {
+    background:
+        radial-gradient(circle at 50% 42%, rgba(151, 232, 243, 0.26), rgba(24, 87, 111, 0.22) 62%, rgba(8, 37, 57, 0.12));
+    box-shadow:
+        0 0 0 1px rgba(211, 246, 255, 0.085),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 13px rgba(126, 207, 235, 0.1);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-title,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-title {
+    color: rgba(248, 254, 255, 0.97);
+    text-shadow: 0 9px 24px rgba(1, 9, 18, 0.78);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-tagline,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-tagline {
+    color: rgba(229, 245, 250, 0.9);
+    text-shadow: 0 8px 22px rgba(1, 9, 18, 0.64);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-price,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-price {
+    color: rgba(232, 247, 252, 0.88);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-rating,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-rating {
+    color: rgba(246, 228, 182, 0.88);
+    text-shadow: 0 7px 18px rgba(1, 9, 18, 0.5);
+}
+
+/* 今日海域：档案切换动画与轮播稳定性 */
+body.home-page .today-sea-brief-panel {
+    transition:
+        opacity 360ms ease,
+        transform 420ms cubic-bezier(0.2, 0.72, 0.22, 1),
+        border-color 360ms ease,
+        box-shadow 420ms ease;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-brief-panel {
+    opacity: 0.58;
+    transform: translate3d(0, 5px, 0);
+    filter: blur(0.1px);
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-brief-panel {
+    animation: today-sea-brief-read-in 480ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-position-panel {
+    animation-delay: 0ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-panel {
+    animation-delay: 70ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-progress-panel {
+    animation-delay: 130ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-maplet-dot.is-current {
+    animation: today-sea-map-point-read 360ms ease-out both;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-grid dd {
+    animation: today-sea-data-read 460ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(2) dd {
+    animation-delay: 40ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(3) dd {
+    animation-delay: 80ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(4) dd {
+    animation-delay: 120ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-progress-orbit {
+    animation: today-sea-progress-read 640ms ease-out both;
+}
+
+body.home-page .hero-bamboo-cards-wrapper.is-step-locked {
+    cursor: default;
+}
+
+body.home-page .hero-bamboo-cards-wrapper.is-step-locked .bamboo-card:hover,
+body.home-page .hero-bamboo-cards-wrapper.is-step-locked .bamboo-card.active:not(.is-active),
+body.home-page .hero-bamboo-cards-wrapper.is-step-locked .bamboo-card.active:not(.is-active):hover {
+    --card-scale: 1;
+}
+
+body.home-page .hero-bamboo-cards-wrapper.is-step-locked .bamboo-card:hover .bamboo-card-image {
+    transform: scale(1.045);
+}
+
+/* 滚轮命中区修正：这些层只用于视觉裁剪，不应成为吞掉页面 wheel 的滚动容器。 */
+body.home-page .featured-destinations,
+body.home-page .curated-display-surface,
+body.home-page .curated-display-media,
+body.home-page .dive-match-stage,
+body.home-page .dive-match-profile-panel,
+body.home-page .dive-match-surface,
+body.home-page .why-yanqi,
+body.home-page .story-card,
+body.home-page .footer {
+    overflow: clip;
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:disabled,
+body.home-page .hero-hotspots-shell .scroll-arrow.is-step-locked {
+    opacity: 0.56;
+    cursor: default;
+    filter: drop-shadow(0 10px 20px rgba(2, 14, 24, 0.16));
+}
+
+body.home-page .hero-hotspots-shell .scroll-arrow:disabled .button-top,
+body.home-page .hero-hotspots-shell .scroll-arrow.is-step-locked .button-top {
+    transform: translateY(0) scale(0.98);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.13),
+        0 0 18px rgba(126, 207, 235, 0.08);
+}
+
+@keyframes today-sea-brief-read-in {
+    0% {
+        opacity: 0.52;
+        transform: translate3d(0, 7px, 0);
+        filter: blur(0.35px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-data-read {
+    0% {
+        opacity: 0.28;
+        transform: translate3d(0, 5px, 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes today-sea-map-point-read {
+    0% {
+        box-shadow:
+            0 0 0 2px rgba(126, 207, 235, 0.06),
+            0 0 8px rgba(126, 207, 235, 0.2);
+    }
+
+    42% {
+        box-shadow:
+            0 0 0 7px rgba(126, 207, 235, 0.13),
+            0 0 18px rgba(126, 207, 235, 0.42);
+    }
+
+    100% {
+        box-shadow:
+            0 0 0 3px rgba(126, 207, 235, 0.1),
+            0 0 13px rgba(126, 207, 235, 0.34);
+    }
+}
+
+@keyframes today-sea-progress-read {
+    0% {
+        opacity: 0.52;
+        transform: scale(0.96) rotate(-6deg);
+    }
+
+    100% {
+        opacity: 0.76;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.home-page .today-sea-brief.is-updating .today-sea-brief-panel,
+    body.home-page .today-sea-brief.is-reading .today-sea-brief-panel,
+    body.home-page .today-sea-brief.is-reading .today-sea-data-grid dd,
+    body.home-page .today-sea-brief.is-reading .today-sea-maplet-dot.is-current,
+    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-coast-shape,
+    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-shelf-shape,
+    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-route-line,
+    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-contour,
+    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-point,
+    body.home-page .today-sea-brief.is-reading .today-sea-progress-orbit {
+        animation: none;
+        transform: none;
+        filter: none;
+    }
 }

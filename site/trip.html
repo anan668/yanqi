@@ -870,6 +870,9 @@
 
     </div>
 
+    <!-- 行程海图导览：和首页类似的悬浮快速导航组件。
+         data-key 对应行程页的特有海层：surface / bookings / console / summary / notes / prep / harbor。
+         每层映射到不同的页面锚点，点击后执行平滑滚动。 -->
     <div class="sea-guide sea-guide-home" id="tripSeaGuide" aria-hidden="true">
         <button
             type="button"
@@ -987,6 +990,17 @@
         </div>
     </div>
 
+    <!-- JS 加载顺序（按依赖关系排列）：
+         1. yanqi-brand-config.js: 品牌常量
+         2. yanqi-diver-profile.js: 潜水者状态管理
+         3. yanqi-spot-window-config.js: 潜点窗口配置
+         4. yanqi-showcase-state.js: 展示模式状态
+         5. ocean-scroll.js: 全局滚动控制
+         6. depth-manager.js: 深度系统核心
+         7. yanqi-trip-store.js: 行程页专属 localStorage 读写层（草稿、已收进行程、Sea Brief）
+         8. text-layout-adapter.js: 文本排版自适应工具
+         9. avatar-return.js: 头像点击行为
+         10. trip.js: 行程页主逻辑（Planner Desk 控制台、日历、摘要、已收进行程、准备系统） -->
     <script src="js/yanqi-brand-config.js"></script>
     <script src="js/yanqi-diver-profile.js"></script>
     <script src="js/yanqi-spot-window-config.js"></script>

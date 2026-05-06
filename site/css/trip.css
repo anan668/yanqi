@@ -535,6 +535,8 @@ body.trip-page.page-transition-active .page-stage * {
     transition-delay: 380ms;
 }
 
+/* 规划控制台头部：grid 布局承载标题和简介，max-width: 40rem 限制阅读行宽，
+   入场动效通过 opacity/transform/filter 过渡实现"从模糊到清晰"的浮现。 */
 .planner-console-head {
     grid-area: head;
     display: grid;
@@ -551,6 +553,8 @@ body.trip-page.page-transition-active .page-stage * {
         filter 860ms ease;
 }
 
+/* 预订切换器容器：默认隐藏，只在 Planner Desk 有多条预订记录时由 JS 打开。
+   内部包含 header（标签+提示）+ track（水平滚动芯片列表）。 */
 .planner-booking-switcher {
     grid-area: switcher;
     display: none;
@@ -558,6 +562,7 @@ body.trip-page.page-transition-active .page-stage * {
     padding: 0;
 }
 
+/* 切换器头部：标签在左、提示在右，基线对齐。 */
 .planner-booking-switcher-head {
     display: flex;
     align-items: baseline;
@@ -565,6 +570,7 @@ body.trip-page.page-transition-active .page-stage * {
     gap: 12px;
 }
 
+/* 切换器标签：小号全大写，宽字距，像设备面板上的功能标识。 */
 .planner-booking-switcher-kicker {
     margin: 0;
     font-size: 0.62rem;
@@ -573,12 +579,14 @@ body.trip-page.page-transition-active .page-stage * {
     color: rgba(194, 221, 236, 0.62);
 }
 
+/* 切换器提示文字：略大的正文号，说明当前预订数量或状态。 */
 .planner-booking-switcher-note {
     margin: 0;
     font-size: 0.84rem;
     color: rgba(209, 229, 243, 0.7);
 }
 
+/* 芯片滚动轨道：flex 横向排列，scroll-snap 吸附让芯片停在中间。 */
 .planner-booking-switcher-track {
     display: flex;
     gap: 10px;
@@ -587,6 +595,7 @@ body.trip-page.page-transition-active .page-stage * {
     scroll-snap-type: x proximity;
 }
 
+/* 仅一条预订时关闭滚动，芯片居中。 */
 .planner-booking-switcher-track.is-single {
     overflow: hidden;
 }
@@ -604,6 +613,8 @@ body.trip-page.page-transition-active .page-stage * {
     background: transparent;
 }
 
+/* 预订芯片卡片：scroll-snap 居中吸附，两列 grid（左侧圆点 + 右侧文字）。
+   暗底玻璃质感，hover 时边框提亮并上浮。 */
 .planner-booking-switcher-chip {
     scroll-snap-align: center;
     flex: 0 0 auto;
@@ -628,6 +639,7 @@ body.trip-page.page-transition-active .page-stage * {
     transform: translateY(-2px);
 }
 
+/* 激活态芯片：更强的边框、外投影、径向暖光叠加，表示当前正在查看的预订。 */
 .planner-booking-switcher-chip-active {
     border-color: rgba(196, 230, 251, 0.6);
     box-shadow:
@@ -638,6 +650,7 @@ body.trip-page.page-transition-active .page-stage * {
         linear-gradient(180deg, rgba(29, 76, 122, 0.72), rgba(7, 20, 32, 0.95));
 }
 
+/* 芯片左侧发光圆点：跨三行，带青色投影，像状态指示灯。 */
 .planner-booking-switcher-chip-dot {
     grid-column: 1;
     grid-row: 1 / span 3;
@@ -650,18 +663,21 @@ body.trip-page.page-transition-active .page-stage * {
     box-shadow: 0 0 12px rgba(129, 203, 239, 0.5);
 }
 
+/* 芯片右侧文字列统一占第 2 列。 */
 .planner-booking-switcher-chip-title,
 .planner-booking-switcher-chip-package,
 .planner-booking-switcher-chip-status {
     grid-column: 2;
 }
 
+/* 芯片标题：纯白高亮，600 字重。 */
 .planner-booking-switcher-chip-title {
     font-size: 0.98rem;
     font-weight: 600;
     color: #f6fdff;
 }
 
+/* 芯片套餐名：小号全大写，宽字距。 */
 .planner-booking-switcher-chip-package {
     font-size: 0.76rem;
     letter-spacing: 0.12em;
@@ -702,6 +718,8 @@ body.trip-page.page-transition-active .page-stage * {
         0 0 0 1px rgba(214, 235, 245, 0.14);
 }
 
+/* 潮汐流三步指示器：三列 grid 排列"选潜点 → 定日期 → 定人数"三个节点，
+   底部一条横穿的微光潮线串联三步。 */
 .planner-desk-tide-flow {
     grid-area: tide;
     position: relative;
@@ -713,6 +731,7 @@ body.trip-page.page-transition-active .page-stage * {
     gap: 12px;
 }
 
+/* 潮线：绝对定位横穿三个节点下方，中间亮两端暗，模拟一道海流。 */
 .planner-desk-tide-line {
     position: absolute;
     inset: auto 20px 13px 20px;
@@ -723,6 +742,7 @@ body.trip-page.page-transition-active .page-stage * {
     z-index: 0;
 }
 
+/* 潮汐节点：胶囊形标签，::after 伪元素画下方小圆点表示当前位置。 */
 .planner-desk-tide-node {
     position: relative;
     z-index: 1;
@@ -742,6 +762,7 @@ body.trip-page.page-transition-active .page-stage * {
     box-shadow: none;
 }
 
+/* 节点下方圆点指示器：绝对定位在节点正下方 4px。 */
 .planner-desk-tide-node::after {
     content: "";
     position: absolute;
@@ -756,6 +777,7 @@ body.trip-page.page-transition-active .page-stage * {
     transform: translateX(-50%);
 }
 
+/* 已绑定预订的字段：边框微亮 + 暗底渐变标识不可再编辑。 */
 .planner-field.is-booking-bound {
     border-color: rgba(209, 234, 246, 0.14);
     background:
@@ -767,6 +789,7 @@ body.trip-page.page-transition-active .page-stage * {
     cursor: default;
 }
 
+/* 控制台标签：全大写、宽字距，作为标题区上方的小标识。 */
 .planner-console-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -775,6 +798,7 @@ body.trip-page.page-transition-active .page-stage * {
     color: rgba(194, 221, 236, 0.52);
 }
 
+/* 控制台标题：衬线字体、流体字号，text-wrap: balance 让多行标题均匀分布。 */
 .planner-console-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -784,6 +808,7 @@ body.trip-page.page-transition-active .page-stage * {
     text-wrap: balance;
 }
 
+/* 控制台简介：38ch 行宽限制 + 高行高，适合中文段落。 */
 .planner-console-intro {
     margin: 0;
     max-width: 38ch;
@@ -1263,10 +1288,12 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     grid-template-columns: repeat(2, minmax(0, 1fr)); /* 两列刚好能排出 2x2 的轻量选择面板。 */
     gap: 8px;
 }
+/* 自定义选项入口：跨整行（1 / -1）放置，作为"其他"入口。 */
 .planner-option-custom {
     grid-column: 1 / -1;
 }
 
+/* 自定义人数面板：grid 纵向排列标签 + 输入行，微亮背景区分于选项列表。 */
 .planner-custom-people {
     grid-column: 1 / -1;
     display: grid;
@@ -1277,6 +1304,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     border: 1px solid rgba(205, 229, 242, 0.08);
 }
 
+/* 自定义人数标签：小号全大写。 */
 .planner-custom-people-label {
     font-size: 0.74rem;
     letter-spacing: 0.12em;
@@ -1284,12 +1312,14 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(194, 221, 236, 0.54);
 }
 
+/* 输入行：输入框 + 确认按钮，两列 grid。 */
 .planner-custom-people-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
 }
 
+/* 人数输入框：暗底 + 半透明边框，聚焦时微亮。 */
 .planner-custom-people-input {
     min-height: 46px;
     padding: 0 14px;
@@ -1311,6 +1341,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     box-shadow: 0 0 0 3px rgba(120, 185, 215, 0.08);
 }
 
+/* 自定义人数确认按钮：与输入框等高、右对齐，hover 时上浮 1px。 */
 .planner-custom-people-apply {
     min-height: 46px;
     padding: 0 16px;
@@ -2965,6 +2996,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         0 0 18px rgba(118, 204, 237, 0.1);
 }
 
+/* 确认后的草稿导轨加亮边框与发光阴影，突出“已确认”状态的水下质感。 */
 .planner-summary.is-confirmed .planner-summary-draft-rail {
     border-color: rgba(198, 233, 247, 0.22);
     box-shadow:
@@ -2973,6 +3005,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         0 0 20px rgba(125, 215, 241, 0.14);
 }
 
+/* 各阶段草稿导轨的垂直偏移微动，用 translateY 的细微差别呼应交互进度。 */
 .planner-summary[data-summary-stage="idle"] .planner-summary-draft-rail {
     transform: translateY(0);
 }
@@ -2982,6 +3015,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transform: translateY(-1px);
 }
 
+/* “同伴数量”阶段中伴随标签获得暖色金边，引导用户关注人数选择。 */
 .planner-summary[data-summary-stage="people"] .planner-summary-draft-tag-companion {
     border-color: rgba(243, 223, 170, 0.2);
     box-shadow:
@@ -2990,6 +3024,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         0 0 16px rgba(242, 205, 124, 0.08);
 }
 
+/* 确认后地点名称增加柔和的光晕文字阴影，强化最终选定感。 */
 .planner-summary[data-summary-stage="confirmed"] .planner-summary-draft-spot {
     text-shadow: 0 0 16px rgba(149, 219, 246, 0.12);
 }
@@ -3023,6 +3058,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     overflow: hidden;
 }
 
+/* 每项顶部的渐变高光线，模拟海面反射光，增加层次感。 */
 .planner-item::before {
     content: "";
     position: absolute;
@@ -3032,6 +3068,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     pointer-events: none;
 }
 
+/* 已确认项目的边框与背景略微提亮，与普通草稿区分。 */
 .planner-item.is-confirmed {
     border-color: rgba(196, 228, 242, 0.1);
     background:
@@ -3039,33 +3076,39 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         rgba(8, 25, 38, 0.34);
 }
 
+/* 空项目用虚线边框和较低不透明度表示“待填写”状态。 */
 .planner-item.is-empty {
     opacity: 0.88;
     border-style: dashed;
 }
 
+/* 已确认时序号标签获得更亮的文字和浅青底，强化完成感。 */
 .planner-item.is-confirmed .planner-item-index {
     color: rgba(241, 249, 253, 0.88);
     background: rgba(120, 184, 211, 0.12);
     border-color: rgba(194, 227, 241, 0.16);
 }
 
+/* 已确认时状态标签样式与序号保持一致，形成统一的确认态视觉。 */
 .planner-item.is-confirmed .planner-item-state {
     color: rgba(236, 247, 251, 0.88);
     background: rgba(120, 184, 211, 0.12);
     border-color: rgba(194, 227, 241, 0.14);
 }
 
+/* 项目被更新时播放一次微光动画，吸引用户注意变化。 */
 .planner-item.is-updated {
     animation: planner-summary-item-glow 920ms ease;
 }
 
+/* 悬停时轻微上浮并增加阴影，赋予卡片可交互的立体感。 */
 .planner-item:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
     border-color: rgba(202, 231, 244, 0.08);
 }
 
+/* 序号徽章：居左显示在 grid 的 index 区域，半透底 + 小字号序号。 */
 .planner-item-index {
     grid-area: index;
     display: inline-flex;
@@ -3083,6 +3126,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     border: 1px solid rgba(209, 231, 243, 0.07);
 }
 
+/* 文本区：放置于 grid 的 copy 区域，容纳标题与描述文字。 */
 .planner-item-copy {
     grid-area: copy;
     display: grid;
@@ -3091,6 +3135,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     padding-top: 2px;
 }
 
+/* 状态标签：居右显示在 grid 的 state 区域，药丸造型、半透底。 */
 .planner-item-state {
     grid-area: state;
     display: inline-flex;
@@ -3120,6 +3165,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(188, 213, 227, 0.46);
 }
 
+/* 项目标题文字：加粗、大字号、亮白，展示潜点或套餐名称。 */
 .planner-item strong {
     display: block;
     font-size: 0.96rem;
@@ -3128,6 +3174,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     text-wrap: pretty;
 }
 
+/* 项目描述文字：小字号、低对比度，并限制最大高度防止溢出。 */
 .planner-item small {
     display: block;
     max-width: 28ch;
@@ -3143,10 +3190,12 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         transform 320ms ease;
 }
 
+/* 空项目标题颜色略降，与内容占位符风格统一。 */
 .planner-item.is-empty strong {
     color: rgba(222, 235, 243, 0.78);
 }
 
+/* 空项目的描述透明度更低，弱化占位文字的存在感。 */
 .planner-item.is-empty small {
     opacity: 0.62;
     transform: none;
@@ -4157,6 +4206,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         border-radius: 24px;
     }
 
+    /* 窄屏下 planner-item 转为扁平列表线分隔，去除卡片背景与圆角，仅保留底部边框。 */
     .planner-item {
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
@@ -4238,6 +4288,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     box-shadow: 0 0 0 3px rgba(120, 185, 215, 0.08);
 }
 
+/* 自定义人数确认按钮：与输入框等高、右对齐，hover 时上浮 1px。 */
 .planner-custom-people-apply {
     min-height: 46px;
     padding: 0 16px;
@@ -4286,6 +4337,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     animation: planner-desk-rise 960ms cubic-bezier(0.16, 0.82, 0.2, 1) 560ms forwards;
 }
 
+/* 头部区域：flex 布局将标题文字与切换按钮分列两端。 */
 .confirmed-bookings-head {
     display: flex;
     align-items: flex-start;
@@ -4293,12 +4345,14 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     gap: 18px;
 }
 
+/* 头部文本容器：grid 堆叠，限制阅读宽度以获得舒适的换行。 */
 .confirmed-bookings-copy {
     display: grid;
     gap: 10px;
     max-width: 60ch;
 }
 
+/* 小标题（kicker）：大写、字距宽松、低对比度，作为 section 的引导标签。 */
 .confirmed-bookings-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -4307,6 +4361,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(194, 221, 236, 0.5);
 }
 
+/* 区域主标题：衬线字体、亮白，传达品牌感与沉稳气质。 */
 .confirmed-bookings-title {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -4315,12 +4370,14 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: #f4fbff;
 }
 
+/* 引导描述：稍大的行高与柔和文字颜色，方便阅读段落内容。 */
 .confirmed-bookings-intro {
     margin: 0;
     line-height: 1.78;
     color: rgba(208, 224, 235, 0.72);
 }
 
+/* 切换按钮（如“查看全部 / 仅看当前”）：药丸造型、半透毛玻璃，悬浮感。 */
 .confirmed-bookings-switch {
     flex: 0 0 auto;
     align-self: flex-start;
@@ -4348,6 +4405,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         opacity 280ms ease;
 }
 
+/* 切换按钮悬停：上浮并增加边框亮度与发光，强调可点击。 */
 .confirmed-bookings-switch:hover {
     transform: translateY(-2px);
     border-color: rgba(216, 239, 248, 0.18);
@@ -4357,16 +4415,19 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         0 0 18px rgba(111, 180, 210, 0.08);
 }
 
+/* 切换按钮按下：轻压下压模拟真实按键反馈。 */
 .confirmed-bookings-switch:active {
     transform: translateY(1px);
 }
 
+/* 激活提示文字：用于说明当前筛选或展示状态。 */
 .confirmed-bookings-active-note {
     margin: 0;
     line-height: 1.7;
     color: rgba(222, 237, 245, 0.78);
 }
 
+/* “回显”提示卡：flex 将左侧文本与右侧标签组分开，浅色半透底边框。 */
 .confirmed-bookings-echo {
     display: flex;
     align-items: flex-start;
@@ -4378,16 +4439,19 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     border: 1px solid rgba(205, 229, 242, 0.08);
 }
 
+/* 回显文本容器：grid 堆叠提示词与具体行。 */
 .confirmed-bookings-echo-copy {
     display: grid;
     gap: 8px;
 }
 
+/* 回显内的标签与正文行统一重置 margin。 */
 .confirmed-bookings-echo-kicker,
 .confirmed-bookings-echo-line {
     margin: 0;
 }
 
+/* 回显标签：大写、小字、低对比度，不抢主信息。 */
 .confirmed-bookings-echo-kicker {
     font-size: 0.72rem;
     letter-spacing: 0.2em;
@@ -4395,11 +4459,13 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(193, 220, 235, 0.5);
 }
 
+/* 回显正文：稍大行高，柔和亮色阅读舒适。 */
 .confirmed-bookings-echo-line {
     line-height: 1.72;
     color: rgba(223, 238, 246, 0.82);
 }
 
+/* 回显右侧标签组：flex 换行、右对齐，可容纳多个小 Chip。 */
 .confirmed-bookings-echo-meta {
     display: flex;
     flex-wrap: wrap;
@@ -4407,6 +4473,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     gap: 8px;
 }
 
+/* 回显小标签：药丸造型、浅青底，展示简短元信息如人数／天数。 */
 .confirmed-bookings-echo-chip {
     display: inline-flex;
     align-items: center;
@@ -4430,6 +4497,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transition-delay: 170ms;
 }
 
+/* 空状态提示：浅底、圆角、低对比文字，温和地告知暂无确认订单。 */
 .confirmed-bookings-empty {
     padding: 18px 18px 16px;
     border-radius: 22px;
@@ -4439,6 +4507,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(198, 217, 229, 0.62);
 }
 
+/* 确认卡片网格：两列等宽布局，间距均匀，适合展示多张卡片。 */
 .confirmed-bookings-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4461,6 +4530,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transform: translate3d(20px, 30px, 0) scale(0.986);
 }
 
+/* 单张确认卡片：圆角毛玻璃卡片、grid 布局堆叠内部信息，模拟水下档案卡质感。 */
 .confirmed-booking-card {
     position: relative;
     display: grid;
@@ -4479,6 +4549,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transition: transform 320ms ease, border-color 320ms ease, box-shadow 320ms ease, opacity 320ms ease, filter 320ms ease;
 }
 
+/* 卡片悬停：上浮 3px 并增加发光阴影，强化可交互的潜水档案感。 */
 .confirmed-booking-card:hover {
     transform: translateY(-3px);
     border-color: rgba(214, 238, 248, 0.16);
@@ -4487,6 +4558,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         0 0 22px rgba(104, 171, 203, 0.08);
 }
 
+/* 卡片激活态：边框与阴影显著加亮，用于标记当前选中的订单。 */
 .confirmed-booking-card.is-active {
     border-color: rgba(196, 230, 251, 0.28);
     box-shadow:
@@ -4495,6 +4567,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         inset 0 0 0 1px rgba(203, 234, 247, 0.12);
 }
 
+/* 卡片顶部行：flex 将元信息与状态徽章分列左右。 */
 .confirmed-booking-top {
     display: flex;
     align-items: flex-start;
@@ -4502,11 +4575,13 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     gap: 14px;
 }
 
+/* 元信息区：grid 堆叠分类标签、地点名、副标题。 */
 .confirmed-booking-meta {
     display: grid;
     gap: 8px;
 }
 
+/* 卡片分类标签：大写、低对比度，用于标识“行程”或“附加服务”。 */
 .confirmed-booking-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -4515,6 +4590,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(191, 218, 233, 0.56);
 }
 
+/* 潜点／套餐名称：衬线字体、亮白，卡片的视觉重心。 */
 .confirmed-booking-spot {
     margin: 0;
     font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
@@ -4522,12 +4598,14 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: #f4fbff;
 }
 
+/* 简短副标题：描述行程亮点或简要说明。 */
 .confirmed-booking-tagline {
     margin: 0;
     line-height: 1.7;
     color: rgba(208, 224, 235, 0.72);
 }
 
+/* 状态药丸标识：如“已确认”、“进行中”，浅青底强调完成态。 */
 .confirmed-booking-state {
     display: inline-flex;
     align-items: center;
@@ -4542,6 +4620,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     letter-spacing: 0.08em;
 }
 
+/* 通用小标签（chip / tag）：药丸造型，用于展示分类或关键词。 */
 .confirmed-booking-chip,
 .confirmed-booking-tag {
     display: inline-flex;
@@ -4556,16 +4635,19 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(233, 244, 249, 0.82);
 }
 
+/* 卡片主体内容容器：grid 堆叠价格、说明、标签等模块。 */
 .confirmed-booking-body {
     display: grid;
     gap: 10px;
 }
 
+/* 价格展示区域：grid 堆叠多行价格信息。 */
 .confirmed-booking-price-wrap {
     display: grid;
     gap: 6px;
 }
 
+/* 价格行：flex 让主价格与币种／备注同行排列。 */
 .confirmed-booking-price-row {
     display: flex;
     flex-wrap: wrap;
@@ -4573,42 +4655,49 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     gap: 10px;
 }
 
+/* 主价格数字：大字号粗体、亮白色，视觉重点突出。 */
 .confirmed-booking-price {
     font-size: 1.36rem;
     font-weight: 700;
     color: #eff8ff;
 }
 
+/* 人民币标识（CNY）：次于主价的小字注释。 */
 .confirmed-booking-price-cny {
     font-size: 0.86rem;
     letter-spacing: 0.02em;
     color: rgba(198, 224, 236, 0.74);
 }
 
+/* 价格备注：如“每人每晚”，低对比度小字不干扰价格阅读。 */
 .confirmed-booking-price-note {
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     color: rgba(194, 221, 236, 0.58);
 }
 
+/* 额外备注段落：用于说明取消政策或温馨提示。 */
 .confirmed-booking-note {
     margin: 0;
     line-height: 1.76;
     color: rgba(207, 223, 235, 0.72);
 }
 
+/* 标签集合：flex 换行排列多个小标签。 */
 .confirmed-booking-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
+/* 详情网格：三列等宽展示日期、人数、时长等字段。 */
 .confirmed-booking-details {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
+/* 单个详情按钮：去除原生外观、grid 内堆叠标签与数值，可点击切换。 */
 .confirmed-booking-detail {
     appearance: none;
     -webkit-appearance: none;
@@ -4628,6 +4717,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         box-shadow 240ms ease;
 }
 
+/* 详情按钮悬停／聚焦：上浮并加亮边框，提供点击反馈。 */
 .confirmed-booking-detail:hover,
 .confirmed-booking-detail:focus-visible {
     transform: translateY(-2px);
@@ -4637,6 +4727,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     outline: none;
 }
 
+/* 详情字段的标签文字：大写、字间距宽松、低对比度。 */
 .confirmed-booking-detail-label {
     font-size: 0.7rem;
     letter-spacing: 0.14em;
@@ -4644,16 +4735,19 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     color: rgba(189, 213, 227, 0.48);
 }
 
+/* 详情字段内的值：加粗、亮白，突出显示具体数字或摘要。 */
 .confirmed-booking-detail strong {
     font-size: 0.94rem;
     line-height: 1.55;
     color: #eef6ff;
 }
 
+/* 静态详情（不可点击）：禁用指针样式，区别于可编辑项。 */
 .confirmed-booking-detail-static {
     cursor: default;
 }
 
+/* 静态详情去除悬停和聚焦效果，保持视觉一致但不反馈交互。 */
 .confirmed-booking-detail-static:hover,
 .confirmed-booking-detail-static:focus-visible {
     transform: none;
@@ -4662,12 +4756,14 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     box-shadow: none;
 }
 
+/* 操作按钮行：flex 排列链接、简报、删除等操作。 */
 .confirmed-booking-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
 }
 
+/* 通用操作按钮：药丸造型、半透底，统一样式用于链接／简报／删除。 */
 .confirmed-booking-link,
 .confirmed-booking-brief,
 .confirmed-booking-remove {
@@ -4682,6 +4778,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease;
 }
 
+/* “简报”按钮：独立的渐变背景与较亮边框，视觉上更突出。 */
 .confirmed-booking-brief {
     background:
         linear-gradient(180deg, rgba(191, 231, 247, 0.16), rgba(139, 201, 225, 0.08)),
@@ -4689,6 +4786,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     border-color: rgba(190, 227, 241, 0.18);
 }
 
+/* 操作按钮悬停：统一上浮并增加边框亮度。 */
 .confirmed-booking-link:hover,
 .confirmed-booking-brief:hover,
 .confirmed-booking-remove:hover {
@@ -4702,6 +4800,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         grid-template-columns: 1fr;
     }
 
+    /* 窄屏回显卡改为纵向堆叠，标签左对齐。 */
     .confirmed-bookings-echo {
         flex-direction: column;
     }
@@ -4710,10 +4809,12 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         justify-content: flex-start;
     }
 
+    /* 确认卡片列表由双列改为单列。 */
     .confirmed-bookings-list {
         grid-template-columns: 1fr;
     }
 
+    /* 头部改为纵向排列，按钮自然换行。 */
     .confirmed-bookings-head {
         flex-direction: column;
         align-items: stretch;
@@ -4736,6 +4837,7 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         border-radius: 18px;
     }
 
+    /* 小屏下确认区域与卡片缩小平滑过渡。 */
     .confirmed-bookings-stage {
         padding: 18px;
         border-radius: 24px;
@@ -4746,12 +4848,14 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
         border-radius: 22px;
     }
 
+    /* 顶部行与详情网格在小屏改为单列。 */
     .confirmed-booking-top,
     .confirmed-booking-details {
         grid-template-columns: 1fr;
         display: grid;
     }
 
+    /* 操作按钮纵向堆叠并撑满宽度。 */
     .confirmed-booking-actions {
         flex-direction: column;
     }

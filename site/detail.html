@@ -14,11 +14,16 @@
     <link rel="stylesheet" href="css/page-transition.css">
     <link rel="stylesheet" href="css/depth-gauge.css">
     <link rel="stylesheet" href="css/detail.css">
+    <!-- Leaflet 地图库：用于 Sea Atlas 离线海图的交互式地图渲染 -->
     <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+    <!-- 详情页数据脚本：在 head 中提前加载，因为 body 内联的 bootstrap 脚本需要访问
+         YanqiSpotCatalog 和 YanqiSpotMapCatalog 来渲染首屏 hero 和侧栏 -->
     <script src="js/yanqi-spot-catalog.js"></script>
     <script src="js/yanqi-spot-map-catalog.js"></script>
     <script src="js/detail-spot-data-manifest.js"></script>
     <script src="js/detail-spot-data-registry.js"></script>
+    <!-- 首屏防闪烁样式：在 bootstrap 脚本完成 hero/sidebar 数据填充之前，
+         用 visibility: hidden 隐藏相关占位文本，避免"诗巴丹"等默认文案闪现后再被替换。 -->
     <style>
         html[data-detail-hero-bootstrap="pending"] #spotName,
         html[data-detail-hero-bootstrap="pending"] #spotTagline,
@@ -34,6 +39,13 @@
             visibility: hidden;
         }
     </style>
+    <!-- 详情页首屏快速渲染（bootstrap）：
+         这段立即执行的内联脚本在 DOM 解析到 body 之前运行，
+         读取 URL 中的 ?id= 参数确定潜点，从 YanqiSpotCatalog 获取基本信息，
+         立即设置 document.title、hero 图片和标签文案、侧栏价格和标题，
+         配合上面的 CSS 防闪烁规则实现"首屏直接看到正确内容"的体验。
+         __applyYanqiDetailBootstrap 函数在 body 中的 hero/sidebar 两处被调用，
+         分别填充 hero 区和侧栏区的内容，然后移除 visibility: hidden。 -->
     <script>
         (function bootstrapDetailFirstPaint() {
             const detailHeroMetaById = Object.freeze({
@@ -176,6 +188,8 @@
                 <li><a href="trip.html" class="nav-link">我的行程</a></li>
             </ul>
             <div class="nav-user">
+                <!-- 详情页调试按钮：清除回声草稿（localStorage 中的行程草稿数据）。
+                     仅在开发调试时出现，hidden + disabled 为默认状态，由 detail.js 按条件激活。 -->
                 <button
                     type="button"
                     class="detail-debug-echo-reset"
@@ -295,12 +309,27 @@
                          不直接写死静态图片，而交给 JS 按当前潜点生成对应的地图 / 海图内容。 -->
                     <section class="detail-reading-section detail-reading-section-map" data-detail-reading-section="map" aria-labelledby="spotMapSection">
                         <div class="spot-map-head">
-                            <p class="spot-map-kicker">Sea Descent</p>
-                            <h2 id="spotMapSection">潜点位置</h2>
-                            <p class="spot-map-lead">从海域档案再往下一层，这里开始读这片海真实的位置、靠近方式，以及它的水下结构会怎样慢慢排开。</p>
+                            <p class="spot-map-kicker">SEA ATLAS</p>
+                            <h2 id="spotMapSection">Sea Atlas / 潜点位置</h2>
+                            <p class="spot-map-lead">不是普通定位图，而是这片海的离线海图、潜点分布、靠近路线与深度层，会在这里慢慢把结构排开。</p>
                         </div>
                         <div class="map-container" id="mapContainer">
-                            <!-- 海域定位台由脚本动态生成 -->
+                            <div class="sea-atlas-first-paint" aria-hidden="true">
+                                <div class="sea-atlas-first-paint-copy">
+                                    <p class="sea-atlas-first-paint-kicker">SEA ATLAS</p>
+                                    <h3 class="sea-atlas-first-paint-title">海图正在慢慢浮现</h3>
+                                    <p class="sea-atlas-first-paint-text">正在同步海图剖面、潜点位置与靠近路线...</p>
+                                </div>
+                                <div class="sea-atlas-first-paint-board">
+                                    <span class="sea-atlas-first-paint-ring is-outer"></span>
+                                    <span class="sea-atlas-first-paint-ring is-mid"></span>
+                                    <span class="sea-atlas-first-paint-ring is-inner"></span>
+                                    <span class="sea-atlas-first-paint-land is-main"></span>
+                                    <span class="sea-atlas-first-paint-land is-reef"></span>
+                                    <span class="sea-atlas-first-paint-route"></span>
+                                    <span class="sea-atlas-first-paint-ping"></span>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
@@ -328,29 +357,34 @@
                 <aside class="booking-sidebar" id="bookingPackages">
                     <div class="booking-sticky">
                         <div class="price-badge">
-                            <span class="price-label">从</span>
-                            <span class="price-amount" id="priceAmount">¥5,600</span>
-                            <span class="price-period">起</span>
+                            <p class="price-brief">Dive Brief</p>
+                            <p class="price-layer">Sea Layer 01 · Entry Plan</p>
+                            <div class="price-figure">
+                                <span class="price-label">从</span>
+                                <span class="price-amount" id="priceAmount">¥5,600</span>
+                                <span class="price-period">起</span>
+                            </div>
+                            <p class="price-note">先看海图与海况，再决定要不要把这片海慢慢收进行程。</p>
                         </div>
 
                         <div class="booking-match" id="packageMatchTags"></div>
 
                         <div class="booking-copy" id="bookingCopy" data-reading-guide-key="overview">
                             <p class="booking-kicker">
-                                <span class="booking-kicker-line">Sea Dossier</span>
+                                <span class="booking-kicker-line">Dive Brief</span>
                             </p>
-                            <h3 class="booking-title" aria-label="当前阅读区块：海域档案">
-                                <span class="booking-title-line">海域档案</span>
+                            <h3 class="booking-title" aria-label="当前阅读区块：海域入口档案">
+                                <span class="booking-title-line">海域入口档案</span>
                             </h3>
                             <p class="booking-intro">
-                                <span class="booking-intro-line">先把这片海的流向、海况与进入方式读清，再决定要用怎样的节奏靠近。</span>
+                                <span class="booking-intro-line">先沿 Sea Atlas 把位置、流向与适合的深度层看清，再决定要用怎样的节奏进入。</span>
                             </p>
                         </div>
 
                         <section class="booking-focus-panel" id="bookingFocusPanel" aria-labelledby="bookingFocusTitle">
                             <div class="booking-focus-head">
-                                <p class="booking-focus-state" id="bookingFocusState">当前可以一起对照看的安排</p>
-                                <p class="booking-focus-overline" id="bookingFocusOverline">Current Package</p>
+                                <p class="booking-focus-state" id="bookingFocusState">当前对照的潜水计划</p>
+                                <p class="booking-focus-overline" id="bookingFocusOverline">Entry Plan</p>
                             </div>
 
                             <div class="booking-focus-main">
@@ -388,7 +422,7 @@
                         </div>
 
                         <div class="booking-note" id="bookingNote">
-                            <p>先打开套餐详情，再决定是否预订。盐憩更在意你是否适合这一次下潜，而不是让你仓促下单。</p>
+                            <p>先沿海图和档案确认自己的进入节奏，再决定是否把这一潜收进行程。盐憩更在意这片海是否真的适合你靠近。</p>
                         </div>
                         <script>
                             window.__applyYanqiDetailBootstrap?.('sidebar');
@@ -669,6 +703,20 @@
         </div>
     </div>
 
+    <!-- JS 加载顺序（按依赖关系排列）：
+         1. yanqi-brand-config.js: 品牌常量
+         2. yanqi-diver-profile.js: 潜水者状态管理
+         3. yanqi-spot-window-config.js: 潜点窗口配置
+         4. yanqi-showcase-state.js: 展示模式状态
+         5. depth-manager.js: 深度系统核心
+         6. ocean-scroll.js: 全局滚动控制
+         7. price-config.js: 价格配置数据
+         8. yanqi-trip-store.js: 行程 localStorage 读写层（供"收进行程"按钮使用）
+         9. text-layout-adapter.js: 文本排版自适应
+         10. avatar-return.js: 头像点击行为
+         11. detail.js: 详情页主逻辑（hero、套餐、Sea Atlas 地图、评论、相关推荐、预订确认）
+         注意：yanqi-spot-catalog.js / yanqi-spot-map-catalog.js / detail-spot-data-*.js
+         已在 head 中提前加载，确保 body 内联 bootstrap 脚本可用。 -->
     <script src="js/yanqi-brand-config.js"></script>
     <script src="js/yanqi-diver-profile.js"></script>
     <script src="js/yanqi-spot-window-config.js"></script>

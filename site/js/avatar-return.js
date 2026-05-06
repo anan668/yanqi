@@ -125,6 +125,8 @@
 
         state.closeTimerId = window.setTimeout(() => {
             state.modal?.classList.remove(CLOSING_CLASS);
+            document.documentElement.classList.remove(LOCK_CLASS);
+            document.body?.classList.remove(LOCK_CLASS);
             state.closeTimerId = 0;
         }, 280);
 

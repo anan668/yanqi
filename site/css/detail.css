@@ -13,6 +13,12 @@
 */
 
 /* 文件导读：详情页是全站信息最密的一层，先抓区域分层，再看每个模块的细节样式。 */
+
+/* ------- CSS @property 注册：让浏览器把自定义属性当作可动画类型处理 ------- */
+/* --booking-copy-stick-top / --booking-copy-stick-height：
+   右侧套餐侧栏 sticky 模式的顶部位置和高度。
+   注册为 <length> 类型后，JS 可以通过修改这两个值来驱动侧栏的平滑过渡动画
+   （CSS transition 在 @property 注册后才对自定义属性生效）。 */
 @property --booking-copy-stick-top {
     syntax: "<length>";
     inherits: false;
@@ -25,26 +31,35 @@
     initial-value: 0px;
 }
 
+/* --booking-sticky-stack-gap：侧栏 sticky 状态下各区块之间的间距 */
 @property --booking-sticky-stack-gap {
     syntax: "<length>";
     inherits: false;
     initial-value: 18px;
 }
 
+/* ------- 详情页全局 CSS 自定义属性：控制首屏、侧栏、过渡动画和响应式断点 ------- */
 .detail-page {
+    /* 安全边距：为左右深度计预留的空间（各 53px），防止内容被深度计遮挡 */
     --detail-safe-side: 106px;
+    /* 侧栏 sticky 定位：距离顶部 94px（navbar 高度 + 间距），底部留 28px 避免贴底 */
     --detail-sidebar-stick-top: 94px;
     --detail-sidebar-stick-bottom: 28px;
+    /* 套餐切换动画：各阶段位移/缩放参数，模拟"海流推移"的过渡效果。
+       swap-* 系列变量控制向前/向后切换时卡片的不同运动轨迹。
+       duration 640ms 是经过测试的最优时长：太快像突兀跳转，太慢拖沓。 */
     --detail-swap-duration: 640ms;
-    --detail-swap-exit-x: -76px;
-    --detail-swap-enter-x: 86px;
-    --detail-swap-back-enter-x: -68px;
-    --detail-swap-exit-y: 10px;
-    --detail-swap-enter-y: 8px;
-    --detail-swap-back-enter-y: -6px;
-    --detail-swap-enter-scale: 1.016;
-    --detail-swap-back-scale: 1.01;
+    --detail-swap-exit-x: -76px;         /* 当前卡片向左退出 */
+    --detail-swap-enter-x: 86px;         /* 新卡片从右侧进入 */
+    --detail-swap-back-enter-x: -68px;   /* 回退时新卡片从左侧进入 */
+    --detail-swap-exit-y: 10px;          /* 退出时略微下沉，模拟水流下沉 */
+    --detail-swap-enter-y: 8px;          /* 进入时略微上浮 */
+    --detail-swap-back-enter-y: -6px;    /* 回退时微上移 */
+    --detail-swap-enter-scale: 1.016;    /* 进入时微放大，制造"靠近感" */
+    --detail-swap-back-scale: 1.01;      /* 回退时弱放大 */
+    /* 首屏高度：clamp(420px, 34vw, 520px) 保证大屏不超过 520px，小屏不低于 420px */
     --detail-hero-height: clamp(420px, 34vw, 520px);
+    /* 首屏图片微缩放 + 平移：制造缓慢的 Ken Burns 效果，让静态图片有"正在漂浮"的感觉 */
     --detail-hero-image-scale: 1.04;
     --detail-hero-pan-x: 2.6%;
     --detail-hero-pan-y: 1.5%;
@@ -472,10 +487,12 @@ body.has-overlay-lock {
    First Group Enhancement
    ============================================ */
 
+/* 深海英雄区：顶部留白控制，为整体场景定下呼吸节奏。 */
 .detail-hero {
     margin-bottom: clamp(22px, 4vw, 42px);
 }
 
+/* 准备就绪桥接容器：用多层径向渐变与毛玻璃制造舱体悬浮感，作为水下出发状态的视觉入口。 */
 .detail-readiness-bridge {
     position: relative;
     z-index: 3;
@@ -484,6 +501,7 @@ body.has-overlay-lock {
     padding: 0 6px;
 }
 
+/* 准备就绪主卡片：Grid 三行两列布局（状态/面板/操作），深海渐变基底 + 毛玻璃，模拟水下观察窗的视觉层次。 */
 .detail-readiness-card {
     --readiness-accent: rgba(139, 211, 230, 0.72);
     --readiness-glow: rgba(125, 207, 231, 0.24);
@@ -515,6 +533,7 @@ body.has-overlay-lock {
     -webkit-backdrop-filter: blur(22px);
 }
 
+/* 色调变体：ready（青绿偏亮） / check（标准蓝） / caution（暖沙色），分别对应不同的出发前状态。 */
 .detail-readiness-card[data-readiness-tone="ready"] {
     --readiness-accent: rgba(137, 226, 221, 0.8);
     --readiness-glow: rgba(99, 210, 200, 0.26);
@@ -533,6 +552,7 @@ body.has-overlay-lock {
     --readiness-rim: rgba(230, 214, 175, 0.24);
 }
 
+/* 伪装表面覆盖：横向光流 + 横纹扫描线，模拟透过海水观察时的光学折射纹理。 */
 .detail-readiness-card::before {
     content: "";
     position: absolute;
@@ -545,6 +565,7 @@ body.has-overlay-lock {
     opacity: 0.74;
 }
 
+/* 底部发光边线：根据 readiness-accent 色彩强调当前警告等级，连接舱体与下方内容。 */
 .detail-readiness-card::after {
     content: "";
     position: absolute;
@@ -557,6 +578,7 @@ body.has-overlay-lock {
     opacity: 0.72;
 }
 
+/* 入场动画：卡片整体从模糊/裁切状切入，子元素交错显现，营造水下舱体逐步清晰的启动感。 */
 .detail-readiness-card.is-settling {
     animation: detailReadinessSettle 880ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
 }
@@ -572,6 +594,7 @@ body.has-overlay-lock {
     animation: detailReadinessReveal 760ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
 }
 
+/* 动画延时阶梯：每个子元素依次延迟出场，制造序列化展开的呼吸节奏。 */
 .detail-readiness-card.is-settling .detail-readiness-kicker {
     animation-delay: 60ms;
 }
@@ -591,6 +614,7 @@ body.has-overlay-lock {
     animation-delay: 240ms;
 }
 
+/* 子区域层级提升 / 独占 z-index，确保内容在装饰伪元素之上。 */
 .detail-readiness-status,
 .detail-readiness-panels,
 .detail-readiness-profile,
@@ -601,6 +625,7 @@ body.has-overlay-lock {
     min-width: 0;
 }
 
+/* 状态头区块：占据 status 网格区域，轻透背景 + 浅水蓝字色，传达当前潜点就绪情况。 */
 .detail-readiness-status {
     grid-area: status;
     display: grid;
@@ -609,6 +634,7 @@ body.has-overlay-lock {
     padding: 4px 0;
 }
 
+/* 背光光晕：根据 readiness-accent 色值渲染柔焦圆形，加深水下环境的光源层次。 */
 .detail-readiness-glow {
     position: absolute;
     left: -12px;
@@ -622,6 +648,7 @@ body.has-overlay-lock {
     pointer-events: none;
 }
 
+/* 状态胶囊：行内标签 + 圆点指示器，毛玻璃基底 + 下阴影，模拟仪表盘状态指示灯。 */
 .detail-readiness-state {
     display: inline-flex;
     align-items: center;
@@ -641,6 +668,7 @@ body.has-overlay-lock {
     color: rgba(227, 245, 250, 0.9);
 }
 
+/* 状态指示圆点：根据 readiness-accent 自发光的小圆点，模拟水下仪表盘的 LED。 */
 .detail-readiness-state-dot {
     width: 7px;
     height: 7px;
@@ -650,12 +678,14 @@ body.has-overlay-lock {
     box-shadow: 0 0 16px var(--readiness-accent);
 }
 
+/* 状态文本：等宽标签，不折行保持胶囊内干净排版。 */
 .detail-readiness-state-label {
     font-size: 0.8rem;
     font-weight: 600;
     white-space: nowrap;
 }
 
+/* 状态副文本：截断的补充说明，灰蓝调与主状态区分层次。 */
 .detail-readiness-state-copy {
     max-width: 16ch;
     overflow: hidden;
@@ -665,6 +695,7 @@ body.has-overlay-lock {
     color: rgba(198, 228, 238, 0.66);
 }
 
+/* 节目标题的前导标签：小字大写 + 宽间距，模拟航海日志的章节编号。 */
 .detail-readiness-kicker {
     margin: 2px 0 0;
     font-size: 0.72rem;
@@ -673,6 +704,7 @@ body.has-overlay-lock {
     color: rgba(190, 228, 240, 0.66);
 }
 
+/* 主标题：衬线字体，大号浅蓝白，带深阴影——模拟水下远处透光的文字效果。 */
 .detail-readiness-title {
     margin: 0;
     max-width: 24ch;
@@ -683,6 +715,7 @@ body.has-overlay-lock {
     text-shadow: 0 16px 34px rgba(2, 14, 24, 0.34);
 }
 
+/* 描述正文：灰蓝通透手感，宽松行高适配长文本阅读。 */
 .detail-readiness-copy {
     margin: 0;
     max-width: 58ch;
@@ -691,6 +724,7 @@ body.has-overlay-lock {
     color: rgba(207, 231, 240, 0.8);
 }
 
+/* 标签簇：弹性换行容器，承载多个胶囊标签，形成“技术指标仪表盘”。 */
 .detail-readiness-chips {
     display: flex;
     flex-wrap: wrap;
@@ -699,6 +733,7 @@ body.has-overlay-lock {
     padding-top: 2px;
 }
 
+/* 标签胶囊：深色半透明基底 + 细边框，模拟水下仪器上的参数标签。 */
 .detail-readiness-chip {
     display: inline-flex;
     align-items: center;
@@ -715,12 +750,14 @@ body.has-overlay-lock {
     color: rgba(218, 240, 247, 0.78);
 }
 
+/* 信息面板区：占据 panels 网格区域，放置详细指标卡片组。 */
 .detail-readiness-panels {
     grid-area: panels;
     display: grid;
     gap: 12px;
 }
 
+/* 面板卡片：毛玻璃嵌套卡片，左侧有竖条强调线，展示水下状态的具体参数。 */
 .detail-readiness-panel {
     position: relative;
     display: grid;
@@ -737,6 +774,7 @@ body.has-overlay-lock {
         0 18px 28px rgba(2, 16, 26, 0.12);
 }
 
+/* 左侧强调竖线：用渐变透明度模拟水面折射的光条纹。 */
 .detail-readiness-panel::before {
     content: "";
     position: absolute;
@@ -748,6 +786,7 @@ body.has-overlay-lock {
     opacity: 0.5;
 }
 
+/* 面板 / 资料区共用标签：小字大写宽间距，保持航海仪表风格统一。 */
 .detail-readiness-panel-label,
 .detail-readiness-profile-label {
     font-size: 0.7rem;
@@ -756,12 +795,14 @@ body.has-overlay-lock {
     color: rgba(186, 225, 238, 0.58);
 }
 
+/* 面板内粗体：强调关键数值，浅色高对比。 */
 .detail-readiness-panel strong {
     font-size: 0.98rem;
     line-height: 1.48;
     color: rgba(242, 250, 253, 0.94);
 }
 
+/* 面板内段落：灰蓝辅助色，与强调文本形成层次。 */
 .detail-readiness-panel p {
     margin: 0;
     font-size: 0.82rem;
@@ -769,6 +810,7 @@ body.has-overlay-lock {
     color: rgba(199, 228, 238, 0.7);
 }
 
+/* 潜者资料 / 认证面板：占据 profile 网格区域，单独容纳潜水员的级别、证书与个人调节信息。 */
 .detail-readiness-profile,
 .detail-readiness-cert-panel {
     grid-area: profile;
@@ -787,11 +829,13 @@ body.has-overlay-lock {
         0 18px 30px rgba(2, 16, 26, 0.1);
 }
 
+/* 资料网格：紧凑间距，存放多行键值对信息。 */
 .detail-readiness-profile-grid {
     display: grid;
     gap: 10px;
 }
 
+/* 资料顶栏：flex 左右布局，标题与操作按钮同行。 */
 .detail-readiness-profile-head {
     display: flex;
     align-items: center;
@@ -800,6 +844,7 @@ body.has-overlay-lock {
     min-width: 0;
 }
 
+/* 操作按钮统一样式：调整 / 保存 / 取消——毛玻璃胶囊，带悬停抬起效果。 */
 .detail-readiness-adjust,
 .detail-readiness-save,
 .detail-readiness-cancel {
@@ -829,6 +874,7 @@ body.has-overlay-lock {
         opacity 220ms ease;
 }
 
+/* 按钮交互态：悬停或聚焦时微抬起，边框变亮，模拟触控反馈。 */
 .detail-readiness-adjust:hover,
 .detail-readiness-save:hover,
 .detail-readiness-cancel:hover,
@@ -840,12 +886,14 @@ body.has-overlay-lock {
     outline: none;
 }
 
+/* 禁用态：降低透明度，取消悬停效果。 */
 .detail-readiness-save:disabled {
     cursor: default;
     opacity: 0.42;
     transform: none;
 }
 
+/* 资料条目行：两列 Grid（标签 + 值），底部浅色分隔线，模拟航海日志的条目格式。 */
 .detail-readiness-profile-item {
     display: grid;
     grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
@@ -861,11 +909,13 @@ body.has-overlay-lock {
     border-bottom: 0;
 }
 
+/* 条目标签：灰蓝辅助色小字。 */
 .detail-readiness-profile-item small {
     font-size: 0.72rem;
     color: rgba(184, 220, 232, 0.62);
 }
 
+/* 条目值：浅色高对比粗体，突出显示关键数据。 */
 .detail-readiness-profile-item strong {
     min-width: 0;
     font-size: 0.9rem;
@@ -873,6 +923,7 @@ body.has-overlay-lock {
     color: rgba(241, 250, 253, 0.92);
 }
 
+/* 认证说明文字：引导用户选择证书级别。 */
 .detail-readiness-cert-intro {
     margin: 0;
     font-size: 0.83rem;
@@ -880,11 +931,13 @@ body.has-overlay-lock {
     color: rgba(203, 232, 241, 0.76);
 }
 
+/* 选项组容器：纵向排列的标题 + 证书卡片网格。 */
 .detail-readiness-choice-group {
     display: grid;
     gap: 8px;
 }
 
+/* 选项标签：小字大写宽间距，保持航海仪表风格。 */
 .detail-readiness-choice-label {
     font-size: 0.7rem;
     letter-spacing: 0.16em;
@@ -892,16 +945,19 @@ body.has-overlay-lock {
     color: rgba(186, 225, 238, 0.58);
 }
 
+/* 证书卡片网格：两列布局，展示可选的潜水认证级别。 */
 .detail-readiness-cert-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
 
+/* 最近一次证书：单列布局，突出显示当前认证。 */
 .detail-readiness-cert-grid-recent {
     grid-template-columns: minmax(0, 1fr);
 }
 
+/* 证书卡片：带入场动画的可点击项，左侧竖色条标记，模拟潜水证章。 */
 .detail-readiness-cert {
     position: relative;
     display: grid;
@@ -928,6 +984,7 @@ body.has-overlay-lock {
         box-shadow 220ms ease;
 }
 
+/* 证书左侧竖色条：渐变透明度，区分不同认证层级。 */
 .detail-readiness-cert::before {
     content: "";
     position: absolute;
@@ -939,22 +996,26 @@ body.has-overlay-lock {
     background: linear-gradient(180deg, rgba(145, 215, 236, 0), rgba(145, 215, 236, 0.5), rgba(145, 215, 236, 0));
 }
 
+/* 证书文字不溢出容器。 */
 .detail-readiness-cert span,
 .detail-readiness-cert small {
     min-width: 0;
 }
 
+/* 证书名称：粗体加深。 */
 .detail-readiness-cert span {
     font-size: 0.86rem;
     font-weight: 600;
 }
 
+/* 证书辅助信息：灰蓝小字。 */
 .detail-readiness-cert small {
     font-size: 0.68rem;
     line-height: 1.36;
     color: rgba(190, 224, 235, 0.66);
 }
 
+/* 证书交互态：悬停/聚焦/选中时微抬升，边框和背景提亮，增加光晕效果。 */
 .detail-readiness-cert:hover,
 .detail-readiness-cert:focus-visible,
 .detail-readiness-cert.is-current {
@@ -970,6 +1031,7 @@ body.has-overlay-lock {
     outline: none;
 }
 
+/* 编辑操作行：flex 换行放置多个操作按钮。 */
 .detail-readiness-edit-actions {
     display: flex;
     flex-wrap: wrap;
@@ -978,6 +1040,7 @@ body.has-overlay-lock {
     padding-top: 2px;
 }
 
+/* 主要保存按钮：深海蓝渐变背景 + 浅蓝边框，区别于普通调节按钮。 */
 .detail-readiness-save {
     color: #f3fbff;
     background:
@@ -985,6 +1048,7 @@ body.has-overlay-lock {
     border-color: rgba(205, 239, 248, 0.22);
 }
 
+/* 底部操作区：占据 actions 网格区域，顶部横线分隔，承载主要 CTA 按钮。 */
 .detail-readiness-actions {
     grid-area: actions;
     display: flex;
@@ -998,6 +1062,7 @@ body.has-overlay-lock {
     border-left: 0;
 }
 
+/* 操作区顶部渐变分隔线：均匀过渡到两侧透明。 */
 .detail-readiness-actions::before {
     content: "";
     position: absolute;
@@ -1012,6 +1077,7 @@ body.has-overlay-lock {
     pointer-events: none;
 }
 
+/* 主要行动链接：深海蓝渐变按钮，外发光 + 内高光，模拟潜水舱门的启动按键。 */
 .detail-readiness-link {
     display: inline-flex;
     align-items: center;
@@ -2046,12 +2112,14 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     display: grid;
 }
 
+/* 档案卡网格：两列等宽布局，用于排列地理位置 / 生物 / 注意事项 / 天气四张记录卡。 */
 .intro-archive-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
 }
 
+/* 档案卡片：浅色毛玻璃基底，带 3D 倾斜与模糊入场，模拟从水下浮出的档案卷宗。 */
 .intro-archive-card {
     --intro-card-delay: calc(140ms + (var(--intro-card-order, 0) * 110ms));
     --intro-card-radius: 28px;
@@ -2087,6 +2155,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition-delay: var(--intro-card-shell-delay);
 }
 
+/* 卡片外骨骼可见态：清除所有入场效果，展现完全展开的档案内容。 */
 .intro-archive-card.is-shell-visible {
     opacity: 1;
     clip-path: inset(0 0 0 0 round var(--intro-card-radius));
@@ -2097,6 +2166,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
+/* 顶层光泽覆盖：斜向渐变白色条纹，模拟光从水面折射到卡片表面的效果。 */
 .intro-archive-card::before {
     content: "";
     position: absolute;
@@ -2118,6 +2188,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transform: translate3d(0, 0, 0);
 }
 
+/* 内层覆盖蒙层：白色渐变模拟潮湿档案纸的质感，在可见态下逐渐消隐露出真实背景。 */
 .intro-archive-card::after {
     content: "";
     position: absolute;
@@ -2141,6 +2212,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     z-index: 0;
 }
 
+/* 蒙层消失：当卡片可见时，内层覆盖向上收缩并模糊淡出，揭示下方卡片正文。 */
 .intro-archive-card.is-shell-visible::after {
     opacity: 0;
     clip-path: inset(0 0 100% 0 round var(--intro-card-radius));
@@ -2159,12 +2231,14 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     z-index: 1;
 }
 
+/* 卡片头部：flex 水平排列序号与标题。 */
 .intro-card-head {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
+/* 序号胶囊：带入场动画的圆形标签，灰蓝底色表示档案编号。 */
 .intro-card-index {
     display: inline-flex;
     align-items: center;
@@ -2190,6 +2264,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition-delay: calc(var(--intro-card-content-delay) + 0ms);
 }
 
+/* 卡片标题：深蓝色正文，从左侧滑入 + 模糊入场。 */
 .intro-card-title {
     margin: 0;
     font-size: 1.08rem;
@@ -2207,11 +2282,13 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition-delay: calc(var(--intro-card-content-delay) + 40ms);
 }
 
+/* 卡片正文容器：纵向排列段落与列表。 */
 .intro-card-body {
     display: grid;
     gap: 14px;
 }
 
+/* 段落文字：灰蓝色正文，带入场动画。 */
 .intro-card-paragraph {
     margin: 0;
     color: rgba(61, 90, 109, 0.88);
@@ -2229,6 +2306,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition-delay: calc(var(--intro-card-content-delay) + 120ms + var(--intro-item-delay, 0ms));
 }
 
+/* 要点列表：无样式网格列表，用于呈现水下地形的注意事项。 */
 .intro-bullet-list {
     display: grid;
     gap: 10px;
@@ -2237,6 +2315,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     list-style: none;
 }
 
+/* 要点列表项：图标列 + 文本列两列 Grid，带入场动画和悬停变深色效果。 */
 .intro-bullet-item {
     display: grid;
     grid-template-columns: 12px minmax(0, 1fr);
@@ -2258,10 +2337,12 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition-delay: calc(var(--intro-card-content-delay) + 170ms + var(--intro-item-delay, 0ms));
 }
 
+/* 列表项悬停：颜色加深，增强可交互感。 */
 .intro-bullet-item:hover {
     color: #214a66;
 }
 
+/* 要点圆点指示器：增加外光晕，模拟水下荧光标记点。 */
 .intro-bullet-dot {
     width: 8px;
     height: 8px;
@@ -2274,17 +2355,20 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         0 0 14px rgba(119, 183, 208, 0.18);
 }
 
+/* 警示要点的圆点：配色偏灰蓝暗调，与普通要点区区分。 */
 .intro-bullet-item-warning .intro-bullet-dot {
     background:
         radial-gradient(circle at 35% 35%, rgba(248, 252, 255, 0.86), rgba(133, 174, 196, 0.82) 48%, rgba(88, 124, 144, 0.82) 100%);
 }
 
+/* 天气网格：三列等宽，展示水温 / 能见度 / 流速等关键指标。 */
 .intro-weather-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
+/* 天气指标卡片：浅色毛玻璃基底 + 白色高光，带入场动画。 */
 .intro-weather-card {
     display: grid;
     gap: 8px;
@@ -2310,6 +2394,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition-delay: calc(var(--intro-card-content-delay) + 150ms + var(--intro-item-delay, 0ms));
 }
 
+/* 天气卡片悬停：微微上抬，强化面板之间的可操作感。 */
 .intro-weather-card:hover {
     transform: translate3d(0, -2px, 0);
     box-shadow:
@@ -2317,6 +2402,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         inset 0 1px 0 rgba(255, 255, 255, 0.56);
 }
 
+/* 天气指标标签：小字大写宽间距，模拟仪表盘的参数名称。 */
 .intro-weather-label {
     font-size: 0.74rem;
     letter-spacing: 0.14em;
@@ -2324,6 +2410,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     color: rgba(89, 120, 139, 0.7);
 }
 
+/* 天气指标数值：加粗深蓝色，突出显示关键水下数据。 */
 .intro-weather-value {
     font-size: 1.08rem;
     font-weight: 600;
@@ -3632,9 +3719,10 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
 .sea-atlas-info-card {
     position: absolute;
     left: 20px;
-    bottom: 18px;
+    top: 22px;
+    bottom: auto;
     z-index: 8;
-    width: min(290px, calc(100% - 40px));
+    width: min(290px, calc(100% - 256px));
     padding: 14px 14px 12px;
     border-radius: 18px;
     border: 1px solid rgba(189, 229, 239, 0.24);
@@ -3710,6 +3798,39 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     line-height: 1.64;
 }
 
+.sea-atlas-info-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 11px;
+}
+
+.sea-atlas-info-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(196, 230, 241, 0.18);
+    background: rgba(226, 245, 251, 0.07);
+    color: rgba(230, 246, 251, 0.86);
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.sea-atlas-info-chip.is-legend {
+    color: rgba(245, 251, 254, 0.96);
+    border-color: rgba(208, 238, 246, 0.24);
+}
+
+.sea-atlas-info-caption {
+    margin: 8px 0 0;
+    color: rgba(199, 228, 239, 0.66);
+    font-size: 0.73rem;
+    line-height: 1.48;
+}
+
 .sea-atlas-info-card.is-port-card {
     left: auto;
     right: 18px;
@@ -3721,18 +3842,26 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     pointer-events: none;
 }
 
+@media (max-width: 980px) {
+    .sea-atlas-info-card {
+        width: min(270px, calc(100% - 40px));
+    }
+}
+
 .sea-atlas-info-card.is-port-card.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
+    pointer-events: auto;
 }
 
-/* 状态切换时压低闪烁感，维持“潜游到另一片海”的稳定过渡。 */
+/* 状态切换时压低闪烁感，维持"潜游到另一片海"的稳定过渡。 */
 .sea-atlas-map.is-live-map.is-map-switching .sea-atlas-map-canvas {
     opacity: 0.82;
     filter: saturate(0.88) brightness(0.88) blur(0.5px);
 }
 
+/* 路径/信息卡/标记同步降低透明度，避免视觉跳跃。 */
 .sea-atlas-map.is-live-map.is-map-switching .sea-atlas-route-overlay,
 .sea-atlas-map.is-live-map.is-map-switching .sea-atlas-info-card,
 .sea-atlas-map.is-live-map.is-map-switching .sea-atlas-marker {
@@ -3740,14 +3869,17 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition-duration: 220ms;
 }
 
+/* 路线强调模式：路径完全显现，便于用户追踪潜游路线。 */
 .sea-atlas-map.is-live-map.is-route-emphasis .sea-atlas-route-overlay {
     opacity: 1;
 }
 
+/* 强调模式下压低洋流线，减少视觉干扰。 */
 .sea-atlas-map.is-live-map.is-route-emphasis .sea-atlas-map-currents {
     opacity: 0.28;
 }
 
+/* 非路线强调模式：隐藏锚点与节点标记，保持地图界面干净。 */
 .sea-atlas-map.is-live-map:not(.is-route-emphasis) .sea-route-anchor-dot,
 .sea-atlas-map.is-live-map:not(.is-route-emphasis) .sea-route-node {
     opacity: 0 !important;
@@ -3776,16 +3908,19 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     pointer-events: auto;
 }
 
+/* 降级面板隐藏态。 */
 .sea-atlas-map-fallback[hidden] {
     display: none !important;
 }
 
+/* 降级面板标题：浅色醒目，提示用户地图未加载。 */
 .sea-atlas-map-fallback-title {
     margin: 0;
     color: rgba(241, 250, 254, 0.96);
     font-size: 0.94rem;
 }
 
+/* 降级面板说明文字：灰蓝色辅助描述，保持深海语境。 */
 .sea-atlas-map-fallback-copy {
     margin: 0;
     color: rgba(218, 240, 247, 0.82);
@@ -3793,11 +3928,13 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     line-height: 1.65;
 }
 
+/* 降级面板操作按钮：居左对齐，可点击重试。 */
 .sea-atlas-map-fallback-action {
     justify-self: start;
     pointer-events: auto;
 }
 
+/* 全屏地图模态窗：固定定位覆盖整个视口，初始隐藏。 */
 .sea-atlas-fullscreen {
     position: fixed;
     inset: 0;
@@ -3810,11 +3947,13 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transition: opacity 320ms ease;
 }
 
+/* 打开状态：淡入显现，恢复交互。 */
 .sea-atlas-fullscreen.is-open {
     opacity: 1;
     pointer-events: auto;
 }
 
+/* 全屏背景蒙层：深色毛玻璃底色，径向蓝光模拟深海环境。 */
 .sea-atlas-fullscreen-backdrop {
     position: absolute;
     inset: 0;
@@ -3825,6 +3964,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     -webkit-backdrop-filter: blur(14px);
 }
 
+/* 全屏面板容器：深海渐变圆角卡片，纵向分为头部与地图两大区域。 */
 .sea-atlas-fullscreen-panel {
     position: relative;
     z-index: 1;
@@ -3844,6 +3984,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         inset 0 1px 0 rgba(246, 252, 255, 0.08);
 }
 
+/* 全屏头部：flex 换行布局，容纳标题与关闭按钮。 */
 .sea-atlas-fullscreen-head {
     display: flex;
     flex-wrap: wrap;
@@ -3852,12 +3993,14 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     gap: 10px;
 }
 
+/* 全屏标题文字容器：网格排列，展示位置名称与元信息。 */
 .sea-atlas-fullscreen-copy {
     display: grid;
     gap: 6px;
     max-width: 640px;
 }
 
+/* 全屏前导标签：小字大写，标记地图区域名称。 */
 .sea-atlas-fullscreen-kicker {
     margin: 0;
     font-size: 0.72rem;
@@ -3866,18 +4009,21 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     color: rgba(192, 228, 239, 0.68);
 }
 
+/* 全屏标题：大号浅色文字，突出显示当前位置。 */
 .sea-atlas-fullscreen-title {
     margin: 0;
     color: rgba(246, 252, 255, 0.98);
     font-size: clamp(1.16rem, 1.55vw, 1.46rem);
 }
 
+/* 全屏元信息：灰蓝辅助色，展示深度 / 坐标等细节。 */
 .sea-atlas-fullscreen-meta {
     margin: 0;
     color: rgba(220, 239, 247, 0.82);
     line-height: 1.56;
 }
 
+/* 全屏操作区：行内 flex，放置关闭按钮等控件。 */
 .sea-atlas-fullscreen-actions {
     display: inline-flex;
     flex-wrap: wrap;
@@ -3886,6 +4032,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     gap: 10px;
 }
 
+/* 全屏关闭按钮：胶囊形毛玻璃按钮，悬停微抬升。 */
 .sea-atlas-fullscreen-close {
     appearance: none;
     border: 1px solid rgba(190, 228, 239, 0.16);
@@ -3905,6 +4052,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         transform 220ms ease;
 }
 
+/* 关闭按钮交互态：边框和文字提亮，微上抬。 */
 .sea-atlas-fullscreen-close:hover,
 .sea-atlas-fullscreen-close:focus-visible {
     border-color: rgba(207, 238, 246, 0.28);
@@ -3915,11 +4063,13 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transform: translateY(-1px);
 }
 
+/* 全屏地图外壳：占满剩余空间，作为地图的定位容器。 */
 .sea-atlas-fullscreen-map-shell {
     position: relative;
     min-height: 0;
 }
 
+/* 全屏地图插槽：确保地图组件填满可用空间。 */
 .sea-atlas-fullscreen-map-slot,
 .sea-atlas-fullscreen-map-shell .sea-atlas-map {
     width: 100%;
@@ -3927,11 +4077,13 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     min-height: 0;
 }
 
+/* 全屏态地图：撑满容器并调整圆角，适配全屏面板风格。 */
 .sea-atlas-map.is-fullscreen {
     min-height: 100%;
     border-radius: 26px;
 }
 
+/* 全屏态信息卡片：缩小宽度和内边距，适应较大尺寸的地图显示。 */
 .sea-atlas-map.is-fullscreen .sea-atlas-info-card {
     width: min(268px, calc(100% - 56px));
     padding: 12px 12px 11px;
@@ -14103,10 +14255,12 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     filter: saturate(1.02);
 }
 
+/* 已收藏未激活：仅微抬起 + 轻微投影，标记已关注但未最终选定的卡片。 */
 .package-card.is-booked:not(.is-active) {
     transform: translate3d(0, -2px, 0);
 }
 
+/* 已选中态：明显抬起 + 蓝光外发光，表示当前聚焦的套餐卡。 */
 .package-card.is-active {
     transform: translate3d(0, -6px, 0);
     box-shadow:
@@ -14115,6 +14269,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         inset 0 1px 0 rgba(243, 249, 252, 0.16);
 }
 
+/* 已选中 + 已收藏：边框和光晕加深，合成双重状态的高亮效果。 */
 .package-card.is-booked.is-active {
     border-color: rgba(182, 225, 239, 0.34);
     box-shadow:
@@ -14123,6 +14278,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         inset 0 1px 0 rgba(243, 249, 252, 0.18);
 }
 
+/* 激活态伪元素：前置强化径向蓝光，模拟深海舱体被激活时的照明效果。 */
 .package-card:is(.is-active, .is-booked)::before {
     opacity: 1;
     background:
@@ -14131,6 +14287,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transform: translate3d(4%, -2%, 0) scale(1.02);
 }
 
+/* 激活态后置伪元素：斜向流光 + 底部光晕，增加立体深度感。 */
 .package-card:is(.is-active, .is-booked)::after {
     opacity: 0.3;
     background:
@@ -14139,6 +14296,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     transform: translate3d(8%, -4%, 0) scale(1);
 }
 
+/* 激活态徽章：深色基底 + 浅蓝文字 + 内高光，与普通态区分。 */
 .package-card:is(.is-active, .is-booked) .package-card-badge {
     background:
         linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
@@ -14148,16 +14306,19 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
 }
 
+/* 激活态序号：灰蓝低对比，融入深色背景。 */
 .package-card:is(.is-active, .is-booked) .package-card-index {
     color: rgba(187, 224, 236, 0.66);
 }
 
+/* 激活态状态标签：透明深色基底，文字配深海蓝调。 */
 .package-card:is(.is-active, .is-booked) .package-card-state {
     background: rgba(244, 250, 253, 0.08);
     border-color: rgba(180, 223, 237, 0.16);
     color: rgba(228, 244, 249, 0.84);
 }
 
+/* 激活态受众 / 档案信息卡片：深蓝半透明基底 + 微边框，与普通卡片区分。 */
 .package-card:is(.is-active, .is-booked) .package-card-audience,
 .package-card:is(.is-active, .is-booked) .package-card-archive {
     background:
@@ -14169,11 +14330,13 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         0 12px 24px rgba(3, 15, 24, 0.14);
 }
 
+/* 激活态章节 / 价格标签：灰蓝色调，弱对比适应深色背景。 */
 .package-card:is(.is-active, .is-booked) .package-card-section-label,
 .package-card:is(.is-active, .is-booked) .package-price-label {
     color: rgba(187, 224, 236, 0.62);
 }
 
+/* 激活态主要文字：高亮浅色，确保在深色背景上的可读性。 */
 .package-card:is(.is-active, .is-booked) .package-card-audience-copy,
 .package-card:is(.is-active, .is-booked) .package-card-title,
 .package-card:is(.is-active, .is-booked) .package-price-value,
@@ -14181,6 +14344,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     color: rgba(245, 251, 254, 0.98);
 }
 
+/* 激活态次要文字：灰蓝冷调，与主文字形成层次。 */
 .package-card:is(.is-active, .is-booked) .package-card-mood,
 .package-card:is(.is-active, .is-booked) .package-cadence-secondary,
 .package-card:is(.is-active, .is-booked) .package-card-guidance,
@@ -14188,10 +14352,12 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     color: rgba(217, 238, 246, 0.84);
 }
 
+/* 激活态价格分隔线：浅蓝淡色，延续深海蓝调。 */
 .package-card:is(.is-active, .is-booked) .package-price-wrap {
     border-bottom-color: rgba(180, 223, 237, 0.16);
 }
 
+/* 激活态适合度标签：透明深基底 + 内高光 + 浅蓝边框。 */
 .package-card:is(.is-active, .is-booked) .package-plate-fit {
     background: rgba(244, 250, 253, 0.08);
     border-color: rgba(180, 223, 237, 0.2);
@@ -14201,17 +14367,20 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         0 8px 18px rgba(6, 23, 36, 0.14);
 }
 
+/* 激活态节奏标签：蓝绿色调更明显，表示活跃的日程状态。 */
 .package-card:is(.is-active, .is-booked) .package-plate-rhythm {
     background: rgba(18, 76, 106, 0.18);
     border-color: rgba(162, 204, 223, 0.3);
     color: rgba(214, 236, 246, 0.78);
 }
 
+/* 激活态节奏指示点：亮蓝色圆点，表示活跃行程。 */
 .package-card:is(.is-active, .is-booked) .package-plate-rhythm::before {
     background: rgba(173, 229, 243, 0.74);
     box-shadow: 0 0 0 3px rgba(188, 220, 232, 0.14);
 }
 
+/* 激活态焦点面板：完全展开，取消折叠限制。 */
 .package-card:is(.is-active, .is-booked) .package-card-focus {
     max-height: none;
     opacity: 1;
@@ -14220,6 +14389,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     border-top-color: rgba(180, 223, 237, 0.16);
 }
 
+/* 激活态展开文本：取消文字裁剪，完整显示所有内容。 */
 .package-card:is(.is-active, .is-booked) .package-card-mood,
 .package-card:is(.is-active, .is-booked) .package-cadence-secondary,
 .package-card:is(.is-active, .is-booked) .package-card-guidance,
@@ -14230,6 +14400,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     overflow: visible;
 }
 
+/* 激活态操作按钮：深蓝透明基底 + 浅色文字，融入深海舱体风格。 */
 .package-card:is(.is-active, .is-booked) .package-card-action {
     color: rgba(244, 249, 252, 0.96);
     background:
@@ -14241,6 +14412,7 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         0 12px 24px rgba(6, 23, 36, 0.16);
 }
 
+/* 激活态按钮悬停：边框和阴影微提，反馈可操作性。 */
 .package-card:is(.is-active, .is-booked) .package-card-action:hover {
     border-color: rgba(192, 230, 242, 0.34);
     box-shadow:
@@ -14248,12 +14420,14 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
         0 14px 24px rgba(6, 23, 36, 0.16);
 }
 
+/* 已收藏状态的"已预订"标签：蓝绿色胶囊，与普通状态明显区分。 */
 .package-card.is-booked .package-card-state-booked {
     color: rgba(236, 248, 253, 0.94);
     background: rgba(173, 229, 243, 0.14);
     border-color: rgba(173, 229, 243, 0.28);
 }
 
+/* 已收藏态操作按钮：柔和蓝绿色调，表示已确认的操作入口。 */
 .package-card.is-booked .package-card-action.is-booked {
     background:
         linear-gradient(180deg, rgba(173, 229, 243, 0.16), rgba(86, 150, 181, 0.14)),
@@ -14985,6 +15159,7 @@ body.page-transition-active .booking-match-floating-confirm {
     --booking-zone-accent: rgba(196, 226, 239, 0.24);
 }
 
+/* 价格徽章：深海蓝渐变 + 径向光晕，固定在侧边栏显示当前所选套餐的价格。 */
 .detail-page .price-badge {
     overflow: hidden;
     border: 1px solid rgba(214, 239, 248, 0.18);
@@ -14993,6 +15168,7 @@ body.page-transition-active .booking-match-floating-confirm {
         linear-gradient(135deg, rgba(10, 52, 79, 0.96), rgba(22, 85, 117, 0.88) 58%, rgba(14, 61, 92, 0.96));
 }
 
+/* 价格徽章内光层：白色斜向渐变，模拟玻璃表面反光。 */
 .detail-page .price-badge::after {
     content: "";
     position: absolute;
@@ -15002,12 +15178,14 @@ body.page-transition-active .booking-match-floating-confirm {
     pointer-events: none;
 }
 
+/* 匹配信息容器：左侧留白抬起层级，避免与价格徽章重叠。 */
 .detail-page .booking-match {
     position: relative;
     z-index: 1;
     padding-left: 8px;
 }
 
+/* 匹配标签 / 链接：白色毛玻璃基底，用于展示用户的偏好匹配度。 */
 .detail-page :is(.booking-match-chip, .booking-match-link) {
     background:
         linear-gradient(180deg, rgba(247, 252, 255, 0.9), rgba(230, 244, 250, 0.8)),
@@ -15017,6 +15195,7 @@ body.page-transition-active .booking-match-floating-confirm {
         inset 0 1px 0 rgba(255, 255, 255, 0.58);
 }
 
+/* 预订信息卡片：白色半透明基底 + 浅蓝灰边框，展示当前区域的摘要文本。 */
 .detail-page .booking-copy {
     background:
         linear-gradient(145deg, rgba(251, 254, 255, 0.86), rgba(228, 242, 248, 0.6)),
@@ -15027,6 +15206,7 @@ body.page-transition-active .booking-match-floating-confirm {
         0 0 0 1px rgba(255, 255, 255, 0.22) inset;
 }
 
+/* 信息卡片左侧强调光：根据当前阅读区域（overview/map/reviews/related）变换 accent 色值。 */
 .detail-page .booking-copy::before {
     content: "";
     position: absolute;
@@ -15038,10 +15218,12 @@ body.page-transition-active .booking-match-floating-confirm {
     pointer-events: none;
 }
 
+/* 地图区卡片：边框加深，与地图的深海蓝色调呼应。 */
 .detail-page .booking-sticky[data-reading-zone="map"] .booking-copy {
     border-color: rgba(177, 216, 229, 0.62);
 }
 
+/* 评价区卡片：增加蓝光外光晕，提升在评价段落的视觉存在感。 */
 .detail-page .booking-sticky[data-reading-zone="reviews"] .booking-copy {
     box-shadow:
         0 20px 38px rgba(12, 41, 60, 0.1),
@@ -15049,6 +15231,7 @@ body.page-transition-active .booking-match-floating-confirm {
         0 0 24px rgba(175, 221, 236, 0.08);
 }
 
+/* 焦点面板：左侧边栏中展示活跃套餐的深色卡片，带内发光与外投影。 */
 .detail-page .booking-focus-panel {
     box-shadow:
         0 24px 44px rgba(4, 20, 34, 0.24),
@@ -15056,10 +15239,12 @@ body.page-transition-active .booking-match-floating-confirm {
         0 0 34px rgba(108, 182, 210, 0.08);
 }
 
+/* 焦点面板前置装饰：提高透明度，强化深海舱体质感。 */
 .detail-page .booking-focus-panel::before {
     opacity: 0.94;
 }
 
+/* 地图区域的焦点面板：边框 + 蓝绿光晕，与地图深海视觉一致。 */
 .detail-page .booking-sticky[data-reading-zone="map"] .booking-focus-panel {
     border-color: rgba(184, 228, 240, 0.28);
     box-shadow:
@@ -15068,6 +15253,7 @@ body.page-transition-active .booking-match-floating-confirm {
         0 0 38px rgba(117, 196, 214, 0.14);
 }
 
+/* 评价区域的焦点面板：外光晕加强，适应用户浏览评价时的视觉焦点转移。 */
 .detail-page .booking-sticky[data-reading-zone="reviews"] .booking-focus-panel {
     box-shadow:
         0 28px 52px rgba(4, 20, 34, 0.28),
@@ -15075,6 +15261,7 @@ body.page-transition-active .booking-match-floating-confirm {
         0 0 42px rgba(164, 222, 238, 0.16);
 }
 
+/* 推荐区域的焦点面板：边框 + 柔蓝光，与底部推荐相呼应。 */
 .detail-page .booking-sticky[data-reading-zone="related"] .booking-focus-panel {
     border-color: rgba(196, 232, 244, 0.26);
     box-shadow:
@@ -15083,6 +15270,7 @@ body.page-transition-active .booking-match-floating-confirm {
         0 0 44px rgba(164, 211, 228, 0.14);
 }
 
+/* 各区域焦点面板的后置装饰统一样式：提高透明度并取消偏移。 */
 .detail-page :is(
     .booking-sticky[data-reading-zone="map"] .booking-focus-panel,
     .booking-sticky[data-reading-zone="reviews"] .booking-focus-panel,
@@ -15092,6 +15280,7 @@ body.page-transition-active .booking-match-floating-confirm {
     transform: translate3d(0, 0, 0) scale(1);
 }
 
+/* 行程列表容器：浅色毛玻璃圆角卡片，展示每日行程安排。 */
 .detail-page .itinerary-list {
     border-radius: 26px;
     background:
@@ -15103,6 +15292,7 @@ body.page-transition-active .booking-match-floating-confirm {
         0 18px 34px rgba(15, 45, 66, 0.06);
 }
 
+/* 预订备注卡片：白色实感基底，用于显示特惠说明或注意事项。 */
 .detail-page .booking-note {
     background:
         linear-gradient(180deg, rgba(244, 251, 255, 0.88), rgba(225, 240, 248, 0.76)),
@@ -15113,6 +15303,7 @@ body.page-transition-active .booking-match-floating-confirm {
         inset 0 1px 0 rgba(255, 255, 255, 0.58);
 }
 
+/* 推荐区域标题：底部渐变分隔线，与详情页尾部无缝衔接。 */
 .detail-page .related-head {
     padding-bottom: 20px;
 }
@@ -15128,11 +15319,13 @@ body.page-transition-active .booking-match-floating-confirm {
     opacity: 0.7;
 }
 
+/* 页脚容器：顶部大间距与负外边距，用于视觉上拉页脚。 */
 .detail-page .detail-footer {
     padding-top: 112px;
     margin-top: -14px;
 }
 
+/* 页脚内壳：增大间距，顶部渐变分隔线。 */
 .detail-page .detail-footer-shell {
     gap: 32px;
 }
@@ -15149,6 +15342,7 @@ body.page-transition-active .booking-match-floating-confirm {
     pointer-events: none;
 }
 
+/* 页脚深海回声区：深蓝渐变 + 柔光，延续水下氛围至页面底部。 */
 .detail-page .detail-footer-echo {
     background:
         radial-gradient(circle at 14% 16%, rgba(161, 220, 238, 0.18), transparent 28%),
@@ -15159,6 +15353,7 @@ body.page-transition-active .booking-match-floating-confirm {
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* 页脚探索区：顶部渐变分隔线，引导用户继续浏览。 */
 .detail-page .detail-footer-explore {
     position: relative;
     padding-top: 10px;
@@ -15175,12 +15370,14 @@ body.page-transition-active .booking-match-floating-confirm {
     opacity: 0.8;
 }
 
+/* 页脚卡片统一样式：深色投影 + 内高光，延续深海舱体卡片质感。 */
 .detail-page :is(.detail-footer-group, .detail-footer-next-card) {
     box-shadow:
         0 22px 40px rgba(3, 14, 24, 0.18),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
+/* 桌面端布局：双栏网格 + 粘性侧边栏，正文区域与预订面板分列左右。 */
 @media (min-width: 1025px) {
     body.detail-page {
         overflow-x: clip;
@@ -15258,5 +15455,713 @@ body.page-transition-active .booking-match-floating-confirm {
 @media (max-width: 720px) {
     .detail-page .booking-sticky::after {
         display: none;
+    }
+}
+
+/* Detail Atlas Refinement */
+
+/* 地图容器：深海渐变背景，双层径向蓝光模拟水下环境。 */
+.detail-page .map-container {
+    position: relative;
+    background:
+        radial-gradient(circle at 20% 18%, rgba(175, 225, 239, 0.16), transparent 22%),
+        radial-gradient(circle at 78% 22%, rgba(103, 178, 204, 0.16), transparent 26%),
+        linear-gradient(180deg, rgba(6, 28, 43, 0.96), rgba(4, 20, 32, 0.98));
+}
+
+/* 首次渲染（加载前）：双栏布局展示占位图文，非交互。 */
+.detail-page .sea-atlas-first-paint {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.62fr);
+    gap: 24px;
+    align-items: center;
+    padding: clamp(24px, 3vw, 36px);
+    color: rgba(236, 246, 251, 0.92);
+    pointer-events: none;
+}
+
+/* 占位图文容器：网格排列，展示加载前的标题与说明。 */
+.detail-page .sea-atlas-first-paint-copy {
+    display: grid;
+    gap: 12px;
+    max-width: 420px;
+}
+
+/* 前导 / 加载 / 降级共用标签样式：小字大写宽间距，保持一致的地图信息层级。 */
+.detail-page .sea-atlas-first-paint-kicker,
+.detail-page .sea-atlas-loading-kicker,
+.detail-page .sea-atlas-map-fallback-eyebrow {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(198, 231, 241, 0.68);
+}
+
+/* 占位 / 加载共用标题：大号浅色文字。 */
+.detail-page .sea-atlas-first-paint-title,
+.detail-page .sea-atlas-loading-title {
+    margin: 0;
+    font-size: clamp(1.18rem, 1.7vw, 1.54rem);
+    color: rgba(247, 252, 255, 0.98);
+}
+
+/* 占位 / 加载共用描述：灰蓝正文，宽松行高。 */
+.detail-page .sea-atlas-first-paint-text,
+.detail-page .sea-atlas-loading-text {
+    margin: 0;
+    line-height: 1.78;
+    color: rgba(220, 241, 248, 0.82);
+}
+
+/* 占位 / 加载 / 降级共用板：网格底纹 + 深海渐变，模拟海图等待时的视觉背景。 */
+.detail-page .sea-atlas-first-paint-board,
+.detail-page .sea-atlas-loading-board,
+.detail-page .sea-atlas-map-fallback-board {
+    position: relative;
+    min-height: 280px;
+    border-radius: 26px;
+    overflow: hidden;
+    border: 1px solid rgba(188, 226, 238, 0.16);
+    background:
+        linear-gradient(rgba(201, 231, 241, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 231, 241, 0.08) 1px, transparent 1px),
+        linear-gradient(160deg, rgba(6, 32, 47, 0.88), rgba(7, 39, 58, 0.58));
+    background-size: 54px 54px, 54px 54px, auto;
+    box-shadow:
+        inset 0 1px 0 rgba(246, 252, 255, 0.08),
+        0 18px 40px rgba(2, 16, 27, 0.18);
+}
+
+/* 占位 / 加载同心圆环：脉冲动画模拟声纳扫描效果。 */
+.detail-page .sea-atlas-first-paint-ring,
+.detail-page .sea-atlas-loading-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 999px;
+    border: 1px solid rgba(180, 226, 238, 0.16);
+    transform: translate(-50%, -50%);
+    animation: seaAtlasHoldingPulse 6.8s ease-in-out infinite;
+}
+
+/* 外圈：最大尺寸，模拟海图轮廓。 */
+.detail-page .sea-atlas-first-paint-ring.is-outer,
+.detail-page .sea-atlas-loading-ring.is-outer {
+    width: 72%;
+    height: 72%;
+}
+
+/* 中圈：中等尺寸，延迟脉冲制造层次感。 */
+.detail-page .sea-atlas-first-paint-ring.is-mid,
+.detail-page .sea-atlas-loading-ring.is-mid {
+    width: 48%;
+    height: 48%;
+    animation-delay: 0.9s;
+}
+
+/* 内圈：最小尺寸，最晚脉冲。 */
+.detail-page .sea-atlas-first-paint-ring.is-inner,
+.detail-page .sea-atlas-loading-ring.is-inner {
+    width: 28%;
+    height: 28%;
+    animation-delay: 1.8s;
+}
+
+/* 占位 / 加载 / 降级共用陆地形轮廓：椭圆形虚线边框，模拟海底地形简图。 */
+.detail-page .sea-atlas-first-paint-land,
+.detail-page .sea-atlas-loading-contour,
+.detail-page .sea-atlas-map-fallback-shore {
+    position: absolute;
+    inset: auto;
+    border-radius: 999px;
+    border: 1px solid rgba(196, 231, 242, 0.18);
+    opacity: 0.86;
+}
+
+.detail-page .sea-atlas-first-paint-land.is-main {
+    left: 12%;
+    top: 26%;
+    width: 38%;
+    height: 34%;
+    transform: rotate(-12deg);
+}
+
+.detail-page .sea-atlas-first-paint-land.is-reef {
+    right: 16%;
+    bottom: 22%;
+    width: 24%;
+    height: 18%;
+    transform: rotate(11deg);
+}
+
+.detail-page .sea-atlas-loading-contour.is-primary,
+.detail-page .sea-atlas-map-fallback-shore.is-main {
+    left: 12%;
+    top: 22%;
+    width: 42%;
+    height: 38%;
+    transform: rotate(-10deg);
+}
+
+.detail-page .sea-atlas-loading-contour.is-secondary,
+.detail-page .sea-atlas-map-fallback-shore.is-secondary {
+    right: 14%;
+    bottom: 20%;
+    width: 26%;
+    height: 20%;
+    transform: rotate(12deg);
+}
+
+.detail-page .sea-atlas-first-paint-route,
+.detail-page .sea-atlas-loading-route,
+.detail-page .sea-atlas-map-fallback-route {
+    position: absolute;
+    left: 14%;
+    right: 12%;
+    top: 52%;
+    height: 1px;
+    border-top: 1px dashed rgba(215, 243, 250, 0.72);
+    transform: rotate(-12deg);
+    opacity: 0.82;
+}
+
+.detail-page .sea-atlas-first-paint-ping,
+.detail-page .sea-atlas-loading-scan,
+.detail-page .sea-atlas-map-fallback-ping {
+    position: absolute;
+    inset: auto;
+}
+
+.detail-page .sea-atlas-first-paint-ping,
+.detail-page .sea-atlas-map-fallback-ping {
+    left: 62%;
+    top: 38%;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(241, 251, 255, 0.98);
+    box-shadow:
+        0 0 0 10px rgba(166, 223, 237, 0.18),
+        0 0 0 24px rgba(166, 223, 237, 0.08);
+}
+
+/* 加载扫描条：水平方向反复扫过，模拟海图雷达正在获取数据。 */
+.detail-page .sea-atlas-loading-scan {
+    inset: 0 auto 0 0;
+    width: 44%;
+    background: linear-gradient(90deg, rgba(244, 251, 255, 0), rgba(244, 251, 255, 0.12), rgba(244, 251, 255, 0));
+    transform: translateX(-20%);
+    animation: seaAtlasHoldingSweep 4.6s ease-in-out infinite;
+}
+
+/* 未唤醒状态的地图外壳：整体略微下移 + 轻微饱和度调整，保持待机姿态。 */
+.detail-page .sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) .sea-atlas {
+    opacity: 0.98;
+    transform: translate3d(0, 10px, 0) scale(0.994);
+    filter: saturate(0.98);
+}
+
+/* 未唤醒态的内容子元素：保持完全可见，仅去掉入场效果。 */
+.detail-page .sea-atlas-shell:not(.is-atlas-awakening):not(.is-atlas-awake) :is(
+    .sea-atlas-head,
+    .sea-atlas-kicker,
+    .sea-atlas-lead,
+    .sea-atlas-controls,
+    .sea-atlas-stage,
+    .sea-atlas-panel.is-active .sea-atlas-visual,
+    .sea-atlas-panel.is-active .sea-atlas-dossier
+) {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
+}
+
+/* 加载状态浮层：毛玻璃信息面板，展示加载进度和位置提示。 */
+.detail-page .sea-atlas-loading-state {
+    position: absolute;
+    inset: 14px;
+    z-index: 8;
+    display: grid;
+    align-content: end;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(188, 227, 239, 0.12);
+    background:
+        linear-gradient(180deg, rgba(5, 25, 38, 0.14), rgba(4, 18, 29, 0.56)),
+        rgba(3, 18, 28, 0.24);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 252, 255, 0.08),
+        0 18px 34px rgba(1, 12, 21, 0.16);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 360ms ease, transform 420ms ease, visibility 0s linear 360ms;
+}
+
+/* 地图就绪态：隐藏加载浮层，向下淡出。 */
+.detail-page .sea-atlas-map[data-map-stage-state="ready"] .sea-atlas-loading-state {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(0, 12px, 0) scale(0.985);
+}
+
+/* 地图降级态：直接隐藏加载浮层。 */
+.detail-page .sea-atlas-map[data-map-stage-state="fallback"] .sea-atlas-loading-state {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* 加载文字容器：网格排列加载状态下的位置提示。 */
+.detail-page .sea-atlas-loading-copy {
+    display: grid;
+    gap: 8px;
+    max-width: 360px;
+}
+
+/* 加载状态定位标记：通过 CSS 变量设置坐标，在预览图上展示潜点位置。 */
+.detail-page .sea-atlas-loading-marker {
+    position: absolute;
+    left: var(--sea-preview-left);
+    top: var(--sea-preview-top);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transform: translate(-50%, -50%);
+    color: rgba(235, 248, 252, 0.92);
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+/* 标记圆点：白色自发光，模拟声纳定位的亮点。 */
+.detail-page .sea-atlas-loading-marker em {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(245, 252, 255, 0.98);
+    box-shadow:
+        0 0 0 8px rgba(169, 226, 239, 0.12),
+        0 0 12px rgba(203, 240, 249, 0.26);
+}
+
+/* 主标记点：增强光晕，突出显示当前位置。 */
+.detail-page .sea-atlas-loading-marker.is-primary em {
+    box-shadow:
+        0 0 0 10px rgba(169, 226, 239, 0.18),
+        0 0 18px rgba(203, 240, 249, 0.34);
+}
+
+/* 标记文字：中等字重 + 深阴影，确保在浅色底图上可读。 */
+.detail-page .sea-atlas-loading-marker strong {
+    font-weight: 500;
+    text-shadow: 0 8px 18px rgba(3, 16, 26, 0.34);
+}
+
+/* 加载 / 降级公用元信息行：flex 换行，展示深度 / 距离等数据。 */
+.detail-page .sea-atlas-loading-meta,
+.detail-page .sea-atlas-map-fallback-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.detail-page .sea-atlas-loading-pill,
+.detail-page .sea-atlas-map-fallback-pill,
+.detail-page .sea-atlas-legend-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(193, 230, 241, 0.18);
+    background:
+        linear-gradient(180deg, rgba(246, 252, 255, 0.12), rgba(225, 244, 250, 0.04)),
+        rgba(4, 25, 38, 0.46);
+    color: rgba(232, 246, 251, 0.9);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+}
+
+.detail-page .sea-atlas-loading-region,
+.detail-page .sea-atlas-legend-note {
+    margin: 0;
+    color: rgba(214, 238, 246, 0.72);
+    font-size: 0.8rem;
+    line-height: 1.68;
+}
+
+.detail-page .sea-atlas-legend-rail {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    z-index: 9;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+    padding: 12px 14px 11px;
+    border-radius: 18px;
+    border: 1px solid rgba(191, 228, 240, 0.16);
+    background:
+        linear-gradient(180deg, rgba(10, 39, 58, 0.78), rgba(5, 24, 37, 0.82)),
+        rgba(5, 22, 34, 0.72);
+    box-shadow:
+        inset 0 1px 0 rgba(247, 252, 255, 0.08),
+        0 18px 28px rgba(2, 12, 21, 0.22);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.detail-page .sea-atlas-legend-group,
+.detail-page .sea-atlas-legend-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.detail-page .sea-atlas-legend-group {
+    min-width: 0;
+}
+
+.detail-page .sea-atlas-legend-chip.is-legend {
+    color: rgba(245, 251, 254, 0.96);
+    border-color: rgba(208, 238, 246, 0.24);
+}
+
+.detail-page .sea-atlas-info-action,
+.detail-page .sea-atlas-legend-action,
+.detail-page .sea-atlas-map-fallback-action,
+.detail-page .sea-atlas-map-fallback-action.is-link {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(198, 232, 243, 0.18);
+    background:
+        linear-gradient(180deg, rgba(246, 252, 255, 0.12), rgba(225, 244, 250, 0.04)),
+        rgba(4, 25, 38, 0.46);
+    color: rgba(238, 249, 253, 0.92);
+    font: inherit;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 220ms ease, background 220ms ease, transform 220ms ease, color 220ms ease;
+}
+
+.detail-page .sea-atlas-info-action {
+    width: 100%;
+    margin-top: 12px;
+}
+
+.detail-page .sea-atlas-info-action:hover,
+.detail-page .sea-atlas-info-action:focus-visible,
+.detail-page .sea-atlas-legend-action:hover,
+.detail-page .sea-atlas-legend-action:focus-visible,
+.detail-page .sea-atlas-map-fallback-action:hover,
+.detail-page .sea-atlas-map-fallback-action:focus-visible,
+.detail-page .sea-atlas-map-fallback-action.is-link:hover,
+.detail-page .sea-atlas-map-fallback-action.is-link:focus-visible {
+    border-color: rgba(214, 239, 247, 0.3);
+    background:
+        linear-gradient(180deg, rgba(250, 253, 255, 0.18), rgba(232, 246, 251, 0.06)),
+        rgba(7, 31, 47, 0.62);
+    color: rgba(248, 252, 255, 0.98);
+    transform: translateY(-1px);
+}
+
+.detail-page .sea-atlas-map-fallback {
+    inset: 14px;
+    z-index: 10;
+    gap: 14px;
+    padding: 18px;
+    align-content: end;
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 20% 18%, rgba(190, 231, 243, 0.12), transparent 30%),
+        linear-gradient(165deg, rgba(5, 28, 43, 0.92), rgba(4, 18, 29, 0.84));
+}
+
+.detail-page .sea-atlas-map-fallback-copy-wrap {
+    display: grid;
+    gap: 8px;
+    max-width: 420px;
+}
+
+.detail-page .sea-atlas-map-fallback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.detail-page .sea-atlas-map-fallback-title {
+    margin: 0;
+    font-size: 1.02rem;
+    color: rgba(247, 252, 255, 0.98);
+}
+
+.detail-page .sea-atlas-map-fallback-copy {
+    margin: 0;
+    color: rgba(221, 241, 248, 0.84);
+}
+
+.detail-page .sea-atlas-legend-note {
+    grid-column: 1 / -1;
+    font-size: 0.74rem;
+    line-height: 1.42;
+    color: rgba(199, 228, 239, 0.62);
+}
+
+.detail-page .sea-atlas-marker.is-waypoint {
+    --sea-marker-core-size: 8px;
+    --sea-marker-ring-size: 18px;
+    --sea-marker-halo-size: 36px;
+    --sea-marker-core: rgba(226, 244, 250, 0.9);
+    --sea-marker-ring: rgba(167, 221, 236, 0.24);
+    --sea-marker-halo: rgba(155, 214, 230, 0.08);
+}
+
+.detail-page .sea-atlas-marker.is-waypoint::before {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.04), rgba(167, 224, 238, 0.12) 56%, rgba(167, 224, 238, 0) 82%);
+    box-shadow: none;
+    border: 1px dashed rgba(182, 225, 238, 0.28);
+}
+
+.detail-page .sea-atlas-marker.is-waypoint .sea-atlas-marker-label {
+    padding: 5px 9px;
+    font-size: 0.58rem;
+    color: rgba(224, 242, 248, 0.8);
+    background: rgba(4, 23, 35, 0.36);
+}
+
+.detail-page .sea-atlas-route-line-glow {
+    stroke: rgba(178, 230, 242, 0.8);
+    stroke-width: 5.2;
+    opacity: 0.16;
+    filter: blur(5px);
+}
+
+.detail-page .sea-atlas-route-line-base {
+    stroke: rgba(178, 228, 240, 0.28);
+    stroke-width: 1.4;
+    opacity: 0.44;
+    stroke-dasharray: 5 11;
+}
+
+.detail-page .sea-atlas-route-line {
+    stroke: rgba(241, 250, 255, 0.92);
+    stroke-width: 1.8;
+    opacity: 0.94;
+    stroke-dasharray: 7 10;
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0 0 10px rgba(179, 230, 242, 0.18));
+}
+
+.detail-page .sea-atlas-route-line-sheen {
+    stroke: rgba(248, 252, 255, 0.88);
+    stroke-width: 1;
+    opacity: 0.34;
+    stroke-dasharray: 18 28;
+    stroke-dashoffset: 0;
+}
+
+/* 详情页内档案卡片重写：浅色毛玻璃 + 增强透明感。 */
+.detail-page .intro-archive-card {
+    background:
+        radial-gradient(circle at 15% 18%, rgba(166, 214, 232, 0.18), transparent 24%),
+        linear-gradient(152deg, rgba(224, 238, 245, 0.94), rgba(205, 224, 234, 0.9));
+    border-color: rgba(119, 158, 180, 0.42);
+    box-shadow:
+        0 24px 42px rgba(12, 32, 48, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.46);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.detail-page .intro-card-index {
+    min-width: 48px;
+    height: 28px;
+    color: rgba(53, 88, 110, 0.9);
+    background: rgba(232, 243, 248, 0.8);
+    border-color: rgba(143, 185, 204, 0.36);
+}
+
+.detail-page .intro-card-title {
+    color: #123850;
+}
+
+.detail-page .intro-card-paragraph,
+.detail-page .intro-bullet-item {
+    color: rgba(48, 74, 92, 0.94);
+}
+
+.detail-page .intro-bullet-item:hover {
+    color: #163f5a;
+}
+
+.detail-page .intro-weather-card {
+    background:
+        linear-gradient(180deg, rgba(248, 252, 254, 0.9), rgba(231, 242, 248, 0.78)),
+        rgba(233, 242, 247, 0.8);
+    border-color: rgba(172, 205, 219, 0.32);
+    box-shadow:
+        0 14px 26px rgba(10, 28, 41, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.detail-page .intro-weather-label {
+    color: rgba(74, 104, 123, 0.84);
+}
+
+.detail-page .intro-weather-value {
+    color: #153a53;
+}
+
+.detail-page .booking-sticky {
+    --booking-sticky-stack-gap: 14px;
+}
+
+.detail-page .itinerary-list {
+    margin-bottom: calc(var(--booking-sticky-stack-gap, 14px) + 30px);
+}
+
+.detail-page .booking-sticky::before {
+    inset: 14px 14px auto;
+    height: 94px;
+    opacity: 0.58;
+}
+
+.detail-page .booking-sticky::after {
+    top: 96px;
+    left: 16px;
+    opacity: 0.58;
+}
+
+.detail-page .price-badge {
+    padding: 18px 18px 16px;
+    border-color: rgba(202, 232, 242, 0.16);
+    background:
+        radial-gradient(circle at 16% 18%, rgba(196, 233, 245, 0.16), transparent 28%),
+        linear-gradient(145deg, rgba(7, 35, 53, 0.88), rgba(9, 48, 70, 0.8) 58%, rgba(6, 31, 49, 0.9));
+    box-shadow:
+        0 18px 34px rgba(3, 18, 29, 0.18),
+        inset 0 1px 0 rgba(245, 252, 255, 0.08);
+}
+
+.detail-page .price-brief,
+.detail-page .price-layer {
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.detail-page .price-brief {
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    color: rgba(202, 233, 242, 0.68);
+}
+
+.detail-page .price-layer {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    color: rgba(232, 246, 251, 0.84);
+}
+
+.detail-page .price-figure {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.detail-page .price-label,
+.detail-page .price-period {
+    color: rgba(212, 237, 245, 0.68);
+    font-size: 0.86rem;
+    letter-spacing: 0.08em;
+}
+
+.detail-page .price-amount {
+    font-size: clamp(2rem, 2.6vw, 2.4rem);
+    line-height: 1;
+    color: rgba(248, 252, 255, 0.98);
+}
+
+.detail-page .price-note {
+    margin: 12px 0 0;
+    color: rgba(214, 237, 245, 0.74);
+    line-height: 1.68;
+}
+
+.detail-page .booking-copy {
+    padding: 18px 18px 16px;
+    background:
+        linear-gradient(145deg, rgba(249, 252, 254, 0.78), rgba(228, 241, 247, 0.54)),
+        rgba(255, 255, 255, 0.24);
+    border-color: rgba(188, 216, 228, 0.48);
+    box-shadow:
+        0 14px 28px rgba(12, 39, 57, 0.08),
+        0 0 0 1px rgba(255, 255, 255, 0.18) inset;
+}
+
+.detail-page .booking-focus-panel {
+    padding: 20px 20px 18px;
+    border-color: rgba(191, 228, 240, 0.2);
+    box-shadow:
+        0 18px 34px rgba(4, 18, 30, 0.18),
+        0 0 0 1px rgba(212, 237, 245, 0.08) inset,
+        0 0 22px rgba(105, 182, 210, 0.08);
+}
+
+.detail-page .booking-note {
+    margin-top: 18px;
+    z-index: 1;
+    padding: 14px 16px;
+    background:
+        linear-gradient(180deg, rgba(245, 251, 254, 0.8), rgba(228, 241, 247, 0.7)),
+        rgba(255, 255, 255, 0.62);
+    border-color: rgba(186, 214, 226, 0.58);
+    box-shadow:
+        0 12px 24px rgba(13, 44, 63, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.54);
+}
+
+@keyframes seaAtlasHoldingPulse {
+    0%,
+    100% {
+        opacity: 0.38;
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+
+    50% {
+        opacity: 0.78;
+        transform: translate(-50%, -50%) scale(1.02);
+    }
+}
+
+@keyframes seaAtlasHoldingSweep {
+    0% {
+        transform: translateX(-22%);
+        opacity: 0.12;
+    }
+
+    46%,
+    54% {
+        opacity: 0.48;
+    }
+
+    100% {
+        transform: translateX(142%);
+        opacity: 0.08;
     }
 }

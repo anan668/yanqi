@@ -129,6 +129,7 @@ body {
     position: relative;
     display: block;
     overflow: hidden;
+    contain: layout style;
 }
 
 .gauge-markers::before,
@@ -280,56 +281,6 @@ body {
     text-shadow:
         0 1px 4px rgba(0, 0, 0, 0.35),
         0 0 12px rgba(161, 223, 255, 0.16);
-}
-
-body.home-page.home-scroll-active .depth-gauge,
-body.home-page.home-scroll-restoring .depth-gauge {
-    filter: none;
-    transition: opacity 160ms ease;
-    contain: layout paint style;
-}
-
-body.home-page.home-scroll-active .depth-gauge::before,
-body.home-page.home-scroll-restoring .depth-gauge::before {
-    box-shadow: none;
-}
-
-body.home-page.home-scroll-active .depth-gauge::after,
-body.home-page.home-scroll-restoring .depth-gauge::after,
-body.home-page.home-scroll-active .gauge-markers::before,
-body.home-page.home-scroll-restoring .gauge-markers::before {
-    filter: none;
-}
-
-body.home-page.home-scroll-active .gauge-current,
-body.home-page.home-scroll-active .depth-marker,
-body.home-page.home-scroll-active .depth-marker.is-current,
-body.home-page.home-scroll-active .gauge-scale-tape,
-body.home-page.home-scroll-restoring .gauge-current,
-body.home-page.home-scroll-restoring .depth-marker,
-body.home-page.home-scroll-restoring .depth-marker.is-current,
-body.home-page.home-scroll-restoring .gauge-scale-tape {
-    animation: none !important;
-    transition: none !important;
-}
-
-body.home-page.home-scroll-active .gauge-current,
-body.home-page.home-scroll-restoring .gauge-current {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow:
-        0 6px 14px rgba(4, 27, 52, 0.16),
-        0 0 0 1px rgba(202, 235, 255, 0.06);
-}
-
-body.home-page.home-scroll-active .depth-marker.is-current .depth-marker-line,
-body.home-page.home-scroll-restoring .depth-marker.is-current .depth-marker-line {
-    box-shadow: none;
-}
-
-body.home-page.home-scroll-active .depth-marker.is-current .depth-marker-label,
-body.home-page.home-scroll-restoring .depth-marker.is-current .depth-marker-label {
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.32);
 }
 
 @media (max-width: 780px) {

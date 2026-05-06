@@ -43,8 +43,18 @@
     });
     const HOME_DIVE_MATCH_SEMANTIC_RANGE = 6;
     const HOME_DIVE_MATCH_SECTION_PUSH_MAX = 3;
-    const HOME_SCROLL_FAST_GAUGE_INTERVAL_MS = 180;
-    const HOME_SCROLL_FAST_OVERLAY_INTERVAL_MS = 160;
+    const HOME_SCROLL_FAST_GAUGE_INTERVAL_MS = 96;
+    const HOME_SCROLL_FAST_OVERLAY_INTERVAL_MS = 190;
+    const PAGE_SCROLL_DEPTH_SETTLE_THRESHOLD = 0.06;
+    const PAGE_SCROLL_DEPTH_RENDER_THRESHOLD = 0.018;
+    const PAGE_SCROLL_VELOCITY_EASING = 0.1;
+    const PAGE_SCROLL_VELOCITY_DECAY = 0.88;
+    const PAGE_SCROLL_RENDERING_RELEASE_MS = 220;
+    const PAGE_SCROLL_DEPTH_MAX_STEP = 0.34;
+    const PAGE_SCROLL_VELOCITY_SAMPLE_LIMIT = 5;
+    const HOME_SCROLL_OVERLAY_INTERVAL_MS = 160;
+    const PAGE_TRANSITION_WATCHDOG_MS = 1800;
+    const PAGE_TRANSITION_IDLE_FALLBACK_MS = 3000;
 
     const MIN_DEPTH = -60;
     const MAX_DEPTH = 0;
@@ -1125,6 +1135,10 @@
         return `${Math.round(displayValue)}m`;
     }
 
+    function getGaugeRenderBucket(depth) {
+        return Math.round((Number(depth) || 0) * 4) / 4;
+    }
+
     // 主控制器：负责初始化深度计、拦截导航、播放入场离场动画，并在 pageshow 时恢复状态。
     class DepthManager {
         /**
@@ -1143,8 +1157,10 @@
             this.interactionAnimationId = 0;
             this.cleanupTimerId = 0;
             this.transitionWatchdogTimerId = 0;
+            this.transitionIdleFallbackToken = 0;
             this.navigateTimerId = 0;
             this.interactionResetTimerId = 0;
+            this.depthScrollRenderingReleaseTimerId = 0;
             this.specialTransitionMode = null;
             this.specialTimers = [];
             // 页面滚动深度状态：记录当前页面的区块停靠点、是否已启用滚动联动，以及当前缓动目标。
@@ -1156,9 +1172,13 @@
             this.pageScrollMetricsDirty = true;
             this.pageScrollThresholdPoints = [];
             this.pageScrollLastScrollY = window.scrollY || window.pageYOffset || 0;
+            this.pageScrollLatestScrollY = this.pageScrollLastScrollY;
             this.pageScrollLastScrollAt = 0;
             this.pageScrollLastDeltaPx = 0;
             this.pageScrollLastDeltaMs = 16;
+            this.pageScrollSmoothedVelocity = 0;
+            this.pageScrollVelocitySamples = [];
+            this.pageScrollLastRenderedDepth = this.currentDepth;
             this.pageScrollShouldSnap = false;
             this.pageScrollManagedActive = false;
             this.pageScrollManagedUntil = 0;
@@ -1176,6 +1196,8 @@
             this.homeScrollFastGaugeBucket = null;
             this.homeScrollFastOverlayAt = 0;
             this.homeScrollFastOverlayBucket = null;
+            this.homeScrollOverlayRenderAt = 0;
+            this.homeScrollOverlayBucket = null;
             this.homeScrollPendingFullRenderDepth = null;
             this.pageScrollManagedResumeEnabled = false;
             this.pageScrollManagedFinishTimerId = 0;
@@ -1183,6 +1205,7 @@
             this.pageScrollSkipNextHomeMetricSync = false;
             this.lastOverlayState = null;
             this.homeTravelingGaugeDepth = null;
+            this.lastGaugeRenderBucket = null;
             this.homeGuideVirtualTravel = null;
             this.handleHomeInteractionChange = null;
             this.pageScrollMetricsObserver = null;
@@ -1567,9 +1590,18 @@
                 return false;
             }
 
-            const tape = container._depthTape || container.querySelector('.gauge-scale-tape');
-            const topSpacer = container._depthTopSpacer || tape?.querySelector('.gauge-scale-spacer-top');
-            const bottomSpacer = container._depthBottomSpacer || tape?.querySelector('.gauge-scale-spacer-bottom');
+            if (!container._depthTape) {
+                container._depthTape = container.querySelector('.gauge-scale-tape');
+            }
+            const tape = container._depthTape;
+            if (!container._depthTopSpacer) {
+                container._depthTopSpacer = tape?.querySelector('.gauge-scale-spacer-top');
+            }
+            if (!container._depthBottomSpacer) {
+                container._depthBottomSpacer = tape?.querySelector('.gauge-scale-spacer-bottom');
+            }
+            const topSpacer = container._depthTopSpacer;
+            const bottomSpacer = container._depthBottomSpacer;
             if (!tape || !topSpacer || !bottomSpacer) {
                 return false;
             }
@@ -1604,14 +1636,18 @@
                 this.refreshDetailGaugeViewportLayout();
             }
 
-            const tape = container._depthTape || container.querySelector('.gauge-scale-tape');
+            if (!container._depthTape) {
+                container._depthTape = container.querySelector('.gauge-scale-tape');
+            }
+            const tape = container._depthTape;
             if (!tape) {
                 return;
             }
 
             const stepSize = this.getDetailGaugeStepSize();
             const offset = -Math.abs(currentDepth) * stepSize;
-            const nextOffset = `${offset.toFixed(2)}px`;
+            const quantizedOffset = Math.round(offset * 4) / 4;
+            const nextOffset = `${quantizedOffset.toFixed(2)}px`;
             if (container._lastTapeOffset === nextOffset) {
                 return;
             }
@@ -1796,6 +1832,11 @@
                 this.interactionResetTimerId = 0;
             }
 
+            if (this.depthScrollRenderingReleaseTimerId) {
+                window.clearTimeout(this.depthScrollRenderingReleaseTimerId);
+                this.depthScrollRenderingReleaseTimerId = 0;
+            }
+
             this.body.classList.remove('depth-gauge-interactive');
 
             this.clearSpecialTimers();
@@ -1809,6 +1850,7 @@
                 window.clearTimeout(this.transitionWatchdogTimerId);
                 this.transitionWatchdogTimerId = 0;
             }
+            this.transitionIdleFallbackToken += 1;
 
             if (this.pageScrollFrameId) {
                 cancelAnimationFrame(this.pageScrollFrameId);
@@ -1825,6 +1867,7 @@
                 this.pageScrollManagedFinishTimerId = 0;
             }
 
+            this.setDepthScrollRenderingActive(false);
             this.cancelHomeGuideVirtualTravel();
         }
 
@@ -2187,7 +2230,6 @@
             if (
                 Boolean(this.body?.classList.contains('home-scroll-traveling'))
                 || Boolean(this.body?.classList.contains('home-guide-custom-travel-active'))
-                || Boolean(window.isHomeScrollSettlingActive?.())
                 || this.isHomeGuideVirtualTravelActive()
             ) {
                 return 'traveling';
@@ -2204,8 +2246,8 @@
             return this.isHomeScrollFastPathActive();
         }
 
-        isHomeScrollFastPathActive(mode = this.resolveHomeScrollRenderMode()) {
-            return this.pageId === 'home' && mode !== 'normal';
+        isHomeScrollFastPathActive() {
+            return false;
         }
 
         resetHomeGlideRenderCaches(options = {}) {
@@ -2228,6 +2270,138 @@
             }
         }
 
+        /**
+         * setDepthScrollRenderingActive(isActive) - 滚动追随期间临时关掉仪表自身过渡，避免 JS 帧和 CSS 过渡互相抢节奏
+         * @param {boolean} isActive - 是否处于滚动追随刷新中
+         * @returns {void}
+         */
+        setDepthScrollRenderingActive(isActive) {
+            if (!this.body) {
+                return;
+            }
+
+            if (this.depthScrollRenderingReleaseTimerId) {
+                window.clearTimeout(this.depthScrollRenderingReleaseTimerId);
+                this.depthScrollRenderingReleaseTimerId = 0;
+            }
+
+            if (this.body.classList.contains('depth-gauge-scroll-rendering')) {
+                this.body.classList.remove('depth-gauge-scroll-rendering');
+            }
+        }
+
+        /**
+         * scheduleDepthScrollRenderingRelease() - 滚动停止后延迟恢复仪表自身过渡，避免滚动尾帧反复开关 class
+         * @returns {void}
+         */
+        scheduleDepthScrollRenderingRelease() {
+            if (!this.body) {
+                return;
+            }
+
+            if (this.depthScrollRenderingReleaseTimerId) {
+                window.clearTimeout(this.depthScrollRenderingReleaseTimerId);
+            }
+
+            this.depthScrollRenderingReleaseTimerId = window.setTimeout(() => {
+                this.depthScrollRenderingReleaseTimerId = 0;
+                if (this.pageScrollFrameId || this.isNavigating || this.specialTransitionMode) {
+                    return;
+                }
+
+                this.setDepthScrollRenderingActive(false);
+            }, PAGE_SCROLL_RENDERING_RELEASE_MS);
+        }
+
+        /**
+         * getScrollDepthResponseFactor(options) - 统一计算滚动深度追随阻尼，保持不同滚动速度下的节奏连续
+         * @param {Object} options - 当前滚动模式和差值
+         * @returns {number} - 本帧深度追随系数
+         */
+        getScrollDepthResponseFactor(options = {}) {
+            const managedScroll = Boolean(options.managedScroll);
+            const isHomeScrollGlide = Boolean(options.isHomeScrollGlide);
+            const isHomeScrollTraveling = Boolean(options.isHomeScrollTraveling);
+            const deltaMagnitude = Math.max(readNumber(options.deltaMagnitude) ?? 0, 0);
+            const scrollVelocity = Math.max(readNumber(options.scrollVelocity) ?? 0, 0);
+            const shouldSnapToTarget = Boolean(options.shouldSnapToTarget);
+
+            const baseResponseFactor = managedScroll
+                ? 0.16
+                : isHomeScrollGlide
+                ? 0.15
+                : isHomeScrollTraveling
+                ? 0.12
+                : this.pageId === 'detail'
+                ? 0.13
+                : 0.12;
+            const maxResponseFactor = managedScroll
+                ? 0.3
+                : isHomeScrollGlide
+                ? 0.26
+                : isHomeScrollTraveling
+                ? 0.24
+                : this.pageId === 'detail'
+                ? 0.24
+                : 0.22;
+            const deltaBoost = clamp(deltaMagnitude * 0.0045, 0, 0.026);
+            const velocityBoost = clamp(scrollVelocity * 0.006, 0, managedScroll ? 0.016 : 0.02);
+            const snapPressureBoost = shouldSnapToTarget ? 0.018 : 0;
+
+            return clamp(
+                baseResponseFactor + deltaBoost + velocityBoost + snapPressureBoost,
+                baseResponseFactor,
+                maxResponseFactor
+            );
+        }
+
+        /**
+         * getScrollDepthMaxStep() - 限制单帧最大深度变化，避免快速滚动时读数突然大跳
+         * @param {Object} options - 当前滚动模式
+         * @returns {number}
+         */
+        getScrollDepthMaxStep(options = {}) {
+            if (options.managedScroll) {
+                return 0.62;
+            }
+
+            if (options.isHomeScrollGlide) {
+                return 0.36;
+            }
+
+            if (options.isHomeScrollTraveling) {
+                return 0.38;
+            }
+
+            if (this.pageId === 'detail') {
+                return 0.32;
+            }
+
+            return PAGE_SCROLL_DEPTH_MAX_STEP;
+        }
+
+        getSmoothedScrollVelocity(instantVelocity) {
+            const safeVelocity = clamp(readNumber(instantVelocity) ?? 0, 0, 12);
+            if (!Array.isArray(this.pageScrollVelocitySamples)) {
+                this.pageScrollVelocitySamples = [];
+            }
+
+            this.pageScrollVelocitySamples.push(safeVelocity);
+            if (this.pageScrollVelocitySamples.length > PAGE_SCROLL_VELOCITY_SAMPLE_LIMIT) {
+                this.pageScrollVelocitySamples.shift();
+            }
+
+            let weightedTotal = 0;
+            let weightTotal = 0;
+            this.pageScrollVelocitySamples.forEach((velocity, index) => {
+                const weight = index + 1;
+                weightedTotal += velocity * weight;
+                weightTotal += weight;
+            });
+
+            return weightTotal > 0 ? weightedTotal / weightTotal : safeVelocity;
+        }
+
         flushHomeScrollFastRender() {
             const pendingDepth = readNumber(this.homeScrollPendingFullRenderDepth);
             const scrollDepth = this.hasScrollDepthConfig()
@@ -2243,9 +2417,10 @@
         }
 
         renderHomeScrollFastDepth(safeDepth, gaugeDepthForRender, now = performance.now()) {
-            const gaugeDepthBucket = Math.round(gaugeDepthForRender);
+            const gaugeDepthBucket = Math.round(gaugeDepthForRender * 2) / 2;
+            const gaugeMarkerBucket = Math.round(gaugeDepthForRender);
             const overlayBoostBucket = Math.round(clamp(this.overlayBoost, 0, 0.45) * 10) / 10;
-            const overlayBucket = `${gaugeDepthBucket}:${overlayBoostBucket.toFixed(1)}`;
+            const overlayBucket = `${gaugeMarkerBucket}:${overlayBoostBucket.toFixed(1)}`;
             const shouldRefreshGauge = this.homeScrollFastRenderAt <= 0
                 || now - this.homeScrollFastRenderAt >= HOME_SCROLL_FAST_GAUGE_INTERVAL_MS;
             const shouldRefreshOverlay = this.homeScrollFastOverlayAt <= 0
@@ -2258,7 +2433,7 @@
 
             if (shouldRefreshGauge) {
                 const depthText = formatDepth(gaugeDepthBucket);
-                const markerDepthChanged = this.homeScrollFastGaugeBucket !== gaugeDepthBucket;
+                const markerDepthChanged = this.homeScrollFastGaugeBucket !== gaugeMarkerBucket;
 
                 if (this.leftCurrent && this.lastRenderedDepthText !== depthText) {
                     this.leftCurrent.textContent = depthText;
@@ -2269,26 +2444,26 @@
                 }
 
                 if (markerDepthChanged) {
-                    this.updateMarkersForContainer(this.leftMarkersContainer, gaugeDepthBucket);
-                    this.updateMarkersForContainer(this.rightMarkersContainer, gaugeDepthBucket);
-                    this.updateDetailGaugeTapePosition(this.leftMarkersContainer, gaugeDepthBucket);
-                    this.updateDetailGaugeTapePosition(this.rightMarkersContainer, gaugeDepthBucket);
+                    this.updateMarkersForContainer(this.leftMarkersContainer, gaugeMarkerBucket);
+                    this.updateMarkersForContainer(this.rightMarkersContainer, gaugeMarkerBucket);
                 }
 
+                this.updateDetailGaugeTapePosition(this.leftMarkersContainer, gaugeDepthBucket);
+                this.updateDetailGaugeTapePosition(this.rightMarkersContainer, gaugeDepthBucket);
                 this.lastRenderedDepthText = depthText;
                 this.homeTravelingGaugeDepth = gaugeDepthBucket;
-                this.homeScrollFastGaugeBucket = gaugeDepthBucket;
+                this.homeScrollFastGaugeBucket = gaugeMarkerBucket;
                 this.homeScrollFastRenderAt = now;
                 this.lastGlideTapeRenderAt = now;
                 this.lastGlideTapeDepth = gaugeDepthBucket;
             }
 
             if (shouldRefreshOverlay) {
-                this.setOverlayState(gaugeDepthBucket, overlayBoostBucket);
+                this.setOverlayState(gaugeMarkerBucket, overlayBoostBucket);
                 this.homeScrollFastOverlayBucket = overlayBucket;
                 this.homeScrollFastOverlayAt = now;
                 this.lastGlideOverlayRenderAt = now;
-                this.lastGlideOverlayDepth = gaugeDepthBucket;
+                this.lastGlideOverlayDepth = gaugeMarkerBucket;
             }
         }
 
@@ -2298,7 +2473,7 @@
          * @param {number} boost - 覆盖层增强值
          * @returns {void} - 无返回值，直接设置 CSS 变量
          */
-        setOverlayState(depth, boost) {
+        setOverlayState(depth, boost, options = {}) {
             const safeDepth = clamp(depth, MIN_DEPTH, MAX_DEPTH);
             const managedScroll = this.isPageScrollManagedActive();
             const homeTraveling = this.isHomeTravelingFastPathActive();
@@ -2306,12 +2481,12 @@
                 ? Math.round(safeDepth)
                 : managedScroll
                 ? Math.round(safeDepth * 2) / 2
-                : Math.round(safeDepth * 5) / 5;
+                : Math.round(safeDepth * 2) / 2;
             const overlayBoost = homeTraveling
                 ? Math.round(clamp(boost, 0, 0.45) * 10) / 10
                 : managedScroll
                 ? Math.round(clamp(boost, 0, 0.45) * 50) / 50
-                : Math.round(clamp(boost, 0, 0.45) * 100) / 100;
+                : Math.round(clamp(boost, 0, 0.45) * 20) / 20;
             const depthProgress = clamp(Math.abs(overlayDepth) / Math.abs(MIN_DEPTH), 0, 1);
             const baseOpacity = getAmbientOverlayOpacity(overlayDepth);
             const extraOpacity = overlayBoost;
@@ -2410,11 +2585,17 @@
                 return;
             }
 
-            if (forceFull || !homeTraveling || this.homeTravelingGaugeDepth !== gaugeDepthForRender) {
+            const gaugeRenderBucket = getGaugeRenderBucket(gaugeDepthForRender);
+            const shouldRefreshGaugeStructure = forceFull
+                || homeTraveling
+                || this.lastGaugeRenderBucket !== gaugeRenderBucket;
+
+            if (shouldRefreshGaugeStructure) {
                 this.updateMarkersForContainer(this.leftMarkersContainer, gaugeDepthForRender);
                 this.updateMarkersForContainer(this.rightMarkersContainer, gaugeDepthForRender);
                 this.updateDetailGaugeTapePosition(this.leftMarkersContainer, gaugeDepthForRender);
                 this.updateDetailGaugeTapePosition(this.rightMarkersContainer, gaugeDepthForRender);
+                this.lastGaugeRenderBucket = gaugeRenderBucket;
             }
 
             this.homeTravelingGaugeDepth = homeTraveling ? gaugeDepthForRender : null;
@@ -3479,61 +3660,40 @@
             }
 
             const managedScroll = Boolean(options.managedScroll) || this.isPageScrollManagedActive();
-            const homeScrollRenderMode = this.pageId === 'home'
-                ? this.resolveHomeScrollRenderMode()
-                : 'normal';
-            const isHomeScrollTraveling = homeScrollRenderMode === 'traveling';
-            const isHomeScrollGlide = homeScrollRenderMode === 'glide';
 
             const scrollY = window.scrollY || window.pageYOffset || 0;
             const now = performance.now();
-            const hasRecentHomeGlideInput = isHomeScrollGlide
-                && (now - Math.max(this.pageScrollLastInputAt, this.pageScrollLastQueuedAt)) <= 96;
             const scrollDeltaPx = Math.abs(scrollY - this.pageScrollLastScrollY);
             const elapsedMs = this.pageScrollLastScrollAt > 0
                 ? Math.max(now - this.pageScrollLastScrollAt, 1)
                 : 16;
             const jumpThreshold = managedScroll
                 ? Math.max(window.innerHeight * 0.18, 180)
-                : isHomeScrollTraveling
-                ? Math.max(window.innerHeight * 0.22, 180)
                 : Math.max(window.innerHeight * 0.32, 260);
 
             this.pageScrollLastDeltaPx = scrollDeltaPx;
             this.pageScrollLastDeltaMs = elapsedMs;
-            this.pageScrollShouldSnap = !isHomeScrollGlide && scrollDeltaPx >= jumpThreshold;
+            this.pageScrollShouldSnap = scrollDeltaPx >= jumpThreshold;
             this.pageScrollLastScrollY = scrollY;
             this.pageScrollLastScrollAt = now;
 
             // 这里不用 animateDepth 做固定时长动画，而是每帧按差值推进，形成更像水下阻尼的深度变化。
             const targetDepth = clamp(this.computePageScrollDepth(), MIN_DEPTH, MAX_DEPTH);
             this.pageScrollTargetDepth = targetDepth;
+            const delta = targetDepth - this.currentDepth;
+            const deltaMagnitude = Math.abs(delta);
+            const shouldSnapToTarget = this.pageScrollShouldSnap && deltaMagnitude >= (managedScroll ? 0.55 : 0.85);
 
-            if (this.pageId === 'home' && this.isHomeScrollFastPathActive(homeScrollRenderMode) && !managedScroll) {
+            if (shouldSnapToTarget) {
                 this.pageScrollShouldSnap = false;
                 this.currentDepth = targetDepth;
                 this.renderDepth(targetDepth);
-                this.persistCurrentDepth(targetDepth);
+                this.persistCurrentDepth(targetDepth, true);
                 return;
             }
 
-            const delta = targetDepth - this.currentDepth;
-            const deltaMagnitude = Math.abs(delta);
-            const shouldSnapToTarget = !isHomeScrollGlide
-                && this.pageScrollShouldSnap
-                && deltaMagnitude >= (managedScroll ? 0.55 : 0.85);
-
-            if (shouldSnapToTarget) {
-                // 大跨度滚动仍走阻尼贴合，避免深度计突然跳层；后面的响应因子会临时加速追上目标。
-                this.pageScrollShouldSnap = false;
-            }
-
-            const settleThreshold = this.pageId === 'detail'
-                ? 0.035
-                : isHomeScrollGlide
-                ? 0.012
-                : 0.05;
-            if (deltaMagnitude <= settleThreshold && !hasRecentHomeGlideInput) {
+            const settleThreshold = this.pageId === 'detail' ? 0.035 : 0.05;
+            if (deltaMagnitude <= settleThreshold) {
                 this.currentDepth = targetDepth;
                 this.renderDepth(targetDepth);
                 this.persistCurrentDepth(targetDepth, true);
@@ -3542,42 +3702,19 @@
 
             const baseResponseFactor = managedScroll
                 ? (this.pageId === 'detail' ? 0.24 : 0.22)
-                : isHomeScrollGlide
-                ? 0.26
-                : isHomeScrollTraveling
-                ? 0.14
                 : (this.pageId === 'detail' ? 0.14 : 0.1);
             const maxResponseFactor = managedScroll
                 ? (this.pageId === 'detail' ? 0.64 : 0.6)
-                : isHomeScrollGlide
-                ? 0.58
-                : isHomeScrollTraveling
-                ? 0.48
                 : (this.pageId === 'detail' ? 0.46 : 0.42);
-            const deltaBoost = isHomeScrollGlide
-                ? clamp(deltaMagnitude * 0.016, 0, 0.12)
-                : clamp(deltaMagnitude * 0.02, 0, 0.2);
+            const deltaBoost = clamp(deltaMagnitude * 0.02, 0, 0.2);
             const scrollVelocity = this.pageScrollLastDeltaPx / Math.max(this.pageScrollLastDeltaMs, 1);
-            const velocityBoost = isHomeScrollGlide
-                ? clamp(scrollVelocity * 0.018, 0, 0.14)
-                : clamp(scrollVelocity * (managedScroll ? 0.02 : 0.045), 0, managedScroll ? 0.08 : 0.12);
-            const snapPressureBoost = shouldSnapToTarget
-                ? (managedScroll ? 0.18 : 0.24)
-                : 0;
+            const velocityBoost = clamp(scrollVelocity * (managedScroll ? 0.02 : 0.045), 0, managedScroll ? 0.08 : 0.12);
             const responseFactor = clamp(
-                baseResponseFactor + deltaBoost + velocityBoost + snapPressureBoost,
+                baseResponseFactor + deltaBoost + velocityBoost,
                 baseResponseFactor,
                 maxResponseFactor
             );
-            const rawDepthStep = delta * responseFactor;
-            const minimumGlideStep = hasRecentHomeGlideInput ? 0.01 : 0;
-            const adjustedDepthStep = isHomeScrollGlide
-                ? Math.sign(delta || 0) * Math.min(
-                    deltaMagnitude,
-                    Math.max(Math.abs(rawDepthStep), minimumGlideStep)
-                )
-                : rawDepthStep;
-            const nextDepth = this.currentDepth + adjustedDepthStep;
+            const nextDepth = this.currentDepth + delta * responseFactor;
             this.currentDepth = clamp(nextDepth, MIN_DEPTH, MAX_DEPTH);
             this.renderDepth(this.currentDepth);
             this.persistCurrentDepth(this.currentDepth);
@@ -3867,10 +4004,10 @@
          * @param {number} delayMs - 兜底清理延迟
          * @returns {void}
          */
-        armTransitionWatchdog(delayMs = 5200) {
+        armTransitionWatchdog(delayMs = PAGE_TRANSITION_WATCHDOG_MS) {
             this.clearTransitionWatchdog();
 
-            const safeDelay = clamp(readNumber(delayMs) ?? 5200, 240, 7200);
+            const safeDelay = clamp(readNumber(delayMs) ?? PAGE_TRANSITION_WATCHDOG_MS, 240, 7200);
             this.transitionWatchdogTimerId = window.setTimeout(() => {
                 this.transitionWatchdogTimerId = 0;
 
@@ -3940,6 +4077,20 @@
                 window.clearTimeout(this.cleanupTimerId);
                 this.cleanupTimerId = 0;
             }
+
+            this.transitionIdleFallbackToken += 1;
+        }
+
+        clearTransitionLockIfStale() {
+            if (!this.body?.classList.contains('page-transition-active')) {
+                return;
+            }
+
+            this.clearTransitionClasses();
+            this.clearSpecialTransitionState();
+            this.overlayBoost = 0;
+            this.isNavigating = false;
+            this.setOverlayState(this.currentDepth, 0);
         }
 
         /**
@@ -3991,6 +4142,75 @@
             if (className) {
                 this.body.classList.add(className);
             }
+
+            this.scheduleTransitionIdleFallback();
+            this.bindTransitionClassFallbacks(className);
+        }
+
+        /**
+         * scheduleTransitionIdleFallback() - 如果过渡清理定时器被节流，空闲期再兜底释放页面滚动锁
+         * @returns {void} - 无返回值，直接登记兜底检查
+         */
+        scheduleTransitionIdleFallback() {
+            const token = ++this.transitionIdleFallbackToken;
+            const startedAt = performance.now();
+            const timeoutMs = PAGE_TRANSITION_IDLE_FALLBACK_MS;
+            const checkTransitionLock = () => {
+                if (token !== this.transitionIdleFallbackToken) {
+                    return;
+                }
+
+                if (performance.now() - startedAt < timeoutMs) {
+                    return;
+                }
+
+                this.clearTransitionLockIfStale();
+            };
+
+            window.setTimeout(checkTransitionLock, timeoutMs);
+
+            if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(checkTransitionLock, { timeout: timeoutMs });
+            }
+        }
+
+        bindTransitionClassFallbacks(className) {
+            if (!this.body || !className) {
+                return;
+            }
+
+            const token = this.transitionIdleFallbackToken;
+            const release = () => {
+                if (token !== this.transitionIdleFallbackToken) {
+                    return;
+                }
+
+                this.clearTransitionLockIfStale();
+            };
+            const releaseOnAnimation = (event) => {
+                if (event.target !== this.body && event.target !== this.pageStage) {
+                    return;
+                }
+
+                release();
+            };
+            const releaseOnHidden = () => {
+                if (document.hidden) {
+                    release();
+                }
+            };
+            const removeListeners = () => {
+                this.body.removeEventListener('animationend', releaseOnAnimation);
+                this.body.removeEventListener('animationcancel', releaseOnAnimation);
+                window.removeEventListener('blur', release);
+                document.removeEventListener('visibilitychange', releaseOnHidden);
+            };
+
+            this.body.addEventListener('animationend', releaseOnAnimation);
+            this.body.addEventListener('animationcancel', releaseOnAnimation);
+            window.addEventListener('blur', release);
+            document.addEventListener('visibilitychange', releaseOnHidden);
+            window.setTimeout(removeListeners, PAGE_TRANSITION_IDLE_FALLBACK_MS + 180);
         }
 
         /**

@@ -8,10 +8,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 三行缓存禁用：首页是动态内容页面（潜点数据、匹配结果均来自 JS），
+         必须禁用浏览器缓存以确保用户每次打开都看到最新数据。no-store 覆盖所有缓存场景，
+         Pragma 和 Expires 作为旧浏览器兼容层。 -->
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>盐憩 - 首页</title>
+    <!-- CSS 版本号（?v=...）用于缓存破坏：修改 CSS 后更新版本号即可强制浏览器重新加载 -->
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/page-transition.css">
     <link rel="stylesheet" href="css/depth-gauge.css?v=20260417-depth-glide-smooth-3">
@@ -21,7 +25,10 @@
     <div class="page-transition-overlay" id="pageTransitionOverlay" aria-hidden="true"></div>
 
     <!-- 顶部导航：
-         这是首页的跨页入口层，不只负责跳转，也会被跨页面过渡一起带着上下浮动。 -->
+         这是首页的跨页入口层。和整站其他页面一样，navbar 在 page-transition.css 中会参与
+         页面过渡动画（和 page-stage 一起做 opacity/transform 的进场和退场）。
+         data-scroll-target 属性指向页面内锚点，点击时 JS 执行平滑滚动而非跳转。
+         "首页"链接指向 "#"（当前页顶部），active 类表示当前所在页面。 -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
@@ -33,6 +40,7 @@
                 <li><a href="#why-yanqi" class="nav-link" data-scroll-target="#why-yanqi">盐憩故事</a></li>
                 <li><a href="trip.html" class="nav-link">我的行程</a></li>
             </ul>
+            <!-- 导航右侧用户区：舞台调试按钮（仅开发用）+ 头像（点击返回登录页或退出） -->
             <div class="nav-user">
                 <button type="button" class="stage-debug-toggle" data-stage-debug-toggle aria-pressed="false" title="开启舞台调试">
                     <span class="stage-debug-toggle-dot" aria-hidden="true"></span>
@@ -41,6 +49,7 @@
                         <span class="stage-debug-toggle-state" data-stage-debug-state>调试中</span>
                     </span>
                 </button>
+                <!-- 头像：avatar-return.js 监听其点击，根据认证状态跳转登录页或退出当前账号 -->
                 <img src="assets/images/avatar.png" alt="用户头像" class="avatar" title="点击返回登录页或退出" decoding="async">
             </div>
         </div>
@@ -64,13 +73,16 @@
 
     <!-- 页面主舞台：承载首页所有主要区块，并作为跨页面过渡动画的整体移动容器。 -->
     <div class="page-stage" id="pageStage">
-        <!-- 英雄区：
-             首页最浅的一层海面入口。
-             这里既负责品牌开场，也负责把用户慢慢引到“热门潜点”和“我的行程”两条路线。 -->
+        <!-- 英雄区（首屏）：
+             首页最浅的一层海面入口，用户到达首页后的第一视觉锚点。
+             结构分为两层：底层是纯视觉氛围（hero-ocean-layers），上层是交互主舞台（hero-content）。
+             这里既负责品牌开场，也负责把用户慢慢引到"热门潜点"和"我的行程"两条路线。 -->
         <section class="hero-section" id="hero-home">
             <!-- 海面氛围层：
-                 这一组 span 纯粹服务视觉，不承载交互。
-                 CSS 会让它们像浮光、海浪和浮游生物一样缓慢漂动。 -->
+                 这一组 span 纯粹服务视觉，不承载交互，aria-hidden 确保屏幕阅读器跳过。
+                 glow：大面积径向光晕，模拟海底向上的散射光。
+                 wave：横向滚动的波浪曲线，制造海面起伏感。
+                 plankton：随机位置/延迟漂浮的小光点，模拟浮游生物。 -->
             <div class="hero-ocean-layers" aria-hidden="true">
                 <span class="hero-ocean-glow hero-ocean-glow-one"></span>
                 <span class="hero-ocean-glow hero-ocean-glow-two"></span>
@@ -83,7 +95,8 @@
                 <span class="hero-plankton hero-plankton-five"></span>
                 <span class="hero-plankton hero-plankton-six"></span>
             </div>
-            <!-- 今日海域观察舞台：把首屏重心直接交给海域卡片与横向潜游。 -->
+            <!-- 今日海域观察舞台：把首屏重心直接交给海域卡片轮播与横向潜游。
+                 hero-content 是内容承载层，hero-hotspots-stage-shell 是调试时可调尺寸的外壳。 -->
             <div class="hero-content">
                 <div class="hero-hotspots-stage-shell" id="heroHotspotsStageShell">
                     <div class="hero-hotspots-resize-layer" aria-hidden="true">
@@ -122,10 +135,13 @@
                             </div>
                         </div>
 
-                    <!-- 热门潜点滚动舞台：
-                         左右箭头、卡片轨道和中间内容都在这层里，
-                         JS 会把卡片渲染到中间轨道，并接管拖拽、惯性和详情页跳转。 -->
+                    <!-- 热门潜点滚动舞台（竹简卡片轮播）：
+                         这是首页最核心的交互区。左右箭头、卡片轨道和中间内容都在这层里。
+                         JS 会把潜点卡片动态渲染到 #bambooCardsContent，并接管拖拽、惯性和详情页跳转。
+                         按钮使用 3D 玻璃风格：button-base 是底层阴影盘，button-bottom 是中间厚度层，
+                         button-top 是最表层（承载图标），三层叠加制造出水面下的立体按钮触感。 -->
                     <div class="bamboo-scroll-container hero-bamboo-scroll-container">
+                        <!-- 左箭头：三层结构实现 3D 玻璃按钮 -->
                         <button type="button" class="scroll-arrow button-3d left" id="scroll-left" aria-label="上一张">
                             <span class="button-top">
                                 <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -136,12 +152,14 @@
                             <span class="button-base"></span>
                         </button>
 
+                        <!-- 卡片轨道包裹层：overflow hidden + 内部 content 做 translateX 位移实现滚动 -->
                         <div class="bamboo-cards-wrapper hero-bamboo-cards-wrapper">
                             <div class="bamboo-cards-content" id="bambooCardsContent">
-                                <!-- 热门潜点卡片会由脚本动态生成 -->
+                                <!-- 热门潜点卡片会由 home.js 动态生成并插入此处 -->
                             </div>
                         </div>
 
+                        <!-- 右箭头：同上三层 3D 按钮结构 -->
                         <button type="button" class="scroll-arrow button-3d right" id="scroll-right" aria-label="下一张">
                             <span class="button-top">
                                 <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -159,27 +177,50 @@
                         <span class="today-sea-drift-line" aria-hidden="true"></span>
                     </div>
 
+                    <!-- 今日海域底部信息承接层：在卡片轮播下方显示当前选中潜点的三项关键信息 -->
                     <div class="today-sea-brief" data-today-sea-brief aria-label="当前海域概览">
+                        <!-- 海域位置面板：左侧显示迷你海图（纯 CSS 绘制）+ 名称/区域/坐标 -->
                         <article class="today-sea-brief-panel today-sea-position-panel">
                             <p class="today-sea-brief-kicker">Sea Position</p>
+                            <!-- 迷你海图（today-sea-maplet）：轻量内联 SVG，随当前海域同步切换海岸、潜点与路线。 -->
                             <div class="today-sea-maplet" aria-hidden="true">
-                                <span class="today-sea-maplet-grid"></span>
-                                <span class="today-sea-maplet-wake"></span>
-                                <span class="today-sea-maplet-route"></span>
-                                <span class="today-sea-maplet-ring"></span>
-                                <span class="today-sea-maplet-dot is-origin"></span>
-                                <span class="today-sea-maplet-dot is-current"></span>
+                                <svg class="today-sea-maplet-svg" viewBox="0 0 100 72" focusable="false" role="img">
+                                    <defs>
+                                        <linearGradient id="todaySeaMapletDepthFill" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="rgba(137, 206, 205, 0.58)"></stop>
+                                            <stop offset="58%" stop-color="rgba(41, 104, 118, 0.38)"></stop>
+                                            <stop offset="100%" stop-color="rgba(8, 38, 58, 0.18)"></stop>
+                                        </linearGradient>
+                                    </defs>
+                                    <rect class="today-sea-maplet-bg" x="0" y="0" width="100" height="72" rx="10"></rect>
+                                    <path class="today-sea-maplet-grid-line" d="M18 0V72M36 0V72M54 0V72M72 0V72M90 0V72M0 18H100M0 36H100M0 54H100"></path>
+                                    <path class="today-sea-maplet-contour is-outer" data-map-contour-outer d=""></path>
+                                    <path class="today-sea-maplet-contour is-inner" data-map-contour-inner d=""></path>
+                                    <path class="today-sea-maplet-coast-shape" data-map-coast d=""></path>
+                                    <path class="today-sea-maplet-shelf-shape" data-map-shelf d=""></path>
+                                    <text class="today-sea-maplet-sounding" x="73" y="25">18</text>
+                                    <text class="today-sea-maplet-sounding" x="18" y="49">32</text>
+                                    <text class="today-sea-maplet-sounding" x="64" y="61">46</text>
+                                    <path class="today-sea-maplet-route-line" data-map-route d=""></path>
+                                    <circle class="today-sea-maplet-point is-sub" data-map-sub-point="0" cx="0" cy="0" r="2.2"></circle>
+                                    <circle class="today-sea-maplet-point is-sub" data-map-sub-point="1" cx="0" cy="0" r="1.7"></circle>
+                                    <circle class="today-sea-maplet-point is-main" data-map-main-point cx="0" cy="0" r="3.1"></circle>
+                                    <text class="today-sea-maplet-bearing" data-map-bearing x="84" y="17">NE</text>
+                                    <path class="today-sea-maplet-scale" d="M10 62H28M10 58V62M28 58V62"></path>
+                                </svg>
                             </div>
                             <div class="today-sea-brief-copy">
                                 <h3 id="todaySeaBriefName">皇帝岛</h3>
                                 <p id="todaySeaBriefRegion">泰国 · 普吉外海</p>
                                 <span id="todaySeaBriefCoords">北纬 7.60°，东经 98.37°</span>
                             </div>
+                            <!-- 查看档案按钮：点击跳转到对应潜点的 detail.html 详情页 -->
                             <button type="button" class="today-sea-brief-link" data-today-sea-detail>
                                 查看档案
                             </button>
                         </article>
 
+                        <!-- 潜水数据面板：中间显示四列潜水关键指标（水温、海流、潮汐、能见度），用 dl/dt/dd 做语义化数据列表 -->
                         <article class="today-sea-brief-panel today-sea-data-panel">
                             <p class="today-sea-brief-kicker">Dive Reading</p>
                             <dl class="today-sea-data-grid">
@@ -202,8 +243,10 @@
                             </dl>
                         </article>
 
+                        <!-- 探索进度面板：右侧显示当前卡片序号/总数、最佳潜水季节和一句话描述 -->
                         <article class="today-sea-brief-panel today-sea-progress-panel">
                             <p class="today-sea-brief-kicker">Exploration</p>
+                            <!-- 圆形进度轨道装饰 -->
                             <div class="today-sea-progress-orbit" aria-hidden="true">
                                 <span></span>
                             </div>
@@ -219,7 +262,8 @@
             </div>
         </section>
 
-        <!-- 海域陈列 -->
+        <!-- 海域陈列：首页第二层内容区。
+             data-home-layer="featured" 标记这一区属于首页的哪个"海层"，用于海图导览的滚动高亮联动。 -->
         <section class="featured-destinations" id="featured-destinations" data-home-layer="featured">
             <div class="curated-waters-shell">
                 <header class="curated-waters-intro curated-reveal">
@@ -230,23 +274,28 @@
                 </header>
 
                 <!-- 深海档案墙：
-                     左侧是目的地竖排导航按钮，右侧是当前海域的大展示区。
-                     点击左侧按钮时，右侧内容以海流推移的方式过渡切换。 -->
+                     左侧 curated-nav-rail 是目的地竖排导航按钮（由 JS 动态渲染），
+                     右侧 curated-main-card 是当前选中海域的大展示卡（含图片、描述、数据）。
+                     左右联动：点击左侧按钮 → JS 更新右侧展示卡内容 + 带 CSS 过渡动画。
+                     curated-reveal 类配合 IntersectionObserver 实现滚动进入视口时的渐显动画。
+                     curatedLiveSummary（sr-only）用于屏幕阅读器在内容切换时播报更新。 -->
                 <div class="curated-waters-stage curated-archive-wall curated-reveal" id="curatedWatersStage">
                     <p id="curatedLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
 
                     <nav class="curated-nav-rail" id="destinationsGrid" aria-label="海域导航">
-                        <!-- 导航按钮由脚本动态生成 -->
+                        <!-- 导航按钮由 home.js 动态生成，每个按钮对应一个潜点目的地 -->
                     </nav>
 
                     <article class="curated-main-card curated-display" id="curatedMainCard">
-                        <!-- 展示区内容由脚本动态生成 -->
+                        <!-- 展示区内容由 home.js 动态生成，包含潜点大图、简介、关键数据 -->
                     </article>
                 </div>
             </div>
         </section>
 
-        <!-- 潜水匹配推荐区 -->
+        <!-- 潜水匹配推荐区：首页第三层。
+             data-home-layer="match" 标记海层，用于海图导览联动。
+             用户在此按潜水等级/偏好筛选匹配的海域推荐。 -->
         <section class="dive-match" id="dive-match" data-home-layer="match">
             <div class="dive-match-shell">
                 <header class="dive-match-intro dive-match-reveal">
@@ -257,22 +306,24 @@
                 </header>
 
                 <!-- 潜水匹配舞台：
-                     顶部标签负责切换“适合谁”，下方展示层负责输出对应的大卡和推荐海域。
-                     这块会和深度计联动，不同匹配分类会把首页深度推进到不同海层。 -->
+                     顶部 dive-match-rail 是匹配分类标签（由 JS 动态生成），
+                     下方 dive-match-display 是匹配结果展示区（大卡 + 推荐海域档案卡）。
+                     这块会和深度计联动：不同匹配分类将首页深度推进到不同海层数值。 -->
                 <div class="dive-match-stage dive-match-reveal" id="diveMatchStage">
                     <div class="dive-match-rail" id="diveMatchFilters" aria-label="潜水匹配分类">
-                        <!-- 潜水匹配分类标签由脚本动态生成 -->
+                        <!-- 潜水匹配分类标签由 home.js 动态生成 -->
                     </div>
 
                     <p id="diveMatchLiveSummary" class="sr-only" aria-live="polite" aria-atomic="true"></p>
                     <div class="dive-match-display" id="diveMatchDisplay">
-                        <!-- 潜水匹配大卡与推荐档案卡由脚本动态生成 -->
+                        <!-- 潜水匹配大卡与推荐档案卡由 home.js 动态生成 -->
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 盐憩故事 -->
+        <!-- 盐憩故事：首页第四层品牌叙事区。
+             data-home-layer="story" 标记海层。三张故事卡以递进延迟（--story-delay）依次浮现。 -->
         <section class="why-yanqi" id="why-yanqi" data-home-layer="story">
             <div class="story-shell">
                 <header class="story-intro story-reveal">
@@ -282,11 +333,15 @@
                     <p class="story-echo">在这里，海域不是被快速选择的选项，旅程也不只是被安排好的结果。我们更在意的是，你是否在进入那片蓝之前，就已经慢慢进入了它的节奏。</p>
                 </header>
 
+                <!-- story-river：品牌叙事区的视觉分隔线，一条流动光带模拟河流/海流 -->
                 <div class="story-river" aria-hidden="true">
                     <span class="story-river-line"></span>
                     <span class="story-river-glow"></span>
                 </div>
 
+                <!-- 三列故事卡片网格：每张卡片通过 --story-delay 自定义属性设定 CSS 动画延迟，
+                     依次浮现制造"故事逐渐展开"的阅读节奏。
+                     story-card-offset 类让中间卡片略微上移，形成视觉节奏变化。 -->
                 <div class="story-grid">
                     <article class="story-card story-reveal" style="--story-delay: 0ms;">
                         <p class="story-card-index">01</p>
@@ -309,8 +364,9 @@
             </div>
         </section>
 
-        <!-- 页脚收束区：
-             不是普通信息尾栏，而是首页浏览结束时的“停靠点”。
+        <!-- 页脚收束区：首页最后一层，data-home-layer="harbor"（港湾）。
+             不是普通信息尾栏，而是首页浏览结束时的"停靠点"。
+             结构：arrival-bridge（到达桥接文案）→ brand-stage（品牌口号）→ middle（三列导航 + 社交媒体）→ bottom（版权）。
              前面一路下潜后，用户会在这里慢慢把节奏收住。 -->
         <footer class="footer" id="homeFooter" data-home-layer="harbor">
             <div class="footer-shell">
@@ -380,9 +436,10 @@
 
     </div>
 
-    <!-- 首页海图导览：
-         这是首页的悬浮快速导航，不是普通回到顶部按钮。
-         它会根据滚动位置高亮当前所在海层，帮助用户知道自己正停留在哪一段内容里。 -->
+    <!-- 首页海图导览：悬浮在页面右下角的快速导航组件。
+         不是普通"回到顶部"按钮，而是一个带展开面板的迷你导航系统。
+         工作机制：根据页面滚动位置高亮当前所在海层（surface / hotspots / destinations / match / story / harbor），
+         点击条目执行平滑滚动到对应 data-target 锚点。aria-hidden="true" + aria-expanded 切换构成无障碍折叠面板。 -->
     <div class="sea-guide sea-guide-home" id="homeSeaGuide" aria-hidden="true">
         <button
             type="button"
@@ -453,6 +510,19 @@
         </nav>
     </div>
 
+    <!-- JS 加载顺序说明（按依赖关系排列）：
+         1. ocean-scroll.js: 全局滚动行为控制（平滑滚动、锚点跳转）
+         2. depth-manager.js: 整站深度系统核心（驱动左右深度计、海层感知、深度过渡动画）
+         3. yanqi-brand-config.js: 品牌常量（颜色、深度值、页面名称映射）
+         4. yanqi-diver-profile.js: 潜水者状态管理（当前页面、认证状态、深度偏好）
+         5. yanqi-spot-window-config.js: 潜点窗口配置（卡片布局模式、展示参数）
+         6. yanqi-showcase-state.js: 展示模式状态（游客/展示模式切换逻辑）
+         7. price-config.js: 价格配置数据
+         8. yanqi-spot-catalog.js: 潜点目录数据（所有潜点的完整信息）
+         9. avatar-return.js: 头像点击行为（登录页跳转/退出逻辑）
+         10. home-guide-jump-custom.js: 首页海图导览的自定义跳转行为
+         11. home.js: 首页主逻辑（卡片轮播、海域陈列、潜水匹配、滚动动画等）
+         版本号（?v=...）用于缓存破坏。 -->
     <script src="js/ocean-scroll.js"></script>
     <script src="js/depth-manager.js?v=20260417-depth-glide-smooth-3"></script>
     <script src="js/yanqi-brand-config.js"></script>
