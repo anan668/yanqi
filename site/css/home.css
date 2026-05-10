@@ -39,24 +39,6 @@
     filter: saturate(0.92) brightness(0.96);
 }
 
-body[data-home-performance='lite'] .featured-destinations,
-body[data-home-performance='lite'] .dive-match,
-body[data-home-performance='lite'] .why-yanqi,
-body[data-home-performance='lite'] .footer {
-    transition:
-        transform 620ms cubic-bezier(0.18, 0.8, 0.22, 1),
-        opacity 420ms ease;
-}
-
-body[data-home-performance='lite'] [data-home-layer] {
-    will-change: auto;
-    filter: none;
-}
-
-body[data-home-performance='lite'] [data-home-layer].is-home-passed:not(.is-home-current) {
-    filter: saturate(0.96) brightness(0.98);
-}
-
 body.home-page.home-guide-custom-travel-active {
     --home-guide-travel-direction: 1;
 }
@@ -324,14 +306,6 @@ body.home-guide-custom-travel-active .bamboo-card-image {
     animation: sea-card-float 1s ease-out;
 }
 
-body[data-home-performance='lite'] .today-sea-card {
-    backdrop-filter: blur(14px) saturate(128%);
-    -webkit-backdrop-filter: blur(14px) saturate(128%);
-    box-shadow:
-        0 18px 34px rgba(14, 60, 94, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.28);
-}
-
 /* .today-sea-head 的主要视觉与布局效果 */
 .today-sea-head {
     margin-bottom: 10px;
@@ -593,10 +567,6 @@ body[data-home-performance='lite'] .today-sea-card {
         linear-gradient(180deg, rgba(16, 57, 84, 0) 0%, rgba(58, 125, 163, 0.32) 42%, rgba(234, 246, 253, 0.9) 100%);
     filter: blur(30px);
     z-index: 0;
-}
-
-body[data-home-performance='lite'] .hero-section::after {
-    filter: blur(18px);
 }
 
 /* .hero-ocean-layers 的主要视觉与布局效果 */
@@ -1136,16 +1106,6 @@ body.home-page.page-transition-active .page-stage * {
     backface-visibility: hidden;
 }
 
-.hero-hotspots-shell .bamboo-cards-wrapper.is-motion-lite .bamboo-card {
-    box-shadow:
-        0 calc(var(--physics-shadow-y) - 4px) calc(var(--physics-shadow-blur) - 8px) rgba(5, 22, 34, 0.14),
-        0 0 18px rgba(107, 183, 219, 0.03),
-        inset 0 1px 0 rgba(255, 255, 255, 0.09);
-    backdrop-filter: blur(14px) saturate(132%);
-    -webkit-backdrop-filter: blur(14px) saturate(132%);
-    filter: blur(0) saturate(0.99) brightness(0.99);
-}
-
 /* 首屏 内卡片悬停时只轻轻上浮并提亮边缘 */
 .hero-hotspots-shell .bamboo-card:hover {
     --lift-y: -6px;
@@ -1169,13 +1129,6 @@ body.home-page.page-transition-active .page-stage * {
     filter: blur(0) saturate(1.03) brightness(1);
 }
 
-.hero-hotspots-shell .bamboo-cards-wrapper.is-motion-lite .bamboo-card.active {
-    box-shadow:
-        0 20px 34px rgba(5, 22, 34, 0.2),
-        0 0 0 1px rgba(194, 231, 247, 0.18),
-        0 0 24px rgba(134, 205, 236, 0.08);
-}
-
 /* 调整 首屏 内卡片图片比例，让海面与潜点画面更舒展。 */
 .hero-hotspots-shell .bamboo-card-image {
     height: 210px;
@@ -1193,14 +1146,6 @@ body.home-page.page-transition-active .page-stage * {
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(18px) saturate(140%);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
-}
-
-.hero-hotspots-shell .bamboo-cards-wrapper.is-motion-lite .bamboo-card-content {
-    box-shadow:
-        0 -12px 22px rgba(7, 28, 44, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px) saturate(132%);
-    -webkit-backdrop-filter: blur(12px) saturate(132%);
 }
 
 /* 首屏 内卡片标题用更亮的冷白蓝，强化海域名称识别。 */
@@ -2656,11 +2601,6 @@ body.home-page.page-transition-active .page-stage * {
     cursor: grabbing;
 }
 
-.bamboo-cards-wrapper.is-motion-lite .bamboo-cards-content,
-.bamboo-cards-wrapper.is-motion-lite .bamboo-card {
-    will-change: auto;
-}
-
 /* Bamboo Card */
 /* 设置热门潜点卡片的外观、层次和悬停反馈 */
 .bamboo-card {
@@ -2694,33 +2634,6 @@ body.home-page.page-transition-active .page-stage * {
     user-select: none;
 }
 
-.bamboo-cards-wrapper.is-motion-lite .bamboo-card {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 12px 22px rgba(18, 67, 102, 0.12);
-    transition:
-        box-shadow 180ms ease,
-        border-color 180ms ease,
-        opacity 180ms ease,
-        transform 180ms ease;
-}
-
-body[data-home-performance='lite'] .bamboo-cards-content,
-body[data-home-performance='lite'] .bamboo-card {
-    will-change: auto;
-}
-
-body[data-home-performance='lite'] .bamboo-card {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 12px 22px rgba(18, 67, 102, 0.12);
-    transition:
-        box-shadow 180ms ease,
-        border-color 180ms ease,
-        opacity 180ms ease,
-        transform 180ms ease;
-}
-
 /* .bamboo-card:hover 鼠标移入时的样式 */
 .bamboo-card:hover {
     --lift-y: -8px;
@@ -2740,11 +2653,6 @@ body[data-home-performance='lite'] .bamboo-card {
     outline: none;
 }
 
-body[data-home-performance='lite'] .bamboo-card:hover {
-    --lift-y: -4px;
-    --card-scale: 1.008;
-}
-
 /* .bamboo-card.active：当前激活卡片用更亮的描边和阴影提示。 */
 .bamboo-card.active {
     --card-scale: 1.04;
@@ -2754,28 +2662,10 @@ body[data-home-performance='lite'] .bamboo-card:hover {
     filter: saturate(1.03);
 }
 
-.bamboo-cards-wrapper.is-motion-lite .bamboo-card.active {
-    --card-scale: 1.02;
-    box-shadow: 0 14px 24px rgba(30, 136, 229, 0.18), 0 0 0 1px rgba(30, 136, 229, 0.14);
-    filter: none;
-}
-
-body[data-home-performance='lite'] .bamboo-card.active {
-    --card-scale: 1.02;
-    box-shadow: 0 14px 24px rgba(30, 136, 229, 0.18), 0 0 0 1px rgba(30, 136, 229, 0.14);
-    filter: none;
-}
-
-
 /* .bamboo-card.active:hover 鼠标移入时的样式 */
 .bamboo-card.active:hover {
     --lift-y: -9px;
     --card-scale: 1.05;
-}
-
-body[data-home-performance='lite'] .bamboo-card.active:hover {
-    --lift-y: -5px;
-    --card-scale: 1.024;
 }
 
 /* 定义 bamboo-card-reveal 动画的关键帧 */
@@ -2808,10 +2698,6 @@ body[data-home-performance='lite'] .bamboo-card.active:hover {
     transform: scale(1.1);
 }
 
-body[data-home-performance='lite'] .bamboo-card:hover .bamboo-card-image {
-    transform: scale(1.04);
-}
-
 /* Bamboo Card Content */
 /* 设置热门潜点卡片的外观、层次和悬停反馈 */
 .bamboo-card-content {
@@ -2825,18 +2711,6 @@ body[data-home-performance='lite'] .bamboo-card:hover .bamboo-card-image {
     box-shadow: 0 -14px 30px rgba(18, 67, 102, 0.12);
     backdrop-filter: blur(16px) saturate(145%);
     -webkit-backdrop-filter: blur(16px) saturate(145%);
-}
-
-.bamboo-cards-wrapper.is-motion-lite .bamboo-card-content {
-    backdrop-filter: blur(10px) saturate(128%);
-    -webkit-backdrop-filter: blur(10px) saturate(128%);
-    box-shadow: 0 -10px 20px rgba(18, 67, 102, 0.1);
-}
-
-body[data-home-performance='lite'] .bamboo-card-content {
-    backdrop-filter: blur(10px) saturate(128%);
-    -webkit-backdrop-filter: blur(10px) saturate(128%);
-    box-shadow: 0 -10px 20px rgba(18, 67, 102, 0.1);
 }
 
 /* 设置热门潜点卡片的外观、层次和悬停反馈 */
@@ -3861,12 +3735,6 @@ body[data-home-performance='lite'] .bamboo-card-content {
     max-width: 1460px;
     display: grid;
     gap: clamp(32px, 4vw, 60px);
-}
-
-.curated-waters-intro.curated-reveal {
-    opacity: 1;
-    transform: none;
-    filter: none;
 }
 
 .curated-waters-intro {
@@ -7480,15 +7348,6 @@ body[data-current-home-layer="story"] .story-river-line {
     animation-play-state: paused;
 }
 
-body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow:
-        0 16px 30px rgba(6, 20, 31, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.09);
-    animation-duration: 12s;
-}
-
 /* 海图导览可见时才播放漂浮动画，节省离屏 GPU 开销 */
 .sea-guide-home.is-visible .sea-guide-trigger {
     animation-play-state: running;
@@ -7516,10 +7375,6 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger {
         0 20px 36px rgba(6, 20, 31, 0.24),
         inset 0 1px 0 rgba(255, 255, 255, 0.14),
         0 0 16px rgba(144, 202, 226, 0.1);
-}
-
-body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
-    transform: translateY(-2px);
 }
 
 /* 展开或悬停时，让潮光沿着按钮轻微移动 */
@@ -7610,18 +7465,6 @@ body[data-home-performance='lite'] .sea-guide-home .sea-guide-trigger:hover {
 .sea-guide-home .sea-guide-panel > * {
     position: relative;
     z-index: 1;
-}
-
-body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel::before {
-    content: none;
-}
-
-body[data-home-performance='lite'] .sea-guide-home .sea-guide-panel {
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow:
-        0 22px 44px rgba(6, 20, 31, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* 首页与行程页导览面板保留滚动能力，但把原生滚动条藏起来，避免白轨露出来。 */
@@ -13208,6 +13051,7 @@ body.home-page .today-sea-maplet-svg {
     height: 100%;
     overflow: visible;
     display: block;
+    z-index: 1;
 }
 
 body.home-page .today-sea-maplet-bg {
@@ -13236,19 +13080,19 @@ body.home-page .today-sea-maplet-contour.is-inner {
 }
 
 body.home-page .today-sea-maplet-coast-shape {
-    fill: rgba(118, 147, 132, 0.6);
-    stroke: rgba(235, 249, 246, 0.86);
-    stroke-width: 1.35;
+    fill: url("#todaySeaMapletLandPattern");
+    stroke: rgba(216, 231, 217, 0.72);
+    stroke-width: 1;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
-    filter: drop-shadow(1.5px 2px 2px rgba(0, 9, 18, 0.22));
+    filter: drop-shadow(0.8px 1.2px 1.2px rgba(0, 9, 18, 0.2));
     paint-order: stroke fill;
 }
 
 body.home-page .today-sea-maplet-shelf-shape {
-    fill: rgba(75, 147, 166, 0.25);
-    stroke: rgba(198, 236, 241, 0.44);
-    stroke-width: 0.9;
+    fill: url("#todaySeaMapletReefPattern");
+    stroke: rgba(175, 220, 219, 0.4);
+    stroke-width: 0.75;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
 }
@@ -13260,6 +13104,7 @@ body.home-page .today-sea-maplet-route-line {
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-dasharray: 4.5 3.2;
+    stroke-dashoffset: 0;
     vector-effect: non-scaling-stroke;
 }
 
@@ -13280,11 +13125,35 @@ body.home-page .today-sea-maplet-point.is-sub {
     stroke-width: 0.9;
 }
 
+body.home-page .today-sea-maplet-bearing,
+body.home-page .today-sea-maplet-sounding,
+body.home-page .today-sea-maplet-scale,
+body.home-page .today-sea-maplet-grid-line {
+    transition:
+        opacity 260ms ease,
+        transform 420ms cubic-bezier(0.2, 0.78, 0.22, 1),
+        filter 420ms ease;
+    transform-origin: 50% 50%;
+}
+
 body.home-page .today-sea-maplet-bearing {
     fill: rgba(218, 242, 246, 0.58);
     font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.16em;
+}
+
+body.home-page .today-sea-maplet-label {
+    fill: rgba(226, 237, 226, 0.48);
+    font-size: 4.9px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 10, 18, 0.35);
+}
+
+body.home-page .today-sea-maplet-label.is-reef {
+    fill: rgba(188, 226, 224, 0.44);
 }
 
 body.home-page .today-sea-maplet-sounding {
@@ -13306,30 +13175,242 @@ body.home-page .today-sea-maplet-coast-shape,
 body.home-page .today-sea-maplet-shelf-shape,
 body.home-page .today-sea-maplet-route-line,
 body.home-page .today-sea-maplet-contour,
-body.home-page .today-sea-maplet-point {
+body.home-page .today-sea-maplet-point,
+body.home-page .today-sea-maplet-label {
     transition:
-        opacity 300ms ease,
-        transform 300ms ease;
+        opacity 260ms ease,
+        transform 560ms cubic-bezier(0.18, 0.78, 0.22, 1),
+        filter 560ms ease,
+        stroke-dashoffset 780ms cubic-bezier(0.18, 0.78, 0.22, 1);
     transform-origin: 50% 50%;
+}
+
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-coast-shape,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-shelf-shape,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-route-line,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-contour,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-point,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-label,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-bearing,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-sounding,
+body.home-page .today-sea-maplet.is-map-exiting .today-sea-maplet-scale {
+    opacity: 0.12;
+    transform: translate3d(-6px, 7px, 0) scale(0.96);
+    filter: blur(1.4px);
+}
+
+body.home-page .today-sea-maplet-echo-layer {
+    pointer-events: none;
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+}
+
+body.home-page .today-sea-maplet-echo-layer .today-sea-maplet-echo-mark {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+}
+
+body.home-page .today-sea-maplet-echo-layer .today-sea-maplet-route-line {
+    stroke-dasharray: 4.5 3.2;
+}
+
+body.home-page .today-sea-maplet-echo-layer.is-retiring {
+    animation: today-sea-maplet-echo-retire 720ms cubic-bezier(0.24, 0.7, 0.2, 1) both;
+}
+
+body.home-page .today-sea-maplet-echo-layer.is-retiring .today-sea-maplet-contour {
+    animation: today-sea-maplet-echo-line-retire 580ms ease both;
+}
+
+body.home-page .today-sea-maplet-echo-layer.is-retiring .today-sea-maplet-route-line {
+    animation: today-sea-maplet-echo-route-retire 640ms ease both;
+}
+
+body.home-page .today-sea-maplet-echo-layer.is-retiring .today-sea-maplet-point {
+    animation: today-sea-maplet-echo-point-retire 540ms ease both;
 }
 
 body.home-page .today-sea-maplet.is-changing .today-sea-maplet-coast-shape,
 body.home-page .today-sea-maplet.is-changing .today-sea-maplet-shelf-shape,
 body.home-page .today-sea-maplet.is-changing .today-sea-maplet-route-line,
 body.home-page .today-sea-maplet.is-changing .today-sea-maplet-contour,
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-point,
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-label {
+    animation: today-sea-maplet-svg-read 920ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+}
+
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-contour {
+    animation-name: today-sea-maplet-contour-read;
+    animation-delay: 40ms;
+}
+
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-shelf-shape {
+    animation-delay: 120ms;
+}
+
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-coast-shape {
+    animation-delay: 190ms;
+}
+
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-route-line {
+    animation-name: today-sea-maplet-route-read;
+    animation-delay: 300ms;
+    stroke-dasharray: var(--today-map-route-length, 38) var(--today-map-route-length, 38);
+    stroke-dashoffset: var(--today-map-route-length, 38);
+}
+
 body.home-page .today-sea-maplet.is-changing .today-sea-maplet-point {
-    animation: today-sea-maplet-svg-read 320ms ease-out both;
+    animation-name: today-sea-maplet-point-read;
+    animation-delay: 420ms;
+}
+
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-label,
+body.home-page .today-sea-maplet.is-changing .today-sea-maplet-bearing {
+    animation-name: today-sea-maplet-label-read;
+    animation-delay: 500ms;
 }
 
 @keyframes today-sea-maplet-svg-read {
     0% {
-        opacity: 0.42;
-        transform: translate3d(0, 1.5px, 0);
+        opacity: 0;
+        transform: translate3d(7px, -8px, 0) scale(0.95);
+        filter: blur(1.8px);
+    }
+
+    46% {
+        opacity: 0.78;
+        transform: translate3d(-1px, 1.5px, 0) scale(1.01);
+        filter: blur(0.2px);
     }
 
     100% {
         opacity: 1;
         transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-maplet-contour-read {
+    0% {
+        opacity: 0;
+        transform: translate3d(4px, -5px, 0);
+        filter: blur(1.4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-maplet-route-read {
+    0% {
+        opacity: 0;
+        stroke-dasharray: var(--today-map-route-length, 38) var(--today-map-route-length, 38);
+        stroke-dashoffset: var(--today-map-route-length, 38);
+        transform: translate3d(-5px, 4px, 0);
+        filter: blur(1.1px);
+    }
+
+    62% {
+        opacity: 0.85;
+    }
+
+    100% {
+        opacity: 1;
+        stroke-dasharray: 4.5 3.2;
+        stroke-dashoffset: 0;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-maplet-echo-retire {
+    0% {
+        opacity: 0.96;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+
+    42% {
+        opacity: 0.52;
+        transform: translate3d(-3px, 5px, 0) scale(0.985);
+        filter: blur(0.45px);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(-9px, 13px, 0) scale(0.94);
+        filter: blur(1.6px);
+    }
+}
+
+@keyframes today-sea-maplet-echo-line-retire {
+    0% {
+        stroke-dashoffset: 0;
+    }
+
+    100% {
+        stroke-dashoffset: 18;
+    }
+}
+
+@keyframes today-sea-maplet-echo-route-retire {
+    0% {
+        stroke-dashoffset: 0;
+        opacity: 0.8;
+    }
+
+    100% {
+        stroke-dashoffset: -24;
+        opacity: 0;
+    }
+}
+
+@keyframes today-sea-maplet-echo-point-retire {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.42);
+    }
+}
+
+@keyframes today-sea-maplet-point-read {
+    0% {
+        opacity: 0;
+        transform: scale(0.35);
+        filter: blur(1.2px);
+    }
+
+    54% {
+        opacity: 1;
+        transform: scale(1.18);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-maplet-label-read {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 4px, 0);
+        filter: blur(0.8px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
     }
 }
 
@@ -13415,6 +13496,26 @@ body.home-page .today-sea-brief::before {
     height: 1px;
     background: linear-gradient(90deg, rgba(207, 241, 250, 0), rgba(207, 241, 250, 0.16), rgba(207, 241, 250, 0));
     pointer-events: none;
+}
+
+body.home-page .today-sea-brief::after {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    inset: 4px clamp(24px, 3vw, 42px);
+    border-radius: 12px;
+    background:
+        linear-gradient(100deg, rgba(229, 250, 255, 0) 0%, rgba(229, 250, 255, 0.07) 30%, rgba(225, 249, 255, 0.24) 48%, rgba(157, 223, 238, 0.12) 66%, rgba(157, 223, 238, 0) 100%);
+    filter: blur(8px);
+    opacity: 0;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    transform: translate3d(-24%, 0, 0) scaleX(0.88);
+}
+
+body.home-page .today-sea-brief.is-updating::after,
+body.home-page .today-sea-brief.is-reading::after {
+    animation: today-sea-brief-water-sheen 940ms cubic-bezier(0.2, 0.72, 0.22, 1) both;
 }
 
 body.home-page .today-sea-brief-panel {
@@ -13700,20 +13801,58 @@ body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-rating {
 /* 今日海域：档案切换动画与轮播稳定性 */
 body.home-page .today-sea-brief-panel {
     transition:
-        opacity 360ms ease,
-        transform 420ms cubic-bezier(0.2, 0.72, 0.22, 1),
+        opacity 260ms ease,
+        transform 260ms cubic-bezier(0.28, 0.64, 0.24, 1),
+        filter 260ms ease,
         border-color 360ms ease,
         box-shadow 420ms ease;
+    transform-origin: 50% 72%;
 }
 
 body.home-page .today-sea-brief.is-updating .today-sea-brief-panel {
     opacity: 0.58;
-    transform: translate3d(0, 5px, 0);
-    filter: blur(0.1px);
+    transform: translate3d(0, 8px, 0);
+    filter: blur(0.38px);
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-maplet,
+body.home-page .today-sea-brief.is-updating .today-sea-brief-copy,
+body.home-page .today-sea-brief.is-updating .today-sea-data-item,
+body.home-page .today-sea-brief.is-updating .today-sea-progress-orbit,
+body.home-page .today-sea-brief.is-updating .today-sea-progress-copy {
+    opacity: 0.24;
+    transform: translate3d(0, 11px, 0);
+    filter: blur(0.82px);
+    transition:
+        opacity 260ms ease,
+        transform 260ms cubic-bezier(0.28, 0.64, 0.24, 1),
+        filter 260ms ease;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-maplet {
+    opacity: 0.7;
+    transform: translate3d(0, 5px, 0) scale(0.994);
+    filter: none;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-progress-orbit {
+    transform: translate3d(0, 10px, 0) scale(0.92) rotate(-10deg);
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-position-panel {
+    transition-delay: 0ms;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-data-panel {
+    transition-delay: 44ms;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-progress-panel {
+    transition-delay: 88ms;
 }
 
 body.home-page .today-sea-brief.is-reading .today-sea-brief-panel {
-    animation: today-sea-brief-read-in 480ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+    animation: today-sea-brief-read-in 520ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
 }
 
 body.home-page .today-sea-brief.is-reading .today-sea-position-panel {
@@ -13728,28 +13867,248 @@ body.home-page .today-sea-brief.is-reading .today-sea-progress-panel {
     animation-delay: 130ms;
 }
 
-body.home-page .today-sea-brief.is-reading .today-sea-maplet-dot.is-current {
-    animation: today-sea-map-point-read 360ms ease-out both;
+body.home-page .today-sea-brief.is-reading .today-sea-maplet,
+body.home-page .today-sea-brief.is-reading .today-sea-brief-copy {
+    animation: today-sea-content-read-in 560ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-maplet {
+    animation-delay: 0ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-brief-copy {
+    animation-delay: 55ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-maplet-point.is-main {
+    animation: today-sea-map-point-read 560ms ease-out both;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-item {
+    animation: today-sea-data-read 560ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
 }
 
 body.home-page .today-sea-brief.is-reading .today-sea-data-grid dd {
-    animation: today-sea-data-read 460ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+    animation: today-sea-data-value-read 640ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
 }
 
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(1),
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(1) dd {
+    animation-delay: 20ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(2),
 body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(2) dd {
-    animation-delay: 40ms;
+    animation-delay: 90ms;
 }
 
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(3),
 body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(3) dd {
-    animation-delay: 80ms;
+    animation-delay: 160ms;
 }
 
+body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(4),
 body.home-page .today-sea-brief.is-reading .today-sea-data-item:nth-child(4) dd {
-    animation-delay: 120ms;
+    animation-delay: 230ms;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-data-grid dd.today-sea-type-line {
+    animation: today-sea-type-line-in 780ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+    animation-delay: var(--today-sea-line-delay, 0ms);
 }
 
 body.home-page .today-sea-brief.is-reading .today-sea-progress-orbit {
-    animation: today-sea-progress-read 640ms ease-out both;
+    animation: today-sea-progress-read 620ms cubic-bezier(0.18, 0.72, 0.22, 1) 110ms both;
+}
+
+body.home-page .today-sea-brief.is-reading .today-sea-progress-copy {
+    animation: today-sea-content-read-in 560ms cubic-bezier(0.18, 0.72, 0.22, 1) 155ms both;
+}
+
+body.home-page .today-sea-brief.is-reading-current.is-awakened .today-sea-brief-copy,
+body.home-page .today-sea-brief.is-reading-current.is-awakened .today-sea-progress-copy,
+body.home-page .today-sea-brief.is-reading-current.is-awakened .today-sea-data-grid dd {
+    transform: translate3d(0, 0, 0);
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-brief-copy h3,
+body.home-page .today-sea-brief.is-updating .today-sea-brief-copy p,
+body.home-page .today-sea-brief.is-updating .today-sea-brief-copy span,
+body.home-page .today-sea-brief.is-updating .today-sea-data-grid dd,
+body.home-page .today-sea-brief.is-updating .today-sea-progress-copy strong,
+body.home-page .today-sea-brief.is-updating .today-sea-progress-copy span,
+body.home-page .today-sea-brief.is-updating .today-sea-progress-copy p {
+    animation: today-sea-type-line-out 280ms ease both;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-brief-copy p {
+    animation-delay: 28ms;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-brief-copy span,
+body.home-page .today-sea-brief.is-updating .today-sea-data-grid .today-sea-data-item:nth-child(2) dd {
+    animation-delay: 56ms;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-data-grid .today-sea-data-item:nth-child(3) dd,
+body.home-page .today-sea-brief.is-updating .today-sea-progress-copy span {
+    animation-delay: 84ms;
+}
+
+body.home-page .today-sea-brief.is-updating .today-sea-data-grid .today-sea-data-item:nth-child(4) dd,
+body.home-page .today-sea-brief.is-updating .today-sea-progress-copy p {
+    animation-delay: 112ms;
+}
+
+body.home-page .today-sea-type-line {
+    position: relative;
+    display: block;
+    min-height: 1em;
+    isolation: isolate;
+    white-space: normal;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+    animation: today-sea-type-line-in 640ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+    animation-delay: var(--today-sea-line-delay, 0ms);
+    will-change: opacity, transform, filter;
+}
+
+body.home-page .today-sea-data-grid dd.today-sea-type-line,
+body.home-page .today-sea-progress-copy strong.today-sea-type-line {
+    white-space: nowrap;
+}
+
+body.home-page .today-sea-brief-copy p.today-sea-type-line,
+body.home-page .today-sea-brief-copy span.today-sea-type-line,
+body.home-page .today-sea-progress-copy span.today-sea-type-line,
+body.home-page .today-sea-progress-copy p.today-sea-type-line {
+    overflow: hidden;
+}
+
+body.home-page .today-sea-progress-copy strong.today-sea-type-line {
+    display: block;
+}
+
+body.home-page .today-sea-type-line::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(177, 230, 244, 0), rgba(177, 230, 244, 0.42), rgba(177, 230, 244, 0));
+    opacity: 0;
+    transform: scaleX(0.24);
+    transform-origin: left center;
+    pointer-events: none;
+}
+
+body.home-page .today-sea-brief.is-reading-current.is-awakened .today-sea-type-line::after {
+    animation: today-sea-type-line-scan 860ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+    animation-delay: var(--today-sea-line-delay, 0ms);
+}
+
+body.home-page .today-sea-type-title {
+    animation-duration: 780ms;
+}
+
+body.home-page .today-sea-brief .today-sea-type-line.today-sea-type-meta {
+    color: rgba(230, 248, 253, 0.92);
+}
+
+body.home-page .today-sea-brief .today-sea-type-line.today-sea-type-reading,
+body.home-page .today-sea-brief .today-sea-type-line.today-sea-type-progress {
+    color: rgba(250, 254, 255, 0.98);
+    text-shadow:
+        0 0 12px rgba(126, 207, 235, 0.18),
+        0 8px 18px rgba(1, 9, 18, 0.32);
+}
+
+body.home-page .today-sea-brief .today-sea-type-line.today-sea-type-note {
+    color: rgba(232, 247, 252, 0.9);
+}
+
+body.home-page .today-sea-type-char {
+    display: inline-block;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    opacity: 0;
+    filter: blur(18px);
+    transform: translate3d(0, 13px, 0);
+    vertical-align: baseline;
+    text-shadow: 0 0 0 rgba(198, 228, 241, 0);
+    transition:
+        opacity 0.24s ease,
+        transform 0.24s ease,
+        filter 0.24s ease,
+        text-shadow 0.24s ease;
+    will-change: opacity, transform, filter;
+}
+
+body.home-page .today-sea-brief .today-sea-type-line > .today-sea-type-char {
+    display: inline-block;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+}
+
+body.home-page .today-sea-type-char.is-space {
+    width: 0.3em;
+}
+
+body.home-page .today-sea-type-char.is-visible {
+    animation: today-sea-char-mist-in 920ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+    animation-delay: var(--today-sea-char-delay, 0ms);
+}
+
+body.home-page .today-sea-type-char.is-visible.is-stable {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    animation: none;
+    text-shadow: 0 9px 18px rgba(117, 177, 202, 0.14);
+}
+
+body.home-page .today-sea-type-reading .today-sea-type-char,
+body.home-page .today-sea-type-progress .today-sea-type-char {
+    filter: blur(15px);
+    transform: translate3d(0, 11px, 0);
+}
+
+body.home-page .today-sea-type-reading .today-sea-type-char.is-visible,
+body.home-page .today-sea-type-progress .today-sea-type-char.is-visible {
+    animation-name: today-sea-reading-char-mist-in;
+}
+
+body.home-page .today-sea-type-reading .today-sea-type-char.is-visible.is-stable,
+body.home-page .today-sea-type-progress .today-sea-type-char.is-visible.is-stable {
+    animation: none;
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+    text-shadow:
+        0 0 10px rgba(181, 232, 246, 0.22),
+        0 9px 18px rgba(1, 9, 18, 0.2);
+}
+
+body.home-page .today-sea-type-meta .today-sea-type-char.is-visible,
+body.home-page .today-sea-type-note .today-sea-type-char.is-visible {
+    text-shadow: 0 7px 14px rgba(117, 177, 202, 0.16);
+}
+
+body.home-page .today-sea-type-line.is-typed .today-sea-type-char.is-visible {
+    transition-duration: 0.34s, 0.52s, 0.5s, 0.52s;
+}
+
+body.home-page .today-sea-brief.is-typed .today-sea-brief-copy h3,
+body.home-page .today-sea-brief.is-typed .today-sea-data-grid dd,
+body.home-page .today-sea-brief.is-typed .today-sea-progress-copy strong {
+    animation: none;
+    transform: none;
 }
 
 body.home-page .hero-bamboo-cards-wrapper.is-step-locked {
@@ -13796,9 +14155,15 @@ body.home-page .hero-hotspots-shell .scroll-arrow.is-step-locked .button-top {
 
 @keyframes today-sea-brief-read-in {
     0% {
-        opacity: 0.52;
-        transform: translate3d(0, 7px, 0);
-        filter: blur(0.35px);
+        opacity: 0.62;
+        transform: translate3d(0, -7px, 0);
+        filter: blur(0.3px);
+    }
+
+    58% {
+        opacity: 0.92;
+        transform: translate3d(0, 2px, 0);
+        filter: blur(0.08px);
     }
 
     100% {
@@ -13810,13 +14175,186 @@ body.home-page .hero-hotspots-shell .scroll-arrow.is-step-locked .button-top {
 
 @keyframes today-sea-data-read {
     0% {
-        opacity: 0.28;
-        transform: translate3d(0, 5px, 0);
+        opacity: 0.26;
+        transform: translate3d(0, -11px, 0);
+        filter: blur(0.5px);
+    }
+
+    54% {
+        opacity: 0.86;
+        transform: translate3d(0, 2px, 0);
+        filter: blur(0.08px);
     }
 
     100% {
         opacity: 1;
         transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-data-value-read {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -7px, 0);
+        filter: blur(0.4px);
+    }
+
+    42% {
+        opacity: 0.72;
+        filter: blur(0.08px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-type-line-out {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translate3d(0, 12px, 0);
+        filter: blur(8px);
+    }
+}
+
+@keyframes today-sea-type-line-in {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+        filter: blur(8px);
+    }
+
+    54% {
+        opacity: 1;
+        transform: translate3d(0, -1.5px, 0);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-type-line-scan {
+    0% {
+        opacity: 0;
+        transform: scaleX(0.16);
+    }
+
+    42% {
+        opacity: 0.68;
+    }
+
+    100% {
+        opacity: 0;
+        transform: scaleX(1);
+    }
+}
+
+@keyframes today-sea-char-mist-in {
+    0% {
+        opacity: 0;
+        filter: blur(18px);
+        transform: translate3d(0, 14px, 0);
+        text-shadow: 0 0 0 rgba(198, 228, 241, 0);
+    }
+
+    18% {
+        opacity: 0.36;
+        filter: blur(15px);
+        transform: translate3d(0, 10px, 0);
+    }
+
+    42% {
+        opacity: 0.78;
+        filter: blur(7px);
+        transform: translate3d(0, 3px, 0);
+        text-shadow:
+            0 0 18px rgba(180, 229, 244, 0.24),
+            0 10px 20px rgba(1, 9, 18, 0.18);
+    }
+
+    72% {
+        opacity: 1;
+        filter: blur(1.2px);
+        transform: translate3d(0, -1px, 0);
+        text-shadow:
+            0 0 10px rgba(180, 229, 244, 0.2),
+            0 9px 18px rgba(1, 9, 18, 0.14);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate3d(0, 0, 0);
+        text-shadow: 0 9px 18px rgba(117, 177, 202, 0.18);
+    }
+}
+
+@keyframes today-sea-reading-char-mist-in {
+    0% {
+        opacity: 0;
+        filter: blur(16px);
+        transform: translate3d(0, 12px, 0);
+        text-shadow: 0 0 0 rgba(181, 232, 246, 0);
+    }
+
+    20% {
+        opacity: 0.42;
+        filter: blur(12px);
+        transform: translate3d(0, 8px, 0);
+    }
+
+    46% {
+        opacity: 0.88;
+        filter: blur(5.5px);
+        transform: translate3d(0, 2px, 0);
+        text-shadow:
+            0 0 20px rgba(181, 232, 246, 0.46),
+            0 10px 18px rgba(1, 9, 18, 0.22);
+    }
+
+    76% {
+        opacity: 1;
+        filter: blur(0.9px);
+        transform: translate3d(0, -1px, 0);
+        text-shadow:
+            0 0 14px rgba(181, 232, 246, 0.34),
+            0 9px 18px rgba(1, 9, 18, 0.24);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate3d(0, 0, 0);
+        text-shadow:
+            0 0 10px rgba(181, 232, 246, 0.3),
+            0 9px 18px rgba(1, 9, 18, 0.24);
+    }
+}
+
+@keyframes today-sea-type-reading-settle {
+    0% {
+        text-shadow:
+            0 0 16px rgba(181, 232, 246, 0.42),
+            0 9px 18px rgba(1, 9, 18, 0.26);
+    }
+
+    100% {
+        text-shadow:
+            0 0 8px rgba(181, 232, 246, 0.16),
+            0 8px 18px rgba(1, 9, 18, 0.24);
     }
 }
 
@@ -13842,29 +14380,74 @@ body.home-page .hero-hotspots-shell .scroll-arrow.is-step-locked .button-top {
 
 @keyframes today-sea-progress-read {
     0% {
-        opacity: 0.52;
-        transform: scale(0.96) rotate(-6deg);
+        opacity: 0.38;
+        transform: translate3d(0, -8px, 0) scale(0.84) rotate(-16deg);
+        filter: blur(0.55px);
+    }
+
+    55% {
+        opacity: 0.9;
+        transform: translate3d(0, 1px, 0) scale(1.035) rotate(7deg);
+        filter: blur(0.08px);
     }
 
     100% {
         opacity: 0.76;
-        transform: scale(1) rotate(0deg);
+        transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+        filter: blur(0);
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    body.home-page .today-sea-brief.is-updating .today-sea-brief-panel,
-    body.home-page .today-sea-brief.is-reading .today-sea-brief-panel,
-    body.home-page .today-sea-brief.is-reading .today-sea-data-grid dd,
-    body.home-page .today-sea-brief.is-reading .today-sea-maplet-dot.is-current,
-    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-coast-shape,
-    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-shelf-shape,
-    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-route-line,
-    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-contour,
-    body.home-page .today-sea-maplet.is-changing .today-sea-maplet-point,
-    body.home-page .today-sea-brief.is-reading .today-sea-progress-orbit {
-        animation: none;
-        transform: none;
-        filter: none;
+@keyframes today-sea-type-title-settle {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    42% {
+        transform: translate3d(0, -2px, 0);
+    }
+
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes today-sea-content-read-in {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -13px, 0);
+        filter: blur(0.55px);
+    }
+
+    48% {
+        opacity: 0.82;
+        transform: translate3d(0, 2px, 0);
+        filter: blur(0.08px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes today-sea-brief-water-sheen {
+    0% {
+        opacity: 0;
+        transform: translate3d(-18%, 0, 0) scaleX(0.94);
+    }
+
+    34% {
+        opacity: 0.3;
+    }
+
+    70% {
+        opacity: 0.22;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(24%, 0, 0) scaleX(1.04);
     }
 }

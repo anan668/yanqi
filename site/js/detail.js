@@ -47,6 +47,8 @@ const SEA_ATLAS_OFFLINE_TILE_SIZE = 1024;
 const SEA_ATLAS_OFFLINE_TILE_ZOOM_OFFSET = -2;
 const SEA_ATLAS_TILE_BUFFER_COLUMNS = 2;
 const SEA_ATLAS_TILE_BUFFER_ROWS = 2;
+const SEA_ATLAS_CLUSTER_SPREAD_FACTOR = 0.24;
+const SEA_ATLAS_LABEL_COLLISION_PADDING = 8;
 const seaAtlasPackCache = new Map();
 let SeaAtlasPackedTileLayerClass = null;
 
@@ -4043,8 +4045,15 @@ class DetailPage {
         }
 
         const shouldCollapse = this.shouldCollapseBookingCopy();
+        const wasCollapsed = this.bookingCopy.classList.contains('is-collapsed-for-focus');
         this.bookingCopy.classList.toggle('is-collapsed-for-focus', shouldCollapse);
         this.bookingSticky?.classList.toggle('is-booking-copy-collapsed', shouldCollapse);
+
+        if (wasCollapsed !== shouldCollapse) {
+            window.requestAnimationFrame(() => {
+                this.updateBookingStickyStackOffsets();
+            });
+        }
     }
 
     /**
@@ -5919,8 +5928,8 @@ class DetailPage {
                 path: 'M 88 258 C 126 240 172 214 232 196 C 300 174 360 144 420 134 C 474 132 522 164 548 214',
                 nodes: [
                     { x: 88, y: 258, shiftX: 8, width: 156, nodeGap: 56 },
-                    { x: 232, y: 196, shiftX: 28, width: 152, nodeGap: 42 },
-                    { x: 420, y: 134, shiftX: -18, width: 154, nodeGap: 16 },
+                    { x: 218, y: 196, shiftX: 46, width: 142, nodeGap: 42 },
+                    { x: 438, y: 134, shiftX: 18, width: 150, nodeGap: 16 },
                     { x: 548, y: 214, shiftX: -54, width: 176, nodeGap: 18, placement: 'below', final: true }
                 ]
             },
@@ -5930,8 +5939,8 @@ class DetailPage {
                 path: 'M 84 264 C 120 246 162 222 214 198 C 272 174 330 150 388 144 C 446 142 498 170 526 212',
                 nodes: [
                     { x: 84, y: 264, shiftX: 6, width: 142, nodeGap: 52 },
-                    { x: 214, y: 198, shiftX: 26, width: 142, nodeGap: 40 },
-                    { x: 388, y: 144, shiftX: -12, width: 144, nodeGap: 16 },
+                    { x: 204, y: 198, shiftX: 38, width: 134, nodeGap: 40 },
+                    { x: 404, y: 144, shiftX: 16, width: 140, nodeGap: 16 },
                     { x: 526, y: 212, shiftX: -46, width: 160, nodeGap: 18, placement: 'below', final: true }
                 ]
             }
@@ -6180,6 +6189,7 @@ class DetailPage {
                         <path class="sea-atlas-route-line sea-route-line" data-sea-atlas-route-layer="line" fill="none"></path>
                         <path class="sea-atlas-route-line-sheen sea-route-line-sheen" data-sea-atlas-route-layer="sheen" fill="none"></path>
                     </svg>
+                    <span class="sea-atlas-route-label" data-sea-atlas-route-label></span>
                 </div>
                 <div class="sea-atlas-info-root" data-sea-atlas-info-root></div>
             </div>
@@ -6361,16 +6371,24 @@ class DetailPage {
         const latitudeSpan = north - south;
         const longitudeSpan = east - west;
         const labels = this.getSeaAtlasClusterLabels(mapData).slice(1, 5);
+        const spreadPattern = [
+            { lat: 0.9, lng: -1.1 },
+            { lat: -0.75, lng: 1.15 },
+            { lat: 1.1, lng: 0.95 },
+            { lat: -1.05, lng: -0.9 }
+        ];
 
         return labels.map((label, index) => {
             const previewPosition = SEA_ATLAS_PREVIEW_MARKER_POSITIONS[index + 1] || SEA_ATLAS_PREVIEW_MARKER_POSITIONS[index] || SEA_ATLAS_PREVIEW_MARKER_POSITIONS[0];
             const normalizedLeft = ((parseFloat(previewPosition.left) / 100) - 0.5) * 2;
             const normalizedTop = (0.5 - (parseFloat(previewPosition.top) / 100)) * 2;
+            const spread = spreadPattern[index % spreadPattern.length];
             return {
                 label,
+                index,
                 coords: [
-                    spotLat + (latitudeSpan * 0.12 * normalizedTop),
-                    spotLng + (longitudeSpan * 0.12 * normalizedLeft)
+                    spotLat + (latitudeSpan * SEA_ATLAS_CLUSTER_SPREAD_FACTOR * normalizedTop) + (latitudeSpan * 0.018 * spread.lat),
+                    spotLng + (longitudeSpan * SEA_ATLAS_CLUSTER_SPREAD_FACTOR * normalizedLeft) + (longitudeSpan * 0.018 * spread.lng)
                 ]
             };
         });
@@ -6642,6 +6660,11 @@ class DetailPage {
         return this.mapContainer?.querySelector('[data-sea-atlas-reset-view][data-sea-atlas-target="inline"]') || null;
     }
 
+    getSeaAtlasRouteLabelNode(target = 'inline') {
+        const routeOverlay = this.getSeaAtlasRouteOverlayNode(target);
+        return routeOverlay?.querySelector('[data-sea-atlas-route-label]') || null;
+    }
+
     getSeaAtlasViewPadding(target = 'inline') {
         if (target === 'fullscreen') {
             return [84, 84];
@@ -6726,15 +6749,23 @@ class DetailPage {
         this.syncSeaAtlasResetButtonState('fullscreen');
     }
 
-    createSeaAtlasMarkerIcon(kind, label, isActive = false) {
+    createSeaAtlasMarkerIcon(kind, label, isActive = false, options = {}) {
         const isSpot = kind === 'spot';
         const isWaypoint = kind === 'waypoint';
         const size = isSpot ? 56 : isWaypoint ? 40 : 44;
+        const priority = Number(options.priority) || (isSpot ? 1 : kind === 'port' ? 2 : 3);
+        const labelSide = options.labelSide || (isSpot ? 'top' : kind === 'port' ? 'left' : 'right');
+        const labelText = String(label || '').trim();
         return window.L.divIcon({
             className: `sea-atlas-marker-shell is-${kind}`,
             html: `
-                <div class="sea-atlas-marker is-${kind}${isActive ? ' is-active' : ''}" style="--sea-marker-delay:${isSpot ? 320 : isWaypoint ? 240 : 180}ms;">
-                    <span class="sea-atlas-marker-label">${escapeHtml(label)}</span>
+                <div
+                    class="sea-atlas-marker is-${kind}${isActive ? ' is-active' : ''}"
+                    data-sea-atlas-label-priority="${priority}"
+                    data-sea-atlas-label-side="${escapeHtml(labelSide)}"
+                    style="--sea-marker-delay:${isSpot ? 320 : isWaypoint ? 240 : 180}ms;"
+                >
+                    <span class="sea-atlas-marker-label" data-sea-atlas-marker-label title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
                 </div>
             `,
             iconSize: [size, size],
@@ -6759,18 +6790,27 @@ class DetailPage {
             ...markerOptions,
             interactive: false,
             zIndexOffset: 520,
-            icon: this.createSeaAtlasMarkerIcon('waypoint', markerData.label, false)
+            icon: this.createSeaAtlasMarkerIcon('waypoint', markerData.label, false, {
+                priority: 3,
+                labelSide: markerData.index % 2 === 0 ? 'right' : 'left'
+            })
         }));
 
         const spotMarker = window.L.marker(mapData.spotCoords, {
             ...markerOptions,
             zIndexOffset: 760,
-            icon: this.createSeaAtlasMarkerIcon('spot', mapData.spotLabel || this.spotData.name, true)
+            icon: this.createSeaAtlasMarkerIcon('spot', mapData.spotLabel || this.spotData.name, true, {
+                priority: 1,
+                labelSide: 'top'
+            })
         });
         const portMarker = window.L.marker(mapData.portCoords, {
             ...markerOptions,
             zIndexOffset: 640,
-            icon: this.createSeaAtlasMarkerIcon('port', mapData.portLabel || 'Departure', false)
+            icon: this.createSeaAtlasMarkerIcon('port', mapData.portLabel || 'Departure', false, {
+                priority: 2,
+                labelSide: 'left'
+            })
         });
 
         portMarker.on('mouseover', () => this.setSeaAtlasPortCardVisible(true, target));
@@ -7168,10 +7208,115 @@ class DetailPage {
         return commands.join(' ');
     }
 
+    getSeaAtlasReadableRouteLabel(mapData = this.seaAtlasCurrentMapData) {
+        const rawLabel = String(mapData?.routeLabel || '').trim();
+        if (!rawLabel) {
+            return 'Approach Route';
+        }
+
+        const compact = rawLabel
+            .replace(/^从/, '')
+            .replace(/出发[，,]?\s*/, ' · ')
+            .replace(/船行约\s*/, '')
+            .replace(/，/g, ' · ')
+            .trim();
+        return compact.length > 28 ? `${compact.slice(0, 28)}...` : compact;
+    }
+
+    routeLabelBoxOverlapsReservedAreas(labelNode, baseNode, target = 'inline') {
+        if (!labelNode || !baseNode) {
+            return false;
+        }
+
+        const routeRect = labelNode.getBoundingClientRect();
+        const baseRect = baseNode.getBoundingClientRect();
+        const padding = SEA_ATLAS_LABEL_COLLISION_PADDING;
+        const isOutOfFrame = routeRect.left < baseRect.left + padding
+            || routeRect.right > baseRect.right - padding
+            || routeRect.top < baseRect.top + padding
+            || routeRect.bottom > baseRect.bottom - padding;
+        if (isOutOfFrame) {
+            return true;
+        }
+
+        const cards = target === 'fullscreen'
+            ? [this.seaAtlasFullscreenSpotCard, this.seaAtlasFullscreenPortCard]
+            : [this.seaAtlasSpotCard, this.seaAtlasPortCard];
+        return cards.some((card) => {
+            if (!card || card.hidden || Number(getComputedStyle(card).opacity) <= 0.05) {
+                return false;
+            }
+            const cardRect = card.getBoundingClientRect();
+            return !(
+                routeRect.right + padding <= cardRect.left
+                || cardRect.right + padding <= routeRect.left
+                || routeRect.bottom + padding <= cardRect.top
+                || cardRect.bottom + padding <= routeRect.top
+            );
+        });
+    }
+
+    positionSeaAtlasRouteLabel(routeLabelNode, routePoints, baseNode, target = 'inline') {
+        if (!routeLabelNode || !Array.isArray(routePoints) || routePoints.length < 2 || !baseNode) {
+            return;
+        }
+
+        const mapData = this.seaAtlasCurrentMapData;
+        const labelText = this.getSeaAtlasReadableRouteLabel(mapData);
+        const startPoint = routePoints[0];
+        const endPoint = routePoints[routePoints.length - 1];
+        const midIndex = Math.max(1, Math.floor(routePoints.length / 2));
+        const midPoint = routePoints.length > 2
+            ? routePoints[midIndex]
+            : {
+                x: (startPoint.x + endPoint.x) / 2,
+                y: (startPoint.y + endPoint.y) / 2
+            };
+        const frameRect = baseNode.getBoundingClientRect();
+        const width = Math.max(1, Math.round(frameRect.width || 0));
+        const height = Math.max(1, Math.round(frameRect.height || 0));
+        const dx = endPoint.x - startPoint.x;
+        const dy = endPoint.y - startPoint.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const normal = {
+            x: (-dy / length) * 30,
+            y: (dx / length) * 30
+        };
+
+        const candidates = [
+            { x: midPoint.x + normal.x, y: midPoint.y + normal.y, side: 'upper' },
+            { x: midPoint.x - normal.x, y: midPoint.y - normal.y, side: 'lower' },
+            { x: (startPoint.x * 0.36) + (endPoint.x * 0.64) + normal.x * 0.8, y: (startPoint.y * 0.36) + (endPoint.y * 0.64) + normal.y * 0.8, side: 'outer' }
+        ];
+
+        routeLabelNode.textContent = labelText;
+        routeLabelNode.hidden = false;
+        routeLabelNode.classList.remove('is-subdued');
+
+        const clampInset = target === 'fullscreen' ? 56 : 34;
+        let selected = candidates[0];
+        for (const candidate of candidates) {
+            routeLabelNode.style.left = `${Math.round(Math.min(Math.max(candidate.x, clampInset), width - clampInset))}px`;
+            routeLabelNode.style.top = `${Math.round(Math.min(Math.max(candidate.y, clampInset), height - clampInset))}px`;
+            routeLabelNode.dataset.seaRouteLabelSide = candidate.side;
+            if (!this.routeLabelBoxOverlapsReservedAreas(routeLabelNode, baseNode, target)) {
+                selected = candidate;
+                break;
+            }
+            selected = candidate;
+        }
+
+        routeLabelNode.style.left = `${Math.round(Math.min(Math.max(selected.x, clampInset), width - clampInset))}px`;
+        routeLabelNode.style.top = `${Math.round(Math.min(Math.max(selected.y, clampInset), height - clampInset))}px`;
+        routeLabelNode.dataset.seaRouteLabelSide = selected.side;
+        routeLabelNode.classList.toggle('is-subdued', this.routeLabelBoxOverlapsReservedAreas(routeLabelNode, baseNode, target));
+    }
+
     syncSeaAtlasRouteOverlay(target = 'inline') {
         const map = this.getSeaAtlasMapInstance(target);
         const baseNode = this.getSeaAtlasBaseNode(target);
         const routeOverlay = this.getSeaAtlasRouteOverlayNode(target);
+        const routeLabelNode = this.getSeaAtlasRouteLabelNode(target);
         const mapData = this.seaAtlasCurrentMapData;
         if (!map || !baseNode || !routeOverlay || !mapData) {
             return;
@@ -7215,6 +7360,7 @@ class DetailPage {
 
         routeOverlay.style.setProperty('--sea-route-length', `${Math.max(routeLength, 1)}`);
         routeOverlay.style.setProperty('--sea-route-sheen-length', `${Math.max(Math.min(routeLength * 0.12, 72), 24)}`);
+        this.positionSeaAtlasRouteLabel(routeLabelNode, routePoints, baseNode, target);
     }
 
     syncSeaAtlasMapOverlays(target = 'inline') {
@@ -7233,6 +7379,136 @@ class DetailPage {
 
         this.positionSeaAtlasInfoCard(this.seaAtlasSpotCard, null, target);
         this.positionSeaAtlasInfoCard(this.seaAtlasPortCard, null, target);
+    }
+
+    getSeaAtlasMarkerElements(target = 'inline') {
+        const map = this.getSeaAtlasMapInstance(target);
+        const container = map?.getContainer?.() || null;
+        if (!container) {
+            return [];
+        }
+
+        return Array.from(container.querySelectorAll('.sea-atlas-marker'));
+    }
+
+    readSeaAtlasLabelRect(labelNode, priority, order) {
+        const rect = labelNode.getBoundingClientRect();
+        return {
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height,
+            priority,
+            order
+        };
+    }
+
+    seaAtlasLabelRectsOverlap(rectA, rectB, padding = SEA_ATLAS_LABEL_COLLISION_PADDING) {
+        return !(
+            rectA.right + padding <= rectB.left
+            || rectB.right + padding <= rectA.left
+            || rectA.bottom + padding <= rectB.top
+            || rectB.bottom + padding <= rectA.top
+        );
+    }
+
+    applySeaAtlasMarkerLabelSide(marker, side) {
+        if (!marker) {
+            return;
+        }
+
+        marker.dataset.seaAtlasLabelSide = side;
+        const label = marker.querySelector('[data-sea-atlas-marker-label]');
+        if (label) {
+            label.dataset.seaAtlasLabelSide = side;
+        }
+    }
+
+    syncSeaAtlasMarkerLabelLayout(target = 'inline') {
+        const baseNode = this.getSeaAtlasBaseNode(target);
+        if (!baseNode) {
+            return;
+        }
+
+        const baseRect = baseNode.getBoundingClientRect();
+        const markers = this.getSeaAtlasMarkerElements(target)
+            .map((marker, order) => {
+                const label = marker.querySelector('[data-sea-atlas-marker-label]');
+                const priority = Number(marker.dataset.seaAtlasLabelPriority) || 3;
+                return { marker, label, priority, order };
+            })
+            .filter((entry) => entry.label);
+
+        markers.forEach(({ marker, label }) => {
+            const preferredSide = marker.dataset.seaAtlasLabelSide || 'right';
+            this.applySeaAtlasMarkerLabelSide(marker, preferredSide);
+            marker.classList.remove('is-label-subdued', 'is-label-hidden');
+            label.textContent = label.getAttribute('title') || label.textContent;
+        });
+
+        const placed = [];
+        const reserveCardRects = target === 'fullscreen'
+            ? [this.seaAtlasFullscreenSpotCard, this.seaAtlasFullscreenPortCard]
+            : [this.seaAtlasSpotCard, this.seaAtlasPortCard];
+        reserveCardRects.forEach((card, index) => {
+            if (!card || card.hidden || Number(getComputedStyle(card).opacity) <= 0.05) {
+                return;
+            }
+
+            placed.push({
+                marker: null,
+                rect: this.readSeaAtlasLabelRect(card, 0, index),
+                priority: 0
+            });
+        });
+
+        markers
+            .sort((a, b) => a.priority - b.priority || a.order - b.order)
+            .forEach((entry) => {
+                const { marker, label, priority, order } = entry;
+                const preferredSide = marker.dataset.seaAtlasLabelSide || 'right';
+                const sideCandidates = Array.from(new Set([
+                    preferredSide,
+                    priority === 1 ? 'bottom' : 'left',
+                    priority === 1 ? 'right' : 'top',
+                    'bottom'
+                ]));
+                let placedRect = null;
+
+                for (const side of sideCandidates) {
+                    this.applySeaAtlasMarkerLabelSide(marker, side);
+                    const candidateRect = this.readSeaAtlasLabelRect(label, priority, order);
+                    const insideFrame = candidateRect.left >= baseRect.left + SEA_ATLAS_LABEL_COLLISION_PADDING
+                        && candidateRect.right <= baseRect.right - SEA_ATLAS_LABEL_COLLISION_PADDING
+                        && candidateRect.top >= baseRect.top + SEA_ATLAS_LABEL_COLLISION_PADDING
+                        && candidateRect.bottom <= baseRect.bottom - SEA_ATLAS_LABEL_COLLISION_PADDING;
+                    const collides = placed.some((existing) => this.seaAtlasLabelRectsOverlap(candidateRect, existing.rect));
+                    if (insideFrame && !collides) {
+                        placedRect = candidateRect;
+                        break;
+                    }
+                }
+
+                if (!placedRect) {
+                    const fallbackRect = this.readSeaAtlasLabelRect(label, priority, order);
+                    const collides = placed.some((existing) => this.seaAtlasLabelRectsOverlap(fallbackRect, existing.rect));
+                    if (priority >= 3 && collides) {
+                        marker.classList.add('is-label-hidden');
+                        return;
+                    }
+
+                    marker.classList.add('is-label-subdued');
+                    placedRect = fallbackRect;
+                }
+
+                placed.push({
+                    marker,
+                    rect: placedRect,
+                    priority
+                });
+            });
     }
 
     scheduleSeaAtlasMapSync(options = {}, target = 'inline') {
@@ -7254,6 +7530,7 @@ class DetailPage {
                 this.seaAtlasFullscreenSyncNeedsInvalidate = false;
                 this.renderSeaAtlasInfoCards(target);
                 this.syncSeaAtlasMapOverlays(target);
+                this.syncSeaAtlasMarkerLabelLayout(target);
                 this.syncSeaAtlasResetButtonState(target);
             });
             return;
@@ -7276,6 +7553,7 @@ class DetailPage {
             this.syncSeaAtlasMapStageCopy();
             this.renderSeaAtlasInfoCards(target);
             this.syncSeaAtlasMapOverlays(target);
+            this.syncSeaAtlasMarkerLabelLayout(target);
             this.syncSeaAtlasResetButtonState(target);
         });
     }
@@ -11450,7 +11728,6 @@ class DetailPage {
 
         this.cancelPackageModalConfirmScrollMotion();
 
-        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
         const startTop = modalContent.scrollTop;
         const nextTop = Math.max(0, targetTop);
         const distance = nextTop - startTop;
@@ -11463,20 +11740,18 @@ class DetailPage {
         const clampedTop = Math.min(nextTop, maxScrollTop);
         const totalDistance = clampedTop - startTop;
         let animatedStartTop = startTop;
-        if (!reducedMotion && Math.abs(totalDistance) > 80) {
+        if (Math.abs(totalDistance) > 80) {
             const initialNudge = Math.min(32, Math.max(16, Math.abs(totalDistance) * 0.018));
             animatedStartTop = startTop + (Math.sign(totalDistance) * initialNudge);
             modalContent.scrollTop = animatedStartTop;
         }
         const travelDistance = clampedTop - animatedStartTop;
-        const adaptiveDuration = reducedMotion
-            ? Math.min(980, Math.max(540, 460 + (Math.abs(totalDistance) * 0.12)))
-            : Math.min(2240, Math.max(duration, 980 + (Math.abs(totalDistance) * 0.24)));
+        const adaptiveDuration = Math.min(2240, Math.max(duration, 980 + (Math.abs(totalDistance) * 0.24)));
         const startTime = performance.now();
-        const dragPhaseTime = reducedMotion ? 0.42 : 0.36;
-        const dragPhaseDistance = reducedMotion ? 0.72 : 0.62;
-        const glidePhaseTime = reducedMotion ? 0.8 : 0.76;
-        const glidePhaseDistance = reducedMotion ? 0.92 : 0.88;
+        const dragPhaseTime = 0.36;
+        const dragPhaseDistance = 0.62;
+        const glidePhaseTime = 0.76;
+        const glidePhaseDistance = 0.88;
         const dragEase = (value) => 1 - Math.pow(1 - value, 1.16);
         const glideEase = (value) => 1 - Math.pow(1 - value, 1.55);
         const settleEase = (value) => 1 - Math.pow(1 - value, 1.42);

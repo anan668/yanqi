@@ -1,5 +1,709 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-05-10 18:16
+
+### 任务目的
+
+- 继续修复用户指出的 `todaySeaBriefName` 和 `todaySeaBriefProgress` 仍有动画收尾字体跳变问题。
+
+### 当前问题
+
+- `todaySeaBriefName` 的拆字 `span.today-sea-type-char` 被 `.today-sea-brief-copy span` 等旧规则命中，动画中字符字号变成 `13.12px`，结束还原纯文本后回到标题本身的 `19.84px`。
+- `todaySeaBriefProgress` 的拆字 `span.today-sea-type-char` 被 `.today-sea-progress-copy span` 等旧规则命中，动画中字符字号变成 `12.48px`，结束后回到进度读数本身的 `17.28px`。
+- `todaySeaBriefProgress` 拆字时还继承了 `strong` 的 flex 布局，每个字符会作为单独 flex item，容易造成字符间距和最终纯文本状态不一致。
+
+### 改动文件
+
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/home.css`：给 `.today-sea-brief .today-sea-type-line > .today-sea-type-char` 增加更高优先级的 `font-size`、`line-height`、`font-weight`、`letter-spacing` 继承规则，压过旧的 brief/progress `span` 样式。
+- `site/css/home.css`：让 `.today-sea-progress-copy strong.today-sea-type-line` 在拆字阶段使用 `display: block`，避免每个字符成为 flex item 被 gap 拉开；动画结束后移除临时 class，自动回到原本的 progress `flex` 最终态。
+- 本次不修改 `site/home.html`、`site/js/home.js`、深度计、页面过渡、本地状态、Sea Atlas、Planner Desk 或其他页面。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，无空白错误；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome / Playwright 验证桌面 1440x900。
+- 中间态采样确认 `todaySeaBriefName` 拆字字符为 `19.84px / 23.4112px / 600 / 0.7936px`，与最终标题一致。
+- 中间态采样确认 `todaySeaBriefProgress` 拆字字符为 `17.28px / 19.008px / 620 / 0.6912px`，与最终进度读数一致，字符为 `inline-block`，父级拆字阶段为 `display: block`。
+- 点击右箭头 10 次、左箭头 10 次、快速左右交替 12 次后，三块 brief 面板高度稳定约 `152.031px`，最终 `.today-sea-type-char` / `.today-sea-type-line` 数量为 0，`todaySeaBriefName` 和 `todaySeaBriefProgress` 最终 transform 均为 `none`。
+
+### 尚未验证
+
+- 动态验证中控制台仍有一次既有 404 资源提示，本次未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页 Today Sea Brief 指定字段动画收尾定向修复。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响 `depth-manager`、页面过渡、`localStorage` / `sessionStorage` 主状态逻辑、Sea Atlas 或 Planner Desk。
+
+## 2026-05-10 18:06
+
+### 任务目的
+
+- 修复首页 Today Sea Brief / 下方信息层在文字切换动画结束后，字段视觉上突然变大或收尾跳动的问题。
+
+### 当前问题
+
+- Today Sea Brief 切换时，文本字段会被拆成 `.today-sea-type-char` 字符 span；动画结束后 JS 再还原成纯文本。
+- CSS 在字符动画、brief 面板读入和根节点 `.is-typed` 收尾阶段仍包含 scale / 二次 settle 动画，导致动画中与还原后的文字状态不完全一致，容易在收尾时出现字体像突然放大一下的观感。
+- 字段还原纯文本后仍保留字段级 `is-typed` 临时状态，不利于保持最终 DOM 文本结构干净。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：`finalizeTodaySeaBriefTypedText()` 在还原纯文本时同步移除字段级 `is-typed`，最终字段只保留干净文本、`dataset.text` / `dataset.previousText` 和 aria 文本，不残留字符拆分状态。
+- `site/css/home.css`：移除 Today Sea Brief 面板收尾中的整体文字缩放来源，将 `.today-sea-brief.is-updating .today-sea-brief-panel` 和 `today-sea-brief-read-in` 改为只做透明度、模糊和 translateY。
+- `site/css/home.css`：移除 `.today-sea-type-char`、`today-sea-char-mist-in`、`today-sea-reading-char-mist-in` 中的 scale，字符动画只保留透明度、模糊和 translateY。
+- `site/css/home.css`：给字符 span 明确继承 `font-size`、`line-height`、`font-weight`、`letter-spacing`，保证拆字动画中与父级字段的文字度量一致。
+- `site/css/home.css`：根节点 `.today-sea-brief.is-typed` 不再触发标题/读数的二次 settle 动画，最终态明确 `animation: none`、`transform: none`，避免清理 DOM 后再闪一下。
+- 本次不修改 `site/home.html` 大结构、三卡轮播结构、深度计、页面过渡、本地状态、Sea Atlas、Planner Desk 或其他页面。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css`，无空白错误；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做桌面 1440x900 Playwright 验证。
+- 点击右箭头 10 次、点击左箭头 10 次、快速左右交替 12 次、拖拽切换 5 次，Today Sea Brief 最终均无 `.today-sea-type-char` / `.today-sea-type-line` 残留，`pendingSpotId` 清空。
+- 验证切换中字符 span 的 transform 缩放系数保持 `1`，字段 `font-size`、`line-height`、`letter-spacing`、`font-weight` 与最终态一致。
+- 验证最终字段 `transform` 回到 `none` 或单位矩阵，`animation-name` 为 `none`，三块 brief 面板高度稳定约 `152.031px`，`scrollHeight` 保持 `4680`。
+- 鼠标停在 Today Sea Brief 区域向下滚轮，页面滚到 `scrollY=900` 且当前首页层级进入 `featured`，首页滚动不受影响。
+
+### 尚未验证
+
+- 动态验证中控制台仍有一次既有 404 资源提示，本次未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页 Today Sea Brief 文字动画收尾定向修复，使用语法检查和定向 Playwright 交互验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响 `depth-manager`、页面过渡、`localStorage` / `sessionStorage` 主状态逻辑、Sea Atlas 或 Planner Desk。
+
+## 2026-05-10 17:52
+
+### 任务目的
+
+- 只微调首页 `home.html` 今日海域区域的纵向滚动放行，让鼠标停在主卡、侧卡、小海图和 Today Sea Brief 信息面板上快速滚轮时，页面能更自然地下潜。
+
+### 改动文件
+
+- `site/js/home.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：桌面端 `setupNarrowHomeWheelFallback()` 不再使用 `passive: false` 的立即 `preventDefault()` + `scrollBy(320px)` 手动兜底，而是改为 `passive: true` 观察原生滚动；只有确认原生滚动没有推进时，才延迟补一帧兜底滚动。
+- `site/js/home.js`：保留窄屏 / 粗指针场景的旧手动兜底，小步 `320px` 上限只用于该分支，桌面今日海域区域改用更接近真实滚轮幅度的兜底距离。
+- `site/js/home.js`：将桌面兜底确认等待从旧的 `180ms` 收短到 `48ms`，避免首个滚轮动作有明显迟滞。
+- `site/js/home.js`：把轮播横向拖拽意图收紧为 `absDx > 8` 且 `absDx > absDy * 1.2` 才进入横向拖拽；纵向移动达到释放条件时清理 pending drag，让页面纵向滚动优先。
+- 本次不修改 `site/home.html`、`site/css/home.css`、深度计、页面过渡、本地状态、Sea Atlas、Planner Desk 或其他页面。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js`，无空白错误；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome / Playwright 验证桌面 1440x900。
+- 鼠标放在今日海域主卡、侧卡、SEA POSITION 小海图、DIVE READING、EXPLORATION 上快速向下滚轮，首个大滚轮均能推进约 `1395px`，不再只补 `320px`。
+- 横向拖拽轮播后当前主卡和 Today Sea Brief 同步到热浪岛，页面仍停在 `scrollY=0`，面板高度稳定约 `151px`，无字符 span 残留。
+- 左右箭头点击后 Today Sea Brief 文本、主卡和面板高度保持稳定，`.today-sea-type-char` 与旧图 echo 最终清空。
+- 快速点击左右箭头后再滚动，页面可继续自然下潜，Today Sea Brief 未出现文字重复、字符拉开或面板高度膨胀。
+
+### 尚未验证
+
+- 动态验证中控制台仍有一次既有 404 资源提示，本次未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页今日海域滚轮放行微调，使用定向 Playwright 交互验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响 `depth-manager`、页面过渡、`localStorage` / `sessionStorage` 主状态逻辑、Sea Atlas 或 Planner Desk。
+
+## 2026-05-07 00:24
+
+### 任务目的
+
+- 检查项目里是否还有类似系统减少动态、低配设备、lite 性能档导致动效降级的问题，并把确认存在的入口改为满血运行。
+
+### 当前问题
+
+- 首页仍有 `resolveHomePerformanceProfile()` 会根据 `deviceMemory`、`hardwareConcurrency`、粗指针和窄视口生成 `lite` / `balanced` 档位。
+- 首页 `BambooScroll` 会在 lite / coarse 状态下降低首屏卡片物理强度、关闭惯性、减少克隆集和预加载范围，并放慢自动切换节奏。
+- `site/css/home.css` 仍保留 `body[data-home-performance='lite']` 和 `.is-motion-lite` 覆盖，会降低毛玻璃、阴影、hover 和 Sea Guide 质感。
+- 详情页套餐弹层确认滚动仍读取 `prefers-reduced-motion`，系统减少动态打开时会走短时、弱化的滚动曲线。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `site/js/detail.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：移除首页设备能力性能档解析，`applyHomePerformanceProfile()` 固定写入 `data-home-performance="full"`。
+- `site/js/home.js`：`BambooScroll` 固定使用满血轮播参数，保持首屏物理强度 `1`、自动步进、惯性、hover tracking、3 组克隆、完整物理范围和完整 eager image 范围。
+- `site/css/home.css`：删除所有 `body[data-home-performance='lite']` 和 `.is-motion-lite` 降级样式，避免残留 class 或旧状态降低首页视觉质感。
+- `site/js/detail.js`：移除套餐弹层确认滚动对 `prefers-reduced-motion` 的分支，统一使用完整的 nudge、长时滚动和三段缓动曲线。
+- 全站扫描后未发现剩余 `prefers-reduced-motion`、`deviceMemory`、`hardwareConcurrency`、`saveData`、`effectiveType` 等动效/性能降级入口。
+- 本次不修改深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk 主逻辑。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `node --check site/js/detail.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css site/js/detail.js`，无空白错误；仅有 Git 的 LF/CRLF 提示。
+- 运行 `rg` 扫描 `prefers-reduced-motion`、`reducedMotion`、`saveData`、`deviceMemory`、`hardwareConcurrency`、`effectiveType`、`data-home-performance='lite'`、`is-motion-lite` 等关键字，确认代码中不再有实际降级入口。
+- 使用项目指定 Chrome 路径和 Playwright 打开 `http://127.0.0.1:8000/site/home.html`，强制 `reducedMotion: 'reduce'`，并伪装 `deviceMemory=2`、`hardwareConcurrency=2`、`connection.saveData=true`。
+- 动态验证中首页仍为 `data-home-performance="full"`，无 `.is-motion-lite` / `.home-performance-lite` / `.home-performance-balanced`，Today Sea Brief 切换中仍有字符动画、小海图 `is-changing` 和旧图 echo。
+- 切换结束后 Today Sea Brief 字符 span 清空，三块面板高度稳定约 `152px`，页面 `scrollHeight` 保持 `4680`，无 `pageerror`。
+
+### 尚未验证
+
+- 动态验证中控制台仍有一次既有 404 资源提示，本次未追踪该资源来源。
+- `IntersectionObserver` / `requestIdleCallback` 仍用于懒加载、入场触发、页面过渡锁检查和预热调度；它们不是按系统或设备关闭动效的降级入口，本次未改。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本次使用定向扫描、语法检查和 Playwright 满血运行验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 不影响 `depth-manager`、页面过渡、`localStorage` / `sessionStorage` 主状态逻辑、Sea Atlas 或 Planner Desk。
+
+## 2026-05-07 00:05
+
+### 任务目的
+
+- 只修复首页 `today-sea-brief` 切换后文字重复、字符被拉开、三块信息面板高度异常膨胀的问题。
+
+### 当前问题
+
+- 切换动画把同一字段拆成 ghost / active 双层字符后，两层都留在真实文本节点里，导致 `textContent` 变成“热浪岛热浪岛”“29°C29°C”这类重复文本。
+- 字符动画结束后没有统一还原为干净文本结构，连续快速切换时临时 span 容易残留。
+- 首页既有规则 `today-sea-brief-copy span { display: block; }` 命中了字符 span，导致每个字符独占一行，切换中面板高度被撑到 600px 以上。
+
+### 修改文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：新增 Today Sea Brief ready RAF 记录与取消逻辑，切换前统一取消上一轮 timer / RAF。
+- `site/js/home.js`：把字符动画从 ghost / active 双层结构改为单层字符结构，字段内只保留一份新文本。
+- `site/js/home.js`：新增 `finalizeTodaySeaBriefTypedText()`，动画结束或下一轮切换前把字段恢复成纯 `textContent`，清理临时 class、dataset 和字符 span。
+- `site/js/home.js`：快速连续切换时通过 sequence token、timer 清理和文本还原，确保只保留最后一次海域数据。
+- `site/css/home.css`：删除 Today Sea Brief 的 ghost / active 双层字符样式，避免旧动画层占据布局。
+- `site/css/home.css`：增加 `.today-sea-type-line > .today-sea-type-char` 精确覆盖，保证字符 span 始终是 `inline-block`，不被外层 `span { display: block; }` 规则撑开。
+- 本次不修改 `detail`、`trip`、`index`、深度计、页面过渡、Sea Atlas、Planner Desk 或本地状态逻辑。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 使用 `http://127.0.0.1:8000/site/home.html` 和项目指定 Chrome / Playwright 打开首页验证。
+- 连续点击右箭头 10 次后，三块面板高度均约 `168.03px`，`scrollHeight` 保持 `4870`，无重复文字、无字符 span 残留。
+- 连续点击左箭头 10 次后，三块面板高度均约 `168.03px`，无重复文字、无字符 span 残留。
+- 快速左右交替 12 次后，三块面板高度稳定，`pendingSpotId` 清空，DOM 中 `.today-sea-type-line`、`.today-sea-type-char`、ghost 层数量均为 0。
+- 拖拽切换 5 次后，Today Sea Brief 文本和小海图正常更新，三块面板高度稳定。
+- 切换中再次点击并立刻滚动页面后，面板高度稳定，页面 `scrollHeight` 未异常暴涨。
+- 切换中间态采样确认仍有 `today-sea-char-mist-in` 模糊字符动画、`today-sea-maplet-route-read` 小海图路线动画和旧图残影，且面板高度仍约 `168px`。
+- Playwright 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 控制台仍有一次既有 404 资源提示，本次未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本次使用定向 Playwright 覆盖 Today Sea Brief 切换风险。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响 `depth-manager`、页面过渡、`localStorage` / `sessionStorage` 主状态逻辑、Sea Atlas 或 Planner Desk。
+
+## 2026-05-06 23:59
+
+### 任务目的
+
+- 修复详情页评论区第二阶段 `booking-sticky is-focus-only-context` 中，套餐焦点卡会被滚动/左侧评价引导卡遮挡的问题。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `site/js/detail.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：给桌面双栏的 `.booking-sidebar` 提高局部层级，并在 `max-width: 1024px` 单列布局里恢复默认层级，避免左侧评论引导卡滑动时盖住右侧暗色套餐焦点卡。
+- `site/css/detail.css`：在 reviews 的 `is-focus-only-context` 状态下锁住 `.booking-sticky` 内部纵向滚动，避免套餐焦点卡继续在侧栏内部滑动到评价卡下面。
+- `site/css/detail.css`：reviews 未折叠阶段将 `booking-copy` 与 `.booking-focus-panel.is-review-context` 改为普通文档流堆叠，折叠后再恢复套餐焦点卡 sticky 顶部停驻。
+- `site/js/detail.js`：当 `booking-copy` 折叠状态变化时，在下一帧重新同步右侧停驻栈高度，避免使用过期的 `--booking-copy-stick-height`。
+- 本次修改不影响深度计、页面过渡、本地状态或 Sea Atlas；只影响详情页评论区右侧 `booking-sticky` 第二阶段的层级、滚动与停驻关系。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js`，脚本语法检查通过。
+- 运行 `git diff --check -- site/css/detail.css site/js/detail.js`，未发现空白错误；命令提示相关文件下次 Git 接触时 LF 会替换为 CRLF。
+- 检查项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\ai工具\playwright-browser\chrome-win64\chrome.exe`，当前不存在，无法使用该路径启动。
+- 使用 `tools/qa/node_modules/playwright` 的可用浏览器打开 `http://127.0.0.1:8788/site/detail.html?id=1&stageDebug=1`，触发评论懒加载后分别滚到第一、第二条评论。
+- Playwright 采样确认第一条评论时 `.booking-sidebar` 的 `z-index` 为 6，探针命中 `.booking-sticky`，套餐焦点卡位置在右栏内；第二条评论时 `.booking-sticky` 为 `booking-sticky is-focus-only-context is-booking-copy-collapsed`，`overflow-y` 为 `hidden`，套餐焦点卡 `position: sticky` 且探针命中 `bookingFocusPanel`。
+- Playwright 未捕获 `console error` 或 `pageerror`。
+
+### 尚未验证
+
+- 未使用项目指定 Chrome 路径验证，原因是该本地路径当前不存在；已使用 Playwright 可用浏览器作为补充动态验证。
+- 未输出新的截图文件；本次以 DOM / computed style / elementFromPoint 状态验证为准。
+
+## 2026-05-06 23:53
+
+### 任务目的
+
+- 根据用户反馈“另一个窗口调试能正常显示动画但当前窗口不显示，别管系统减动给我满血”，让首页 `today-sea-brief` 内部文字、读数和小海图切换不再被系统 reduced motion 或首页 lite 性能档降级。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `site/home.html`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：把 Today Sea Brief 退场等待固定为 220ms、读入窗口固定为 520ms，不再在 lite 性能档下变成 0。
+- `site/js/home.js`：移除 Today Sea Brief 切换流程里对 `prefersReducedMotion` 的动画拦截，小海图旧图残影、地图 `is-changing`、文字双层字符读入都会照常执行。
+- `site/js/home.js`：把 `is-updating` 解除延迟固定为 90ms，保证旧内容压暗退场和新内容模糊读入能在当前窗口看到。
+- `site/css/home.css`：删除专门针对 Today Sea Brief 的 `@media (prefers-reduced-motion: reduce)` 动画关闭覆盖，保留该组件满血动画。
+- `site/home.html`：更新首页 CSS / JS 版本号为 `20260506-today-sea-brief-fullmotion-1`，避免浏览器继续使用旧缓存。
+- 本次只调整首页 Today Sea Brief，不影响深度计、页面过渡、本地状态、Sea Atlas、Planner Desk 或详情页逻辑。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css site/home.html docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8000/site/home.html` 和项目指定 Chrome / Playwright 动态验证。
+- Playwright 强制 `page.emulateMedia({ reducedMotion: 'reduce' })` 后点击今日海域右箭头，确认 `today-sea-brief` 仍经过 `is-updating -> is-reading/is-awakened -> is-ready`。
+- Playwright 中间态采样确认 10 行 `.today-sea-type-line` 出现，55 个差异字符执行 `today-sea-char-mist-in`，字符从 `blur(18px)` 逐步清晰。
+- Playwright 中间态采样确认小海图有 `.today-sea-maplet-echo-layer` 旧图残影，路线执行 `today-sea-maplet-route-read`，水膜伪元素执行 `today-sea-brief-water-sheen`。
+- Playwright 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 控制台仍有一次既有 404 资源提示，本次未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本次使用定向 Playwright 覆盖 Today Sea Brief 满血动画。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 23:50
+
+### 任务目的
+
+- 修复详情页 Sea Atlas 地图中点位标签、当前潜点名称、码头标签和路线文字互相重叠的问题。
+- 本轮只做小范围信息布局和可读性修复，不改 Sea Atlas 整体风格、三态结构、离线地图包或主交互。
+
+### 改动文件
+
+- `site/js/detail.js`
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/detail.js`：扩大辅助潜点的轻微分布半径，避免多个 waypoint 从同一小区域生成。
+- `site/js/detail.js`：为 Sea Atlas marker 增加 label priority 和 label side 数据，当前潜点为一级、码头为二级、辅助潜点为三级。
+- `site/js/detail.js`：新增 marker 标签一次性避让逻辑，在地图初始化、切换、移动、缩放和尺寸同步后用 `getBoundingClientRect()` 检查标签与信息卡的重叠；低优先级标签会尝试换边，仍拥挤时隐藏。
+- `site/js/detail.js`：为路线叠层补充路线胶囊标签定位逻辑，并在非路线强调视图隐藏路线胶囊，避免压住地名和潜点名。
+- `site/js/detail.js`：微调 Sea Atlas 到达方式视图的路线节点位置，让路线阶段文字不互相压住。
+- `site/css/detail.css`：增强点位标签的深色玻璃底、描边、阴影和省略策略；为一级/二级/三级标签定义不同亮度与尺寸。
+- `site/css/detail.css`：新增标签左右上下四侧定位、弱化态、隐藏态和路线胶囊样式，保持深海档案感。
+- 本次影响 Sea Atlas 的信息布局与标签层级；不影响 depth-manager、页面过渡、本地状态或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js`，通过。
+- 运行 `git diff --check -- site/js/detail.js site/css/detail.css`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8790/site/detail.html?spot=mabul` 和项目指定 Chrome / Playwright 检查桌面 1440x900。
+- Playwright 复现修改前 `Turtle Patch`、`Coral Garden`、`Hanging Gardens`、`Whitetip Avenue`、`Barracuda Point` 多标签重叠。
+- 修改后 Playwright 检查默认“海域位置”视图：可见点位标签和信息卡 `overlaps: []`，`Hanging Gardens` 与 `Whitetip Avenue` 作为三级辅助标签隐藏，当前潜点和码头标签保留。
+- 修改后 Playwright 切换“到达方式”视图：路线节点文字 `overlaps: []`，没有互相压住。
+
+### 尚未验证
+
+- Playwright 控制台仍有一次既有 404 资源提示，本轮未追踪该资源来源。
+- 未运行全量 `npm run perf:detail`；本轮使用定向 Playwright 覆盖 Sea Atlas 标签避让和路线视图。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 23:32
+
+### 任务目的
+
+- 根据用户反馈“detail下面两个按钮选中了字体会变蓝色”，修正详情页 Dive Readiness 两个锚点按钮在选中、访问或聚焦后的文字变蓝问题。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：为 `.detail-readiness-link` 增加 `-webkit-text-fill-color`，并明确覆盖 `:visited`、`:hover`、`:focus-visible`、`:active` 的文字颜色。
+- `site/css/detail.css`：为 `.detail-readiness-link-secondary` 单独锁定浅雾白文字色，避免第二个按钮被全局链接色或浏览器链接状态覆盖。
+- 本次只调整 Dive Readiness 操作按钮的局部 CSS，不影响深度计、页面过渡、本地状态或 Sea Atlas。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8787/site/detail.html` 和项目指定 Chrome / Playwright 检查详情页。
+- Playwright 采样确认“继续看海图”默认、聚焦、悬停时 `color` 和 `-webkit-text-fill-color` 均为 `rgb(243, 251, 255)`。
+- Playwright 采样确认“对照右侧安排”默认、聚焦时 `color` 和 `-webkit-text-fill-color` 均为 `rgba(224, 244, 250, 0.9)`。
+- Playwright 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 第一次 Playwright 启动时，中文 Chrome 路径经 Node stdin 传入后被编码成问号导致启动失败；随后改用环境变量传递同一个指定 Chrome 路径，验证通过。
+- 未运行全量 `npm run perf:detail`；本次为局部 CSS 状态修正，使用定向 Playwright 样式采样覆盖。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 19:44
+
+### 任务目的
+
+- 根据用户反馈“文字切换效果动画做成下面 dive-match-profile-panel 这样子的样式，现在还是没做出来”，将 Today Sea Brief 文字换读改为更接近 Dive Match Profile Panel 的双层字符结构。
+- 本轮不回退已有地图残影、字段级换读和模糊浮现，只把文本切换从“清空后逐字插入”改成“旧字 ghost + 新字 active”的叠层差异读入。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：新增 Today Sea Brief 文本差异判定，复用 Dive Match Profile Panel 的 prefix/suffix diff 思路，只标记真正变化的字符。
+- `site/js/home.js`：新增 Today Sea Brief 双层字符生成逻辑，为每个字段生成 `.today-sea-type-ghost` 和 `.today-sea-type-active`，旧差异字留在 ghost 层，新差异字在 active 层逐个唤醒。
+- `site/js/home.js`：切换完成后同步 `data-previous-text`，保证下一轮切换能基于上一轮文本做差异动画。
+- `site/css/home.css`：让 `.today-sea-type-line` 改为 grid 叠层，补齐 `.today-sea-type-ghost`、`.today-sea-type-active`、`.today-sea-ghost-char.is-diff`、稳定字符等样式。
+- `site/css/home.css`：保留前一轮模糊字符 keyframe，但只让 active 层的变化字符执行；未变化字符稳定显示，旧差异字符以低透明、轻 blur 的 ghost 残影退掉。
+- 本次不影响深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8784/site/home.html` 和项目指定 Chrome / Playwright 动态点击今日海域右箭头。
+- Playwright 中间态采样确认 `todaySeaBriefRegion`、`todaySeaBriefNote` 均包含 `.today-sea-type-ghost` 与 `.today-sea-type-active` 两层。
+- Playwright 中间态采样确认 region 有 8 个 ghost diff 字符和 8 个 active diff 字符，其中 active 字符执行 `today-sea-char-mist-in`，中段 `filter: blur(15px)`；ghost 字符保持 `opacity: 0.24` 和 `blur(1.6px)`。
+- 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 控制台仍有一次既有 404 资源提示，本轮未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮使用定向 Playwright 覆盖 Today Sea Brief 双层字符换读。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 19:34
+
+### 任务目的
+
+- 根据用户反馈“文字切换还是没有那种模糊出现动画效果”，继续强化 `today-sea-brief` 字符级换读的模糊浮现感。
+- 本轮不改 HTML 结构，不回退已有地图残影和字段级换读，只把字符出现从轻 transition 改为更明确的 blur keyframe。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/home.css`：把 `.today-sea-type-char.is-visible` 改为执行 `today-sea-char-mist-in`，字符从高 blur、下沉、低透明逐步浮现到清晰。
+- `site/css/home.css`：为读数和 progress 字符单独使用 `today-sea-reading-char-mist-in`，保留更明显的模糊和轻水光稳定感。
+- `site/css/home.css`：字符动画持续时间提高到约 1.08s，中段仍保留明显 blur，避免小字号瞬间清晰导致看不出效果。
+- `site/js/home.js`：略微放慢字段字符生成速度，并提前 note 的起始延迟，让说明文字也能被看到从模糊里出现。
+- 本次不影响深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8783/site/home.html` 和项目指定 Chrome / Playwright 动态点击今日海域右箭头。
+- Playwright 中段采样确认 `todaySeaBriefRegion` 字符执行 `today-sea-char-mist-in`，持续 `1.08s`，中段 `filter: blur(15px)`。
+- Playwright 中段采样确认 `todaySeaBriefTemp` 字符执行 `today-sea-reading-char-mist-in`，持续 `1.08s`，中段 `filter: blur(12px)`。
+- 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 控制台仍有一次既有 404 资源提示，本轮未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮使用定向 Playwright 覆盖 Today Sea Brief 字符级模糊出现。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 19:30
+
+### 任务目的
+
+- 根据用户反馈“似乎只做了 todaySeaBriefName 效果，其他的完全没有看到”，继续增强 `today-sea-brief` 内部文字、读数和说明的可见换读效果。
+- 本轮不回退已有地图残影和标题逐字效果，只把换读动画扩展到所有实际字段，并提高小字号字段的可见度。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：调整 Today Sea Brief 打字目标的延迟和速度，让 region、坐标、四个 Dive Reading 数值、progress、season、note 更早进入逐字读入。
+- `site/js/home.js`：为每个换读字段写入 `data-type-role`、`--today-sea-line-delay` 和字符级 `--today-sea-char-delay`，让 CSS 可以按字段类型做差异化动画。
+- `site/css/home.css`：新增字段级退场 `today-sea-type-line-out`、行级读入 `today-sea-type-line-in`、扫描线 `today-sea-type-line-scan` 和读数稳定 `today-sea-type-reading-settle`。
+- `site/css/home.css`：让 `region`、坐标、season、note 和四个 `dd` 都执行可见行级换读，不再只依赖标题字号形成动画感。
+- `site/css/home.css`：提高 meta、note、reading、progress 字段的颜色和 text-shadow 对比度，并让 `dd.today-sea-type-line` 不再被旧的读数淡入动画覆盖。
+- 本次不影响深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8782/site/home.html` 和项目指定 Chrome / Playwright 动态点击今日海域右箭头。
+- Playwright 中间态采样确认 `todaySeaBriefRegion`、`todaySeaBriefCoords`、四个 Dive Reading `dd`、`todaySeaBriefProgress`、`todaySeaBriefSeason`、`todaySeaBriefNote` 均生成 `.today-sea-type-char`，并执行 `today-sea-type-line-in`。
+- Playwright 采样确认非标题字段颜色已提高：meta 为 `rgba(230, 248, 253, 0.92)`，reading/progress 为 `rgba(250, 254, 255, 0.98)`，note 为 `rgba(232, 247, 252, 0.9)`。
+- 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮使用定向 Playwright 覆盖 Today Sea Brief 字段级切换。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 19:20
+
+### 任务目的
+
+- 根据用户继续反馈“还有地图切换没动画”，补强首页 `today-sea-brief` 里 SEA POSITION 小海图本体的切换效果。
+- 本轮不回退前面已经加入的文字逐字读入和内容层动画，只让小海图在换数据时真正出现旧图退场、新图重绘。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：在小海图写入新 SVG 路径前复制旧海图的海岸线、礁盘、航线、潜点、标注、方位和水深文字，生成临时 `.today-sea-maplet-echo-layer`，让旧地图有真实退场层。
+- `site/js/home.js`：为路线读取 `getTotalLength()` 并写入 `--today-map-route-length`，让新航线在读入时按真实长度画线，而不是只轻微淡入。
+- `site/js/home.js`：增加旧海图残影清理定时器，避免快速连续切换时残影层堆积。
+- `site/css/home.css`：新增旧图残影退潮动画，旧海图会下沉、变淡、轻 blur；新海图按等深线、礁盘、陆地、路线、潜点、标注错峰读入。
+- `site/css/home.css`：降低 `is-updating` 时小海图容器整体压暗幅度，避免地图动作被整块透明度吞掉。
+- 本次不影响深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8781/site/home.html` 和项目指定 Chrome / Playwright 动态点击今日海域右箭头。
+- Playwright 采样确认切换中 `.today-sea-maplet-echo-layer` 出现，旧图残影包含 15 个 SVG 子元素并执行 `today-sea-maplet-echo-retire`。
+- Playwright 采样确认新航线执行 `today-sea-maplet-route-read`，`stroke-dashoffset` 从约 `50.7px` 逐步归零；海岸线透明度从 0 读入到接近 1。
+- 切换结束后旧图残影清理为 0，`pendingSpotId` 清空；未捕获 `pageerror`。
+
+### 尚未验证
+
+- 控制台仍有一次既有 404 资源提示，本轮未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮使用定向 Playwright 覆盖 Today Sea Brief 小海图切换。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 18:56
+
+### 任务目的
+
+- 根据用户反馈，修正上一版对 Today Sea Brief 切换动画的理解偏差：重点不是外层玻璃面板，而是卡片信息内部的文字、地图、读数和进度内容要有明显切换动画。
+- 保留上一版已有方向，不回退，只把动画主体改到真实内容层。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：将 Today Sea Brief 的退场等待调整为 260ms、内容读入窗口调整为 680ms，让内部文字和海图有足够时间完成可见换读。
+- `site/css/home.css`：把切换动画重点从 `.today-sea-brief-panel` 外层玻璃面板转移到 `.today-sea-maplet`、`.today-sea-brief-copy`、`.today-sea-data-item`、`.today-sea-data-grid dd`、`.today-sea-progress-orbit` 和 `.today-sea-progress-copy`。
+- `site/css/home.css`：退场时内部海图、标题坐标、读数项和进度信息会下沉、降透明和轻 blur；读入时新内容按海图、标题、读数、进度错峰浮回。
+- `site/css/home.css`：保留外层面板轻微气氛变化和水膜扫过，但不再把它作为主要可见动画。
+- 本次不影响深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8779/site/home.html` 和项目指定 Chrome / Playwright 验证首页切换。
+- 动态点击今日海域右箭头，状态完整经过 `is-updating -> is-reading -> is-ready`；内容从皇帝岛切到热浪岛。
+- Playwright 采样确认内容层动画已落到真实节点：`today-sea-content-read-in`、`today-sea-data-read`、`today-sea-data-value-read`、`today-sea-progress-read` 均触发；内部内容最低透明度约 `0.26`，进度环读入时有位移、缩放和旋转。
+- 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 控制台仍有一次既有 404 资源提示，本轮未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮使用定向 Playwright 覆盖 Today Sea Brief 内容层切换。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 18:52
+
+### 任务目的
+
+- 修复用户反馈的 `home.html` 首页动画提前完成问题：滑到“今日海域 / 海域陈列”时陈列已直接摆好，以及 `dive-match-stage` / `dive-match-reveal` 卡片没有入场动画。
+- 本轮只处理首页动画触发时机，不重做 UI，不修改 detail / trip，不触碰 Sea Atlas、Planner Desk、页面过渡 CSS 或本地状态主逻辑。
+
+### 排查结论
+
+- Playwright 复现到页面初始 `scrollY=0` 时，`#featured-destinations` 已经带有 `is-visible is-intro-visible is-stage-visible is-stage-settled`，导致用户滑到海域陈列时只看到最终态。
+- `Dive Match` 的 `IntersectionObserver` rootMargin 过大，舞台和展示卡片会在仍处于视口下方时提前加上 `is-stage-visible` / `is-display-visible`。
+- 首页长距离导览的 `primeHomeScrollTarget()` 会调用 `prepareForApproach()`，原实现同时完成布局预热和视觉 reveal，是动画提前结束的主要原因。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：将 `CuratedWatersStage.prepareForApproach()` 改为默认只做布局 hydration / 预加载，不再直接添加 reveal 终态；只有明确 hash 深链到 `#featured-destinations` 时才允许立即 reveal。
+- `site/js/home.js`：将精选海域 reveal 拆为标题和舞台两个观察器，标题进入桌面视口后再加 `is-visible/is-intro-visible`，舞台进入视口后再启动 `is-stage-visible` 序列。
+- `site/js/home.js`：将 `DiveMatchStage.prepareForApproach()` 改为默认不 reveal；只有 `#dive-match` 深链或 Dive Match query 聚焦时才立即展示。
+- `site/js/home.js`：收紧 `Dive Match` 标题、舞台、展示卡片的 `IntersectionObserver` rootMargin / threshold，让 `dive-match-reveal`、`dive-match-stage`、`dive-match-display` 在滚到对应海层时才触发。
+- `site/css/home.css`：移除后段覆盖 `.curated-waters-intro.curated-reveal` 直接显示的规则，恢复海域陈列标题区初始透明、上浮、模糊的入场状态。
+- 不影响深度计、跨页过渡、本地状态、Sea Atlas 或 Planner Desk；首页导览仍保留预热能力，只是不再偷跑视觉入场。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `node --check site/js/depth-manager.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8774/site/home.html`，Playwright 从 `./tools/qa/node_modules/playwright` 引入，Chrome 使用项目指定本地路径；第一次内联脚本因终端编码把中文路径转成 `?` 失败，随后改用 PowerShell 环境变量传递原始 Chrome 路径并正常启动。
+- 动态检查桌面 1440x900：初始 `scrollY=0` 时，`.curated-waters-intro`、`.curated-waters-title`、`#curatedWatersStage`、`.dive-match-intro`、`#diveMatchStage`、`#diveMatchDisplay` 均保持透明 / 模糊 / 位移初始态，`#featured-destinations` 不再提前带 `is-visible/is-stage-visible`。
+- 连续滚轮下滑验证：到 `scrollY=700` 时精选标题和舞台处于 transition 中；到 Dive Match 海层时 `dive-match-reveal`、舞台和展示卡片逐步从透明/模糊过渡到可见。
+- 控制台仍有一次既有 404 资源提示；未捕获 `pageerror`。
+
+### 尚未验证
+
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮目标是首页动画触发时机，已用定向 Playwright 覆盖。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+### 影响范围
+
+- depth-manager：无直接改动；不改变深度计滚动追随逻辑。
+- 页面过渡：无直接改动。
+- localStorage / sessionStorage：无影响；未修改主状态读写。
+- Sea Atlas：无影响。
+- Planner Desk：无影响。
+
+## 2026-05-06 18:51
+
+### 任务目的
+
+- 修正首页 SEA POSITION 小海图里岛屿和浅滩/航线视觉融合的问题，避免看起来像“地下海”或浅滩穿过陆地。
+- 本轮只调整首页小海图 SVG 图层顺序和陆地纹理不透明度，不改首页大布局、不改三卡轮播结构、不触碰深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 改动文件
+
+- `site/home.html`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/home.html`：调整 SEA POSITION 小海图 SVG 绘制顺序，改为先绘制浅滩/礁盘和航线，再绘制岛屿/海岸陆地，让陆地自然遮住与浅滩重叠的部分。
+- `site/home.html`：提高陆地纹理 pattern 的底色不透明度，让岛屿块具备真实遮挡关系，不再与下方礁盘和航线融合。
+- 本次未改 `site/js/depth-manager.js`、`site/css/depth-gauge.css`、`site/css/page-transition.css`、detail Sea Atlas、trip / Planner Desk 或 localStorage / sessionStorage 主状态逻辑。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/home.html site/css/home.css site/js/home.js docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用项目指定 Chrome 路径与 `./tools/qa/node_modules/playwright` 打开 `site/home.html`，截图 `tmp-home-maplet-layer-order.png` 检查小海图层级。
+- 动态读取 SVG children 顺序，确认 shelf / route 位于 coast 之前，coast 位于地物标注和潜点之前；未捕获 `pageerror` 或 console error。
+
+### 尚未验证
+
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是 SEA POSITION 小海图局部 SVG 层级修正。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+### 影响范围
+
+- depth-manager：无影响，未修改。
+- 页面过渡：无影响，未修改。
+- localStorage / sessionStorage：无影响，未修改主状态读写逻辑。
+- Sea Atlas：无影响，未修改详情页或地图结构。
+- Planner Desk：无影响，未修改 trip 相关文件。
+
+## 2026-05-06 18:46
+
+### 任务目的
+
+- 为首页 `today-sea-brief` 当前海域概览增加更舒缓的切换动画，让旧内容先像被静水压低，再由新内容轻浮读入。
+- 本轮只优化首页 Today Sea Brief 动画节奏，不改 HTML 结构，不引入依赖，不处理移动端专项适配。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：将 Today Sea Brief 的退场等待从 150ms 调整为 220ms，将读入窗口从 480ms 调整为 520ms，继续复用 `is-updating` / `is-reading` / `is-ready` 状态机。
+- `site/css/home.css`：增强 `.today-sea-brief` 切换动画，退场使用低透明度、轻下沉、微缩放和细微 blur；读入从上方轻浮回位，并保留三个面板 0ms / 70ms / 130ms 的先后节奏。
+- `site/css/home.css`：新增 `.today-sea-brief::after` 水膜扫过效果，只在 `is-updating` / `is-reading` 期间出现，峰值透明度低于 0.22，不遮挡文字和按钮。
+- `site/css/home.css`：把小海图 SVG 的路径、潜点和标注读入动画延长到 520ms，并把主潜点读入动画接到当前真实节点 `.today-sea-maplet-point.is-main`。
+- 本次不影响深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用本地服务 `http://127.0.0.1:8778/site/home.html` 和项目指定 Chrome / Playwright 验证首页切换。
+- 动态点击今日海域右箭头，状态完整经过 `is-updating -> is-reading -> is-ready`；内容从皇帝岛切到热浪岛，最终无 `pendingSpotId` 残留。
+- Playwright 读取水膜伪元素峰值约 `0.219`，符合低于 `0.22` 的克制过渡；小海图和主潜点动画时长均为 `0.52s`。
+- 未捕获 `pageerror`。
+
+### 尚未验证
+
+- 控制台仍有一次既有 404 资源提示，本轮未追踪该资源来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮使用定向 Playwright 覆盖 Today Sea Brief 切换。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-06 18:45
+
+### 任务目的
+
+- 根据用户反馈，调整首页 SEA POSITION 小海图里“白色块 / 浅色块”语义不清的问题，让它们更像海图里的岛屿陆地和礁盘浅滩，而不是两个装饰色块。
+- 本轮只做首页小海图局部视觉与联动增强，不改首页大布局、不改三卡轮播结构、不触碰深度计、页面过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 改动文件
+
+- `site/home.html`
+- `site/css/home.css`
+- `site/js/home.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/home.html`：为 SEA POSITION 内联 SVG 新增陆地纹理 pattern、礁盘纹理 pattern，并加入 `ISL.` / `REEF` 两个弱标注，解释白色/浅色块的地物含义。
+- `site/css/home.css`：把海岸陆地块从偏亮白描边贴片改为低饱和沙绿纹理填充，降低白边强度；把浅滩块改为浅海蓝礁盘纹理，降低发光和 UI 面感。
+- `site/css/home.css`：为小海图地物标注增加克制的海图字体样式，并让标注参与 320ms 以内的切换淡入动画和 reduced-motion 降级。
+- `site/js/home.js`：收集 `data-map-land-label` / `data-map-shelf-label`，在每次切换海域后基于当前 coast / shelf path 的 SVG 包围盒重新放置标注，避免标注变成固定装饰贴纸。
+- 本次未改 `site/js/depth-manager.js`、`site/css/depth-gauge.css`、`site/css/page-transition.css`、detail Sea Atlas、trip / Planner Desk 或 localStorage / sessionStorage 主状态逻辑。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/home.html site/css/home.css site/js/home.js docs/AI_CHANGELOG.md`，无空白错误；仅提示 Git 未来可能将 LF 替换为 CRLF。
+- 使用项目指定 Chrome 路径与 `./tools/qa/node_modules/playwright` 打开 `site/home.html`，截图 `tmp-home-full-after-land-reef.png` 检查 SEA POSITION 小海图。
+- 动态验证从皇帝岛切到热浪岛：coast path、shelf path、`ISL.` 标注坐标和 `REEF` 标注坐标均变化；未捕获 `pageerror` 或 console error。
+
+### 尚未验证
+
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是 SEA POSITION 小海图局部视觉和联动修正。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+### 影响范围
+
+- depth-manager：无影响，未修改。
+- 页面过渡：无影响，未修改。
+- localStorage / sessionStorage：无影响，未修改主状态读写逻辑。
+- Sea Atlas：无影响，未修改详情页或地图结构。
+- Planner Desk：无影响，未修改 trip 相关文件。
+
 ## 2026-05-06 18:31
 
 ### 任务目的

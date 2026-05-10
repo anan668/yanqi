@@ -720,50 +720,15 @@ function clamp(value, min, max) {
 }
 
 /**
- * resolveHomePerformanceProfile() - 根据设备能力和交互方式，给首页选择合适的性能档位
- * @returns {{mode:string,coarsePointer:boolean,compactViewport:boolean,lowMemory:boolean,lowConcurrency:boolean,lowEnd:boolean,lite:boolean}}
- */
-function resolveHomePerformanceProfile() {
-    const anyCoarsePointer = window.matchMedia?.('(any-pointer: coarse)')?.matches || false;
-    const anyFinePointer = window.matchMedia?.('(any-pointer: fine)')?.matches
-        || window.matchMedia?.('(pointer: fine)')?.matches
-        || false;
-    // 触屏笔电这类混合输入设备通常同时命中 coarse 和 fine。
-    // 这里把 coarsePointer 收窄成“只有粗指针、没有精细指针”，
-    // 避免桌面端鼠标仍在时把自动滑动和惯性误判关闭。
-    const coarsePointer = anyCoarsePointer && !anyFinePointer;
-    const compactViewport = window.matchMedia?.('(max-width: 1180px)')?.matches || false;
-    const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory <= 4;
-    const lowConcurrency = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4;
-    const lowEnd = lowMemory || lowConcurrency;
-    const desktopFullMode = anyFinePointer;
-    const lite = desktopFullMode ? false : (lowEnd || (coarsePointer && compactViewport));
-
-    return {
-        mode: desktopFullMode ? 'full' : (lite ? 'lite' : (coarsePointer || compactViewport ? 'balanced' : 'full')),
-        coarsePointer,
-        compactViewport,
-        lowMemory,
-        lowConcurrency,
-        lowEnd,
-        lite
-    };
-}
-
-/**
- * applyHomePerformanceProfile(profile) - 把首页性能档位写到 body 上，供样式表降载
- * @param {{mode:string}|null} profile - 首页性能档位
+ * applyHomePerformanceProfile(profile) - 把首页固定为满血动效档位
  * @returns {void}
  */
-function applyHomePerformanceProfile(profile) {
+function applyHomePerformanceProfile() {
     if (!document.body) {
         return;
     }
 
-    const mode = profile?.mode || 'full';
-    document.body.dataset.homePerformance = mode;
-    document.body.classList.toggle('home-performance-lite', mode === 'lite');
-    document.body.classList.toggle('home-performance-balanced', mode === 'balanced');
+    document.body.dataset.homePerformance = 'full';
 }
 
 /**
@@ -3014,13 +2979,17 @@ const HOME_MANUAL_SCROLL_SETTLING_DELTA_MIN = 140;
 const HOME_MANUAL_SCROLL_WHEEL_SETTLING_MS = 560;
 const HOME_INTERACTION_LOCK_MAX_MS = 10000;
 const HOME_SCROLL_SETTLING_MAX_MS = 2000;
-const HOME_BAMBOO_HORIZONTAL_INTENT_MIN_PX = 5;
-const HOME_BAMBOO_VERTICAL_RELEASE_MIN_PX = 9;
+const HOME_BAMBOO_HORIZONTAL_INTENT_MIN_PX = 8;
+const HOME_BAMBOO_HORIZONTAL_INTENT_RATIO = 1.2;
+const HOME_BAMBOO_VERTICAL_RELEASE_MIN_PX = 8;
 const HOME_BAMBOO_VERTICAL_RELEASE_RATIO = 1;
 const HOME_SCROLL_RESTORE_MS = 260;
 const HOME_HERO_WHEEL_FALLBACK_MIN_DELTA_PX = 24;
 const HOME_WHEEL_FALLBACK_CONFIRM_DELAY_MS = 180;
 const HOME_WHEEL_FALLBACK_MAX_DELTA_PX = 320;
+const HOME_WHEEL_FALLBACK_DESKTOP_CONFIRM_DELAY_MS = 48;
+const HOME_WHEEL_FALLBACK_DESKTOP_MAX_VIEWPORT_RATIO = 1.55;
+const HOME_WHEEL_FALLBACK_DESKTOP_MAX_DELTA_PX = 1680;
 const HOME_WHEEL_FALLBACK_DIRECT_SELECTOR = [
     '#hero-home',
     '.hero-section',
@@ -3053,6 +3022,13 @@ const HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR = [
 const HOME_WHEEL_FALLBACK_SEEN_EVENTS = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
 let pendingHomeWheelFallbackTask = null;
 
+function shouldUseHomeWheelManualFallback() {
+    return Boolean(
+        window.matchMedia
+        && window.matchMedia('(max-width: 900px), (pointer: coarse)').matches
+    );
+}
+
 function getHomeWheelDeltaY(event) {
     const rawDelta = Number(event?.deltaY) || 0;
     if (!event || event.deltaMode === 0) {
@@ -3070,14 +3046,22 @@ function getHomeWheelDeltaY(event) {
     return rawDelta;
 }
 
-function clampHomeWheelFallbackDelta(deltaY) {
+function getHomeWheelDesktopFallbackMaxDelta() {
+    const viewportMax = Math.max(
+        HOME_WHEEL_FALLBACK_MAX_DELTA_PX,
+        Math.round((window.innerHeight || 0) * HOME_WHEEL_FALLBACK_DESKTOP_MAX_VIEWPORT_RATIO)
+    );
+    return Math.min(viewportMax, HOME_WHEEL_FALLBACK_DESKTOP_MAX_DELTA_PX);
+}
+
+function clampHomeWheelFallbackDelta(deltaY, maxDelta = HOME_WHEEL_FALLBACK_MAX_DELTA_PX) {
     const safeDelta = Number(deltaY) || 0;
     const direction = Math.sign(safeDelta);
     if (!direction) {
         return 0;
     }
 
-    return direction * Math.min(Math.abs(safeDelta), HOME_WHEEL_FALLBACK_MAX_DELTA_PX);
+    return direction * Math.min(Math.abs(safeDelta), Math.max(1, Number(maxDelta) || HOME_WHEEL_FALLBACK_MAX_DELTA_PX));
 }
 
 function markHomeWheelFallbackEvent(event) {
@@ -3124,6 +3108,11 @@ function runPendingHomeWheelFallbackTask(task) {
         return;
     }
 
+    const confirmDelayMs = Math.max(
+        0,
+        Number(task.confirmDelayMs) || HOME_WHEEL_FALLBACK_CONFIRM_DELAY_MS
+    );
+
     task.timerId = window.setTimeout(() => {
         task.timerId = 0;
         task.rafId = window.requestAnimationFrame(() => {
@@ -3157,7 +3146,7 @@ function runPendingHomeWheelFallbackTask(task) {
                 behavior: 'auto'
             });
         });
-    }, HOME_WHEEL_FALLBACK_CONFIRM_DELAY_MS);
+    }, confirmDelayMs);
 }
 
 function scheduleNarrowHomeWheelFallback(event) {
@@ -3180,7 +3169,7 @@ function scheduleNarrowHomeWheelFallback(event) {
     }
 
     const startScrollY = window.scrollY || window.pageYOffset || 0;
-    const fallbackDeltaY = clampHomeWheelFallbackDelta(deltaY);
+    const fallbackDeltaY = clampHomeWheelFallbackDelta(deltaY, getHomeWheelDesktopFallbackMaxDelta());
     if (!fallbackDeltaY) {
         return;
     }
@@ -3190,6 +3179,7 @@ function scheduleNarrowHomeWheelFallback(event) {
     pendingHomeWheelFallbackTask = {
         startScrollY,
         deltaY: fallbackDeltaY,
+        confirmDelayMs: HOME_WHEEL_FALLBACK_DESKTOP_CONFIRM_DELAY_MS,
         rafId: 0,
         timerId: 0
     };
@@ -3247,6 +3237,7 @@ function setupNarrowHomeWheelFallback() {
         return;
     }
 
+    const useManualFallback = shouldUseHomeWheelManualFallback();
     document.addEventListener('wheel', (event) => {
         const target = event.target;
         const isDirectFallbackTarget = target?.matches?.(HOME_WHEEL_FALLBACK_DIRECT_SELECTOR);
@@ -3255,8 +3246,13 @@ function setupNarrowHomeWheelFallback() {
             return;
         }
 
-        applyNarrowHomeWheelManualFallback(event);
-    }, { capture: true, passive: false });
+        if (useManualFallback) {
+            applyNarrowHomeWheelManualFallback(event);
+            return;
+        }
+
+        scheduleNarrowHomeWheelFallback(event);
+    }, { capture: true, passive: !useManualFallback });
 }
 
 function isHomeScrollSettlingActive() {
@@ -3836,20 +3832,17 @@ class BambooScroll {
         this.wrapper = document.querySelector('.bamboo-cards-wrapper');
         this.leftBtn = document.getElementById('scroll-left');
         this.rightBtn = document.getElementById('scroll-right');
-        this.performanceProfile = resolveHomePerformanceProfile();
         this.isHeroPhysics = Boolean(this.wrapper?.classList.contains('hero-bamboo-cards-wrapper'));
         this.heroPhysicsStrength = this.isHeroPhysics
-            ? (this.performanceProfile.lite ? 0.42 : (this.performanceProfile.coarsePointer ? 0.52 : (this.performanceProfile.compactViewport ? 0.74 : 1)))
+            ? 1
             : 0;
-        // 自动滑动是这个首屏模块的基础节奏，不应因为系统“减少动态”而整条关闭，
-        // 否则用户会直接看到“始终静止”。这里只在纯粗指针设备上停用自动滑动。
-        this.enableAutoStep = !this.performanceProfile.coarsePointer;
-        this.enableInertia = !(this.performanceProfile.lite || this.performanceProfile.coarsePointer);
-        this.enableHoverTracking = !this.performanceProfile.coarsePointer;
-        this.dragThreshold = this.performanceProfile.lite ? 10 : 8;
+        this.enableAutoStep = true;
+        this.enableInertia = true;
+        this.enableHoverTracking = true;
+        this.dragThreshold = 8;
 
         this.totalCards = divingSpotsData.length;
-        this.cloneSets = this.performanceProfile.lite ? 2 : 3;
+        this.cloneSets = 3;
         this.cards = [];
         this.cardPhysics = [];
         this.cardCenterOffsets = [];
@@ -3863,7 +3856,7 @@ class BambooScroll {
         this.wrapperWidth = 0;
         this.wrapperCenter = 0;
         this.centerWeightMaxDist = 0;
-        this.physicsRangeRadius = this.performanceProfile.lite ? 4 : 5;
+        this.physicsRangeRadius = 5;
 
         this.isDragging = false;
         this.pointerIntentPending = false;
@@ -3890,10 +3883,14 @@ class BambooScroll {
         this.todaySeaBriefElements = this.resolveTodaySeaBriefElements();
         this.todaySeaBriefSwapTimer = null;
         this.todaySeaBriefReadyTimer = null;
+        this.todaySeaBriefReadyRafId = 0;
+        this.todaySeaBriefTypeTimers = [];
+        this.todaySeaBriefTypingToken = 0;
+        this.todaySeaBriefTypingActive = false;
+        this.todaySeaMapletEchoTimer = null;
         this.todaySeaBriefSequence = 0;
-        this.todaySeaBriefSwapDelayMs = this.performanceProfile.lite ? 0 : 150;
-        this.todaySeaBriefMotionMs = this.performanceProfile.lite ? 0 : 480;
-        this.prefersReducedMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+        this.todaySeaBriefSwapDelayMs = 220;
+        this.todaySeaBriefMotionMs = 520;
         this.pointerInsideWrapper = false;
         this.pointerClientX = 0;
         this.pointerClientY = 0;
@@ -3913,18 +3910,16 @@ class BambooScroll {
         this.autoStep = null;
         this.autoTimer = null;
         this.autoStepCount = 0;
-        this.autoIntervalMs = this.performanceProfile.lite ? 5600 : 4800;
-        this.autoIntervalJitterMinMs = this.performanceProfile.lite ? -360 : -420;
-        this.autoIntervalJitterMaxMs = this.performanceProfile.lite ? 360 : 420;
-        this.autoInitialDelayMs = this.performanceProfile.lite ? 4400 : 3600;
-        this.autoInitialDelayJitterMinMs = this.performanceProfile.lite ? -260 : -280;
-        this.autoInitialDelayJitterMaxMs = this.performanceProfile.lite ? 260 : 280;
-        this.autoStepDurationMin = this.performanceProfile.lite ? 1.08 : 1.02;
-        this.autoStepDurationMax = this.performanceProfile.lite ? 1.24 : 1.18;
-        this.autoResumeAfterManualDelayMs = this.performanceProfile.lite ? 4600 : 4200;
+        this.autoIntervalMs = 4800;
+        this.autoIntervalJitterMinMs = -420;
+        this.autoIntervalJitterMaxMs = 420;
+        this.autoInitialDelayMs = 3600;
+        this.autoInitialDelayJitterMinMs = -280;
+        this.autoInitialDelayJitterMaxMs = 280;
+        this.autoStepDurationMin = 1.02;
+        this.autoStepDurationMax = 1.18;
+        this.autoResumeAfterManualDelayMs = 4200;
         this.autoResumeAfterManualUntil = 0;
-        this.motionLiteVelocityThreshold = 900;
-
         this.shakeEnergy = 0;
 
         this.pointerMoveRafId = 0;
@@ -3956,7 +3951,6 @@ class BambooScroll {
      * @returns {void} - 无返回值，直接初始化组件
      */
     init() {
-        this.wrapper.classList.toggle('is-motion-lite', this.performanceProfile.lite);
         this.render();
         this.attachEvents();
         this.scheduleInitialLayout();
@@ -4011,7 +4005,7 @@ class BambooScroll {
         const fragment = document.createDocumentFragment();
         const visibleSetIndex = Math.floor(this.cloneSets / 2);
         const preferredDataIndex = Math.max(0, divingSpotsData.findIndex((spot) => spot.id === getHomeHeroInitialSpotId()));
-        const eagerRange = this.performanceProfile.lite ? 0 : 1;
+        const eagerRange = 1;
         const heroImageSlot = HOME_IMAGE_RENDER_SLOTS.heroCard;
 
         for (let set = 0; set < this.cloneSets; set += 1) {
@@ -4087,7 +4081,10 @@ class BambooScroll {
         return {
             root,
             maplet: root?.querySelector('.today-sea-maplet') || null,
+            mapSvg: root?.querySelector('.today-sea-maplet-svg') || null,
             mapBearing: root?.querySelector('[data-map-bearing]') || null,
+            mapLandLabel: root?.querySelector('[data-map-land-label]') || null,
+            mapShelfLabel: root?.querySelector('[data-map-shelf-label]') || null,
             mapCoast: root?.querySelector('[data-map-coast]') || null,
             mapShelf: root?.querySelector('[data-map-shelf]') || null,
             mapRoute: root?.querySelector('[data-map-route]') || null,
@@ -4127,6 +4124,11 @@ class BambooScroll {
             ...baseSvgState,
             ...(TODAY_SEA_MAPLET_CARTOGRAPHY_OVERRIDES[mapState.key] || {})
         };
+        const shouldCaptureMapEcho = Boolean(maplet.classList.contains('is-map-exiting'));
+        if (shouldCaptureMapEcho) {
+            this.captureTodaySeaMapletEcho();
+        }
+
         maplet.dataset.map = mapState.key || 'yanqi';
 
         if (elements.mapCoast) {
@@ -4164,11 +4166,165 @@ class BambooScroll {
         if (elements.mapBearing) {
             elements.mapBearing.textContent = mapState.bearing || 'NE';
         }
+        this.updateTodaySeaMapletRouteMetric(elements);
+        this.positionTodaySeaMapletLabels(elements);
 
-        if (!this.prefersReducedMotion) {
-            maplet.classList.remove('is-changing');
-            void maplet.offsetWidth;
-            maplet.classList.add('is-changing');
+        maplet.classList.remove('is-map-exiting', 'is-changing');
+        void maplet.offsetWidth;
+        maplet.classList.add('is-changing');
+    }
+
+    /**
+     * prepareTodaySeaMapletSwap() - 让旧海图先退潮，再等待新海图分层读入
+     * @returns {void}
+     */
+    prepareTodaySeaMapletSwap() {
+        const maplet = this.todaySeaBriefElements?.maplet;
+        if (!maplet) {
+            return;
+        }
+
+        this.clearTodaySeaMapletEcho();
+        maplet.classList.remove('is-changing');
+        void maplet.offsetWidth;
+        maplet.classList.add('is-map-exiting');
+    }
+
+    /**
+     * clearTodaySeaMapletEcho() - 清掉上一次还未退完的旧海图残影
+     * @returns {void}
+     */
+    clearTodaySeaMapletEcho() {
+        if (this.todaySeaMapletEchoTimer) {
+            window.clearTimeout(this.todaySeaMapletEchoTimer);
+            this.todaySeaMapletEchoTimer = null;
+        }
+
+        const svg = this.todaySeaBriefElements?.mapSvg;
+        svg?.querySelectorAll('.today-sea-maplet-echo-layer').forEach((layer) => {
+            layer.remove();
+        });
+    }
+
+    /**
+     * captureTodaySeaMapletEcho() - 在写入新海图前复制旧海图，让地图切换有真实退场层
+     * @returns {void}
+     */
+    captureTodaySeaMapletEcho() {
+        const svg = this.todaySeaBriefElements?.mapSvg;
+        if (!svg) {
+            return;
+        }
+
+        this.clearTodaySeaMapletEcho();
+
+        const echoLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        echoLayer.setAttribute('class', 'today-sea-maplet-echo-layer');
+        echoLayer.setAttribute('aria-hidden', 'true');
+
+        const echoSelector = [
+            '.today-sea-maplet-contour',
+            '.today-sea-maplet-shelf-shape',
+            '.today-sea-maplet-route-line',
+            '.today-sea-maplet-coast-shape',
+            '.today-sea-maplet-label',
+            '.today-sea-maplet-point',
+            '.today-sea-maplet-bearing',
+            '.today-sea-maplet-sounding',
+            '.today-sea-maplet-scale'
+        ].join(',');
+
+        Array.from(svg.children).forEach((node) => {
+            if (!node.matches?.(echoSelector)) {
+                return;
+            }
+
+            const clone = node.cloneNode(true);
+            clone.classList?.add('today-sea-maplet-echo-mark');
+            echoLayer.appendChild(clone);
+        });
+
+        if (!echoLayer.childNodes.length) {
+            return;
+        }
+
+        svg.appendChild(echoLayer);
+        void echoLayer.getBBox?.();
+        echoLayer.classList.add('is-retiring');
+
+        this.todaySeaMapletEchoTimer = window.setTimeout(() => {
+            echoLayer.remove();
+            this.todaySeaMapletEchoTimer = null;
+        }, 760);
+    }
+
+    /**
+     * updateTodaySeaMapletRouteMetric(elements) - 记录新路线长度，让切换时能画线读入
+     * @param {Object} elements - 当前海域承接层 DOM 引用集合
+     * @returns {void}
+     */
+    updateTodaySeaMapletRouteMetric(elements) {
+        const route = elements?.mapRoute;
+        if (!route || typeof route.getTotalLength !== 'function') {
+            return;
+        }
+
+        try {
+            const length = route.getTotalLength();
+            if (Number.isFinite(length) && length > 0) {
+                route.style.setProperty('--today-map-route-length', String(Math.round(length * 10) / 10));
+            }
+        } catch (error) {
+            route.style.removeProperty('--today-map-route-length');
+        }
+    }
+
+    /**
+     * positionTodaySeaMapletLabels(elements) - 让地物标注跟随当前海岸/礁盘形状移动
+     * @param {Object} elements - 当前海域承接层 DOM 引用集合
+     * @returns {void}
+     */
+    positionTodaySeaMapletLabels(elements) {
+        this.positionTodaySeaMapletLabel(elements?.mapLandLabel, elements?.mapCoast, {
+            xRatio: 0.38,
+            yRatio: 0.44,
+            fallbackX: 24,
+            fallbackY: 22
+        });
+        this.positionTodaySeaMapletLabel(elements?.mapShelfLabel, elements?.mapShelf, {
+            xRatio: 0.54,
+            yRatio: 0.62,
+            fallbackX: 56,
+            fallbackY: 53
+        });
+    }
+
+    /**
+     * positionTodaySeaMapletLabel(label, shape, options) - 基于 SVG 包围盒放置单个地物标注
+     * @param {SVGTextElement|null} label - 标注节点
+     * @param {SVGGeometryElement|null} shape - 对应地物路径
+     * @param {Object} options - 定位比例和兜底坐标
+     * @returns {void}
+     */
+    positionTodaySeaMapletLabel(label, shape, options) {
+        if (!label || !shape || typeof shape.getBBox !== 'function') {
+            return;
+        }
+
+        try {
+            const box = shape.getBBox();
+            if (!Number.isFinite(box.width) || !Number.isFinite(box.height)) {
+                throw new Error('Invalid maplet bbox');
+            }
+
+            const x = box.x + box.width * options.xRatio;
+            const y = box.y + box.height * options.yRatio;
+            label.setAttribute('x', String(Math.round(x * 10) / 10));
+            label.setAttribute('y', String(Math.round(y * 10) / 10));
+            label.removeAttribute('opacity');
+        } catch (error) {
+            label.setAttribute('x', String(options.fallbackX));
+            label.setAttribute('y', String(options.fallbackY));
         }
     }
 
@@ -4249,6 +4405,336 @@ class BambooScroll {
     }
 
     /**
+     * queueTodaySeaBriefTypeTimeout() - 统一登记 Today Sea Brief 打字动画定时器
+     * @param {Function} callback - 到点后执行的回调
+     * @param {number} delay - 延迟毫秒数
+     * @returns {number}
+     */
+    queueTodaySeaBriefTypeTimeout(callback, delay = 0) {
+        const timer = window.setTimeout(() => {
+            this.todaySeaBriefTypeTimers = this.todaySeaBriefTypeTimers.filter((id) => id !== timer);
+            callback();
+        }, Math.max(0, Number(delay) || 0));
+
+        this.todaySeaBriefTypeTimers.push(timer);
+        return timer;
+    }
+
+    /**
+     * clearTodaySeaBriefTypeTimers() - 中断当前 Today Sea Brief 逐字读入
+     * @returns {void}
+     */
+    clearTodaySeaBriefTypeTimers() {
+        this.todaySeaBriefTypeTimers.forEach((timer) => window.clearTimeout(timer));
+        this.todaySeaBriefTypeTimers = [];
+        this.todaySeaBriefTypingToken += 1;
+        this.todaySeaBriefTypingActive = false;
+    }
+
+    /**
+     * clearTodaySeaBriefReadyFrame() - 取消无动画分支里等待落 ready 的帧
+     * @returns {void}
+     */
+    clearTodaySeaBriefReadyFrame() {
+        if (!this.todaySeaBriefReadyRafId) {
+            return;
+        }
+
+        window.cancelAnimationFrame(this.todaySeaBriefReadyRafId);
+        this.todaySeaBriefReadyRafId = 0;
+    }
+
+    /**
+     * getTodaySeaBriefTypeTargets() - 当前海域概览中需要逐字换读的文本节点
+     * @returns {Array<{element: HTMLElement|null, role: string, delay: number, speed: number}>}
+     */
+    getTodaySeaBriefTypeTargets() {
+        const elements = this.todaySeaBriefElements || {};
+        return [
+            { element: elements.name, role: 'title', delay: 0, speed: 60, durationFloor: 420 },
+            { element: elements.region, role: 'meta', delay: 70, speed: 34, durationFloor: 460 },
+            { element: elements.coordinates, role: 'meta', delay: 130, speed: 32, durationFloor: 460 },
+            { element: elements.temperature, role: 'reading', delay: 40, speed: 44, durationFloor: 500 },
+            { element: elements.current, role: 'reading', delay: 80, speed: 44, durationFloor: 520 },
+            { element: elements.tide, role: 'reading', delay: 120, speed: 40, durationFloor: 540 },
+            { element: elements.visibility, role: 'reading', delay: 160, speed: 40, durationFloor: 540 },
+            { element: elements.progress, role: 'progress', delay: 70, speed: 42, durationFloor: 520 },
+            { element: elements.season, role: 'meta', delay: 130, speed: 34, durationFloor: 460 },
+            { element: elements.note, role: 'note', delay: 190, speed: 30, durationFloor: 620 }
+        ].filter((target) => target.element);
+    }
+
+    /**
+     * restoreTodaySeaBriefTypedText() - 把被拆成字符的文本恢复为整句，方便下一次退场
+     * @returns {void}
+     */
+    restoreTodaySeaBriefTypedText() {
+        this.getTodaySeaBriefTypeTargets().forEach(({ element }) => {
+            if (!element) {
+                return;
+            }
+
+            const text = element.dataset.text || element.getAttribute('aria-label') || element.textContent || '';
+            element.textContent = text;
+            element.dataset.text = text;
+            element.dataset.previousText = text;
+            element.dataset.typingActive = 'false';
+            element.dataset.hasTypeDiff = 'false';
+            element.classList.remove(
+                'today-sea-type-line',
+                'today-sea-type-title',
+                'today-sea-type-meta',
+                'today-sea-type-reading',
+                'today-sea-type-progress',
+                'today-sea-type-note',
+                'has-type-diff',
+                'is-typed'
+            );
+            element.style.removeProperty('--today-sea-line-delay');
+        });
+    }
+
+    /**
+     * finalizeTodaySeaBriefTypedText() - 动画结束后把临时字符 DOM 还原成干净文本
+     * @param {Array<{element: HTMLElement|null}>} targets - 当前参与换读的字段
+     * @returns {void}
+     */
+    finalizeTodaySeaBriefTypedText(targets = this.getTodaySeaBriefTypeTargets()) {
+        targets.forEach(({ element }) => {
+            if (!element) {
+                return;
+            }
+
+            const text = element.dataset.text || element.getAttribute('aria-label') || element.textContent || '';
+            element.textContent = text;
+            element.dataset.text = text;
+            element.dataset.previousText = text;
+            element.dataset.typingActive = 'false';
+            element.dataset.hasTypeDiff = 'false';
+            element.setAttribute('aria-label', text);
+            element.classList.remove(
+                'today-sea-type-line',
+                'today-sea-type-title',
+                'today-sea-type-meta',
+                'today-sea-type-reading',
+                'today-sea-type-progress',
+                'today-sea-type-note',
+                'has-type-diff',
+                'is-typed'
+            );
+            element.style.removeProperty('--today-sea-line-delay');
+        });
+    }
+
+    /**
+     * buildTodaySeaBriefTypeDiff() - 对齐 Dive Match Profile 的差异字符判定
+     * @param {string} text - 新文本
+     * @param {string} previousText - 旧文本
+     * @returns {{changedMap: boolean[], hasDiff: boolean}}
+     */
+    buildTodaySeaBriefTypeDiff(text, previousText = '') {
+        const nextChars = Array.from(String(text || ''));
+        const previousChars = Array.from(String(previousText || ''));
+        const changedMap = new Array(nextChars.length).fill(false);
+
+        if (!nextChars.length) {
+            return { changedMap, hasDiff: false };
+        }
+
+        if (!previousChars.length) {
+            nextChars.forEach((char, index) => {
+                if (!/\s/.test(char)) {
+                    changedMap[index] = true;
+                }
+            });
+            return { changedMap, hasDiff: changedMap.some(Boolean) };
+        }
+
+        let prefixLength = 0;
+        while (
+            prefixLength < nextChars.length
+            && prefixLength < previousChars.length
+            && nextChars[prefixLength] === previousChars[prefixLength]
+        ) {
+            prefixLength += 1;
+        }
+
+        let nextSuffixIndex = nextChars.length - 1;
+        let previousSuffixIndex = previousChars.length - 1;
+        while (
+            nextSuffixIndex >= prefixLength
+            && previousSuffixIndex >= prefixLength
+            && nextChars[nextSuffixIndex] === previousChars[previousSuffixIndex]
+        ) {
+            nextSuffixIndex -= 1;
+            previousSuffixIndex -= 1;
+        }
+
+        for (let index = prefixLength; index <= nextSuffixIndex; index += 1) {
+            if (!/\s/.test(nextChars[index])) {
+                changedMap[index] = true;
+            }
+        }
+
+        return { changedMap, hasDiff: changedMap.some(Boolean) };
+    }
+
+    /**
+     * buildTodaySeaBriefTypeCharacters() - 生成旧字 ghost + 新字 active 双层结构
+     * @param {HTMLElement} element - 文本节点
+     * @param {string} text - 新文本
+     * @param {string} previousText - 旧文本
+     * @returns {HTMLElement[]} - 需要逐个唤醒的差异字符
+     */
+    buildTodaySeaBriefTypeCharacters(element, text, previousText = '') {
+        const { changedMap, hasDiff } = this.buildTodaySeaBriefTypeDiff(text, previousText);
+        const fragment = document.createDocumentFragment();
+        const changedCharacters = [];
+
+        Array.from(String(text || '')).forEach((char, index) => {
+            const isSpace = /\s/.test(char);
+            const isChanged = Boolean(changedMap[index]) && !isSpace;
+            const charNode = document.createElement('span');
+
+            charNode.className = 'today-sea-type-char';
+            charNode.textContent = char;
+            charNode.setAttribute('aria-hidden', 'true');
+
+            if (isSpace) {
+                charNode.classList.add('is-space', 'is-visible', 'is-stable');
+            } else if (!isChanged) {
+                charNode.classList.add('is-visible', 'is-stable');
+            } else {
+                charNode.dataset.typeDiff = 'true';
+                changedCharacters.push(charNode);
+            }
+
+            charNode.style.setProperty('--today-sea-char-index', String(index));
+            charNode.style.setProperty('--today-sea-char-delay', `${Math.min(index, 8) * 7}ms`);
+            fragment.appendChild(charNode);
+        });
+
+        element.classList.toggle('has-type-diff', hasDiff);
+        element.dataset.hasTypeDiff = hasDiff ? 'true' : 'false';
+        element.replaceChildren(fragment);
+        return changedCharacters;
+    }
+
+    /**
+     * scheduleTodaySeaBriefTypeLine() - 按字符把一行文字像 booking-copy 一样慢慢读出来
+     * @param {{element: HTMLElement, role: string, delay: number, speed: number}} target - 文本目标
+     * @param {number} token - 当前打字批次 token
+     * @returns {number} - 该行预计完成时间
+     */
+    scheduleTodaySeaBriefTypeLine(target, token) {
+        const element = target.element;
+        if (!element) {
+            return 0;
+        }
+
+        const text = String(element.textContent || '').trim();
+        const previousText = element.dataset.previousText || element.getAttribute('aria-label') || '';
+        element.dataset.text = text;
+        element.dataset.typingActive = 'true';
+        element.dataset.typeRole = target.role;
+        element.style.setProperty('--today-sea-line-delay', `${Math.max(0, Number(target.delay) || 0)}ms`);
+        element.setAttribute('aria-label', text);
+        element.classList.remove(
+            'today-sea-type-line',
+            'today-sea-type-title',
+            'today-sea-type-meta',
+            'today-sea-type-reading',
+            'today-sea-type-progress',
+            'today-sea-type-note'
+        );
+        void element.offsetWidth;
+        element.classList.add('today-sea-type-line', `today-sea-type-${target.role}`);
+        element.classList.remove('is-typed', 'has-type-diff');
+
+        const characters = this.buildTodaySeaBriefTypeCharacters(element, text, previousText);
+        if (!characters.length) {
+            element.dataset.typingActive = 'false';
+            element.classList.add('is-typed');
+            return Math.max(
+                Math.max(0, Number(target.delay) || 0),
+                Math.max(0, Number(target.durationFloor) || 0)
+            );
+        }
+
+        let cursorDelay = Math.max(0, Number(target.delay) || 0);
+        characters.forEach((char, index) => {
+            const charDelay = cursorDelay;
+            this.queueTodaySeaBriefTypeTimeout(() => {
+                if (
+                    token !== this.todaySeaBriefTypingToken
+                    || !this.todaySeaBriefTypingActive
+                    || !element.isConnected
+                ) {
+                    return;
+                }
+
+                char.classList.add('is-visible');
+
+                if (index === characters.length - 1) {
+                    this.queueTodaySeaBriefTypeTimeout(() => {
+                        if (token !== this.todaySeaBriefTypingToken || !element.isConnected) {
+                            return;
+                        }
+
+                        element.dataset.typingActive = 'false';
+                        element.dataset.previousText = text;
+                        element.classList.add('is-typed');
+                    }, 180);
+                }
+            }, charDelay);
+
+            const extraPause = /[·，。！？,.!?：:]/.test(char.textContent || '') ? 110 : 0;
+            cursorDelay += (Number(target.speed) || 34) + extraPause;
+        });
+
+        return Math.max(
+            cursorDelay + 240,
+            Math.max(0, Number(target.durationFloor) || 0)
+        );
+    }
+
+    /**
+     * runTodaySeaBriefTypewriter() - 触发当前海域概览的逐字换读
+     * @returns {number} - 预计完成时间
+     */
+    runTodaySeaBriefTypewriter() {
+        const root = this.todaySeaBriefElements?.root;
+        if (!root) {
+            return 0;
+        }
+
+        this.clearTodaySeaBriefTypeTimers();
+        this.todaySeaBriefTypingActive = true;
+        const token = this.todaySeaBriefTypingToken;
+        const targets = this.getTodaySeaBriefTypeTargets();
+
+        root.classList.remove('is-typed');
+        root.classList.add('is-reading-current', 'is-awakened');
+
+        const duration = targets.reduce((maxDuration, target) => {
+            return Math.max(maxDuration, this.scheduleTodaySeaBriefTypeLine(target, token));
+        }, 0);
+
+        this.queueTodaySeaBriefTypeTimeout(() => {
+            if (token !== this.todaySeaBriefTypingToken || !root.isConnected) {
+                return;
+            }
+
+            this.todaySeaBriefTypingActive = false;
+            this.finalizeTodaySeaBriefTypedText(targets);
+            root.classList.remove('is-awakened');
+            root.classList.add('is-typed');
+        }, duration);
+
+        return duration;
+    }
+
+    /**
      * updateTodaySeaBrief(spot) - 根据当前主卡刷新首屏下方信息承接层
      * @param {Object|null} spot - 当前居中的海域数据
      * @returns {void}
@@ -4266,7 +4752,6 @@ class BambooScroll {
             previousSpotId
             && nextSpotId
             && previousSpotId !== nextSpotId
-            && !this.prefersReducedMotion
             && this.todaySeaBriefMotionMs > 0
         );
 
@@ -4278,24 +4763,30 @@ class BambooScroll {
             clearTimeout(this.todaySeaBriefReadyTimer);
             this.todaySeaBriefReadyTimer = null;
         }
+        this.clearTodaySeaBriefReadyFrame();
+        this.clearTodaySeaBriefTypeTimers();
+        this.restoreTodaySeaBriefTypedText();
 
         this.todaySeaBriefSequence += 1;
         const sequence = this.todaySeaBriefSequence;
 
-        elements.root.classList.remove('is-ready', 'is-reading');
+        elements.root.classList.remove('is-ready', 'is-reading', 'is-awakened', 'is-typed');
+        elements.root.classList.add('is-reading-current');
 
         if (!shouldAnimate) {
             elements.root.classList.remove('is-updating');
             this.applyTodaySeaBriefContent(spot, data);
-            requestAnimationFrame(() => {
+            this.todaySeaBriefReadyRafId = requestAnimationFrame(() => {
+                this.todaySeaBriefReadyRafId = 0;
                 if (sequence === this.todaySeaBriefSequence) {
-                    elements.root.classList.add('is-ready');
+                    elements.root.classList.add('is-ready', 'is-typed');
                 }
             });
             return;
         }
 
         elements.root.dataset.pendingSpotId = String(nextSpotId);
+        this.prepareTodaySeaMapletSwap();
         elements.root.classList.add('is-updating');
 
         this.todaySeaBriefSwapTimer = setTimeout(() => {
@@ -4304,19 +4795,29 @@ class BambooScroll {
             }
 
             this.applyTodaySeaBriefContent(spot, data);
-            elements.root.classList.remove('is-updating');
             elements.root.classList.add('is-reading');
+            const typeDuration = this.runTodaySeaBriefTypewriter();
+            const updateLiftDelay = 90;
+
+            this.queueTodaySeaBriefTypeTimeout(() => {
+                if (sequence !== this.todaySeaBriefSequence) {
+                    return;
+                }
+
+                elements.root.classList.remove('is-updating');
+            }, updateLiftDelay);
 
             this.todaySeaBriefReadyTimer = setTimeout(() => {
                 if (sequence !== this.todaySeaBriefSequence) {
                     return;
                 }
 
-                elements.root.classList.remove('is-reading');
-                elements.root.classList.add('is-ready');
+                elements.root.classList.remove('is-reading', 'is-awakened');
+                this.finalizeTodaySeaBriefTypedText();
+                elements.root.classList.add('is-ready', 'is-typed');
                 delete elements.root.dataset.pendingSpotId;
                 this.todaySeaBriefReadyTimer = null;
-            }, this.todaySeaBriefMotionMs);
+            }, Math.max(this.todaySeaBriefMotionMs, typeDuration + 120));
 
             this.todaySeaBriefSwapTimer = null;
         }, this.todaySeaBriefSwapDelayMs);
@@ -4448,12 +4949,12 @@ class BambooScroll {
         this.wrapperWidth = this.wrapper.clientWidth;
         this.wrapperCenter = this.wrapperWidth * 0.5;
         this.centerWeightMaxDist = Math.max(
-            this.wrapperWidth * (this.performanceProfile.lite ? 0.58 : 0.7),
-            this.cardStride * (this.performanceProfile.lite ? 1.8 : 2.2)
+            this.wrapperWidth * 0.7,
+            this.cardStride * 2.2
         );
         this.physicsRangeRadius = Math.max(
-            this.performanceProfile.lite ? 3 : 4,
-            Math.ceil(this.wrapperWidth / Math.max(this.cardStride, 1)) + (this.performanceProfile.lite ? 1 : 2)
+            4,
+            Math.ceil(this.wrapperWidth / Math.max(this.cardStride, 1)) + 2
         );
         this.cardCenterOffsets = this.cards.map((card) => card.offsetLeft + card.offsetWidth * 0.5);
 
@@ -4802,14 +5303,17 @@ class BambooScroll {
                 return;
             }
 
-            if (absDx <= HOME_BAMBOO_HORIZONTAL_INTENT_MIN_PX || absDx <= absDy) {
+            if (
+                absDx <= HOME_BAMBOO_HORIZONTAL_INTENT_MIN_PX
+                || absDx <= absDy * HOME_BAMBOO_HORIZONTAL_INTENT_RATIO
+            ) {
                 return;
             }
 
             this.beginHorizontalPointerDrag(event);
         } else if (
             absDy > HOME_BAMBOO_VERTICAL_RELEASE_MIN_PX
-            && absDy > absDx * HOME_BAMBOO_VERTICAL_RELEASE_RATIO
+            && absDy >= absDx * HOME_BAMBOO_VERTICAL_RELEASE_RATIO
         ) {
             this.clearPointerDragState({
                 event,
@@ -6953,20 +7457,43 @@ class CuratedWatersStage {
         this.scheduleInitialPreload(this.currentIndex);
     }
 
-    prepareForApproach() {
+    prepareForApproach(options = {}) {
+        const { reveal = false } = options;
         this.completeInitialHydration();
-        this.triggerRevealSequence({ immediate: true });
+        if (reveal) {
+            this.triggerRevealSequence({ immediate: true });
+        }
     }
 
     /**
      * setupReveal() - 进入视口时唤醒档案墙
      */
     setupReveal() {
-        observeOnceInViewport(this.section, () => {
+        const intro = this.section.querySelector('.curated-waters-intro');
+
+        observeOnceInViewport(intro || this.section, () => {
+            this.section.classList.add('is-visible');
+
+            if (!this.section.classList.contains('is-intro-visible')) {
+                if (this.revealIntroRafId) {
+                    cancelAnimationFrame(this.revealIntroRafId);
+                }
+
+                this.revealIntroRafId = requestAnimationFrame(() => {
+                    this.revealIntroRafId = 0;
+                    this.section.classList.add('is-intro-visible');
+                });
+            }
+        }, {
+            threshold: 0.12,
+            rootMargin: '0px 0px -16% 0px'
+        });
+
+        observeOnceInViewport(this.stage, () => {
             this.triggerRevealSequence();
         }, {
-            threshold: 0.01,
-            rootMargin: '80% 0px 40% 0px'
+            threshold: 0.08,
+            rootMargin: '0px 0px -12% 0px'
         });
     }
 }
@@ -8751,7 +9278,12 @@ class DiveMatchStage {
         }
     }
 
-    prepareForApproach() {
+    prepareForApproach(options = {}) {
+        const { reveal = false } = options;
+        if (!reveal) {
+            return;
+        }
+
         this.revealIntro();
         this.revealStageShell();
         this.revealDisplay({ immediate: true });
@@ -8765,22 +9297,22 @@ class DiveMatchStage {
         observeOnceInViewport(this.section, () => {
             this.revealIntro();
         }, {
-            threshold: 0.01,
-            rootMargin: '90% 0px 55% 0px'
+            threshold: 0.1,
+            rootMargin: '0px 0px -14% 0px'
         });
 
         observeOnceInViewport(this.stage, () => {
             this.revealStageShell();
         }, {
-            threshold: 0.01,
-            rootMargin: '90% 0px 45% 0px'
+            threshold: 0.08,
+            rootMargin: '0px 0px -12% 0px'
         });
 
         observeOnceInViewport(this.display, () => {
             this.revealDisplay();
         }, {
-            threshold: 0.01,
-            rootMargin: '95% 0px 45% 0px'
+            threshold: 0.08,
+            rootMargin: '0px 0px -10% 0px'
         });
     }
 }
@@ -9017,7 +9549,9 @@ function primeHomeScrollTarget(targetSelector) {
     }
 
     if (shouldPrimeCurated) {
-        curatedWatersStageInstance?.prepareForApproach?.();
+        curatedWatersStageInstance?.prepareForApproach?.({
+            reveal: shouldPrimeCurated && window.location.hash === '#featured-destinations'
+        });
     }
 
     if (shouldPrimeDiveMatch && !diveMatchStageInstance) {
@@ -9026,7 +9560,9 @@ function primeHomeScrollTarget(targetSelector) {
     }
 
     if (shouldPrimeDiveMatch) {
-        diveMatchStageInstance?.prepareForApproach?.();
+        diveMatchStageInstance?.prepareForApproach?.({
+            reveal: shouldPrimeDiveMatch && (window.location.hash === '#dive-match' || Boolean(getDiveMatchKeyFromLocation()))
+        });
     }
 
     if (shouldPrimeStory && !homeStoryRevealInitialized) {
@@ -10297,10 +10833,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     const shouldBootstrapDiveMatchImmediately =
         pendingHomeScrollTarget === '#dive-match' ||
         hasDiveMatchDeepLink;
-    const homePerformanceProfile = resolveHomePerformanceProfile();
-
     setupStageDebugToggle();
-    applyHomePerformanceProfile(homePerformanceProfile);
+    applyHomePerformanceProfile();
     setupNarrowHomeWheelFallback();
     setupHomeManualScrollTraveling();
     new BambooScroll();
