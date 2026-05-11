@@ -15,52 +15,41 @@
 /* 文件导读：该文件更像整站样式的“公共海床”，先把变量和基础规则读懂，再看页面专属样式会轻松很多。 */
 /* 定义全局主题变量 */
 :root {
-    /* 颜色系统 */
-    --primary: #1e88e5;
-    --primary-dark: #1565c0;
-    --primary-light: #64b5f6;
-    --secondary: #00bcd4;
-    --accent: #ff6b6b;
+    /* 颜色系统 - 莫兰迪深海风 */
+    --primary: #2d5a7b; /* 深邃海蓝 */
+    --primary-dark: #1a3c54;
+    --primary-light: #5b8ba8;
+    --secondary: #6e9da8; /* 浅葱青 */
+    --accent: #d2a97c; /* 沙滩暖金 */
     
     /* 中性色 */
-    --text-dark: #2c3e50;
-    --text-light: #7f8c8d;
-    --bg-light: #f5f7fa;
+    --text-dark: #1f2d38;
+    --text-light: #687e8f;
+    --bg-light: #eef4f8;
     --bg-white: #ffffff;
-    --border-color: #e0e6ed;
+    --border-color: #d1e2ec;
     
     /* 玻璃效果 */
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-backdrop: blur(20px);
     
     /* 共享海面材质 token：
-       这是给 index/home/trip/detail/info 共用的轻量底盘，不绑定任何单页结构。 */
-    --surface-glass-soft:
-        linear-gradient(180deg, rgba(245, 251, 255, 0.08), rgba(151, 198, 221, 0.04)),
-        rgba(8, 28, 41, 0.48);
-    --surface-glass-strong:
-        linear-gradient(180deg, rgba(244, 251, 255, 0.14) 0%, rgba(129, 185, 213, 0.08) 100%),
-        rgba(8, 34, 50, 0.64);
-    --surface-border-soft: rgba(197, 224, 238, 0.1);
-    --surface-border-strong: rgba(192, 235, 248, 0.28);
-    --surface-shadow-soft:
-        0 10px 18px rgba(4, 16, 25, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    --surface-shadow-strong:
-        0 16px 28px rgba(4, 16, 25, 0.16),
-        0 0 20px rgba(126, 200, 230, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    --surface-glow-soft: 0 0 16px rgba(114, 180, 209, 0.05);
-    --surface-glow-strong: 0 0 20px rgba(126, 200, 230, 0.08);
-    --surface-backdrop-soft: blur(12px) saturate(122%);
-    --surface-backdrop-strong: blur(16px) saturate(130%);
+       更新为现代极简清透风格，大幅降低阴影透明度和厚重感，取消不必要的内阴影。 */
+    --surface-glass-soft: rgba(255, 255, 255, 0.02);
+    --surface-glass-strong: rgba(255, 255, 255, 0.06);
+    --surface-border-soft: rgba(255, 255, 255, 0.04);
+    --surface-border-strong: rgba(255, 255, 255, 0.08);
+    --surface-shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.03);
+    --surface-shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.06);
+    --surface-glow-soft: 0 0 20px rgba(144, 212, 238, 0.02);
+    --surface-glow-strong: 0 0 30px rgba(144, 212, 238, 0.04);
+    --surface-backdrop-soft: blur(20px) saturate(120%);
+    --surface-backdrop-strong: blur(32px) saturate(140%);
 
     /* 焦点 token：给共享交互元素一套统一而克制的可访问焦点。 */
-    --focus-ring-color: rgba(214, 238, 250, 0.92);
-    --focus-ring-shadow:
-        0 0 0 1px rgba(10, 30, 42, 0.72),
-        0 0 0 4px rgba(144, 212, 238, 0.2);
-    --focus-ring-offset: 3px;
+    --focus-ring-color: rgba(214, 238, 250, 0.5);
+    --focus-ring-shadow: 0 0 0 2px var(--focus-ring-color);
+    --focus-ring-offset: 2px;
     
     /* 间距 */
     --spacing-xs: 4px;
@@ -77,27 +66,27 @@
     --radius-xl: 20px;
     --radius-full: 50%;
     
-    /* 阴影 */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+    /* 阴影 - 更新为更现代克制的阴影 */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.08);
     
     /* 过渡 */
-    --motion-fast: 0.15s ease-in-out;
-    --motion-normal: 0.3s ease-in-out;
-    --motion-slow: 0.6s ease-in-out;
-    --motion-breathe: 0.42s cubic-bezier(0.22, 0.74, 0.18, 1);
-    --motion-depth-enter: 760ms cubic-bezier(0.14, 0.86, 0.2, 1);
-    --motion-depth-exit: 1000ms cubic-bezier(0.22, 0.74, 0.18, 1);
-    --motion-ocean-enter: 1040ms cubic-bezier(0.16, 0.84, 0.18, 1);
-    --motion-ocean-exit: 1200ms cubic-bezier(0.16, 0.8, 0.2, 1);
+    --motion-fast: 0.2s cubic-bezier(0.2, 0, 0, 1);
+    --motion-normal: 0.4s cubic-bezier(0.2, 0, 0, 1);
+    --motion-slow: 0.8s cubic-bezier(0.2, 0, 0, 1);
+    --motion-breathe: 2s cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-depth-enter: 760ms cubic-bezier(0.2, 0, 0, 1);
+    --motion-depth-exit: 1000ms cubic-bezier(0.2, 0, 0, 1);
+    --motion-ocean-enter: 1040ms cubic-bezier(0.2, 0, 0, 1);
+    --motion-ocean-exit: 1200ms cubic-bezier(0.2, 0, 0, 1);
     --transition-fast: var(--motion-fast);
     --transition-normal: var(--motion-normal);
     --transition-slow: var(--motion-slow);
     
-    /* 字体 */
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-    --font-family-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    /* 字体 - 引入更现代的无衬线体作为主力 */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'Monaco', 'Menlo', monospace;
 }
 
 /* 亮度/深色模式支持 */
@@ -767,51 +756,60 @@ body.has-avatar-return-open {
 /* 设置通用按钮的颜色、边框和悬停过渡 */
 .btn {
     padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    transition: all var(--transition-fast);
+    border-radius: 999px; /* 改为全圆角，提升现代感 */
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: all var(--motion-normal);
     display: inline-block;
     cursor: pointer;
-    border: none;
+    border: 1px solid transparent;
     text-align: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 /* 设置通用按钮的颜色、边框和悬停过渡 */
 .btn-primary {
-    background: var(--primary);
-    color: white;
+    background: linear-gradient(135deg, rgba(45, 90, 123, 0.9) 0%, rgba(26, 60, 84, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
 /* .btn-primary:hover 鼠标移入时的样式 */
 .btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, rgba(55, 105, 140, 0.95) 0%, rgba(35, 75, 100, 0.85) 100%);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 /* 设置通用按钮的颜色、边框和悬停过渡 */
 .btn-secondary {
-    background: var(--secondary);
-    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: #ffffff;
 }
 
 /* .btn-secondary:hover 鼠标移入时的样式 */
 .btn-secondary:hover {
-    background: #00acc1;
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* 设置通用按钮的颜色、边框和悬停过渡 */
 .btn-outline {
-    border: 2px solid var(--primary);
+    border: 1px solid var(--primary-light);
     color: var(--primary);
     background: transparent;
 }
 
 /* .btn-outline:hover 鼠标移入时的样式 */
 .btn-outline:hover {
-    background: var(--primary);
-    color: white;
+    background: rgba(91, 139, 168, 0.1);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
 }
 
 /* 容器 */

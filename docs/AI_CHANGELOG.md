@@ -1,5 +1,112 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-05-11 14:43
+
+### 任务目的
+
+- 继续处理用户反馈的首页滚轮卡顿：重点是今日海域上方区域仍有明显迟滞，以及后续模块局部鼠标悬停时会像被卡住。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：把首页桌面端即时 wheel 兜底改成多区域本地监听，覆盖 `.hero-hotspots-shell.today-sea-card`、`#featured-destinations`、`#dive-match`、`#why-yanqi`；这些区域遇到纵向滚轮时直接 `preventDefault()` 并按真实 delta `scrollBy()`，避免裁剪层、变形层或原生滚动延后导致 20ms 内页面不动。
+- `site/js/home.js`：本地即时监听改为 `querySelectorAll()` 绑定多个区域；文档级延迟兜底遇到这些即时区域时直接跳过，避免同一次 wheel 被补滚两次。
+- `site/js/home.js`：即时 / 手动 / 延迟兜底滚动后同步刷新首页层级测量，减少 `scrollBy()` 后深度层级变量滞后一帧。
+- `site/css/home.css`：给 `body.home-page` 明确设置 `overflow-x: clip`、`overflow-y: visible`，避免 `body` 因横向裁剪派生出微小纵向滚动容器，吞掉后续模块的第一下上滚。
+- `site/css/home.css`：把 `body.home-page .dive-match` 纳入首页滚轮命中区裁剪修正，让 Dive Match 视觉裁剪层不再表现成可吞 wheel 的滚动容器。
+- 本次不修改 `site/home.html` 结构，不修改 `depth-manager.js`、页面过渡文件、本地状态存储、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，通过；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome 路径，通过 Playwright 桌面 1440x900 动态探针复测。
+- 定点滚轮验证覆盖今日海域顶部、今日海域主卡、Today Sea Brief、精选舞台、精选左图、Dive Match 区域、Dive Match 卡片网格、故事区；下滚在 20ms 内均产生 `+180px` 页面滚动，上滚在 20ms 内均产生 `-140px` 页面滚动，`body.scrollTop` 保持 `0`。
+- Long task 观察覆盖今日海域顶部、精选左图、Dive Match 卡片网格、故事区；滚轮下/上各一次后没有采集到 `>=50ms` longtask。
+
+### 尚未验证
+
+- Playwright 控制台仍有一次既有 404 资源提示，本次未追踪来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页滚轮卡顿点的定向动态验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响跨页过渡、本地状态、Sea Atlas 或 Planner Desk；深度计文件未改，只在首页手动补滚后同步刷新首页层级测量。
+
+## 2026-05-11 10:13
+
+### 任务目的
+
+- 按用户要求分 agent 排查首页仍存在的鼠标悬停滚轮卡住问题，重点覆盖今日海域、页面上半部分、`curated-waters-stage curated-archive-wall` 和精选海域左侧照片区域。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：恢复桌面端精确区域 wheel 兜底，但只命中今日海域和精选海域相关容器；先等待原生滚动推进，确认 `scrollY` 未变化时再补一次 `scrollBy()`，避免裁剪层 `overflow: hidden/clip` 命中后页面停住。
+- `site/js/home.js`：将普通大滚轮从 `manualTraveling` 降为已有的 `manualGlide` 记录，不再让普通滚轮频繁打出 `home-scroll-traveling`，减少深度计 traveling 渲染和首页整层滚动态联动。
+- `site/css/home.css`：继续降低精选海域和今日海域热点区域的重绘成本，关闭精选舞台、主展示面、左图说明、右下文案浮层的大面积实时 `backdrop-filter` / `filter`，将相关显影过渡收敛到 `opacity` 和 `transform`。
+- `site/css/home.css`：去掉今日海域首屏大光雾、精选主卡文字和拆字字符上的滚动期模糊负担，保留原有深海渐变、透明底和空间层级。
+- 本次不修改 `site/home.html` 结构，不修改 `depth-manager.js`、页面过渡文件、本地状态存储、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，通过；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome 路径，通过 Playwright 桌面 1440x900 定点测试今日海域卡片、今日海域信息层、精选舞台、精选左图、精选文案和右侧导航。
+- 验证结果：今日海域和精选海域各测试点位滚轮后 `scrollY` 均能推进，向上滚轮也能回退；`home-scroll-traveling` 未再被普通滚轮触发；这些重点点位大多没有 longtask，精选局部偶发约 50-60ms longtask。
+
+### 尚未验证
+
+- 动态复现 agent 超时未返回，已关闭；本次动态验收由主线程 Playwright 探针完成。
+- Playwright 控制台仍有一次既有 404 资源提示，本次未追踪来源。
+- Dive Match / Story 不是本次用户指出重点区域；定点探针确认下滚正常，但部分上滚采样受页面惯性和视口位置影响出现 `0`，本轮未继续专项优化。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页指定卡顿区域的定向优化。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响跨页过渡、本地状态、Sea Atlas 或 Planner Desk；深度计文件未改，仅减少首页普通滚轮触发 traveling 状态。
+
+## 2026-05-11 09:49
+
+### 任务目的
+
+- 缓解首页鼠标停在今日海域、海域陈列左侧大图和 `curated-waters-stage curated-archive-wall` 区域滚动时的明显卡顿感。
+
+### 改动文件
+
+- `site/css/home.css`
+- `site/js/home.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：桌面端不再注册文档级延迟 wheel fallback，避免鼠标停在今日海域、精选海域、Dive Match 等命中区滚动时，每次滚轮都排入额外的 `requestAnimationFrame` / `setTimeout` 观察任务；窄屏 / 粗指针手动兜底仍保留。
+- `site/css/home.css`：给 `curated-display-surface`、`curated-display-media`、`today-sea-brief`、`today-sea-brief-panel` 增加 `contain: paint`，把左侧大图和今日海域信息面板的重绘范围收住。
+- `site/css/home.css`：将精选海域左侧大图焦散层改为静态纹理，并让大图层不再接收指针事件，减少鼠标停在照片上滚动时的命中和重绘压力。
+- `site/css/home.css`：取消今日海域整卡常驻呼吸动画，降低带毛玻璃与多层子元素的整块 transform 重绘。
+- `site/css/home.css`：降低精选海域大舞台和今日海域卡片 / 信息面板的大面积毛玻璃成本；取消首页今日海域卡片整层 filter 和精选大图 filter，改由现有渐变、阴影和透明层保持深海质感。
+- 本次不改 `site/home.html` 结构，不改深度计、跨页过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css`，通过；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome 路径，通过 Playwright 在桌面 1440x900 采样鼠标停在 `[data-today-sea-brief]` 与 `.curated-display-media` 时的滚轮滚动。
+- 动态验证中页面滚动能从今日海域和精选左图继续推进，`pageerror` 为空，滚动结束后 `body[data-home-scroll-mode]` 回到 `normal`。
+
+### 尚未验证
+
+- 动态验证中仍出现一次既有 404 资源提示，本次未追踪来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页指定卡顿区域的定向优化。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响 `depth-manager`、页面过渡、`localStorage` / `sessionStorage` 主状态逻辑、Sea Atlas 或 Planner Desk。
+
 ## 2026-05-10 18:16
 
 ### 任务目的

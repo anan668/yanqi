@@ -22,6 +22,7 @@ const HOME_SCROLL_STORAGE_KEY = 'YANQI_HOME_SCROLL_TARGET';
 const HERO_HOTSPOTS_STAGE_STORAGE_KEY = 'YANQI_HOME_HOTSPOTS_STAGE_SIZE';
 const STAGE_DEBUG_STORAGE_KEY = 'YANQI_STAGE_DEBUG_MODE';
 const STAGE_DEBUG_QUERY_KEY = 'stageDebug';
+const HOME_SCROLL_JITTER_DEBUG_STORAGE_KEY = 'yanqiScrollJitterDebug';
 const HOME_GUIDE_JUMP_STORAGE_KEY = 'YANQI_HOME_GUIDE_JUMP_MODE';
 const HOME_GUIDE_JUMP_QUERY_KEY = 'guideJump';
 const HOME_GUIDE_JUMP_DEFAULT_MODE = 'custom';
@@ -986,6 +987,25 @@ function createHomeViewportCoordinator() {
         });
     };
 
+    const flushUpdate = () => {
+        if (suspendDepth > 0) {
+            pendingUpdate = true;
+            return;
+        }
+
+        if (updateRaf) {
+            window.cancelAnimationFrame(updateRaf);
+            updateRaf = 0;
+        }
+
+        if (shouldDeferLockedUpdate()) {
+            requestUpdate();
+            return;
+        }
+
+        runPhase('update');
+    };
+
     const requestMeasure = (options = {}) => {
         const force = Boolean(options?.force);
         if (suspendDepth > 0) {
@@ -1027,6 +1047,26 @@ function createHomeViewportCoordinator() {
             measureTimer = 0;
             scheduleMeasureFrame();
         }, waitMs);
+    };
+
+    const flushMeasure = () => {
+        if (suspendDepth > 0) {
+            pendingMeasure = true;
+            pendingMeasureForce = true;
+            return;
+        }
+
+        if (measureRaf) {
+            window.cancelAnimationFrame(measureRaf);
+            measureRaf = 0;
+        }
+
+        if (measureTimer) {
+            window.clearTimeout(measureTimer);
+            measureTimer = 0;
+        }
+
+        runMeasureCycle();
     };
 
     const attach = () => {
@@ -1140,6 +1180,8 @@ function createHomeViewportCoordinator() {
         },
         requestUpdate,
         requestMeasure,
+        flushUpdate,
+        flushMeasure,
         suspend,
         resume
     };
@@ -2993,13 +3035,7 @@ const HOME_WHEEL_FALLBACK_DESKTOP_MAX_DELTA_PX = 1680;
 const HOME_WHEEL_FALLBACK_DIRECT_SELECTOR = [
     '#hero-home',
     '.hero-section',
-    '#featured-destinations',
-    '#dive-match',
-    '#why-yanqi',
-    '#homeFooter',
-    '.footer',
-    '#pageStage',
-    '.page-stage'
+    '#featured-destinations'
 ].join(', ');
 const HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR = [
     '.hero-hotspots-shell.today-sea-card',
@@ -3007,20 +3043,244 @@ const HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR = [
     '.curated-waters-shell',
     '.curated-waters-stage',
     '.curated-display',
-    '.curated-display-surface',
+    '.curated-display-surface'
+].join(', ');
+const HOME_WHEEL_IMMEDIATE_SELECTOR = [
+    '.hero-hotspots-shell.today-sea-card',
+    '#featured-destinations',
     '#dive-match',
-    '.dive-match-stage',
-    '.dive-match-profile-panel',
-    '.dive-match-surface',
-    '.story-shell',
-    '.story-card',
-    '.footer-shell',
-    '.footer-brand-stage',
-    '.footer-companion',
-    '.footer-arrival-bridge'
+    '#why-yanqi'
 ].join(', ');
 const HOME_WHEEL_FALLBACK_SEEN_EVENTS = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
 let pendingHomeWheelFallbackTask = null;
+let homeScrollJitterDebugRafId = 0;
+let homeScrollJitterDebugUntil = 0;
+let homeScrollJitterDebugLastSignature = '';
+const homeScrollJitterTransformCache = new Map();
+const HOME_SCROLL_JITTER_TRANSFORM_PROBES = [
+    '#featured-destinations',
+    '#curatedWatersStage',
+    '#dive-match',
+    '#diveMatchStage',
+    '#why-yanqi',
+    '#homeFooter',
+    '.hero-bamboo-cards-wrapper',
+    '.hero-bamboo-cards-wrapper .bamboo-card.active',
+    '[data-today-sea-brief]',
+    '.today-sea-brief-panel'
+];
+
+function isHomeScrollJitterDebugEnabled() {
+    try {
+        return localStorage.getItem(HOME_SCROLL_JITTER_DEBUG_STORAGE_KEY) === '1';
+    } catch (error) {
+        return false;
+    }
+}
+
+function getHomeScrollDebugElementName(element) {
+    if (!element) {
+        return '';
+    }
+
+    if (element.id) {
+        return `#${element.id}`;
+    }
+
+    const className = typeof element.className === 'string'
+        ? element.className.trim().split(/\s+/).slice(0, 3).join('.')
+        : '';
+    return `${element.tagName?.toLowerCase() || 'node'}${className ? `.${className}` : ''}`;
+}
+
+function readHomeScrollDebugTransformMetric(element) {
+    if (!element) {
+        return null;
+    }
+
+    const style = window.getComputedStyle(element);
+    const transform = style.transform || 'none';
+    const matrix = transform.match(/^matrix(3d)?\((.+)\)$/);
+    let translateX = 0;
+    let translateY = 0;
+    let scaleX = 1;
+    let scaleY = 1;
+
+    if (matrix) {
+        const values = matrix[2].split(',').map((value) => Number.parseFloat(value.trim()));
+        if (matrix[1] === '3d') {
+            scaleX = Number.isFinite(values[0]) ? values[0] : 1;
+            scaleY = Number.isFinite(values[5]) ? values[5] : 1;
+            translateX = Number.isFinite(values[12]) ? values[12] : 0;
+            translateY = Number.isFinite(values[13]) ? values[13] : 0;
+        } else {
+            scaleX = Number.isFinite(values[0]) ? values[0] : 1;
+            scaleY = Number.isFinite(values[3]) ? values[3] : 1;
+            translateX = Number.isFinite(values[4]) ? values[4] : 0;
+            translateY = Number.isFinite(values[5]) ? values[5] : 0;
+        }
+    }
+
+    return {
+        transform,
+        translateX,
+        translateY,
+        scaleX,
+        scaleY
+    };
+}
+
+function readHomeScrollJitterLargestTransformChange() {
+    let largest = null;
+
+    HOME_SCROLL_JITTER_TRANSFORM_PROBES.forEach((selector) => {
+        const element = document.querySelector(selector);
+        if (!element) {
+            return;
+        }
+
+        const metric = readHomeScrollDebugTransformMetric(element);
+        if (!metric) {
+            return;
+        }
+
+        const previous = homeScrollJitterTransformCache.get(selector);
+        homeScrollJitterTransformCache.set(selector, metric);
+        if (!previous) {
+            return;
+        }
+
+        const translateDelta = Math.hypot(
+            metric.translateX - previous.translateX,
+            metric.translateY - previous.translateY
+        );
+        const scaleDelta = Math.hypot(
+            metric.scaleX - previous.scaleX,
+            metric.scaleY - previous.scaleY
+        ) * 120;
+        const delta = Math.round(Math.max(translateDelta, scaleDelta) * 1000) / 1000;
+        if (!largest || delta > largest.delta) {
+            largest = {
+                selector,
+                element: getHomeScrollDebugElementName(element),
+                delta,
+                transform: metric.transform
+            };
+        }
+    });
+
+    return largest;
+}
+
+function readHomeScrollJitterDebugSnapshot(label, extra = {}) {
+    const body = document.body;
+    const carousel = window.__yanqiHomeBambooScroll || null;
+    const activeCard = carousel?.activeCard || document.querySelector('.hero-bamboo-cards-wrapper .bamboo-card.active');
+    const brief = document.querySelector('[data-today-sea-brief]');
+    const pointX = Math.max(0, Math.min(window.innerWidth * 0.5, window.innerWidth - 1));
+    const pointY = Math.max(0, Math.min(window.innerHeight * 0.5, window.innerHeight - 1));
+    const pointElement = document.elementFromPoint(pointX, pointY);
+
+    return {
+        label,
+        at: Math.round(performance.now()),
+        scrollY: Math.round((window.scrollY || window.pageYOffset || 0) * 100) / 100,
+        bodyClassName: body?.className || '',
+        homeScrollMode: HOME_INTERACTION_STATE.scrollMode,
+        bodyHomeScrollMode: body?.dataset.homeScrollMode || '',
+        homeInteraction: body?.dataset.homeInteraction || '',
+        isDragging: Boolean(carousel?.isDragging),
+        isAnimating: Boolean(carousel?.inertia?.active || carousel?.snap?.active || carousel?.autoStep),
+        pointerIntentPending: Boolean(carousel?.pointerIntentPending),
+        delayedScrollByPending: Boolean(pendingHomeWheelFallbackTask),
+        activeCardIndex: carousel?.centeredSpotId ?? activeCard?.dataset?.spotId ?? '',
+        activeCardTransform: activeCard ? window.getComputedStyle(activeCard).transform : '',
+        briefHeight: brief ? Math.round(brief.getBoundingClientRect().height * 100) / 100 : 0,
+        elementFromPoint: getHomeScrollDebugElementName(pointElement),
+        largestTransformChange: readHomeScrollJitterLargestTransformChange(),
+        ...extra
+    };
+}
+
+function logHomeScrollJitterDebug(label, extra = {}) {
+    if (!isHomeScrollJitterDebugEnabled()) {
+        return;
+    }
+
+    console.debug('[yanqi-scroll-jitter]', readHomeScrollJitterDebugSnapshot(label, extra));
+}
+
+function armHomeScrollJitterDebugTrace(label, durationMs = 700) {
+    if (!isHomeScrollJitterDebugEnabled()) {
+        return;
+    }
+
+    const now = performance.now();
+    homeScrollJitterDebugUntil = Math.max(homeScrollJitterDebugUntil, now + Math.max(120, Number(durationMs) || 700));
+
+    if (homeScrollJitterDebugRafId) {
+        return;
+    }
+
+    const tick = () => {
+        homeScrollJitterDebugRafId = 0;
+        if (!isHomeScrollJitterDebugEnabled()) {
+            homeScrollJitterDebugLastSignature = '';
+            return;
+        }
+
+        const snapshot = readHomeScrollJitterDebugSnapshot(label);
+        const signature = [
+            snapshot.scrollY,
+            snapshot.bodyClassName,
+            snapshot.bodyHomeScrollMode,
+            snapshot.homeScrollMode,
+            snapshot.homeInteraction,
+            snapshot.isDragging,
+            snapshot.isAnimating,
+            snapshot.pointerIntentPending,
+            snapshot.delayedScrollByPending,
+            snapshot.activeCardTransform,
+            snapshot.briefHeight,
+            snapshot.largestTransformChange?.selector || '',
+            snapshot.largestTransformChange?.delta || 0
+        ].join('|');
+
+        if (signature !== homeScrollJitterDebugLastSignature) {
+            homeScrollJitterDebugLastSignature = signature;
+            console.debug('[yanqi-scroll-jitter]', snapshot);
+        }
+
+        if (performance.now() < homeScrollJitterDebugUntil) {
+            homeScrollJitterDebugRafId = window.requestAnimationFrame(tick);
+        } else {
+            homeScrollJitterDebugLastSignature = '';
+        }
+    };
+
+    homeScrollJitterDebugRafId = window.requestAnimationFrame(tick);
+}
+
+function requestHomeLayerSyncAfterScrollBy(label) {
+    const sync = () => {
+        if (typeof homeViewportCoordinator !== 'undefined') {
+            if (typeof homeViewportCoordinator.flushMeasure === 'function') {
+                homeViewportCoordinator.flushMeasure();
+                logHomeScrollJitterDebug(label);
+                return;
+            }
+
+            if (typeof homeViewportCoordinator.flushUpdate === 'function') {
+                homeViewportCoordinator.flushUpdate();
+            }
+            homeViewportCoordinator.requestUpdate();
+        }
+        logHomeScrollJitterDebug(label);
+    };
+
+    sync();
+    window.requestAnimationFrame(sync);
+}
 
 function shouldUseHomeWheelManualFallback() {
     return Boolean(
@@ -3104,6 +3364,10 @@ function runPendingHomeWheelFallbackTask(task) {
 
     task.rafId = 0;
     if (hasHomeWheelNativeScrollMoved(task.startScrollY)) {
+        logHomeScrollJitterDebug('wheel-fallback-cancel-native-scroll', {
+            startScrollY: task.startScrollY,
+            deltaY: task.deltaY
+        });
         pendingHomeWheelFallbackTask = null;
         return;
     }
@@ -3123,6 +3387,11 @@ function runPendingHomeWheelFallbackTask(task) {
 
             const currentScrollY = window.scrollY || window.pageYOffset || 0;
             if (Math.abs(currentScrollY - task.startScrollY) > 0.5) {
+                logHomeScrollJitterDebug('wheel-fallback-cancel-late-native-scroll', {
+                    startScrollY: task.startScrollY,
+                    currentScrollY,
+                    deltaY: task.deltaY
+                });
                 pendingHomeWheelFallbackTask = null;
                 return;
             }
@@ -3140,11 +3409,18 @@ function runPendingHomeWheelFallbackTask(task) {
             }
 
             pendingHomeWheelFallbackTask = null;
+            logHomeScrollJitterDebug('wheel-fallback-scrollBy', {
+                startScrollY: task.startScrollY,
+                currentScrollY,
+                deltaY: task.deltaY
+            });
+            armHomeScrollJitterDebugTrace('after-wheel-fallback-scrollBy', 760);
             window.scrollBy({
                 top: task.deltaY,
                 left: 0,
                 behavior: 'auto'
             });
+            requestHomeLayerSyncAfterScrollBy('after-wheel-fallback-layer-sync');
         });
     }, confirmDelayMs);
 }
@@ -3183,6 +3459,12 @@ function scheduleNarrowHomeWheelFallback(event) {
         rafId: 0,
         timerId: 0
     };
+    logHomeScrollJitterDebug('wheel-fallback-scheduled', {
+        startScrollY,
+        deltaY: fallbackDeltaY,
+        confirmDelayMs: HOME_WHEEL_FALLBACK_DESKTOP_CONFIRM_DELAY_MS
+    });
+    armHomeScrollJitterDebugTrace('after-wheel-fallback-scheduled', 760);
     pendingHomeWheelFallbackTask.rafId = window.requestAnimationFrame(() => {
         runPendingHomeWheelFallbackTask(pendingHomeWheelFallbackTask);
     });
@@ -3230,6 +3512,52 @@ function applyNarrowHomeWheelManualFallback(event) {
         left: 0,
         behavior: 'auto'
     });
+    requestHomeLayerSyncAfterScrollBy('after-manual-wheel-fallback-layer-sync');
+}
+
+function applyHomeWheelImmediateFallback(event) {
+    if (
+        event?.defaultPrevented
+        || event?.ctrlKey
+        || document.body?.classList.contains('page-transition-active')
+    ) {
+        return;
+    }
+
+    const deltaX = Math.abs(Number(event?.deltaX) || 0);
+    const deltaY = getHomeWheelDeltaY(event);
+    if (Math.abs(deltaY) < HOME_HERO_WHEEL_FALLBACK_MIN_DELTA_PX || deltaX > Math.abs(deltaY)) {
+        return;
+    }
+
+    const fallbackDeltaY = clampHomeWheelFallbackDelta(deltaY, getHomeWheelDesktopFallbackMaxDelta());
+    if (!fallbackDeltaY || !markHomeWheelFallbackEvent(event)) {
+        return;
+    }
+
+    const currentScrollY = window.scrollY || window.pageYOffset || 0;
+    const maxScrollY = Math.max(
+        Math.max(
+            document.documentElement?.scrollHeight || 0,
+            document.body?.scrollHeight || 0
+        ) - Math.max(window.innerHeight || 0, 1),
+        0
+    );
+    if ((fallbackDeltaY < 0 && currentScrollY <= 0) || (fallbackDeltaY > 0 && currentScrollY >= maxScrollY - 1)) {
+        return;
+    }
+
+    clearPendingHomeWheelFallbackTask();
+    if (event.cancelable) {
+        event.preventDefault();
+    }
+
+    window.scrollBy({
+        top: fallbackDeltaY,
+        left: 0,
+        behavior: 'auto'
+    });
+    requestHomeLayerSyncAfterScrollBy('after-immediate-wheel-fallback-layer-sync');
 }
 
 function setupNarrowHomeWheelFallback() {
@@ -3238,11 +3566,26 @@ function setupNarrowHomeWheelFallback() {
     }
 
     const useManualFallback = shouldUseHomeWheelManualFallback();
+    const immediateFallbackTargets = !useManualFallback
+        ? document.querySelectorAll(HOME_WHEEL_IMMEDIATE_SELECTOR)
+        : [];
+    immediateFallbackTargets.forEach((target) => {
+        target.addEventListener('wheel', applyHomeWheelImmediateFallback, { passive: false });
+    });
+
     document.addEventListener('wheel', (event) => {
         const target = event.target;
-        const isDirectFallbackTarget = target?.matches?.(HOME_WHEEL_FALLBACK_DIRECT_SELECTOR);
+        const immediateFallbackHit = !useManualFallback
+            && target?.closest?.(HOME_WHEEL_IMMEDIATE_SELECTOR);
+        if (immediateFallbackHit) {
+            return;
+        }
+
         const containedFallbackTarget = target?.closest?.(HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR);
+        const isDirectFallbackTarget = target?.matches?.(HOME_WHEEL_FALLBACK_DIRECT_SELECTOR);
+
         if (!isDirectFallbackTarget && !containedFallbackTarget) {
+            clearPendingHomeWheelFallbackTask();
             return;
         }
 
@@ -3497,7 +3840,7 @@ function syncHomeInteractionDataset() {
     if (document.body.dataset.homeInteraction !== nextInteraction) {
         document.body.dataset.homeInteraction = nextInteraction;
     }
-    const nextDatasetScrollMode = nextScrollActive ? 'active' : 'normal';
+    const nextDatasetScrollMode = nextScrollMode === 'normal' ? 'normal' : 'active';
     if (document.body.dataset.homeScrollMode !== nextDatasetScrollMode) {
         document.body.dataset.homeScrollMode = nextDatasetScrollMode;
     }
@@ -3516,6 +3859,16 @@ function syncHomeInteractionDataset() {
         || (previousScrollTraveling !== nextScrollTraveling && !previousScrollActive && !nextScrollActive)
         || (previousScrollSettling !== nextScrollSettling && !previousScrollActive && !nextScrollActive)
     ) {
+        logHomeScrollJitterDebug('home-interaction-sync', {
+            previousScrollActive,
+            nextScrollActive,
+            previousScrollTraveling,
+            nextScrollTraveling,
+            previousScrollSettling,
+            nextScrollSettling,
+            nextScrollMode
+        });
+        armHomeScrollJitterDebugTrace('after-home-interaction-sync', 760);
         window.dispatchEvent(new CustomEvent('homeinteractionchange', {
             detail: {
                 isLocked,
@@ -3536,6 +3889,10 @@ function markHomeScrollSettling(durationMs = HOME_MANUAL_SCROLL_SETTLING_MS) {
 
     const now = performance.now();
     stopHomeManualGlide();
+    logHomeScrollJitterDebug('home-scroll-settling-marked', {
+        durationMs: safeDuration
+    });
+    armHomeScrollJitterDebugTrace('after-home-scroll-settling', Math.max(760, safeDuration + 180));
     HOME_INTERACTION_STATE.scrollSettlingUntil = Math.min(
         Math.max(
             HOME_INTERACTION_STATE.scrollSettlingUntil,
@@ -3683,7 +4040,7 @@ function setupHomeManualScrollTraveling() {
             elapsed <= HOME_MANUAL_SCROLL_BURST_GAP_MS
             && delta >= Math.max((window.innerHeight || 0) * 0.35, HOME_MANUAL_SCROLL_BURST_DELTA_MIN)
         ) {
-            markHomeManualScrollTraveling();
+            recordHomeManualGlideDelta(delta, now);
         }
     };
 
@@ -3707,7 +4064,7 @@ function setupHomeManualScrollTraveling() {
         );
 
         if (deltaY >= wheelBurstThreshold) {
-            markHomeManualScrollTraveling();
+            recordHomeManualGlideDelta(deltaY, performance.now());
         }
     }, { passive: true });
 }
@@ -3921,6 +4278,7 @@ class BambooScroll {
         this.autoResumeAfterManualDelayMs = 4200;
         this.autoResumeAfterManualUntil = 0;
         this.shakeEnergy = 0;
+        window.__yanqiHomeBambooScroll = this;
 
         this.pointerMoveRafId = 0;
         this.pendingPointerMove = null;
@@ -5127,7 +5485,8 @@ class BambooScroll {
      * @returns {void}
      */
     scheduleHeroWheelFallback(event) {
-        scheduleNarrowHomeWheelFallback(event);
+        // Disabled to prevent double scroll and stutter
+        // scheduleNarrowHomeWheelFallback(event);
     }
 
     /**
@@ -5138,6 +5497,13 @@ class BambooScroll {
     prepareForPageVerticalScroll(options = {}) {
         if (this.isDragging) {
             return;
+        }
+
+        if (this.pointerIntentPending) {
+            this.clearPointerDragState({
+                clearPressed: true,
+                suppressClick: true
+            });
         }
 
         const settings = typeof options === 'number'
@@ -5161,6 +5527,10 @@ class BambooScroll {
         this.setHoveredCard(null);
         this.cancelPointerMoveFrame();
         this.stopFrameLoop();
+        logHomeScrollJitterDebug('carousel-prepared-for-vertical-scroll', {
+            durationMs,
+            markSettling: settings.markSettling === true
+        });
 
         if (settings.markSettling === true && typeof markHomeScrollSettling === 'function') {
             markHomeScrollSettling(durationMs);
@@ -9769,9 +10139,10 @@ const HERO_ROUTE_READY_DELAY = 300;
 function setupHeroActions() {
     const todaySeaCard = document.querySelector('.hero-hotspots-shell.today-sea-card');
     if (todaySeaCard) {
-        todaySeaCard.addEventListener('wheel', (event) => {
-            scheduleNarrowHomeWheelFallback(event);
-        }, { passive: true });
+        // Disabled to prevent double scroll and stutter
+        // todaySeaCard.addEventListener('wheel', (event) => {
+        //     scheduleNarrowHomeWheelFallback(event);
+        // }, { passive: true });
     }
 
     const todaySeaSpot = document.querySelector('.today-sea-spot-link');
@@ -10585,17 +10956,18 @@ class HomeSeaGuide {
         });
 
         if (this.panel) {
-            this.panel.addEventListener('wheel', (event) => {
-                const deltaY = getHomeWheelDeltaY(event);
-                const scrollSlack = Math.max(this.panel.scrollHeight - this.panel.clientHeight, 0);
-                const atTop = this.panel.scrollTop <= 1;
-                const atBottom = this.panel.scrollTop >= scrollSlack - 1;
-                const shouldPreferPage = scrollSlack <= 32 || (deltaY < 0 && atTop) || (deltaY > 0 && atBottom);
-
-                if (shouldPreferPage) {
-                    scheduleNarrowHomeWheelFallback(event);
-                }
-            }, { passive: true });
+            // Disabled to prevent double scroll and stutter
+            // this.panel.addEventListener('wheel', (event) => {
+            //     const deltaY = getHomeWheelDeltaY(event);
+            //     const scrollSlack = Math.max(this.panel.scrollHeight - this.panel.clientHeight, 0);
+            //     const atTop = this.panel.scrollTop <= 1;
+            //     const atBottom = this.panel.scrollTop >= scrollSlack - 1;
+            //     const shouldPreferPage = scrollSlack <= 32 || (deltaY < 0 && atTop) || (deltaY > 0 && atBottom);
+            //
+            //     if (shouldPreferPage) {
+            //         scheduleNarrowHomeWheelFallback(event);
+            //     }
+            // }, { passive: true });
         }
 
         document.addEventListener('click', (event) => {
@@ -10743,9 +11115,7 @@ function setupHomeLayerFlow() {
         const layerProgress = clamp((probeY - currentTop) / layerDistance, 0, 1);
         const nextLayerKey = currentSection?.dataset.homeLayer || '';
         const visualProgress = Math.round(layerProgress * 24) / 24;
-        const progressBucket = HOME_INTERACTION_STATE.scrollTraveling
-            ? ''
-            : visualProgress.toFixed(3);
+        const progressBucket = visualProgress.toFixed(3);
 
         if (currentLayerIndex !== currentIndex) {
             currentLayerIndex = currentIndex;
@@ -10769,6 +11139,11 @@ function setupHomeLayerFlow() {
         } else if (progressBucket && lastProgressBucket !== progressBucket) {
             lastProgressBucket = progressBucket;
             body?.style.setProperty('--home-layer-progress', progressBucket);
+            logHomeScrollJitterDebug('home-layer-progress-updated', {
+                progressBucket,
+                currentLayerKey: nextLayerKey,
+                scrollTraveling: HOME_INTERACTION_STATE.scrollTraveling
+            });
         }
     };
 

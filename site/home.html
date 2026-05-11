@@ -135,21 +135,16 @@
                             </div>
                         </div>
 
-                    <!-- 热门潜点滚动舞台（竹简卡片轮播）：
+                    <!-- 热门潜点滚动舞台（极简轮播）：
                          这是首页最核心的交互区。左右箭头、卡片轨道和中间内容都在这层里。
                          JS 会把潜点卡片动态渲染到 #bambooCardsContent，并接管拖拽、惯性和详情页跳转。
-                         按钮使用 3D 玻璃风格：button-base 是底层阴影盘，button-bottom 是中间厚度层，
-                         button-top 是最表层（承载图标），三层叠加制造出水面下的立体按钮触感。 -->
+                         按钮更新为极简悬浮圆钮，去掉笨重的 3D 阴影。 -->
                     <div class="bamboo-scroll-container hero-bamboo-scroll-container">
-                        <!-- 左箭头：三层结构实现 3D 玻璃按钮 -->
-                        <button type="button" class="scroll-arrow button-3d left" id="scroll-left" aria-label="上一张">
-                            <span class="button-top">
-                                <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M14.5 5.5L8 12l6.5 6.5" />
-                                </svg>
-                            </span>
-                            <span class="button-bottom"></span>
-                            <span class="button-base"></span>
+                        <!-- 左箭头：极简毛玻璃悬浮按钮 -->
+                        <button type="button" class="scroll-arrow left" id="scroll-left" aria-label="上一张">
+                            <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M14.5 5.5L8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </button>
 
                         <!-- 卡片轨道包裹层：overflow hidden + 内部 content 做 translateX 位移实现滚动 -->
@@ -159,15 +154,11 @@
                             </div>
                         </div>
 
-                        <!-- 右箭头：同上三层 3D 按钮结构 -->
-                        <button type="button" class="scroll-arrow button-3d right" id="scroll-right" aria-label="下一张">
-                            <span class="button-top">
-                                <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M9.5 5.5L16 12l-6.5 6.5" />
-                                </svg>
-                            </span>
-                            <span class="button-bottom"></span>
-                            <span class="button-base"></span>
+                        <!-- 右箭头：极简毛玻璃悬浮按钮 -->
+                        <button type="button" class="scroll-arrow right" id="scroll-right" aria-label="下一张">
+                            <svg class="scroll-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M9.5 5.5L16 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </button>
                     </div>
 

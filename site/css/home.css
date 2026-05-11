@@ -20,6 +20,11 @@
     background: linear-gradient(180deg, #e8f7ff 0%, #0d3f6d 100%);
 }
 
+body.home-page {
+    overflow-x: clip;
+    overflow-y: visible;
+}
+
 .featured-destinations,
 .dive-match,
 .why-yanqi,
@@ -2776,86 +2781,16 @@ body.home-page.page-transition-active .page-stage * {
 }
 
 /* 让按钮表层呈现为半透明深海玻璃，并承载箭头图标 */
-.scroll-arrow .button-top {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    overflow: hidden;
-    border-radius: inherit;
-    color: rgba(244, 251, 255, 0.96);
-    background:
-        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 38%),
-        linear-gradient(180deg, rgba(16, 60, 91, 0.78) 0%, rgba(8, 33, 53, 0.84) 100%);
-    border: 1px solid rgba(209, 234, 248, 0.24);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -18px 24px rgba(8, 33, 53, 0.16),
-        0 16px 30px rgba(8, 31, 49, 0.22),
-        0 0 0 1px rgba(148, 203, 229, 0.06);
-    backdrop-filter: blur(18px) saturate(138%);
-    -webkit-backdrop-filter: blur(18px) saturate(138%);
-    transform: translate3d(0, 0, 0);
-    transition:
-        transform 320ms ease,
-        border-color 320ms ease,
-        box-shadow 320ms ease,
-        background 320ms ease,
-        opacity 280ms ease;
-}
+
 
 /* 用一层柔和的深色光晕弱化旧版分层结构，只保留漂浮阴影 */
-.scroll-arrow .button-bottom {
-    position: absolute;
-    inset: 8px;
-    z-index: 1;
-    border-radius: inherit;
-    background: radial-gradient(circle at 50% 50%, rgba(90, 164, 208, 0.22) 0%, rgba(17, 63, 94, 0.02) 72%);
-    filter: blur(9px);
-    opacity: 0.85;
-    transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease;
-}
+
 
 /* 提供按钮外圈的淡雾边缘和海面反射感，避免按钮看起来过硬。 */
-.scroll-arrow .button-base {
-    position: absolute;
-    z-index: 0;
-    inset: -3px;
-    pointer-events: none;
-    border-radius: inherit;
-    width: 100%;
-    height: 100%;
-    background:
-        radial-gradient(circle at 50% 50%, rgba(124, 196, 225, 0.18) 0%, rgba(124, 196, 225, 0.04) 52%, rgba(124, 196, 225, 0) 78%);
-    box-shadow:
-        0 0 24px rgba(108, 178, 214, 0.16),
-        inset 0 0 0 1px rgba(218, 239, 248, 0.08);
-    opacity: 0.72;
-    transition: opacity 320ms ease, transform 320ms ease, box-shadow 320ms ease;
-}
+
 
 /* 给玻璃按钮加一层像评论照片悬浮那样的窄柔流光，默认收在圆面外。 */
-.scroll-arrow .button-top::after {
-    content: "";
-    position: absolute;
-    top: -18%;
-    bottom: -18%;
-    left: 0;
-    z-index: 1;
-    width: 34%;
-    background: linear-gradient(108deg, rgba(255, 255, 255, 0), rgba(229, 248, 255, 0.1) 42%, rgba(255, 255, 255, 0.28) 50%, rgba(182, 230, 243, 0.08) 58%, rgba(255, 255, 255, 0));
-    filter: blur(14px);
-    mix-blend-mode: screen;
-    transform: translate3d(-150%, 0, 0) skewX(-10deg);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-        opacity 420ms ease,
-        transform 760ms cubic-bezier(0.2, 0.78, 0.24, 1);
-}
+
 
 /* 使用线性 SVG 箭头代替廉价文本箭头，保持按钮中心留白。 */
 .scroll-arrow-icon {
@@ -2914,15 +2849,9 @@ body.home-page.page-transition-active .page-stage * {
     transform: translateX(2px);
 }
 
-.scroll-arrow:hover .button-top::after {
-    opacity: 0.62;
-    transform: translate3d(330%, 0, 0) skewX(-10deg);
-}
 
-.scroll-arrow:focus-visible .button-top::after {
-    opacity: 0.62;
-    transform: translate3d(330%, 0, 0) skewX(-10deg);
-}
+
+
 
 /* 点击时只做轻微下沉和收光，像在水中按到导航器 */
 .scroll-arrow:active .button-top {
@@ -6990,6 +6919,15 @@ body[data-current-home-layer="story"] .story-river-line {
     padding-top: calc(clamp(64px, 8vw, 92px) + var(--home-story-overlap-bottom));
 }
 
+body[data-home-scroll-mode='active'] [data-home-layer],
+body[data-home-scroll-mode='active'] .featured-destinations.is-home-current .curated-waters-stage,
+body[data-home-scroll-mode='active'] .dive-match.is-home-current .dive-match-stage,
+body[data-home-scroll-mode='active'] .dive-match.is-switching-deeper .dive-match-stage,
+body[data-home-scroll-mode='active'] .dive-match.is-switching-shallower .dive-match-stage,
+body[data-home-scroll-mode='active'] .dive-match-card-grid {
+    transition-property: opacity, filter, box-shadow, border-color, background !important;
+}
+
 /* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */
 .bamboo-scroll-section .section-title,
 .featured-destinations .section-title,
@@ -8840,18 +8778,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow.right {
 
 /* 在观察窗胶囊箭头中，原版 button-top/bottom/base 分层结构退化为透明占位，
    只靠箭头本身承载交互，避免旧版玻璃层叠干扰当前简洁外观。 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
-body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
-body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
-    position: static;
-    inset: auto;
-    width: auto;
-    height: auto;
-    transform: none;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-}
+body.home-page .hero-hotspots-shell
 
 /* 箭头图标：比原版略大，颜色更亮，附带微弱的青光投影以融入深海氛围 */
 body.home-page .hero-hotspots-shell .scroll-arrow-icon {
@@ -9598,55 +9525,19 @@ body.home-page .hero-hotspots-shell .scroll-arrow.right {
 
 /* 在竖条箭头中，button-top/bottom/base 三层退化为纯透明容器。
    button-bottom/base 完全隐藏，只靠 button-top::before 画出光带。 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
-body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
-body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    height: auto;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    color: rgba(224, 243, 250, 0.7);
-    transform: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
+body.home-page .hero-hotspots-shell
 
 /* 竖条箭头中 button-bottom 和 button-base 完全隐藏，仅保留空壳结构。 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
-body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
-    opacity: 0;
-}
+body.home-page .hero-hotspots-shell
 
 /* 竖条光带：从上到下渐亮再渐隐，左侧箭头光带靠左、右侧箭头光带靠右 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(180deg, rgba(223, 245, 252, 0), rgba(223, 245, 252, 0.11) 50%, rgba(223, 245, 252, 0)),
-        linear-gradient(90deg, rgba(223, 245, 252, 0.1), rgba(223, 245, 252, 0));
-    opacity: 0.48;
-    transition: opacity 260ms ease, transform 260ms ease;
-}
+body.home-page .hero-hotspots-shell
 
 /* 右侧箭头光带方向翻转，让光始终从卡片侧照入 */
-body.home-page .hero-hotspots-shell .scroll-arrow.right .button-top::before {
-    background:
-        linear-gradient(180deg, rgba(223, 245, 252, 0), rgba(223, 245, 252, 0.11) 50%, rgba(223, 245, 252, 0)),
-        linear-gradient(270deg, rgba(223, 245, 252, 0.1), rgba(223, 245, 252, 0));
-}
+body.home-page .hero-hotspots-shell
 
 /* 隐藏原版 button-top::after 扫光，竖条箭头不需要额外的流光层 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top::after {
-    display: none;
-}
+body.home-page .hero-hotspots-shell
 
 /* 箭头 SVG 图标：稍小号，带微弱青色投影 */
 body.home-page .hero-hotspots-shell .scroll-arrow-icon {
@@ -9670,10 +9561,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top {
     transform: none;
 }
 
-body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
-    opacity: 0.82;
-    transform: scaleX(1.1);
-}
+body.home-page .hero-hotspots-shell
 
 /* 满图卡底部行动按钮：改为 flex 横排右对齐，在卡片轨道下方形成轻量操作栏。
    不再使用网格双列布局，按钮靠右放置，给左侧留出海域信息呼吸空间。 */
@@ -10083,18 +9971,9 @@ body.home-page .hero-hotspots-shell .scroll-arrow.right {
     right: clamp(10px, 2.2vw, 30px);
 }
 
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
-    inset: 14% 0;
-    background: linear-gradient(180deg, rgba(223, 245, 252, 0), rgba(223, 245, 252, 0.18) 50%, rgba(223, 245, 252, 0));
-    opacity: 0.28;
-    filter: blur(0.4px);
-    mask-image: linear-gradient(90deg, transparent, #000 42%, transparent);
-}
+body.home-page .hero-hotspots-shell
 
-body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
-    opacity: 0.58;
-    transform: scaleX(1.05);
-}
+body.home-page .hero-hotspots-shell
 
 body.home-page .hero-hotspots-shell .scroll-arrow-icon {
     width: 20px;
@@ -10517,45 +10396,16 @@ body.home-page .hero-hotspots-shell .scroll-arrow.right {
 }
 
 /* 三层结构统一圆角，形成完整圆形按钮 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top,
-body.home-page .hero-hotspots-shell .scroll-arrow .button-bottom,
-body.home-page .hero-hotspots-shell .scroll-arrow .button-base {
-    border-radius: 50%;
-}
+body.home-page .hero-hotspots-shell
 
 /* button-top：径向渐变模拟深海玻璃珠，从左上角高光到右下角深色 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top {
-    border: 1px solid rgba(229, 248, 255, 0.22);
-    background:
-        radial-gradient(circle at 40% 28%, rgba(245, 254, 255, 0.32), rgba(160, 224, 243, 0.1) 38%, rgba(3, 20, 34, 0.56) 100%);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        0 0 28px rgba(119, 205, 232, 0.12);
-    backdrop-filter: blur(13px) saturate(130%);
-    -webkit-backdrop-filter: blur(13px) saturate(130%);
-}
+body.home-page .hero-hotspots-shell
 
 /* ::before 外圈雾状光环：比按钮大一圈，用半透明径向渐变模拟光晕 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top::before {
-    inset: -7px;
-    border: 1px solid rgba(167, 224, 242, 0.16);
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(143, 218, 242, 0.12), rgba(143, 218, 242, 0) 68%);
-    opacity: 0.62;
-    filter: none;
-    mask-image: none;
-}
+body.home-page .hero-hotspots-shell
 
 /* ::after 内圈细描边：在按钮内画一圈更轻的描边，增加玻璃层次 */
-body.home-page .hero-hotspots-shell .scroll-arrow .button-top::after {
-    content: "";
-    display: block;
-    position: absolute;
-    inset: 11px;
-    border-radius: 50%;
-    border: 1px solid rgba(232, 250, 255, 0.12);
-    opacity: 0.86;
-}
+body.home-page .hero-hotspots-shell
 
 body.home-page .hero-hotspots-shell .scroll-arrow:hover {
     opacity: 1;
@@ -10566,10 +10416,7 @@ body.home-page .hero-hotspots-shell .scroll-arrow:active {
     transform: translateY(-50%) scale(0.96);
 }
 
-body.home-page .hero-hotspots-shell .scroll-arrow:hover .button-top::before {
-    opacity: 0.95;
-    transform: scale(1.08);
-}
+body.home-page .hero-hotspots-shell
 
 /* 箭头图标居中，稍小号以保证不溢出按钮内圈描边 */
 body.home-page .hero-hotspots-shell .scroll-arrow-icon {
@@ -14127,6 +13974,7 @@ body.home-page .hero-bamboo-cards-wrapper.is-step-locked .bamboo-card:hover .bam
 
 /* 滚轮命中区修正：这些层只用于视觉裁剪，不应成为吞掉页面 wheel 的滚动容器。 */
 body.home-page .featured-destinations,
+body.home-page .dive-match,
 body.home-page .curated-display-surface,
 body.home-page .curated-display-media,
 body.home-page .dive-match-stage,
@@ -14450,4 +14298,143 @@ body.home-page .hero-hotspots-shell .scroll-arrow.is-step-locked .button-top {
         opacity: 0;
         transform: translate3d(24%, 0, 0) scaleX(1.04);
     }
+}
+
+/* Updated modern minimalist scroll arrow */
+body.home-page .hero-hotspots-shell .scroll-arrow {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+body.home-page .hero-hotspots-shell .scroll-arrow:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+body.home-page .hero-hotspots-shell .scroll-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+}
+.scroll-arrow-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* 首页重绘热点减负：保留海面层次，把大面积实时滤镜换成静态玻璃底。 */
+body.home-page .curated-display-surface,
+body.home-page .curated-display-media,
+body.home-page .today-sea-brief,
+body.home-page .today-sea-brief-panel {
+    contain: paint;
+}
+
+body.home-page .curated-display-media {
+    pointer-events: none;
+    transform: translateZ(0);
+}
+
+body.home-page .curated-display-copy,
+body.home-page .curated-display-sea-note,
+body.home-page .today-sea-brief-panel {
+    backface-visibility: hidden;
+}
+
+body.home-page.hero-awakened .today-sea-card {
+    animation: none;
+}
+
+body.home-page .curated-display-media::after {
+    animation: none;
+    transform: none;
+    opacity: 0.2;
+}
+
+body.home-page .curated-waters-stage,
+body.home-page .curated-archive-wall {
+    backdrop-filter: blur(10px) saturate(116%);
+    -webkit-backdrop-filter: blur(10px) saturate(116%);
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card,
+body.home-page .hero-hotspots-shell .bamboo-card:hover,
+body.home-page .hero-hotspots-shell .bamboo-card.active,
+body.home-page .hero-hotspots-shell .bamboo-card.is-active {
+    filter: none;
+    transition:
+        opacity 420ms cubic-bezier(0.18, 0.8, 0.22, 1),
+        border-color 420ms ease,
+        box-shadow 420ms ease;
+}
+
+body.home-page .hero-hotspots-shell .bamboo-card {
+    backdrop-filter: blur(8px) saturate(118%);
+    -webkit-backdrop-filter: blur(8px) saturate(118%);
+}
+
+body.home-page .today-sea-card,
+body.home-page .today-sea-brief-panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.home-page .curated-display-image,
+body.home-page .curated-display-surface.from-depth .curated-display-image,
+body.home-page .curated-display-surface.is-entering .curated-display-image,
+body.home-page .featured-destinations.is-stage-visible.is-stage-hydrated .curated-display-surface.is-active .curated-display-image,
+body.home-page .curated-display-surface.is-leaving.to-depth .curated-display-image,
+body.home-page .curated-display-surface.is-leaving.to-left .curated-display-image,
+body.home-page .curated-display-surface.is-leaving.to-right .curated-display-image,
+body.home-page .curated-waters-stage.curated-archive-wall .curated-display-image,
+body.home-page .featured-destinations.is-stage-visible.is-stage-hydrated .curated-waters-stage.curated-archive-wall .curated-display-surface.is-active .curated-display-image {
+    filter: none;
+}
+
+body.home-page .curated-reveal,
+body.home-page .curated-display-surface,
+body.home-page .curated-display-surface.from-depth,
+body.home-page .curated-display-surface.from-left,
+body.home-page .curated-display-surface.from-right,
+body.home-page .curated-display-surface.is-entering,
+body.home-page .curated-display-surface.is-leaving.to-depth,
+body.home-page .curated-display-surface.is-leaving.to-left,
+body.home-page .curated-display-surface.is-leaving.to-right,
+body.home-page .curated-display-copy > *,
+body.home-page .curated-display-sea-note {
+    filter: none;
+}
+
+body.home-page .curated-reveal,
+body.home-page .curated-display-surface,
+body.home-page .curated-display-copy > *,
+body.home-page .curated-display-sea-note {
+    transition-property: opacity, transform;
+}
+
+body.home-page .curated-waters-stage,
+body.home-page .curated-archive-wall,
+body.home-page .curated-display-copy,
+body.home-page .curated-display-sea-note {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.home-page .hero-section::after,
+body.home-page .hero-ocean-glow-one,
+body.home-page .hero-hotspots-shell.today-sea-card::before,
+body.home-page .hero-hotspots-shell.today-sea-card::after,
+body.home-page .today-sea-type-char {
+    filter: none;
 }
