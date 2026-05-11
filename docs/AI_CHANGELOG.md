@@ -1,5 +1,41 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-05-11 20:28
+
+### 任务目的
+
+- 优化首页 `hero-section` 到 `featured-destinations` 以及后续首页组件之间的水色衔接，减少滚动到下一层时出现的平直亮蓝色带和白雾断层。
+
+### 改动文件
+
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/home.css`：重调首页首屏底部 `hero-section::after` 的水层羽化，让首屏末端先落到深蓝青色，再接入精选目的地。
+- `site/css/home.css`：把 `featured-destinations` 顶部从偏亮青蓝和白雾改成更深的海水渐变，顶部前段先贴近首屏深蓝，再逐步浮出海域陈列的青蓝层次。
+- `site/css/home.css`：同步收束 `featured-destinations`、`dive-match`、`why-yanqi`、`footer` 的区块边界伪元素，移除偏白/偏奶色雾层，改用低饱和深海蓝过渡。
+- `site/css/home.css`：加大 Dive Match 与盐憩故事区之间的重叠承接，把原本约 `14px` 的可见空隙改成约 `44px` 的视觉覆盖，避免滚动时露出首页底色横缝。
+- `site/css/home.css`：保留首页现有 `is-stage-hydrated`、`is-visible`、`is-intro-visible`、`is-stage-visible`、`is-stage-settled`、`is-home-current` 状态类和滚动性能优化，不改 HTML、JS、深度计、跨页过渡、本地状态或 Sea Atlas。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/home.css`，通过；仅有 Git 的 LF/CRLF 提示。
+- 确认本地服务 `http://127.0.0.1:8766/site/home.html` 已在运行。
+- 使用项目指定 Chrome 路径和 `tools/qa/node_modules` 中的 Playwright / sharp 做桌面截图与接缝采样。
+- 在 2048x520 视口检查 hero → featured 接缝，截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-home-hero-featured-seam-2048x520.png`；接缝上下 8px 的横向平均色差约为 6。
+- 在 1440x900 视口检查 hero → featured 接缝，截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-home-hero-featured-seam-1440x900.png`。
+- 在 2048x576 视口复查 Dive Match → 故事区接缝，截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-home-dive-story-seam-2048x576.png`，普通态和滚动活跃态都未再出现用户截图中的亮色横缝。
+- 采样检查 featured → Dive Match、Dive Match → 故事区、故事区 → footer 接缝，横向平均色差分别约为 1、3、1；Dive Match → 故事区接缝从约 `14px` 空隙变为约 `44px` 重叠。
+
+### 尚未验证
+
+- Playwright 控制台仍出现一次既有 `404 (File not found)` 资源提示，本次未追踪来源；未采集到 pageerror。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页颜色衔接的定向视觉验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响深度计、跨页过渡、本地状态、Sea Atlas 或 Planner Desk。
+
 ## 2026-05-11 15:39
 
 ### 任务目的

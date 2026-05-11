@@ -3638,26 +3638,30 @@ body.home-page.page-transition-active .page-stage * {
     --home-reveal-ease: cubic-bezier(0.16, 0.82, 0.22, 1);
     padding: clamp(92px, 9vw, 140px) var(--spacing-lg);
     background:
-        radial-gradient(circle at 14% 12%, rgba(188, 221, 241, 0.18) 0%, rgba(188, 221, 241, 0) 22%),
-        radial-gradient(circle at 82% 22%, rgba(130, 189, 220, 0.16) 0%, rgba(130, 189, 220, 0) 24%),
-        radial-gradient(circle at 48% 88%, rgba(19, 83, 118, 0.26) 0%, rgba(19, 83, 118, 0) 30%),
-        linear-gradient(180deg, #1a628b 0%, #114766 42%, #0a2e49 100%);
+        radial-gradient(circle at 14% 18%, rgba(126, 190, 221, 0.1) 0%, rgba(126, 190, 221, 0) 28%),
+        radial-gradient(circle at 82% 26%, rgba(95, 166, 202, 0.11) 0%, rgba(95, 166, 202, 0) 28%),
+        radial-gradient(circle at 48% 88%, rgba(19, 83, 118, 0.24) 0%, rgba(19, 83, 118, 0) 32%),
+        linear-gradient(180deg, #061d2f 0%, #08293d 14%, #0a3448 34%, #0d3f5a 58%, #0a2e49 100%);
 }
 
 .featured-destinations::before {
     content: "";
-    inset: -10% 0 auto;
-    height: 136px;
-    background: linear-gradient(180deg, rgba(244, 249, 255, 0.78) 0%, rgba(244, 249, 255, 0) 100%);
-    filter: blur(32px);
+    inset: -1px 0 auto;
+    height: 260px;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(59, 133, 166, 0.13), rgba(29, 83, 113, 0.05) 40%, rgba(7, 35, 52, 0) 72%),
+        linear-gradient(180deg, rgba(2, 13, 24, 0.64) 0%, rgba(4, 22, 35, 0.52) 24%, rgba(8, 45, 64, 0.24) 66%, rgba(11, 57, 82, 0) 100%);
+    filter: none;
 }
 
 .featured-destinations::after {
     content: "";
-    inset: auto 0 -10%;
-    height: 180px;
-    background: linear-gradient(180deg, rgba(7, 25, 39, 0) 0%, rgba(8, 34, 54, 0.44) 52%, rgba(8, 34, 54, 0.92) 100%);
-    filter: blur(34px);
+    inset: auto 0 -12%;
+    height: 220px;
+    background:
+        radial-gradient(ellipse at 50% 100%, rgba(47, 124, 160, 0.16), rgba(23, 75, 107, 0.05) 36%, rgba(7, 25, 39, 0) 68%),
+        linear-gradient(180deg, rgba(7, 25, 39, 0) 0%, rgba(8, 34, 54, 0.34) 44%, rgba(8, 34, 54, 0.94) 100%);
+    filter: none;
 }
 
 .curated-waters-shell {
@@ -4903,19 +4907,21 @@ body.home-page.page-transition-active .page-stage * {
     margin-top: -64px;
     padding: clamp(38px, 4vw, 58px) var(--spacing-lg) clamp(88px, 9vw, 136px);
     background:
-        radial-gradient(circle at 16% 18%, rgba(177, 214, 234, 0.1) 0%, rgba(177, 214, 234, 0) 18%),
-        radial-gradient(circle at 84% 20%, rgba(143, 200, 228, 0.08) 0%, rgba(143, 200, 228, 0) 20%),
-        linear-gradient(180deg, #0b2d46 0%, #0b2941 44%, #0a2237 100%);
+        radial-gradient(circle at 16% 18%, rgba(137, 190, 218, 0.1) 0%, rgba(137, 190, 218, 0) 22%),
+        radial-gradient(circle at 84% 20%, rgba(103, 174, 210, 0.08) 0%, rgba(103, 174, 210, 0) 24%),
+        linear-gradient(180deg, #0a2e49 0%, #0b2941 46%, #0a2237 100%);
 }
 
 /* 潜水匹配顶部一层柔和雾面过渡，让它从精选目的地平滑接进来。 */
 .dive-match::before {
     content: "";
     position: absolute;
-    inset: -8% 0 auto;
-    height: 144px;
-    background: linear-gradient(180deg, rgba(8, 34, 54, 0.22) 0%, rgba(8, 34, 54, 0.06) 52%, rgba(8, 34, 54, 0) 100%);
-    filter: blur(28px);
+    inset: -1px 0 auto;
+    height: 190px;
+    background:
+        radial-gradient(ellipse at 52% 0%, rgba(62, 138, 176, 0.13), rgba(34, 92, 125, 0.05) 40%, rgba(8, 34, 54, 0) 70%),
+        linear-gradient(180deg, rgba(8, 34, 54, 0.86) 0%, rgba(9, 39, 61, 0.4) 46%, rgba(9, 39, 61, 0) 100%);
+    filter: none;
     pointer-events: none;
     z-index: 0;
 }
@@ -4924,10 +4930,12 @@ body.home-page.page-transition-active .page-stage * {
 .dive-match::after {
     content: "";
     position: absolute;
-    inset: auto 0 -6%;
-    height: 140px;
-    background: linear-gradient(180deg, rgba(8, 27, 43, 0) 0%, rgba(10, 32, 50, 0.42) 50%, rgba(12, 43, 66, 0.94) 100%);
-    filter: blur(32px);
+    inset: auto 0 -8%;
+    height: 180px;
+    background:
+        radial-gradient(ellipse at 50% 100%, rgba(48, 123, 161, 0.12), rgba(19, 67, 101, 0.04) 38%, rgba(8, 27, 43, 0) 68%),
+        linear-gradient(180deg, rgba(8, 27, 43, 0) 0%, rgba(10, 32, 50, 0.42) 48%, rgba(11, 40, 64, 0.94) 100%);
+    filter: none;
     pointer-events: none;
     z-index: 0;
 }
@@ -6401,9 +6409,9 @@ body.home-page.page-transition-active .page-stage * {
     position: relative;
     overflow: hidden;
     background:
-        radial-gradient(circle at 1px 1px, rgba(143, 163, 186, 0.14) 0.8px, transparent 0.9px),
-        radial-gradient(circle at 9px 9px, rgba(255, 255, 255, 0.76) 0.7px, transparent 0.8px),
-        linear-gradient(180deg, #2a5f8e 0%, #0d2f50 100%);
+        radial-gradient(circle at 1px 1px, rgba(143, 184, 204, 0.13) 0.8px, transparent 0.9px),
+        radial-gradient(circle at 9px 9px, rgba(202, 232, 243, 0.36) 0.7px, transparent 0.8px),
+        linear-gradient(180deg, #071d30 0%, #0b2941 28%, #17496c 62%, #0d2f50 100%);
     background-size: 18px 18px, 24px 24px, auto;
 }
 
@@ -6413,10 +6421,12 @@ body.home-page.page-transition-active .page-stage * {
     position: absolute;
     left: 0;
     right: 0;
-    top: -30px;
-    height: 72px;
-    background: linear-gradient(180deg, rgba(244, 239, 233, 0.94) 0%, rgba(248, 250, 252, 0.72) 42%, rgba(248, 250, 252, 0) 100%);
-    filter: blur(20px);
+    top: -1px;
+    height: 300px;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(58, 128, 164, 0.1), rgba(26, 78, 110, 0.04) 48%, rgba(9, 34, 54, 0) 78%),
+        linear-gradient(180deg, rgba(4, 18, 30, 0.98) 0%, rgba(6, 27, 43, 0.9) 24%, rgba(9, 41, 63, 0.58) 58%, rgba(16, 64, 96, 0) 100%);
+    filter: none;
     pointer-events: none;
     z-index: 0;
 }
@@ -6427,10 +6437,12 @@ body.home-page.page-transition-active .page-stage * {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -30px;
-    height: 76px;
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.68) 56%, rgba(248, 251, 255, 0.94) 100%);
-    filter: blur(20px);
+    bottom: -1px;
+    height: 150px;
+    background:
+        radial-gradient(ellipse at 50% 100%, rgba(62, 136, 174, 0.1), rgba(22, 74, 109, 0.04) 40%, rgba(9, 32, 50, 0) 70%),
+        linear-gradient(180deg, rgba(9, 32, 50, 0) 0%, rgba(9, 35, 55, 0.38) 52%, rgba(8, 27, 43, 0.86) 100%);
+    filter: none;
     pointer-events: none;
     z-index: 0;
 }
@@ -6684,7 +6696,7 @@ body.home-page.page-transition-active .page-stage * {
     --home-layer-progress: 0;
     --home-layer-index: 0;
     --home-featured-layer-overlap: 28px;
-    --home-story-overlap-top: clamp(24px, 3vw, 38px);
+    --home-story-overlap-top: clamp(42px, 4vw, 58px);
     --home-story-overlap-bottom: clamp(30px, 4vw, 52px);
 }
 
@@ -6891,6 +6903,7 @@ body.home-page.page-transition-active .page-stage * {
     transform: translate3d(0, 1px, 0) rotateY(3deg);
 }
 
+body[data-current-home-layer="match"] .why-yanqi.is-home-upcoming,
 .why-yanqi.is-home-current {
     margin-top: calc(var(--home-story-overlap-top) * -1);
     padding-top: calc(var(--spacing-2xl) + var(--home-story-overlap-top));
@@ -7043,9 +7056,9 @@ body[data-home-scroll-mode='active'] .today-sea-card::before {
     overflow: hidden;
     padding: clamp(64px, 8vw, 92px) var(--spacing-lg) 30px;
     background:
-        radial-gradient(circle at 18% 0%, rgba(92, 134, 162, 0.18) 0%, rgba(92, 134, 162, 0) 28%),
-        radial-gradient(circle at 82% 14%, rgba(167, 199, 222, 0.08) 0%, rgba(167, 199, 222, 0) 24%),
-        linear-gradient(180deg, #0f3048 0%, #0b2236 42%, #071823 100%);
+        radial-gradient(circle at 18% 0%, rgba(82, 142, 176, 0.16) 0%, rgba(82, 142, 176, 0) 30%),
+        radial-gradient(circle at 82% 14%, rgba(128, 184, 213, 0.08) 0%, rgba(128, 184, 213, 0) 26%),
+        linear-gradient(180deg, #092235 0%, #0b2236 44%, #071823 100%);
 }
 
 /* .footer::before：页脚顶部的细潮线，帮助整页收束。 */
@@ -7066,8 +7079,8 @@ body[data-home-scroll-mode='active'] .today-sea-card::before {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 50% -8%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 32%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 28%);
+        radial-gradient(circle at 50% -8%, rgba(112, 176, 207, 0.11) 0%, rgba(112, 176, 207, 0) 34%),
+        linear-gradient(180deg, rgba(112, 176, 207, 0.06), rgba(112, 176, 207, 0) 30%);
     pointer-events: none;
 }
 
@@ -12187,13 +12200,15 @@ body.home-page .hero-section::before {
 }
 
 body.home-page .hero-section::after {
+    bottom: -96px;
+    height: 230px;
     background:
-        radial-gradient(ellipse at 50% 46%, rgba(68, 166, 195, 0.11), rgba(25, 96, 127, 0.04) 34%, rgba(2, 13, 24, 0) 58%),
-        radial-gradient(ellipse at 3% 48%, rgba(1, 7, 15, 0.74), rgba(1, 7, 15, 0.2) 38%, rgba(1, 7, 15, 0) 58%),
-        radial-gradient(ellipse at 97% 48%, rgba(1, 7, 15, 0.76), rgba(1, 7, 15, 0.2) 38%, rgba(1, 7, 15, 0) 58%),
-        linear-gradient(180deg, rgba(2, 13, 24, 0), rgba(2, 13, 24, 0.3) 100%);
-    filter: blur(8px);
-    opacity: 0.78;
+        radial-gradient(ellipse at 50% 42%, rgba(58, 150, 184, 0.1), rgba(20, 92, 124, 0.05) 34%, rgba(2, 13, 24, 0) 64%),
+        radial-gradient(ellipse at 3% 50%, rgba(1, 7, 15, 0.78), rgba(1, 7, 15, 0.22) 40%, rgba(1, 7, 15, 0) 64%),
+        radial-gradient(ellipse at 97% 50%, rgba(1, 7, 15, 0.8), rgba(1, 7, 15, 0.24) 40%, rgba(1, 7, 15, 0) 64%),
+        linear-gradient(180deg, rgba(2, 13, 24, 0) 0%, rgba(5, 26, 39, 0.34) 42%, rgba(8, 47, 67, 0.76) 68%, rgba(10, 52, 72, 0.92) 100%);
+    filter: none;
+    opacity: 0.9;
 }
 
 body.home-page .hero-ocean-glow-one {
@@ -12405,7 +12420,7 @@ body.home-page.hero-awakened .hero-section::before {
 }
 
 body.home-page.hero-awakened .hero-section::after {
-    opacity: 0.72;
+    opacity: 0.86;
 }
 
 body.home-page.hero-awakened .hero-hotspots-shell.today-sea-card::before {
