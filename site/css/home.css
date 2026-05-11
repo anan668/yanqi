@@ -4940,8 +4940,6 @@ body.home-page.page-transition-active .page-stage * {
     margin: 0 auto;
     display: grid;
     gap: 34px;
-    content-visibility: auto;
-    contain-intrinsic-size: 980px;
 }
 
 /* 统一潜水匹配标题区的显现前状态。 */
@@ -7011,8 +7009,6 @@ body[data-home-scroll-mode='active'] .dive-match-card-grid {
     z-index: 1;
     max-width: 1280px;
     margin: 0 auto;
-    content-visibility: auto;
-    contain-intrinsic-size: 520px;
 }
 
 /* 制制页脚区域的布局、层次和收束氛围 */

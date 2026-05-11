@@ -6,5 +6,9 @@
 /tools/qa/.cache/
 /tools/qa/*.log
 /tools/qa/tmp-*
+/.tmp/
+/.tmp.driveupload/
+/tmp-*.png
+/temp_dark_scan.py
 /tools/maps/source/**/*.zip
 /tools/maps/source/**/*.geojson

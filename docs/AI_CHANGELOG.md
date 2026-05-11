@@ -1,5 +1,78 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-05-11 15:15
+
+### 任务目的
+
+- 对比 2026 年 4 月 7 日备份，定位当前首页海域陈列区域“滚完又自己多滑一点”的来源；同时清理项目根目录临时文件，并把海域陈列区域恢复为更接近旧版的原生滚动。
+
+### 改动文件
+
+- `site/js/home.js`
+- `.gitignore`
+- `docs/AI_CHANGELOG.md`
+- 项目根目录临时文件：`.tmp`、`.tmp.driveupload`、`temp_dark_scan.py`、多张 `tmp-*.png` 调试截图
+
+### 具体改动
+
+- 对比备份目录 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\素材音乐与备份\备份\盐憩 - 副本2026年4月7日 180952`：旧版首页没有当前这套文档级 wheel fallback / native-first rescue，也没有把精选海域、海域陈列舞台和左侧媒体区纳入 JS 补滚范围；滚动主要交给浏览器原生链路处理。
+- `site/js/home.js`：把 `#featured-destinations`、`.curated-waters-shell`、`.curated-waters-stage`、`.curated-display`、`.curated-display-surface`、`.curated-display-media` 从首页滚轮 fallback 命中范围移除。
+- `site/js/home.js`：保留今日海域区域的历史兜底，但海域陈列区域不再触发延迟 `scrollBy()` 补滚，避免原生滚动完成后又被 JS 追加一小段位移。
+- `.gitignore`：新增项目根目录 `.tmp/`、`.tmp.driveupload/`、`tmp-*.png`、`temp_dark_scan.py` 忽略规则，避免动态调试产物再次被纳入版本跟踪。
+- 项目根目录：删除本轮及前几轮动态调试留下的临时目录、上传残留、暗色扫描脚本和 `tmp-*.png` 截图，不触碰源码、备份目录、`.claude` 工作树或正式资源。
+- 本次不修改 `site/home.html` 结构，不修改 CSS、不修改 `depth-manager.js`、页面过渡文件、本地状态存储、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome 路径，通过 Playwright 桌面 1440x900 动态探针复测。
+- 在 `.curated-waters-stage`、`.curated-display-media`、`.curated-display-surface.is-active` 上各触发 `180px` wheel，`20ms`、`100ms`、`360ms` 后页面位移均为 `180px`，JS `scrollBy()` 调用次数为 `0`，`body.scrollTop` 保持 `0`。
+- 在 `.curated-display-media` 上连续触发 8 次 `90px` wheel 后，总位移为 `720px`，JS `scrollBy()` 调用次数为 `0`，确认海域陈列区域不再出现补滚叠加。
+- 重新扫描项目根目录，未再发现 `.tmp`、`.tmp.driveupload`、`temp_dark_scan.py` 或 `tmp-*.png` 临时文件。
+
+### 尚未验证
+
+- 动态探针仍在海域陈列连续滚动时观察到少量 `55-66ms` longtask；这次已确认它们不是由 JS `scrollBy()` 叠加造成，后续若还追求更接近详情页的丝滑度，可以继续压缩海域陈列区滚动时的绘制和状态同步成本。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是备份对比、临时文件清理和首页海域陈列补滚问题的定向验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响深度计、跨页过渡、本地状态、Sea Atlas 或 Planner Desk。
+
+## 2026-05-11 15:07
+
+### 任务目的
+
+- 继续优化首页滚轮“能滚但不够跟手”的问题，让首页鼠标滚轮手感更接近详情页的原生滚动节奏，并减少滚动进入后续模块时的偶发主线程长任务。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：把上一轮首页重点区域的即时 `preventDefault()` + `scrollBy()` 改为“原生优先”的 wheel 救援策略；正常滚动不再取消默认行为，只有滚轮后约 `96ms` 仍未产生页面位移时才补滚。
+- `site/js/home.js`：救援策略只保留在今日海域和精选海域两个历史高风险命中区；Dive Match 和故事区已恢复完全原生滚动，避免 JS 兜底与浏览器默认滚动叠加，造成一次滚轮位移翻倍。
+- `site/js/home.js`：给救援兜底增加 `96px` 最小 delta，连续小步滚轮 / 触控板式输入不再进入 JS 补滚路径，保留更细腻的原生惯性。
+- `site/css/home.css`：移除 `.dive-match-shell` 和 `.footer-shell` 的 `content-visibility: auto` / `contain-intrinsic-size`，避免滚动进入这些区域时才触发大块首次渲染，减少滚动中的 longtask。
+- 本次不修改 `site/home.html` 结构，不修改 `depth-manager.js`、页面过渡文件、本地状态存储、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，通过；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome 路径，通过 Playwright 桌面 1440x900 动态探针复测。
+- 单次滚轮验证覆盖今日海域顶部、精选左图、Dive Match 区域、Dive Match 卡片网格、故事区；上下滚均能在约 `20-80ms` 内产生页面位移，没有 JS `scrollBy()` 叠加，`body.scrollTop` 保持 `0`，没有采集到 `>=50ms` longtask。
+- 连续小步滚轮验证覆盖精选左图区域，8 次 `90px` 连续 wheel 后总位移 `720px`，JS `scrollBy()` 次数为 `0`，没有采集到 `>=50ms` longtask。
+- 对照详情页 `detail.html?id=1` 的 hero 区域，原生滚轮同样表现为约 `60ms` 内落地，确认首页当前重点区域已接近详情页的原生滚动节奏。
+
+### 尚未验证
+
+- Playwright 控制台仍有一次既有 404 资源提示，本次未追踪来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮是首页滚轮跟手性和长任务的定向动态验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响跨页过渡、本地状态、Sea Atlas 或 Planner Desk；深度计文件未改，首页层级测量仅沿用既有同步机制。
+
 ## 2026-05-11 14:43
 
 ### 任务目的

@@ -3032,24 +3032,19 @@ const HOME_WHEEL_FALLBACK_MAX_DELTA_PX = 320;
 const HOME_WHEEL_FALLBACK_DESKTOP_CONFIRM_DELAY_MS = 48;
 const HOME_WHEEL_FALLBACK_DESKTOP_MAX_VIEWPORT_RATIO = 1.55;
 const HOME_WHEEL_FALLBACK_DESKTOP_MAX_DELTA_PX = 1680;
+const HOME_WHEEL_FALLBACK_NATIVE_FIRST_CONFIRM_DELAY_MS = 96;
+const HOME_WHEEL_FALLBACK_NATIVE_FIRST_MIN_DELTA_PX = 96;
+const HOME_WHEEL_FALLBACK_FAST_SOURCE = 'fast-wheel-rescue';
 const HOME_WHEEL_FALLBACK_DIRECT_SELECTOR = [
     '#hero-home',
-    '.hero-section',
-    '#featured-destinations'
+    '.hero-section'
 ].join(', ');
 const HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR = [
     '.hero-hotspots-shell.today-sea-card',
-    '.hero-bamboo-cards-wrapper',
-    '.curated-waters-shell',
-    '.curated-waters-stage',
-    '.curated-display',
-    '.curated-display-surface'
+    '.hero-bamboo-cards-wrapper'
 ].join(', ');
 const HOME_WHEEL_IMMEDIATE_SELECTOR = [
-    '.hero-hotspots-shell.today-sea-card',
-    '#featured-destinations',
-    '#dive-match',
-    '#why-yanqi'
+    '.hero-hotspots-shell.today-sea-card'
 ].join(', ');
 const HOME_WHEEL_FALLBACK_SEEN_EVENTS = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
 let pendingHomeWheelFallbackTask = null;
@@ -3357,6 +3352,55 @@ function hasHomeWheelNativeScrollMoved(startScrollY) {
     return Math.abs(currentScrollY - startScrollY) > 0.5;
 }
 
+function commitPendingHomeWheelFallbackTask(
+    task,
+    logLabel = 'wheel-fallback-scrollBy',
+    syncLabel = 'after-wheel-fallback-layer-sync'
+) {
+    if (!task || pendingHomeWheelFallbackTask !== task) {
+        return;
+    }
+
+    const currentScrollY = window.scrollY || window.pageYOffset || 0;
+    if (Math.abs(currentScrollY - task.startScrollY) > 0.5) {
+        logHomeScrollJitterDebug('wheel-fallback-cancel-late-native-scroll', {
+            startScrollY: task.startScrollY,
+            currentScrollY,
+            deltaY: task.deltaY,
+            source: task.source || ''
+        });
+        pendingHomeWheelFallbackTask = null;
+        return;
+    }
+
+    const maxScrollY = Math.max(
+        Math.max(
+            document.documentElement?.scrollHeight || 0,
+            document.body?.scrollHeight || 0
+        ) - Math.max(window.innerHeight || 0, 1),
+        0
+    );
+    if ((task.deltaY < 0 && currentScrollY <= 0) || (task.deltaY > 0 && currentScrollY >= maxScrollY - 1)) {
+        pendingHomeWheelFallbackTask = null;
+        return;
+    }
+
+    pendingHomeWheelFallbackTask = null;
+    logHomeScrollJitterDebug(logLabel, {
+        startScrollY: task.startScrollY,
+        currentScrollY,
+        deltaY: task.deltaY,
+        source: task.source || ''
+    });
+    armHomeScrollJitterDebugTrace(syncLabel, 760);
+    window.scrollBy({
+        top: task.deltaY,
+        left: 0,
+        behavior: 'auto'
+    });
+    requestHomeLayerSyncAfterScrollBy(syncLabel);
+}
+
 function runPendingHomeWheelFallbackTask(task) {
     if (!task || pendingHomeWheelFallbackTask !== task) {
         return;
@@ -3385,42 +3429,7 @@ function runPendingHomeWheelFallbackTask(task) {
                 return;
             }
 
-            const currentScrollY = window.scrollY || window.pageYOffset || 0;
-            if (Math.abs(currentScrollY - task.startScrollY) > 0.5) {
-                logHomeScrollJitterDebug('wheel-fallback-cancel-late-native-scroll', {
-                    startScrollY: task.startScrollY,
-                    currentScrollY,
-                    deltaY: task.deltaY
-                });
-                pendingHomeWheelFallbackTask = null;
-                return;
-            }
-
-            const maxScrollY = Math.max(
-                Math.max(
-                    document.documentElement?.scrollHeight || 0,
-                    document.body?.scrollHeight || 0
-                ) - Math.max(window.innerHeight || 0, 1),
-                0
-            );
-            if ((task.deltaY < 0 && currentScrollY <= 0) || (task.deltaY > 0 && currentScrollY >= maxScrollY - 1)) {
-                pendingHomeWheelFallbackTask = null;
-                return;
-            }
-
-            pendingHomeWheelFallbackTask = null;
-            logHomeScrollJitterDebug('wheel-fallback-scrollBy', {
-                startScrollY: task.startScrollY,
-                currentScrollY,
-                deltaY: task.deltaY
-            });
-            armHomeScrollJitterDebugTrace('after-wheel-fallback-scrollBy', 760);
-            window.scrollBy({
-                top: task.deltaY,
-                left: 0,
-                behavior: 'auto'
-            });
-            requestHomeLayerSyncAfterScrollBy('after-wheel-fallback-layer-sync');
+            commitPendingHomeWheelFallbackTask(task);
         });
     }, confirmDelayMs);
 }
@@ -3515,7 +3524,7 @@ function applyNarrowHomeWheelManualFallback(event) {
     requestHomeLayerSyncAfterScrollBy('after-manual-wheel-fallback-layer-sync');
 }
 
-function applyHomeWheelImmediateFallback(event) {
+function scheduleHomeWheelNativeFirstFallback(event) {
     if (
         event?.defaultPrevented
         || event?.ctrlKey
@@ -3526,7 +3535,7 @@ function applyHomeWheelImmediateFallback(event) {
 
     const deltaX = Math.abs(Number(event?.deltaX) || 0);
     const deltaY = getHomeWheelDeltaY(event);
-    if (Math.abs(deltaY) < HOME_HERO_WHEEL_FALLBACK_MIN_DELTA_PX || deltaX > Math.abs(deltaY)) {
+    if (Math.abs(deltaY) < HOME_WHEEL_FALLBACK_NATIVE_FIRST_MIN_DELTA_PX || deltaX > Math.abs(deltaY)) {
         return;
     }
 
@@ -3535,7 +3544,7 @@ function applyHomeWheelImmediateFallback(event) {
         return;
     }
 
-    const currentScrollY = window.scrollY || window.pageYOffset || 0;
+    const startScrollY = window.scrollY || window.pageYOffset || 0;
     const maxScrollY = Math.max(
         Math.max(
             document.documentElement?.scrollHeight || 0,
@@ -3543,21 +3552,53 @@ function applyHomeWheelImmediateFallback(event) {
         ) - Math.max(window.innerHeight || 0, 1),
         0
     );
-    if ((fallbackDeltaY < 0 && currentScrollY <= 0) || (fallbackDeltaY > 0 && currentScrollY >= maxScrollY - 1)) {
+    if ((fallbackDeltaY < 0 && startScrollY <= 0) || (fallbackDeltaY > 0 && startScrollY >= maxScrollY - 1)) {
+        return;
+    }
+
+    if (
+        pendingHomeWheelFallbackTask?.source === HOME_WHEEL_FALLBACK_FAST_SOURCE
+        && Math.abs((pendingHomeWheelFallbackTask.startScrollY || 0) - startScrollY) <= 0.5
+    ) {
+        pendingHomeWheelFallbackTask.deltaY = clampHomeWheelFallbackDelta(
+            pendingHomeWheelFallbackTask.deltaY + fallbackDeltaY,
+            getHomeWheelDesktopFallbackMaxDelta()
+        );
+        logHomeScrollJitterDebug('wheel-fast-rescue-merged', {
+            startScrollY,
+            deltaY: pendingHomeWheelFallbackTask.deltaY
+        });
         return;
     }
 
     clearPendingHomeWheelFallbackTask();
-    if (event.cancelable) {
-        event.preventDefault();
-    }
 
-    window.scrollBy({
-        top: fallbackDeltaY,
-        left: 0,
-        behavior: 'auto'
+    pendingHomeWheelFallbackTask = {
+        startScrollY,
+        deltaY: fallbackDeltaY,
+        confirmDelayMs: HOME_WHEEL_FALLBACK_NATIVE_FIRST_CONFIRM_DELAY_MS,
+        rafId: 0,
+        timerId: 0,
+        source: HOME_WHEEL_FALLBACK_FAST_SOURCE
+    };
+    logHomeScrollJitterDebug('wheel-fast-rescue-scheduled', {
+        startScrollY,
+        deltaY: fallbackDeltaY
     });
-    requestHomeLayerSyncAfterScrollBy('after-immediate-wheel-fallback-layer-sync');
+    armHomeScrollJitterDebugTrace('after-wheel-fast-rescue-scheduled', 420);
+    pendingHomeWheelFallbackTask.timerId = window.setTimeout(() => {
+        const task = pendingHomeWheelFallbackTask;
+        if (!task || task.source !== HOME_WHEEL_FALLBACK_FAST_SOURCE) {
+            return;
+        }
+
+        task.timerId = 0;
+        commitPendingHomeWheelFallbackTask(
+            task,
+            'wheel-fast-rescue-scrollBy',
+            'after-wheel-fast-rescue-layer-sync'
+        );
+    }, HOME_WHEEL_FALLBACK_NATIVE_FIRST_CONFIRM_DELAY_MS);
 }
 
 function setupNarrowHomeWheelFallback() {
@@ -3570,7 +3611,7 @@ function setupNarrowHomeWheelFallback() {
         ? document.querySelectorAll(HOME_WHEEL_IMMEDIATE_SELECTOR)
         : [];
     immediateFallbackTargets.forEach((target) => {
-        target.addEventListener('wheel', applyHomeWheelImmediateFallback, { passive: false });
+        target.addEventListener('wheel', scheduleHomeWheelNativeFirstFallback, { passive: false });
     });
 
     document.addEventListener('wheel', (event) => {
