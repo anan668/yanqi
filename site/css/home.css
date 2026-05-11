@@ -6923,7 +6923,75 @@ body[data-home-scroll-mode='active'] .dive-match.is-home-current .dive-match-sta
 body[data-home-scroll-mode='active'] .dive-match.is-switching-deeper .dive-match-stage,
 body[data-home-scroll-mode='active'] .dive-match.is-switching-shallower .dive-match-stage,
 body[data-home-scroll-mode='active'] .dive-match-card-grid {
-    transition-property: opacity, filter, box-shadow, border-color, background !important;
+    transition-property: opacity, transform, border-color, background-color, background !important;
+    transition-duration: 120ms !important;
+}
+
+body[data-home-scroll-mode='active'] [data-home-layer] {
+    filter: none !important;
+}
+
+body[data-home-scroll-mode='active'] .hero-ocean-glow-one,
+body[data-home-scroll-mode='active'] .hero-ocean-glow-two,
+body[data-home-scroll-mode='active'] .hero-ocean-wave-one,
+body[data-home-scroll-mode='active'] .hero-ocean-wave-two,
+body[data-home-scroll-mode='active'] .hero-plankton,
+body[data-home-scroll-mode='active'] .scroll-arrow,
+body[data-home-scroll-mode='active'] .curated-display-media::after,
+body[data-home-scroll-mode='active'] .curated-nav-rail.is-cycling .curated-nav-refresh::after,
+body[data-home-scroll-mode='active'] .dive-match.is-display-visible .dive-match-surface.is-resting,
+body[data-home-scroll-mode='active'] .story-river-glow,
+body[data-home-scroll-mode='active'] .sea-guide-home .sea-guide-trigger {
+    animation-play-state: paused !important;
+}
+
+body[data-home-scroll-mode='active'] .today-sea-card,
+body[data-home-scroll-mode='active'] .today-sea-brief-panel,
+body[data-home-scroll-mode='active'] .hero-hotspots-shell .bamboo-card,
+body[data-home-scroll-mode='active'] .bamboo-card,
+body[data-home-scroll-mode='active'] .curated-waters-stage,
+body[data-home-scroll-mode='active'] .curated-display-copy,
+body[data-home-scroll-mode='active'] .curated-nav-panel,
+body[data-home-scroll-mode='active'] .dive-match-stage,
+body[data-home-scroll-mode='active'] .dive-match-profile-panel,
+body[data-home-scroll-mode='active'] .dive-match-focus-card,
+body[data-home-scroll-mode='active'] .dive-match-card,
+body[data-home-scroll-mode='active'] .story-card {
+    transition-property: opacity, transform, border-color, background-color, background !important;
+}
+
+body[data-home-scroll-mode='active'] .today-sea-card,
+body[data-home-scroll-mode='active'] .today-sea-brief-panel,
+body[data-home-scroll-mode='active'] .curated-waters-stage,
+body[data-home-scroll-mode='active'] .curated-display-copy,
+body[data-home-scroll-mode='active'] .curated-nav-panel,
+body[data-home-scroll-mode='active'] .dive-match-stage,
+body[data-home-scroll-mode='active'] .dive-match-profile-panel,
+body[data-home-scroll-mode='active'] .dive-match-focus-card,
+body[data-home-scroll-mode='active'] .dive-match-card,
+body[data-home-scroll-mode='active'] .story-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+body[data-home-scroll-mode='active'] .curated-waters-stage::before,
+body[data-home-scroll-mode='active'] .curated-waters-stage::after,
+body[data-home-scroll-mode='active'] .curated-display-media::after,
+body[data-home-scroll-mode='active'] .dive-match::before,
+body[data-home-scroll-mode='active'] .dive-match::after,
+body[data-home-scroll-mode='active'] .dive-match-stage::before,
+body[data-home-scroll-mode='active'] .dive-match-focus-card::before,
+body[data-home-scroll-mode='active'] .dive-match-focus-card::after,
+body[data-home-scroll-mode='active'] .dive-match-profile-presets-focus-aura,
+body[data-home-scroll-mode='active'] .story-river-glow,
+body[data-home-scroll-mode='active'] .sea-guide-home .sea-guide-trigger::after,
+body[data-home-scroll-mode='active'] .sea-guide-home .sea-guide-panel::before,
+body[data-home-scroll-mode='active'] .hero-bamboo-scroll-container::before,
+body[data-home-scroll-mode='active'] .hero-bamboo-cards-wrapper::before,
+body[data-home-scroll-mode='active'] .hero-bamboo-cards-wrapper::after,
+body[data-home-scroll-mode='active'] .today-sea-card::before {
+    filter: none !important;
+    opacity: 0.34 !important;
 }
 
 /* 制制精选目的地区域的舞台布局、卡片层级和视觉焦点 */

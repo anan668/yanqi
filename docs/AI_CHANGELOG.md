@@ -1,5 +1,43 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-05-11 15:39
+
+### 任务目的
+
+- 按计划把首页桌面滚轮手感调回更接近 4 月 7 日备份的原生节奏：不整页回滚旧版，只移除桌面端 wheel 补滚叠加，并降低首页滚动活跃期的绘制和状态同步负担。
+
+### 改动文件
+
+- `site/js/home.js`
+- `site/css/home.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/home.js`：桌面端 `setupNarrowHomeWheelFallback()` 直接退出，不再给今日海域、首屏或文档级 wheel 绑定 `scrollBy()` fallback；保留窄屏 / coarse pointer 的原有手动兜底路径。
+- `site/js/home.js`：普通桌面 wheel 只标记短暂的首页滚动活跃态，不阻止默认滚动、不改写滚动距离，让 `data-home-scroll-mode="active"` 能在真实滚轮期间生效。
+- `site/js/home.js`：把 `glide` 和 `settling` 也纳入首页滚动活跃模式；滚动活跃期内 `homeViewportCoordinator` 的 update 与交互锁共用约 `84ms` 限频，减少滚动帧里的层级同步开销。
+- `site/css/home.css`：滚动活跃期移除大区块 filter 过渡，暂停首屏水光、精选媒体覆盖层、Dive Match 静置态、故事光带和导览触发器等纯装饰动画。
+- `site/css/home.css`：滚动活跃期关闭今日海域、精选舞台、Dive Match、故事卡片等重点区域的高成本 backdrop-filter，并把相关转场收敛到 opacity / transform / border / background，静止后恢复原有视觉质感。
+- 本次不整页替换 4 月 7 日备份文件，不修改 `site/home.html` 结构，不修改深度计、页面过渡、本地状态存储、Sea Atlas 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/home.js`，通过。
+- 运行 `git diff --check -- site/js/home.js site/css/home.css docs/AI_CHANGELOG.md`，通过；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/home.html` 和项目指定 Chrome 路径，通过 Playwright 桌面 1440x900 动态探针复测；首次 Node stdin 内嵌中文路径被转成问号导致 Chrome 启动失败，随后改用环境变量传入同一路径并成功启动指定 Chrome。
+- 今日海域 `.hero-hotspots-shell.today-sea-card` 执行 `wheel(420)`：`20ms` 位移 `0px`，`100ms / 360ms / final` 位移均为 `420px`，JS `scrollBy()` 调用次数为 `0`，没有采集到 longtask。
+- 精选左图 `.curated-display-media`、精选舞台 `.curated-waters-stage`、Dive Match `#dive-match`、故事区 `#why-yanqi` 单次 wheel 均按原生 delta 推进，JS `scrollBy()` 调用次数均为 `0`；精选左图连续 8 次 `90px` wheel 后总位移 `720px`，JS `scrollBy()` 调用次数为 `0`。
+- 对照 `trip.html` 和 `detail.html?id=1` 做 4 次 `wheel(420)`：两页总位移均为 `1680px`，JS `scrollBy()` 调用次数为 `0`，没有采集到 longtask。
+
+### 尚未验证
+
+- 首页本轮动态探针在 Dive Match 单次 wheel 中仍采集到一次约 `50ms` longtask，已明显低于此前反馈中的 `61-105ms` 区间，但如果继续追求极限丝滑，可以单独压 Dive Match 首次进入时的绘制成本。
+- Playwright 控制台仍有一次既有 404 资源提示，本次未追踪来源。
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮已按计划做首页重点滚轮区域与 trip/detail 对照的定向动态验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- 本次不影响深度计、跨页过渡、本地状态、Sea Atlas 或 Planner Desk。
+
 ## 2026-05-11 15:15
 
 ### 任务目的

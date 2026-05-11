@@ -924,7 +924,11 @@ function createHomeViewportCoordinator() {
     };
 
     const shouldDeferLockedUpdate = () => {
-        if (typeof isHomeInteractionLocked !== 'function' || !isHomeInteractionLocked()) {
+        const shouldThrottle = (
+            (typeof isHomeInteractionLocked === 'function' && isHomeInteractionLocked())
+            || (typeof isHomeScrollBusyForHeavyWork === 'function' && isHomeScrollBusyForHeavyWork())
+        );
+        if (!shouldThrottle) {
             return false;
         }
 
@@ -3607,21 +3611,13 @@ function setupNarrowHomeWheelFallback() {
     }
 
     const useManualFallback = shouldUseHomeWheelManualFallback();
-    const immediateFallbackTargets = !useManualFallback
-        ? document.querySelectorAll(HOME_WHEEL_IMMEDIATE_SELECTOR)
-        : [];
-    immediateFallbackTargets.forEach((target) => {
-        target.addEventListener('wheel', scheduleHomeWheelNativeFirstFallback, { passive: false });
-    });
+    if (!useManualFallback) {
+        clearPendingHomeWheelFallbackTask();
+        return;
+    }
 
     document.addEventListener('wheel', (event) => {
         const target = event.target;
-        const immediateFallbackHit = !useManualFallback
-            && target?.closest?.(HOME_WHEEL_IMMEDIATE_SELECTOR);
-        if (immediateFallbackHit) {
-            return;
-        }
-
         const containedFallbackTarget = target?.closest?.(HOME_WHEEL_FALLBACK_CONTAINED_SELECTOR);
         const isDirectFallbackTarget = target?.matches?.(HOME_WHEEL_FALLBACK_DIRECT_SELECTOR);
 
@@ -3630,13 +3626,8 @@ function setupNarrowHomeWheelFallback() {
             return;
         }
 
-        if (useManualFallback) {
-            applyNarrowHomeWheelManualFallback(event);
-            return;
-        }
-
-        scheduleNarrowHomeWheelFallback(event);
-    }, { capture: true, passive: !useManualFallback });
+        applyNarrowHomeWheelManualFallback(event);
+    }, { capture: true, passive: false });
 }
 
 function isHomeScrollSettlingActive() {
@@ -3663,7 +3654,7 @@ function isHomeVerticalScrollActive() {
 window.isHomeVerticalScrollActive = isHomeVerticalScrollActive;
 
 function isHomeScrollActiveMode(mode) {
-    return mode === 'traveling';
+    return mode === 'traveling' || mode === 'glide' || mode === 'settling';
 }
 
 function resolveHomeScrollMode() {
@@ -3698,6 +3689,9 @@ function setHomeManualGlideActive(isActive) {
         resetHomeManualGlideTracking();
     }
     syncHomeInteractionDataset();
+    if (!nextActive && typeof homeViewportCoordinator !== 'undefined') {
+        homeViewportCoordinator.requestUpdate();
+    }
 }
 
 function stopHomeManualGlide() {
@@ -3849,6 +3843,26 @@ function recordHomeManualGlideDelta(delta, now = performance.now()) {
     if (HOME_INTERACTION_STATE.manualGliding) {
         scheduleHomeManualGlideStop();
     }
+}
+
+function markHomeNativeWheelActivity(event) {
+    if (
+        event?.defaultPrevented
+        || event?.ctrlKey
+        || HOME_INTERACTION_STATE.programmaticTraveling
+        || document.body?.classList.contains('page-transition-active')
+    ) {
+        return;
+    }
+
+    const deltaX = Math.abs(Number(event?.deltaX) || 0);
+    const deltaY = Math.abs(getHomeWheelDeltaY(event));
+    if (deltaY < HOME_HERO_WHEEL_FALLBACK_MIN_DELTA_PX || deltaX > deltaY) {
+        return;
+    }
+
+    setHomeManualGlideActive(true);
+    scheduleHomeManualGlideStop();
 }
 
 /**
@@ -4098,7 +4112,9 @@ function setupHomeManualScrollTraveling() {
             return;
         }
 
-        const deltaY = Math.abs(Number(event?.deltaY) || 0);
+        markHomeNativeWheelActivity(event);
+
+        const deltaY = Math.abs(getHomeWheelDeltaY(event));
         const wheelBurstThreshold = Math.max(
             (window.innerHeight || 0) * 0.18,
             HOME_MANUAL_SCROLL_BURST_DELTA_MIN
