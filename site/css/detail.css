@@ -7869,6 +7869,66 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     color: rgba(229, 244, 249, 0.92);
 }
 
+/* 评价区 focus-only 需要优先保证底部 CTA 可达：
+   高度充足时保留上方陪读卡；高度不足时让焦点舱接管这层语境。 */
+.booking-sticky.is-focus-only-context[data-reading-zone="reviews"] {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(153, 204, 224, 0.42) transparent;
+}
+
+.booking-sticky.is-focus-only-context[data-reading-zone="reviews"]::-webkit-scrollbar {
+    width: 6px;
+}
+
+.booking-sticky.is-focus-only-context[data-reading-zone="reviews"]::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(157, 207, 226, 0.46), rgba(91, 145, 174, 0.28));
+}
+
+@media (max-height: 820px) {
+    .booking-sticky.is-focus-only-context[data-reading-zone="reviews"],
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="entering-prep"],
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="entering"],
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="settling"] {
+        --booking-focus-panel-stick-top: 0px;
+    }
+
+    .booking-sticky.is-focus-only-context[data-reading-zone="reviews"] .booking-copy:not(.is-collapsed-for-focus),
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="entering-prep"] .booking-copy:not(.is-collapsed-for-focus),
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="entering"] .booking-copy:not(.is-collapsed-for-focus),
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="settling"] .booking-copy:not(.is-collapsed-for-focus) {
+        opacity: 0;
+        max-height: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        border-color: transparent;
+        box-shadow: none;
+        overflow: hidden;
+        transform: translate3d(0, -12px, 0) scale(0.988);
+        pointer-events: none;
+    }
+
+    .booking-sticky.is-focus-only-context[data-reading-zone="reviews"]:not(.is-booking-copy-collapsed) .booking-focus-panel.is-review-context,
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="entering"]:not(.is-booking-copy-collapsed) .booking-focus-panel.is-review-context,
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="settling"]:not(.is-booking-copy-collapsed) .booking-focus-panel.is-review-context {
+        position: sticky;
+        top: 0;
+        gap: 10px;
+        min-height: clamp(280px, calc(100svh - 190px), 390px);
+        padding-block: 14px;
+    }
+
+    .booking-sticky.is-focus-only-context[data-reading-zone="reviews"]:not(.is-booking-copy-collapsed) .booking-focus-summary,
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="entering"]:not(.is-booking-copy-collapsed) .booking-focus-summary,
+    .booking-sticky[data-reading-zone="reviews"][data-focus-context-motion="settling"]:not(.is-booking-copy-collapsed) .booking-focus-summary {
+        font-size: 0.82rem;
+        line-height: 1.56;
+    }
+}
+
 .booking-focus-panel.is-booked {
     border-color: rgba(192, 231, 243, 0.34);
     box-shadow:

@@ -2672,6 +2672,13 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     display: none !important;
 }
 
+.confirmed-bookings-switch[hidden],
+.confirmed-bookings-empty[hidden],
+.sea-brief-empty[hidden],
+.sea-brief-card[hidden] {
+    display: none !important;
+}
+
 .planner-summary-neighbor:hover,
 .planner-summary-neighbor:focus-visible {
     opacity: 0.96;

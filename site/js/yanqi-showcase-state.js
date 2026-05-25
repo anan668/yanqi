@@ -261,8 +261,8 @@
         button.className = 'showcase-reset-btn';
         button.dataset.showcaseReset = 'true';
         button.innerHTML = `
-            <span class="showcase-reset-btn-kicker">Demo Voyage</span>
-            <span class="showcase-reset-btn-label">重置展示</span>
+            <span class="showcase-reset-btn-kicker">展示航线</span>
+            <span class="showcase-reset-btn-label">回到起点</span>
         `;
         button.addEventListener('click', () => {
             resetShowcaseState({

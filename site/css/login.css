@@ -2779,7 +2779,7 @@ body.page-transition-active .login-stage-hud {
     }
 /* glass-card-breathe 。50%：轻微上浮，并把阴影和高光再托亮一点。*/
     50% {
-        transform: translate3d(1px, -3px, 0);
+        transform: translate3d(0, 0, 0);
         box-shadow:
             0 34px 72px rgba(3, 12, 21, 0.32),
             0 14px 28px rgba(5, 20, 34, 0.18),
@@ -2873,7 +2873,7 @@ body.page-transition-active .login-stage-hud {
             0 24px 46px rgba(3, 14, 23, 0.18);
     }
     50% {
-        transform: translate3d(0, -1px, 0);
+        transform: translate3d(0, 0, 0);
         box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.07),
             0 28px 52px rgba(3, 14, 23, 0.2),
@@ -5966,7 +5966,7 @@ body.page-transition-active .login-stage-hud {
     }
 
     50% {
-        transform: translate3d(0.4px, -0.9px, 0);
+        transform: translate3d(0, 0, 0);
         box-shadow:
             0 20px 48px rgba(0, 8, 17, 0.3),
             0 0 0 1px rgba(187, 229, 244, 0.042),
@@ -6550,4 +6550,3 @@ body.page-transition-active .login-stage-hud {
         height: 9px;
     }
 }
-

@@ -1,5 +1,113 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-05-11 22:14
+
+### 任务目的
+
+- 修复 `detail.html` 评价区右侧 `booking-sticky is-focus-only-context` 在常见桌面高度下内容被裁切、`bookingFocusAction` 按钮无法点击打开的问题。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：让评价区 focus-only 状态下的 `booking-sticky` 恢复纵向滚动兜底，不再用 `overflow-y: hidden` 把底部 CTA 裁掉。
+- `site/css/detail.css`：在 `max-height: 820px` 的桌面高度内，自动收起未进入 JS 折叠阶段的评价陪读卡，把空间让给 `booking-focus-panel`，并压缩评论语境焦点舱的间距和摘要行高。
+- `site/css/detail.css`：为评价 focus-only 状态补回细滚动条样式，保证极端高度下仍能滚到按钮。
+- 本次不修改详情页 HTML / JS，不改深度计、跨页过渡、本地状态或 Sea Atlas 逻辑。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 LF/CRLF 提示。
+- 确认本地服务 `http://127.0.0.1:8766/site/detail.html?id=7` 可访问。
+- 使用项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 Playwright 动态验证。
+- 在 `1440x900` 视口滚到评价区，确认上方评价陪读卡仍显示，`bookingFocusAction` 位于侧栏可视范围内，点击可打开预约确认弹层。
+- 在 `1366x768`、`1280x720`、`1440x700`、`1025x768` 视口滚到评价区，确认短高度下评价陪读卡被收起，焦点舱完整显示，按钮位于侧栏可视范围内，点击可打开预约确认弹层。
+- 截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-booking-focus-reviews-1366x768.png`；动态验证期间未采集到 console message 或 pageerror。
+
+### 尚未验证
+
+- 本次是 CSS 定向修复，未运行 `node --check site/js/detail.js`，因为没有修改 JS。
+- 未运行全量 `npm run perf:detail`；本轮已覆盖问题相关的详情页评价区桌面视口动态验证。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+
+## 2026-05-11 21:36
+
+### 任务目的
+
+- 按 `docs/YANQI_IMPROVEMENT_PLAN.md` 的 P0 / 第 1 周“稳体验”范围，复查并修正桌面端展示主线里的入口点击、详情页 Sea Atlas、详情页写入行程、Trip 页 Sea Brief 承接和信息页打开稳定性。
+
+### 改动文件
+
+- `site/index.html`
+- `site/home.html`
+- `site/detail.html`
+- `site/trip.html`
+- `site/contact.html`
+- `site/terms.html`
+- `site/privacy.html`
+- `site/css/login.css`
+- `site/css/trip.css`
+- `site/js/yanqi-showcase-state.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/login.css`：把门厅玻璃卡和右侧认证面板的长期呼吸动画从位移 + 光影，收敛成只变化光影，不再让“展示航线”等入口按钮持续产生亚像素移动，保证普通桌面点击链路稳定。
+- `site/css/trip.css`：补充 `confirmed-bookings` 与 `Sea Brief` 相关 `[hidden]` 规则，避免组件自身的 `display: grid/flex` 覆盖 `hidden` 状态，导致空状态、隐藏摘要卡或隐藏按钮仍占位、被自动化或键盘链路命中。
+- `site/js/yanqi-showcase-state.js`：把展示模式导航里的 `Demo Voyage / 重置展示` 改为 `展示航线 / 回到起点`，保留一键重置展示数据能力，但收回更偏内部工具感的文案。
+- `site/index.html`、`site/home.html`、`site/detail.html`、`site/trip.html`、`site/contact.html`、`site/terms.html`、`site/privacy.html`：补充 favicon 链接到现有 `assets/images/avatar.png`，避免普通浏览器默认请求 `/favicon.ico` 产生 404 控制台错误。
+- 本次未修改深度计、跨页过渡、Sea Atlas 运行时、Planner Desk 逻辑或本地存储结构；只收紧入口展示、隐藏状态和展示模式文案。
+
+### 验证方式
+
+- 运行 `node --check site/js/yanqi-showcase-state.js`，通过。
+- 运行 `node --check site/js/auth.js`、`node --check site/js/home.js`、`node --check site/js/trip.js`、`node --check site/js/detail.js`、`node --check site/js/depth-manager.js`，通过。
+- 运行 `git diff --check -- site/index.html site/home.html site/detail.html site/trip.html site/contact.html site/terms.html site/privacy.html site/css/login.css site/css/trip.css site/js/yanqi-showcase-state.js`，通过；仅有 Git 的 LF/CRLF 提示。
+- 确认本地服务 `http://127.0.0.1:8766/site/` 已在运行。
+- 使用项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 1440x900 桌面动态验证。
+- 验证 `index.html` 标准点击 `#demoVoyageButton` 可进入 `home.html`，展示重置入口显示为 `展示航线 / 回到起点`，舞台调试入口不显示，控制台无 favicon 404。
+- 验证 `home.html` 从首屏、海域陈列、Dive Match、盐憩故事到 footer 均可滚动定位；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-p0-home-showcase-1440.png`。
+- 验证 `detail.html?id=7` 的 Sea Atlas 可进入首屏海图、切换 `海域位置 / 到达方式 / 水下结构` 三态，打开全屏海图并用 `Escape` 关闭；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-p0-detail-sea-atlas-1440.png`。
+- 验证详情页套餐卡可打开确认弹层、确认后出现“已收进行程”反馈，再进入 `trip.html#seaBriefStage`；Trip 页已收进行程和 Sea Brief 正常亮起，隐藏的空状态显示为 `display: none`；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-p0-trip-sea-brief-1440.png`。
+- 验证 `contact.html`、`terms.html`、`privacy.html` 可稳定打开并保留信息页水域样式。
+
+### 尚未验证
+
+- 未运行全量 `npm run perf:pages` / `npm run perf:detail`；本轮已按 P0 做主线桌面动态验证和关键链路截图。
+- 未做移动端专项验证；项目当前规则以桌面端体验为准。
+- Sea Atlas 动态验证使用 `detail.html?id=7`，未逐一遍历所有海域 ID。
+
+## 2026-05-11 20:41
+
+### 任务目的
+
+- 按用户要求，先不继续推进答辩稿，而是把盐憩未来一个月的项目改进方案正式整理进仓库，作为后续开发、续接和 AI 协作的统一参考。
+
+### 改动文件
+
+- `docs/YANQI_IMPROVEMENT_PLAN.md`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- 新增 `docs/YANQI_IMPROVEMENT_PLAN.md`，整理盐憩当前阶段判断、未来一个月总体目标、分周推进建议、按页面拆分的改进方向、按系统拆分的改进方向、暂不建议做的事项和推荐执行顺序。
+- 方案明确继续以桌面端为主，不把项目推进方向带向普通旅游站、电商站、后台站或移动端大重做。
+- 方案把后续工作重点收束为：体验再收稳、内容再补实、主角页再拉清、文档与交付面再整理好，不涉及本轮业务代码、样式或交互逻辑修改。
+
+### 验证方式
+
+- 读取 `AGENTS.md`、`README.md`、`docs/AI_CHANGELOG.md` 最近记录后，再结合现有 `docs/` 文档分工整理方案。
+- 参考本轮已完成的桌面端展示走查、截图检查和项目现有 README / 展示文档内容，确保方案与项目当前真实状态一致。
+- 人工校对新增文档结构，确认其内容覆盖“目标、优先级、分周路线、页面方向、系统方向、暂不建议事项、执行顺序”七类关键信息。
+
+### 尚未验证
+
+- 本次是纯文档整理任务，未运行 `node --check`、`git diff --check`、`npm run perf:pages` 或 `npm run perf:detail`，因为没有修改任何 JS / CSS / HTML 业务文件。
+- 本次不影响深度计、跨页过渡、本地状态、Sea Atlas 或 Planner Desk 的运行逻辑。
+
 ## 2026-05-11 20:28
 
 ### 任务目的
