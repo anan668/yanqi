@@ -165,6 +165,31 @@ function normalizeDisplayPriceText(priceText) {
         : String(priceText || '');
 }
 
+function formatTodaySeaReference(priceText) {
+    const normalizedPrice = normalizeDisplayPriceText(priceText).trim();
+    return normalizedPrice ? `航线参考 ${normalizedPrice}` : '航线参考待定';
+}
+
+function getTodaySeaLayerLabel(spot) {
+    const difficulty = String(spot?.difficulty || '').trim();
+    const depth = String(spot?.depth || '').trim();
+    const starCount = (difficulty.match(/★/g) || []).length;
+
+    if (starCount >= 4 || /40|强流|深潜/.test(depth)) {
+        return '强流深蓝';
+    }
+
+    if (starCount >= 3 || /30|外海/.test(depth)) {
+        return '进阶水层';
+    }
+
+    if (starCount >= 2) {
+        return '外海舒适线';
+    }
+
+    return '轻入门水层';
+}
+
 /**
  * getSpotBasePriceText(spotId, fallbackPriceText) - 获取首页潜点卡片应展示的统一起价
  * @param {number} spotId - 潜点 id
@@ -4471,8 +4496,8 @@ class BambooScroll {
                         <h3 class="bamboo-card-title">${spot.name}</h3>
                         <p class="bamboo-card-tagline">${spot.tagline}</p>
                         <div class="bamboo-card-footer">
-                            <div class="bamboo-card-price">${spot.price}</div>
-                            <div class="bamboo-card-rating">${spot.rating} ★</div>
+                            <div class="bamboo-card-price">${formatTodaySeaReference(spot.price)}</div>
+                            <div class="bamboo-card-flow">${getTodaySeaLayerLabel(spot)}</div>
                         </div>
                     </div>
                 `;

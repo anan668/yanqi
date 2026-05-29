@@ -97,7 +97,7 @@ body.info-page {
     margin: 20px 0 0;
     font-size: 1rem;
     line-height: 1.9;
-    color: rgba(218, 236, 244, 0.76);
+    color: rgba(223, 240, 247, 0.82);
 }
 
 .info-layer-map {
@@ -153,7 +153,7 @@ body.info-page {
     margin: 0;
     max-width: 68ch;
     line-height: 1.8;
-    color: rgba(213, 231, 240, 0.72);
+    color: rgba(218, 236, 244, 0.78);
 }
 
 /* 信息页主体壳体：
@@ -223,7 +223,7 @@ body.info-page {
 
 .info-shell-copy {
     line-height: 1.82;
-    color: rgba(214, 232, 240, 0.72);
+    color: rgba(219, 236, 244, 0.78);
 }
 
 .info-shell-badge {
@@ -283,7 +283,7 @@ body.info-page {
     padding-top: 16px;
     border-top: 1px solid rgba(184, 223, 239, 0.08);
     line-height: 1.76;
-    color: rgba(206, 227, 237, 0.6);
+    color: rgba(212, 232, 241, 0.68);
 }
 
 .info-nav-link {
@@ -374,7 +374,7 @@ body.info-page {
 .contact-card-copy,
 .contact-form-copy,
 .info-footer-copy {
-    color: rgba(219, 236, 244, 0.76);
+    color: rgba(224, 240, 247, 0.82);
     line-height: 1.88;
 }
 

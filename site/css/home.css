@@ -1175,8 +1175,8 @@ body.home-page.page-transition-active .page-stage * {
     color: #dff4ff;
 }
 
-.hero-hotspots-shell .bamboo-card-rating {
-    color: rgba(255, 226, 150, 0.92);
+.hero-hotspots-shell .bamboo-card-flow {
+    color: rgba(176, 221, 233, 0.76);
 }
 
 /* 首屏 内底部按钮最后再出现，形成更完整的首屏节奏。 */
@@ -2751,9 +2751,9 @@ body.home-page.page-transition-active .page-stage * {
 }
 
 /* 设置热门潜点卡片的外观、层次和悬停反馈 */
-.bamboo-card-rating {
+.bamboo-card-flow {
     font-size: 0.85rem;
-    color: #ffc107;
+    color: rgba(176, 221, 233, 0.76);
 }
 
 /* Bamboo Scroll Arrows */
@@ -8814,12 +8814,12 @@ body.home-page .hero-hotspots-shell .bamboo-card-footer {
 }
 
 body.home-page .hero-hotspots-shell .bamboo-card-price {
-    color: rgba(218, 240, 249, 0.88);
-    font-size: 1.02rem;
+    color: rgba(218, 240, 249, 0.72);
+    font-size: 0.8rem;
 }
 
-body.home-page .hero-hotspots-shell .bamboo-card-rating {
-    color: rgba(231, 207, 142, 0.78);
+body.home-page .hero-hotspots-shell .bamboo-card-flow {
+    color: rgba(184, 224, 236, 0.78);
 }
 
 /* 今日海域观察窗左右滚动箭头：用胶囊形玻璃按钮替代原版圆形箭头。
@@ -9552,21 +9552,21 @@ body.home-page .hero-hotspots-shell .bamboo-card-footer {
 
 /* 满图卡价格与评分共享字号和字距，各自单独覆写颜色。 */
 body.home-page .hero-hotspots-shell .bamboo-card-price,
-body.home-page .hero-hotspots-shell .bamboo-card-rating {
-    font-size: 0.74rem;
+body.home-page .hero-hotspots-shell .bamboo-card-flow {
+    font-size: 0.7rem;
     line-height: 1.2;
     font-weight: 500;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
 }
 
-/* 满图卡价格：青白色，0.68 不透明度保持低调但不消失。 */
+/* 满图卡价格：青白色，作为参考信息低调停留。 */
 body.home-page .hero-hotspots-shell .bamboo-card-price {
-    color: rgba(220, 239, 247, 0.68);
+    color: rgba(220, 239, 247, 0.62);
 }
 
-/* 满图卡评分：暖金色，在冷色调海域卡片中作为微弱的暖色点缀。 */
-body.home-page .hero-hotspots-shell .bamboo-card-rating {
-    color: rgba(235, 216, 166, 0.72);
+/* 满图卡水层标签：替代星级评分，回到潜水节奏语义。 */
+body.home-page .hero-hotspots-shell .bamboo-card-flow {
+    color: rgba(181, 224, 236, 0.74);
 }
 
 /* 满图卡竖条滚动箭头：用细长半透明条替代圆形按钮，悬浮在卡片轨道两侧。
@@ -11981,15 +11981,15 @@ body.home-page .hero-hotspots-shell .bamboo-card-price {
     font-weight: 600;
 }
 
-body.home-page .hero-hotspots-shell .bamboo-card-rating {
+body.home-page .hero-hotspots-shell .bamboo-card-flow {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 3px 8px 4px;
-    border: 1px solid rgba(236, 217, 165, 0.18);
+    border: 1px solid rgba(190, 227, 239, 0.14);
     border-radius: 999px;
-    background: rgba(236, 217, 165, 0.055);
-    color: rgba(243, 221, 166, 0.86);
+    background: rgba(190, 227, 239, 0.055);
+    color: rgba(196, 231, 240, 0.82);
 }
 
 body.home-page .hero-hotspots-shell .bamboo-card-entry {
@@ -12321,9 +12321,9 @@ body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-price {
     color: rgba(225, 243, 249, 0.82);
 }
 
-body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-rating,
-body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-rating {
-    color: rgba(239, 220, 170, 0.82);
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-flow,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-flow {
+    color: rgba(196, 231, 240, 0.82);
 }
 
 body.home-page .hero-hotspots-shell .bamboo-card.is-active .bamboo-card-content {
@@ -13718,9 +13718,9 @@ body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-price {
     color: rgba(232, 247, 252, 0.88);
 }
 
-body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-rating,
-body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-rating {
-    color: rgba(246, 228, 182, 0.88);
+body.home-page .hero-hotspots-shell .bamboo-card.is-prev .bamboo-card-flow,
+body.home-page .hero-hotspots-shell .bamboo-card.is-next .bamboo-card-flow {
+    color: rgba(209, 238, 245, 0.88);
     text-shadow: 0 7px 18px rgba(1, 9, 18, 0.5);
 }
 
@@ -14516,4 +14516,45 @@ body.home-page .hero-hotspots-shell.today-sea-card::before,
 body.home-page .hero-hotspots-shell.today-sea-card::after,
 body.home-page .today-sea-type-char {
     filter: none;
+}
+
+/* 展示前海层衔接小修：桌面端让首屏到底下档案层像继续下潜，而不是硬切到下一段。 */
+@media (min-width: 981px) {
+    body.home-page .hero-section {
+        min-height: clamp(640px, 78vh, 820px);
+        padding-bottom: clamp(64px, 8vh, 108px);
+        background:
+            radial-gradient(circle at 50% -8%, rgba(244, 252, 255, 0.18) 0%, rgba(244, 252, 255, 0) 31%),
+            radial-gradient(circle at 52% 58%, rgba(117, 190, 220, 0.12) 0%, rgba(117, 190, 220, 0) 38%),
+            linear-gradient(180deg, #081d2d 0%, #0d314b 34%, #103c58 68%, #061c2d 100%);
+    }
+
+    body.home-page .hero-section::after {
+        bottom: -132px;
+        height: 260px;
+        background:
+            linear-gradient(180deg, rgba(7, 27, 42, 0) 0%, rgba(8, 31, 47, 0.72) 38%, rgba(5, 20, 32, 0.98) 74%, rgba(5, 20, 32, 0) 100%);
+        opacity: 0.98;
+        filter: none;
+    }
+
+    body.home-page .featured-destinations {
+        position: relative;
+        margin-top: -54px;
+        padding-top: clamp(112px, 10vw, 156px);
+    }
+
+    body.home-page .featured-destinations::before {
+        top: 0;
+        height: 172px;
+        background:
+            linear-gradient(180deg, rgba(5, 20, 32, 0.96) 0%, rgba(8, 35, 52, 0.64) 42%, rgba(8, 35, 52, 0) 100%),
+            radial-gradient(circle at 50% 0%, rgba(174, 223, 240, 0.08), rgba(174, 223, 240, 0) 54%);
+        opacity: 0.92;
+    }
+
+    body.home-page .hero-observation-rail,
+    body.home-page .today-sea-drift-hint {
+        opacity: 0.66;
+    }
 }

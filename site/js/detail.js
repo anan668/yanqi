@@ -6040,9 +6040,9 @@ class DetailPage {
                                     type="button"
                                     class="sea-atlas-open-map"
                                     data-sea-atlas-open-fullscreen
-                                    aria-label="展开当前潜点的全屏海图"
+                                    aria-label="放大全屏海图，继续探索当前潜点"
                                 >
-                                    展开全图
+                                    放大全屏海图
                                 </button>
                             </div>
                         </div>
@@ -9292,7 +9292,7 @@ class DetailPage {
 
                         <div class="package-card-signal">
                             <div class="package-price-wrap">
-                                <span class="package-price-label">这一程起于</span>
+                                <span class="package-price-label">这一程参考</span>
                                 <span class="package-price-value" data-price-target="${pkg.price}">¥0</span>
                             </div>
 
@@ -10157,9 +10157,9 @@ class DetailPage {
                                 </div>
                             </div>
                         </div>
-                        <div class="review-rating">
-                            ${this.createReviewRatingStarsMarkup(review, 'review-rating-stars')}
-                            <span class="review-rating-score">${review.ratingScore}</span>
+                        <div class="review-rating" aria-label="下潜回声">
+                            <span class="review-rating-label">下潜回声</span>
+                            <span class="review-rating-score">真实体验记录</span>
                         </div>
                     </header>
 
@@ -11131,12 +11131,12 @@ class DetailPage {
                             <div class="review-detail-subline">
                                 <span>${review.date}</span>
                                 <span>${review.level}</span>
-                                <span>${review.ratingScore}</span>
+                                <span>真实体验记录</span>
                             </div>
                         </div>
                     </div>
                     <div class="review-detail-rating">
-                        ${this.createReviewRatingStarsMarkup(review, 'review-detail-rating-stars')}
+                        <span class="review-detail-rating-label">下潜回声</span>
                         <span class="review-detail-rating-copy">真实体验记录</span>
                     </div>
                 </header>
@@ -13102,7 +13102,7 @@ class DetailPage {
                                     <div class="package-modal-price-main" data-package-price-column="main">
                                         <div class="package-modal-price-core" data-package-price-fragment="core">
                                             <div class="package-modal-price-copy">
-                                                <span class="package-modal-price-label">这一程起于</span>
+                                                <span class="package-modal-price-label">这一程参考</span>
                                                 <strong class="package-modal-price-amount">${escapeHtml(modalState?.priceLabel || pkg.price)}</strong>
                                                 <p class="package-modal-price-note package-modal-extra-fragment" style="--package-modal-extra-order: 0" data-package-price-fragment="note">${escapeHtml(modalState?.priceHint || '')}</p>
                                             </div>
@@ -14336,7 +14336,7 @@ class DetailPage {
         this.bookingNote.innerHTML = `
             <div class="booking-note-feedback">
                 <div class="booking-note-feedback-inner">
-                    <span class="booking-note-state">已写入本地行程</span>
+                    <span class="booking-note-state">已收进行程</span>
                     <p>${escapeHtml(booking.packageTitle || '这套安排')} 已替你停进这次安排里。跳到“我的行程”以后，${escapeHtml(targetLabel)}会先把这一条高亮出来。</p>
                     <p class="booking-note-pending">${escapeHtml(pendingCopy)}</p>
                     <div class="booking-note-meta">
@@ -14386,7 +14386,7 @@ class DetailPage {
 
         window.clearTimeout(this.bookingConfirmCloseTimer);
         this.bookingConfirmFeedback.classList.remove('is-closing');
-        this.bookingConfirmCopy.textContent = `这条安排已经写进本地行程了。跳去“我的行程”以后，回执区会先高亮这一条。${buildBookingPendingProofCopy(savedBooking)}`;
+        this.bookingConfirmCopy.textContent = `这条安排已经慢慢收进这一程了。跳去“我的行程”以后，回执区会先高亮这一条。${buildBookingPendingProofCopy(savedBooking)}`;
         this.bookingConfirmMeta.innerHTML = this.renderBookingConfirmedMeta(savedBooking);
         if (this.bookingConfirmGoTrip) {
             this.bookingConfirmGoTrip.href = savedBooking?.briefId

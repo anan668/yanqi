@@ -1,5 +1,128 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-05-29 21:57
+
+### 任务目的
+
+- 在不大重构、不引入 GSAP、不推翻现有 UI 的前提下，尝试做一轮展示前体验小修，让 `home`、`detail`、`trip` 更像连续的盐憩品牌体验，而不是普通旅游站或组件模板。
+
+### 改动文件
+
+- `site/home.html`
+- `site/css/home.css`
+- `site/css/detail.css`
+- `site/trip.html`
+- `site/css/trip.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/home.html`：把今日海域首屏里的“横向潜游 / 轻拖看下一片海 / 轻拖卡片”类偏操作说明文案，收成“海面停驻 / 下一片蓝在侧翼 / 沿海流慢慢看下一片海”，降低工具提示感。
+- `site/css/home.css`：仅在桌面端补强首页首屏到底部海域陈列的渐变衔接，让 `hero-section -> featured-destinations` 更像继续下潜，减少区块硬切。
+- `site/css/detail.css`：继续降低右侧 `Dive Brief` 和 `booking-focus-price` 的价格视觉权重，把侧栏价格压成航线摘要信息，减少购买卡气味。
+- `site/trip.html`：去掉三段说明里的“普通列表 / 商品清单”对比式文案，把 `Choose / Settle / Brief` 静态步骤标签改为“选海 / 收住 / 简报”，让空状态更像盐憩自己的潮线语境。
+- `site/css/trip.css`：给 `Planner Desk -> 已收进行程 -> Sea Brief` 三段关系补一条低对比潮线连接，并弱化空状态标签强度，避免空状态像已完成步骤或普通组件卡。
+- 本次不修改 `depth-manager.js`、`depth-gauge.css`、`page-transition.css`，不修改本地状态 key/schema，不修改 Sea Atlas 地图包、Leaflet 加载或地图架构。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/home.html site/css/home.css site/css/detail.css site/trip.html site/css/trip.css`，通过；仅有 Git 的 LF/CRLF 提示。
+- 确认本地服务 `http://127.0.0.1:8766/site/`，使用项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 1440x900 桌面 Playwright 动态验证。
+- 验证 `home.html` 新文案出现、旧“轻拖卡片，沿海流看下一片海”文案不再出现，并截图 `home-hero.png`、`home-featured-transition.png` 到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-experience-polish-20260529`。
+- 验证 `detail.html?id=7` 右侧侧栏无“从 ¥ / 起”促销式表达，仍显示“航线参考 / 这一程参考”；Sea Atlas 全屏打开后可用 `Esc` 关闭，并截图 `detail-dive-brief.png`、`detail-sea-atlas-inline.png`、`detail-sea-atlas-fullscreen.png`。
+- 验证 `trip.html` 空状态不再出现“普通列表 / 商品清单 / Choose / Settle”，三段步骤标签已本地化为“选海 / 收住 / 简报”，并截图 `trip-brief-empty-after-labels.png`。
+- 动态验证期间控制台 warning/error/pageerror 均为 0。
+
+### 尚未验证
+
+- 未运行 `npm run perf:pages` / `npm run perf:detail`；本轮是展示前 CSS/HTML 体验小修。
+- 未做移动端专项验证；当前项目规则以桌面端普通浏览器展示为准。
+- 未重新完整走 `index -> home -> detail -> trip -> info pages` 的确认套餐写入链路；本轮未修改相关 JS 和本地状态流程。
+
+## 2026-05-25 20:59
+
+### 任务目的
+
+- 基于桌面端只读 UI 审查结果做展示前小修：继续降低详情页右侧 Dive Brief 的购买卡气味，并让信息页回声文案与正文可读性更贴近盐憩品牌语气。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `site/contact.html`
+- `site/privacy.html`
+- `site/css/info-pages.css`
+- `site/js/info-pages.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：降低 Dive Brief 主价格与 `booking-focus-price` 的字号、字重、亮度和背景强度，把价格收成“航线参考”信息胶囊，减少电商购买卡感。
+- `site/contact.html`：将联系页可见的 `Local Echoes / 本地回声` 改为 `Quiet Echoes / 留言回声`，把“当前浏览器里的本地回声”收成“这一层回看的安静回声”。
+- `site/js/info-pages.js`：同步联系页运行时反馈文案，减少“本地暂存 / 本地存储”直白暴露，改成“这层静水收住 / 留在这层静水里”的品牌表达。
+- `site/privacy.html`：把“前端演示站 / 演示数据”改为“当前站点 / 当前浏览器数据”，保留隐私说明必要的浏览器存储边界，但减少展示时的开发态感。
+- `site/css/info-pages.css`：小幅提升信息页说明文案、正文段落、导航说明的文字对比度，避免信息页文字过淡。
+- 本次不修改深度计、跨页过渡、本地状态 key/schema 或 Sea Atlas 架构。
+
+### 验证方式
+
+- 运行 `node --check site/js/info-pages.js`、`node --check site/js/detail.js`、`node --check site/js/depth-manager.js`，通过。
+- 运行 `git diff --check -- site/css/detail.css site/css/info-pages.css site/contact.html site/privacy.html site/js/info-pages.js`，通过；仅有 Git 的 LF/CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/` 和项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 1440x900 桌面 Playwright 抽查。
+- 验证 `detail.html?id=7` 右侧仍显示“航线参考”，价格字号已降权；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-small-polish-20260525\detail-brief.png`。
+- 验证 `contact.html` 可见文本不再出现 `Local Echoes / 本地回声 / 本地暂存`，并出现 `Quiet Echoes / 留言回声`；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-small-polish-20260525\contact.png`。
+- 验证 `privacy.html` 可见文本不再出现“演示数据 / 前端演示站 / 本地演示”；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-small-polish-20260525\privacy.png`。
+- 动态验证期间控制台 warning/error/pageerror 均为 0。
+
+### 尚未验证
+
+- 未运行 `npm run perf:pages` / `npm run perf:detail`；本轮只做展示前小范围 UI 文案与视觉微调。
+- 未做移动端专项验证；项目当前规则以桌面端普通浏览器展示为准。
+
+## 2026-05-25 20:15
+
+### 任务目的
+
+- 严格按 `docs/YANQI_IMPROVEMENT_PLAN.md` 的 P0 / 第 1 周“稳体验”推进，围绕 `index -> home -> detail -> trip -> info pages` 展示主线做局部稳定与去开发态、去电商感处理。
+
+### 改动文件
+
+- `site/index.html`
+- `site/js/auth.js`
+- `site/js/home.js`
+- `site/css/home.css`
+- `site/detail.html`
+- `site/js/detail.js`
+- `site/css/detail.css`
+- `site/trip.html`
+- `site/js/trip.js`
+- `site/css/trip.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/index.html`、`site/js/auth.js`：清理门厅页用户可见的“本地演示 / 真实账号 / 示范”类表达，把展示航线反馈改成“已放入完整航线、沿静水进入首页”的品牌语气；保留展示航线能力与开发态调试入口，但普通展示路径不可见、不可误点。
+- `site/js/home.js`、`site/css/home.css`：今日海域卡片不再显示星级评分；价格改为“航线参考 ¥...”并降低权重；原 difficulty 星级只在渲染层转成“轻入门水层 / 外海舒适线 / 进阶水层 / 强流深蓝”等节奏标签，不改原始数据结构。
+- `site/detail.html`、`site/js/detail.js`、`site/css/detail.css`：Dive Brief 与套餐/弹层价格文案从“从 / 起 / 这一程起于”改为“航线参考 / 这一程参考”；评论主视觉去掉星星和 `x / 5`，改为“下潜回声 / 真实体验记录”；详情英雄区到档案区补深色渐变，DIVE READINESS 只做边框、背景、按钮胶囊强度减重。
+- `site/detail.html`、`site/js/detail.js`、`site/css/detail.css`：Sea Atlas inline 入口改为“放大全屏海图”，全屏关闭按钮改为“返回航线档案”，保留 Esc 关闭；补强关闭态 `visibility` 与子节点 `pointer-events`，避免全屏海图关闭后拦截后续点击。
+- `site/trip.html`、`site/js/trip.js`、`site/css/trip.css`：把 Trip 页可见的 `Trip Console / Local Echo / detail 带入 / 待写入` 等开发态或技术感表达收回，明确 Planner Desk、已收进行程、Sea Brief 三段顺序；空状态下弱化未完成步骤视觉，运行时摘要状态改为“待落位 / 已落位”。
+- 本次不修改深度计系统、跨页过渡系统对外调用、本地存储 key/schema、Sea Atlas 离线 pack / 地图目录 / Leaflet 加载方式；Sea Atlas 仅增强入口、全屏关闭与关闭态命中稳定性。
+
+### 验证方式
+
+- 运行 `node --check site/js/auth.js`、`node --check site/js/home.js`、`node --check site/js/detail.js`、`node --check site/js/trip.js`、`node --check site/js/depth-manager.js`，通过。
+- 运行 `git diff --check -- site/index.html site/js/auth.js site/js/home.js site/css/home.css site/detail.html site/js/detail.js site/css/detail.css site/trip.html site/js/trip.js site/css/trip.css`，通过；仅有 Git 的 LF/CRLF 提示。
+- 启动本地服务 `http://127.0.0.1:8766/site/`，使用项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 1440x900 桌面 Playwright 动态验证。
+- 验证 `index.html` 普通展示不暴露舞台调试入口，无“本地演示 / 真实账号 / Demo”等用户可见文案，点击“展示航线”可进入 `home.html`。
+- 验证 `home.html` 今日海域卡片无星级评分节点，价格均为“航线参考”，页面可正常滚动停留；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-p0-code-home-1440.png`。
+- 验证 `detail.html?id=7` 价格去“从 / 起”，Sea Atlas 三态可切换，全屏入口、Esc 关闭、返回航线档案和关闭后不拦截点击均可用；评论区无星星评分主视觉；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-p0-code-detail-1440.png`。
+- 验证详情页通过右侧“展开这套安排”打开套餐弹层，确认后状态为“已收进行程”，可进入 `trip.html#seaBriefStage`；Trip 页从详情进入和空状态两条路径下三段关系清楚且无旧技术文案；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-p0-code-trip-from-detail-1440.png`、`C:\Users\桉桉\AppData\Local\Temp\yanqi-p0-code-trip-empty-1440.png`。
+- 验证 `contact.html`、`terms.html`、`privacy.html` 稳定打开；动态验证期间控制台 warning/error/pageerror 均为 0。
+
+### 尚未验证
+
+- 未运行 `npm run perf:pages` / `npm run perf:detail`；本轮已完成 P0 桌面主线 Playwright 动态验证。
+- 未做移动端专项验证；项目规则当前以桌面端普通浏览器展示为准。
+
 ## 2026-05-11 22:14
 
 ### 任务目的

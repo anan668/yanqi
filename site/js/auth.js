@@ -231,11 +231,11 @@ function startDemoVoyage(feedbackNode, sourceLabel = '展示航线') {
     });
     const preset = window.YanqiShowcaseState?.getPreset?.('desktop-full');
     const booking = result?.booking || preset?.booking || null;
-    const loadedSpot = booking?.spotName || '示范海域';
-    const loadedPackage = booking?.packageTitle || '示范套餐';
+    const loadedSpot = booking?.spotName || '这一片海';
+    const loadedPackage = booking?.packageTitle || '当前安排';
     showFeedback(
         feedbackNode,
-        `${sourceLabel} 已装载潜水者档案、${loadedSpot} 的示范行程，以及「${loadedPackage}」对应的 Sea Brief 回执，接下来会直接进入首页主线。`,
+        `${sourceLabel} 已为你放入潜水者档案、${loadedSpot} 的完整航线，以及「${loadedPackage}」的 Sea Brief 回执，接下来沿静水进入首页主线。`,
         'success'
     );
     window.setTimeout(() => {
@@ -248,8 +248,8 @@ function startGuestVoyage(feedbackNode, sourceLabel = '游客入口', options = 
 
     const isSocialMode = options.mode === 'social';
     const message = isSocialMode
-        ? `${sourceLabel} 当前只演示进入方式，不会绑定真实账号；这次会以空白浏览态进入首页，不装载展示航线里的示范回执。`
-        : `${sourceLabel} 会先以空白浏览态进入首页，不装载展示航线里的示范行程与回执；推荐会从更舒缓的默认档案慢慢展开。`;
+        ? `${sourceLabel} 会先带你轻轻进入首页，不绑定任何额外身份；这一程会保持空白浏览态，等你自己慢慢靠近下一片海。`
+        : `${sourceLabel} 会先以空白浏览态进入首页，不预先放入航线与回执；推荐会从更舒缓的默认档案慢慢展开。`;
 
     showFeedback(feedbackNode, message, 'info');
     window.setTimeout(() => {
@@ -1555,7 +1555,7 @@ function bindGuestEntries(nodes, feedbackNode) {
     forgotLink?.addEventListener('click', (event) => {
         event.preventDefault();
         triggerDepthResponse(0.88);
-        showFeedback(feedbackNode, '找回入口会先把你带去联络状态说明，再从那里继续进入演示留言台；这次不会伪装成真实找回系统。', 'info');
+        showFeedback(feedbackNode, '找回入口会先把你带去联络水域，在那里把需要确认的事慢慢留下。', 'info');
         window.setTimeout(() => {
             navigateToPage(forgotLink.getAttribute('href') || 'contact.html#contactStatusSection');
         }, 420);

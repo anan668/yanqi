@@ -2310,6 +2310,12 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease, background-color 260ms ease;
 }
 
+.trip-proof-flow-step:not(.is-complete):not(.is-active) {
+    opacity: 0.62;
+    background: rgba(255, 255, 255, 0.024);
+    border-color: rgba(205, 229, 242, 0.045);
+}
+
 .trip-proof-flow-step.is-complete {
     border-color: rgba(184, 225, 239, 0.16);
     background: rgba(255, 255, 255, 0.05);
@@ -5751,6 +5757,12 @@ body.trip-planner-submerge-active .planner-field.is-submerging::after {
     border: 1px solid rgba(205, 229, 242, 0.06);
 }
 
+.trip-proof-flow-step:not(.is-complete):not(.is-active) {
+    opacity: 0.62;
+    background: rgba(255, 255, 255, 0.022);
+    border-color: rgba(205, 229, 242, 0.045);
+}
+
 .trip-proof-flow-step.is-complete {
     border-color: rgba(184, 225, 239, 0.14);
     background: rgba(255, 255, 255, 0.045);
@@ -6505,6 +6517,7 @@ body.trip-planner-submerge-active .planner-capsule > .trip-search-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    opacity: 0.7;
 }
 
 .confirmed-bookings-empty-tags span,
@@ -6641,6 +6654,71 @@ body.trip-planner-submerge-active .planner-capsule > .trip-search-bar {
     opacity: 0 !important;
     transform: translate3d(0, 22px, 0) scale(0.992) !important;
     filter: blur(14px) !important;
+}
+
+/* 展示前三段关系小修：让 Planner / Booked Waters / Sea Brief 更像一条潮线，而不是三个并列面板。 */
+@media (min-width: 981px) {
+    .trip-page .trip-brief-order-intro {
+        max-width: 68ch;
+        color: rgba(207, 226, 237, 0.7);
+    }
+
+    .trip-page .trip-brief-order-track {
+        position: relative;
+        isolation: isolate;
+    }
+
+    .trip-page .trip-brief-order-track::before {
+        content: "";
+        position: absolute;
+        left: 12%;
+        right: 12%;
+        top: 50%;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(172, 214, 232, 0), rgba(172, 214, 232, 0.22), rgba(172, 214, 232, 0));
+        transform: translateY(-50%);
+        opacity: 0.72;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .trip-page .trip-brief-order-step {
+        position: relative;
+        z-index: 1;
+        min-height: 82px;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(113, 154, 178, 0.022)),
+            rgba(7, 24, 38, 0.5);
+        border-color: rgba(199, 228, 240, 0.08);
+    }
+
+    .trip-page .trip-brief-order-step:not(.is-current):not(.is-complete) {
+        opacity: 0.56;
+    }
+
+    .trip-page .confirmed-bookings-empty,
+    .trip-page .sea-brief-empty {
+        background:
+            radial-gradient(circle at 16% 0%, rgba(188, 224, 240, 0.08), rgba(188, 224, 240, 0) 38%),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.038), rgba(103, 143, 166, 0.018)),
+            rgba(6, 22, 35, 0.44);
+        border-color: rgba(199, 228, 240, 0.07);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.035),
+            0 12px 22px rgba(2, 10, 18, 0.1);
+    }
+
+    .trip-page .confirmed-bookings-empty-tags,
+    .trip-page .sea-brief-empty-signals {
+        opacity: 0.46;
+    }
+
+    .trip-page .confirmed-bookings-empty-tags span,
+    .trip-page .sea-brief-empty-signals span {
+        background: rgba(255, 255, 255, 0.032);
+        border-color: rgba(194, 227, 240, 0.075);
+        color: rgba(220, 238, 246, 0.58);
+    }
 }
 
 /* 行程页高对比度保护层：锁住规划层首屏、控制台和关键区块标题的浅色阅读层次。 */

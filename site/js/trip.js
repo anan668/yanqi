@@ -931,8 +931,8 @@ function setupPlannerSummary() {
             metaSlot: 'spot-meta',
             stateSlot: 'spot-state',
             emptyValue: '\u6d77\u57df\u5f85\u5b9a',
-            emptyMeta: '\u8fd8\u6ca1\u5199\u8fdb\u8349\u7a3f\u3002',
-            emptyState: '\u5f85\u5199\u5165',
+            emptyMeta: '\u8fd8\u5728\u7b49\u4e00\u7247\u9002\u5408\u9760\u8fd1\u7684\u6d77\u3002',
+            emptyState: '\u5f85\u843d\u4f4d',
             filledState: '\u5df2\u843d\u4f4d',
             filledMeta: '\u8fd9\u4e00\u7247\u84dd\u5df2\u7ecf\u5148\u843d\u4e0b\u3002'
         },
@@ -942,19 +942,19 @@ function setupPlannerSummary() {
             stateSlot: 'date-state',
             emptyValue: '\u65e5\u671f\u5f85\u5b9a',
             emptyMeta: '\u8fd8\u5728\u7b49\u4e00\u6bb5\u66f4\u5408\u9002\u7684\u6f6e\u6c50\u7a97\u53e3\u3002',
-            emptyState: '\u5f85\u5199\u5165',
-            filledState: '\u5df2\u5199\u5165',
-            filledMeta: '\u51fa\u53d1\u7a97\u53e3\u5df2\u7ecf\u5199\u8fdb\u6765\u4e86\u3002'
+            emptyState: '\u5f85\u843d\u4f4d',
+            filledState: '\u5df2\u843d\u4f4d',
+            filledMeta: '\u51fa\u53d1\u7a97\u53e3\u5df2\u7ecf\u6162\u6162\u843d\u4e0b\u3002'
         },
         people: {
             valueSlot: 'people-value',
             metaSlot: 'people-meta',
             stateSlot: 'people-state',
             emptyValue: '\u4eba\u6570\u5f85\u5b9a',
-            emptyMeta: '\u540c\u884c\u8282\u594f\u8fd8\u6ca1\u5199\u8fdb\u6765\u3002',
-            emptyState: '\u5f85\u5199\u5165',
-            filledState: '\u5df2\u5199\u5165',
-            filledMeta: '\u540c\u884c\u8282\u594f\u5df2\u7ecf\u5199\u8fdb\u6765\u4e86\u3002'
+            emptyMeta: '\u540c\u884c\u8282\u594f\u8fd8\u5728\u7b49\u4e00\u6bb5\u5b89\u9759\u7684\u786e\u8ba4\u3002',
+            emptyState: '\u5f85\u843d\u4f4d',
+            filledState: '\u5df2\u843d\u4f4d',
+            filledMeta: '\u540c\u884c\u8282\u594f\u5df2\u7ecf\u6162\u6162\u843d\u4f4d\u3002'
         }
     };
 
@@ -976,7 +976,7 @@ function setupPlannerSummary() {
     const defaultSubmitButtonLabel = submitButtonLabel.textContent.trim() || '\u786e\u8ba4\u8fd9\u4e00\u5c42\u5b89\u6392';
     const defaultSummaryActiveIndex = summaryActiveIndex.textContent.trim() || '01 / 01';
     const defaultSummaryActiveSpot = readInitialSummaryDeckText('route-spot', '\u5f53\u524d\u6d77\u57df\u5f85\u5b9a');
-    const defaultSummaryActivePackage = readInitialSummaryDeckText('active-package', '\u5957\u9910\u5c1a\u672a\u5199\u5165');
+    const defaultSummaryActivePackage = readInitialSummaryDeckText('active-package', '\u5957\u9910\u5c1a\u672a\u6536\u4f4f');
     const defaultSummaryActiveCompanion = readInitialSummaryDeckText('active-companion', '\u540c\u884c\u8282\u594f\u5f85\u5b9a');
     const defaultCustomPeopleNote = customPeopleNote.textContent.trim() || '适合人数不在预设选项里的小团或同行安排。';
 
@@ -3412,11 +3412,11 @@ function getTripNavigationType() {
 function getTripDemoSourceLabel(source) {
     switch (String(source || '').trim()) {
     case 'detail':
-        return 'detail 带入';
+        return '海域档案带入';
     case 'home':
         return '海面入口';
     case 'trip':
-        return '当前桌面';
+        return 'Planner Desk';
     default:
         return '';
     }
@@ -3472,8 +3472,8 @@ function syncTripProofFlowState() {
         store: {
             complete: bookings.length > 0,
             label: activeStep === 'store'
-                ? (bookings.length > 0 ? '当前高亮' : '准备写入')
-                : (bookings.length > 0 ? '已写入本地' : '待写入')
+                ? (bookings.length > 0 ? '当前高亮' : '准备收住')
+                : (bookings.length > 0 ? '已收住' : '待收住')
         },
         receipt: {
             complete: Boolean(activeBooking),
@@ -3499,37 +3499,37 @@ function syncTripProofFlowState() {
     });
 
     if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
-        statusBadge.textContent = '本地回声已接上';
+        statusBadge.textContent = '潮线已接上';
         statusCopy.textContent = activeBooking
-            ? `上一条安排已经从本地回声里浮回来了，当前高亮的是 ${activeBooking.spotName || '这一程'}。`
-            : '上一轮草稿已经从本地回声里浮回来了，你可以继续接着整理。';
-        introCopy.textContent = '页面刷新以后，这里的草稿、已收进行程和 Sea Brief 会继续接着上一层往下收。';
+            ? `上一条安排已经重新浮回这一层，当前高亮的是 ${activeBooking.spotName || '这一程'}。`
+            : '上一轮草稿已经重新浮回这一层，你可以继续接着整理。';
+        introCopy.textContent = '页面刷新以后，Planner Desk、已收进行程和 Sea Brief 会继续接着上一层往下收。';
     } else if (marker?.source === 'detail' && marker?.action === 'booking-confirmed') {
-        statusBadge.textContent = 'detail 带入';
+        statusBadge.textContent = '海域档案带入';
         statusCopy.textContent = activeBooking
-            ? `刚刚从 detail 把 ${activeBooking.spotName || '这片海'} 写进了本地行程，Sea Brief 会先围绕这一条亮起来。`
-            : '刚刚从 detail 收进了一条安排，下面会先展示它如何写入本地。';
-        introCopy.textContent = 'detail 会把一条安排收进本地，再让已收进行程和 Sea Brief 一起围绕它展开。';
+            ? `刚刚从海域档案把 ${activeBooking.spotName || '这片海'} 收进这一层，Sea Brief 会先围绕这一条亮起来。`
+            : '刚刚从海域档案收进了一条安排，下面会先展示它如何停进这一层。';
+        introCopy.textContent = '海域档案会把一条安排带下来，再让已收进行程和 Sea Brief 一起围绕它展开。';
     } else if (marker?.source === 'home') {
-        statusBadge.textContent = 'home 下潜';
-        statusCopy.textContent = '这是从首页直接下来的空白入口，先在 Trip Console 里把海域、潮汐和同行节奏慢慢写齐。';
-        introCopy.textContent = '从首页直接下潜以后，Trip Console 会先把草稿慢慢收出来，再把这一程往后带。';
+        statusBadge.textContent = '海面下潜';
+        statusCopy.textContent = '这是从首页直接下来的空白入口，先在 Planner Desk 里把海域、潮汐和同行节奏慢慢写齐。';
+        introCopy.textContent = '从首页直接下潜以后，Planner Desk 会先把草稿慢慢收出来，再把这一程往后带。';
     } else if (marker?.source === 'trip') {
         statusBadge.textContent = '当前桌面';
         statusCopy.textContent = bookings.length > 0
-            ? '最近一次更新来自 Trip Console，本地行程和当前高亮会继续跟着这一程一起收束。'
-            : '最近一次动作来自 Trip Console，草稿会先留在这一层，等你继续往下收。';
-        introCopy.textContent = 'Trip Console 会先修改草稿、回写本地状态，再把结果慢慢送到后面的 Sea Brief。';
+            ? '最近一次更新来自 Planner Desk，已收进行程和当前高亮会继续跟着这一程一起收束。'
+            : '最近一次动作来自 Planner Desk，草稿会先留在这一层，等你继续往下收。';
+        introCopy.textContent = 'Planner Desk 会先整理草稿，再把结果慢慢送到后面的 Sea Brief。';
     } else if (bookings.length > 0) {
-        statusBadge.textContent = '本地已收住';
+        statusBadge.textContent = '已收进行程';
         statusCopy.textContent = activeBooking
-            ? `当前已经收着 ${bookings.length} 条本地行程，${activeBooking.spotName || '这一程'} 正在作为当前摘要中心。`
-            : `当前已经收着 ${bookings.length} 条本地行程。`;
-        introCopy.textContent = '这里会依次看到：入口如何被选定，行程怎样写进本地，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
+            ? `当前已经收着 ${bookings.length} 条行程，${activeBooking.spotName || '这一程'} 正在作为当前摘要中心。`
+            : `当前已经收着 ${bookings.length} 条行程。`;
+        introCopy.textContent = '这里会依次看到：入口如何落位，已收进行程怎样停住，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
     } else {
         statusBadge.textContent = '当前入口';
-        statusCopy.textContent = '还没有新的来路，先从首页或 detail 进入也可以。';
-        introCopy.textContent = '这里会依次看到：入口如何被选定，行程怎样写进本地，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
+        statusCopy.textContent = '还没有新的来路，先从首页或海域档案进入也可以。';
+        introCopy.textContent = '这里会依次看到：入口如何落位，已收进行程怎样停住，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
     }
 
     const echoChips = [];
@@ -3539,7 +3539,7 @@ function syncTripProofFlowState() {
         echoChips.push(`草稿进度 ${draftFilledCount} / 3`);
     }
     if (sourceLabel) {
-        echoChips.push(`最近写入：${sourceLabel}`);
+        echoChips.push(`最近来路：${sourceLabel}`);
     }
     if (activeBooking?.spotName) {
         echoChips.push(`当前高亮：${activeBooking.spotName}`);
@@ -3554,7 +3554,7 @@ function syncTripProofFlowState() {
         .join('');
 
     if (echoBadge) {
-        echoBadge.textContent = statusBadge.textContent || 'Local Echo';
+        echoBadge.textContent = statusBadge.textContent || 'Current Tide';
     }
 
     if (echoState) {
@@ -3563,11 +3563,11 @@ function syncTripProofFlowState() {
         } else if (activeBooking) {
             echoState.textContent = '当前摘要已对准';
         } else if (bookings.length > 0) {
-            echoState.textContent = '本地行程已收住';
+            echoState.textContent = '已收进行程亮起';
         } else if (draftFilledCount > 0) {
-            echoState.textContent = '草稿正在回显';
+            echoState.textContent = '草稿正在成形';
         } else {
-            echoState.textContent = '等待写入';
+            echoState.textContent = '等待潮线';
         }
     }
 
@@ -4630,7 +4630,7 @@ function buildConfirmedBookingCardMarkup(booking) {
     ].filter(Boolean);
     const railNote = isActive
         ? (booking.packageNote || CONFIRMED_BOOKING_COPY.emptyNote)
-        : (inactiveSummaryParts.join(' · ') || '这一程已经留在本地里，等你继续把日期与同行慢慢补齐。');
+        : (inactiveSummaryParts.join(' · ') || '这一程已经停在这一层里，等你继续把日期与同行慢慢补齐。');
     const dateReadyClass = booking.selectedDateLabel ? ' is-ready' : '';
     const peopleReadyClass = booking.selectedPeopleLabel ? ' is-ready' : '';
 

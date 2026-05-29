@@ -285,8 +285,9 @@ body.has-overlay-lock {
     left: 0;
     right: 0;
     bottom: 0;
-    height: 10%;
-    background: linear-gradient(180deg, rgba(217, 240, 251, 0) 0%, rgba(217, 240, 251, 0.08) 60%, rgba(217, 240, 251, 0.22) 100%);
+    height: 42%;
+    background:
+        linear-gradient(180deg, rgba(217, 240, 251, 0) 0%, rgba(7, 31, 48, 0.18) 44%, rgba(4, 19, 31, 0.82) 100%);
     pointer-events: none;
 }
 
@@ -322,7 +323,7 @@ body.has-overlay-lock {
     bottom: 0;
     background:
         radial-gradient(circle at 50% 18%, rgba(220, 245, 255, 0.06), rgba(220, 245, 255, 0) 24%),
-        linear-gradient(180deg, rgba(4, 19, 30, 0.02) 0%, rgba(7, 32, 49, 0.08) 28%, rgba(5, 24, 38, var(--detail-hero-overlay-opacity)) 100%);
+        linear-gradient(180deg, rgba(4, 19, 30, 0.02) 0%, rgba(7, 32, 49, 0.08) 26%, rgba(5, 24, 38, var(--detail-hero-overlay-opacity)) 72%, rgba(3, 16, 27, 0.72) 100%);
     animation: detailHeroOverlayBreath calc(var(--detail-hero-drift-duration) * 1.15) ease-in-out infinite alternate;
 }
 
@@ -333,8 +334,9 @@ body.has-overlay-lock {
 
 /* .detail-page.spot-mabul .hero-image-wrapper::after 的后置装饰层 */
 .detail-page.spot-mabul .hero-image-wrapper::after {
-    height: 10%;
-    background: linear-gradient(180deg, rgba(217, 240, 251, 0) 0%, rgba(217, 240, 251, 0.08) 60%, rgba(217, 240, 251, 0.2) 100%);
+    height: 42%;
+    background:
+        linear-gradient(180deg, rgba(217, 240, 251, 0) 0%, rgba(7, 31, 48, 0.16) 44%, rgba(4, 19, 31, 0.78) 100%);
 }
 
 /* 控制 .detail-page.spot-mabul .hero-image 的布局、视觉和状态表现 */
@@ -504,8 +506,8 @@ body.has-overlay-lock {
 /* 准备就绪主卡片：Grid 三行两列布局（状态/面板/操作），深海渐变基底 + 毛玻璃，模拟水下观察窗的视觉层次。 */
 .detail-readiness-card {
     --readiness-accent: rgba(139, 211, 230, 0.72);
-    --readiness-glow: rgba(125, 207, 231, 0.24);
-    --readiness-rim: rgba(190, 231, 242, 0.2);
+    --readiness-glow: rgba(125, 207, 231, 0.14);
+    --readiness-rim: rgba(190, 231, 242, 0.14);
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(260px, 0.74fr);
@@ -516,19 +518,19 @@ body.has-overlay-lock {
     gap: 16px 18px;
     align-items: stretch;
     min-width: 0;
-    padding: 24px clamp(20px, 3vw, 30px);
-    border-radius: 30px;
+    padding: 22px clamp(18px, 2.8vw, 28px);
+    border-radius: 26px;
     overflow: hidden;
     background:
-        radial-gradient(circle at 14% 12%, var(--readiness-glow), transparent 32%),
-        radial-gradient(circle at 88% 4%, rgba(236, 250, 254, 0.13), transparent 30%),
-        linear-gradient(150deg, rgba(4, 19, 32, 0.97), rgba(7, 36, 55, 0.93) 48%, rgba(9, 59, 82, 0.84) 100%);
+        radial-gradient(circle at 14% 12%, var(--readiness-glow), transparent 34%),
+        radial-gradient(circle at 88% 4%, rgba(236, 250, 254, 0.08), transparent 30%),
+        linear-gradient(150deg, rgba(4, 19, 32, 0.91), rgba(7, 36, 55, 0.86) 48%, rgba(9, 59, 82, 0.74) 100%);
     border: 1px solid var(--readiness-rim);
     box-shadow:
-        0 24px 54px rgba(2, 16, 27, 0.24),
-        0 0 0 1px rgba(244, 251, 254, 0.08) inset,
-        inset 0 1px 0 rgba(246, 252, 255, 0.13),
-        inset 0 -46px 76px rgba(73, 137, 167, 0.14);
+        0 20px 42px rgba(2, 16, 27, 0.18),
+        0 0 0 1px rgba(244, 251, 254, 0.05) inset,
+        inset 0 1px 0 rgba(246, 252, 255, 0.1),
+        inset 0 -34px 60px rgba(73, 137, 167, 0.1);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
 }
@@ -963,13 +965,13 @@ body.has-overlay-lock {
     display: grid;
     gap: 3px;
     min-width: 0;
-    min-height: 58px;
-    padding: 11px 12px 11px 18px;
-    border-radius: 18px;
-    border: 1px solid rgba(183, 228, 241, 0.15);
+    min-height: 52px;
+    padding: 10px 12px 10px 17px;
+    border-radius: 16px;
+    border: 1px solid rgba(183, 228, 241, 0.11);
     background:
-        linear-gradient(180deg, rgba(241, 251, 253, 0.1), rgba(102, 177, 207, 0.06)),
-        rgba(244, 251, 253, 0.035);
+        linear-gradient(180deg, rgba(241, 251, 253, 0.07), rgba(102, 177, 207, 0.04)),
+        rgba(244, 251, 253, 0.026);
     color: rgba(235, 248, 252, 0.9);
     text-align: left;
     cursor: pointer;
@@ -1020,14 +1022,14 @@ body.has-overlay-lock {
 .detail-readiness-cert:focus-visible,
 .detail-readiness-cert.is-current {
     transform: translate3d(0, -2px, 0);
-    border-color: rgba(201, 241, 250, 0.32);
+    border-color: rgba(201, 241, 250, 0.24);
     background:
-        linear-gradient(180deg, rgba(220, 248, 253, 0.17), rgba(75, 162, 197, 0.1)),
-        rgba(19, 84, 116, 0.24);
+        linear-gradient(180deg, rgba(220, 248, 253, 0.12), rgba(75, 162, 197, 0.07)),
+        rgba(19, 84, 116, 0.16);
     box-shadow:
-        0 12px 24px rgba(2, 16, 26, 0.16),
-        0 0 18px rgba(124, 210, 233, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.13);
+        0 10px 20px rgba(2, 16, 26, 0.12),
+        0 0 14px rgba(124, 210, 233, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     outline: none;
 }
 
@@ -4079,14 +4081,28 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     place-items: center;
     padding: clamp(18px, 3vw, 34px);
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 320ms ease;
+    transition:
+        opacity 320ms ease,
+        visibility 0s linear 320ms;
 }
 
 /* 打开状态：淡入显现，恢复交互。 */
 .sea-atlas-fullscreen.is-open {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
+    transition: opacity 320ms ease;
+}
+
+.sea-atlas-fullscreen[aria-hidden="true"] {
+    visibility: hidden !important;
+}
+
+.sea-atlas-fullscreen[aria-hidden="true"] *,
+.sea-atlas-fullscreen:not(.is-open) * {
+    pointer-events: none !important;
 }
 
 /* 全屏背景蒙层：深色毛玻璃底色，径向蓝光模拟深海环境。 */
@@ -6123,6 +6139,19 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     color: #244a67;
 }
 
+.review-rating-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(54, 105, 130, 0.12);
+    background: rgba(13, 77, 102, 0.055);
+    color: #365b72;
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+}
+
 /* 控制 .review-rating-stars 的布局、视觉和状态表现 */
 .review-rating-stars {
     position: relative;
@@ -7705,28 +7734,28 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
 
 .booking-focus-price-wrap {
     display: grid;
-    gap: 6px;
-    min-width: 120px;
-    padding: 12px 12px 10px;
-    border-radius: 18px;
+    gap: 5px;
+    min-width: 112px;
+    padding: 10px 12px 9px;
+    border-radius: 16px;
     background:
-        linear-gradient(180deg, rgba(240, 249, 252, 0.14), rgba(155, 208, 228, 0.08)),
-        rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(180, 223, 237, 0.16);
-    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.12);
+        linear-gradient(180deg, rgba(240, 249, 252, 0.1), rgba(155, 208, 228, 0.055)),
+        rgba(255, 255, 255, 0.028);
+    border: 1px solid rgba(180, 223, 237, 0.12);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 253, 0.08);
 }
 
 .booking-focus-price-label {
     font-size: 0.64rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: rgba(187, 224, 236, 0.62);
+    color: rgba(187, 224, 236, 0.58);
 }
 
 .booking-focus-price {
-    font-size: 1.34rem;
-    font-weight: 700;
-    color: rgba(245, 251, 254, 0.98);
+    font-size: 1.14rem;
+    font-weight: 650;
+    color: rgba(238, 248, 252, 0.88);
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
 }
@@ -13282,6 +13311,19 @@ html[data-detail-spot-id] #spotTagline .detail-subtitle-line,
     gap: 8px;
 }
 
+.review-detail-rating-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(202, 232, 242, 0.16);
+    background: rgba(202, 232, 242, 0.07);
+    color: rgba(239, 250, 253, 0.9);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+}
+
 /* 控制 .review-detail-rating-stars 的布局、视觉和状态表现 */
 .review-detail-rating-stars {
     position: relative;
@@ -16296,29 +16338,84 @@ body.page-transition-active .booking-match-floating-confirm {
 }
 
 .detail-page .price-figure {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
     margin-top: 14px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(232, 247, 252, 0.095), rgba(139, 202, 226, 0.04)),
+        rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(190, 229, 241, 0.11);
+    box-shadow: inset 0 1px 0 rgba(249, 253, 255, 0.07);
 }
 
 .detail-page .price-label,
 .detail-page .price-period {
-    color: rgba(212, 237, 245, 0.68);
-    font-size: 0.86rem;
-    letter-spacing: 0.08em;
+    margin: 0;
+    color: rgba(212, 237, 245, 0.62);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
 }
 
 .detail-page .price-amount {
-    font-size: clamp(2rem, 2.6vw, 2.4rem);
+    font-size: clamp(1.24rem, 1.52vw, 1.48rem);
     line-height: 1;
-    color: rgba(248, 252, 255, 0.98);
+    font-weight: 650;
+    color: rgba(240, 249, 253, 0.9);
 }
 
 .detail-page .price-note {
     margin: 12px 0 0;
     color: rgba(214, 237, 245, 0.74);
     line-height: 1.68;
+}
+
+/* 展示前侧栏小修：把 Dive Brief 再压成航线摘要，减少购买卡的价格压迫感。 */
+.detail-page .price-badge {
+    padding: 16px 18px 15px;
+    border-radius: 28px;
+    border-color: rgba(193, 226, 238, 0.12);
+    background:
+        radial-gradient(circle at 18% 18%, rgba(187, 228, 241, 0.12), transparent 30%),
+        linear-gradient(145deg, rgba(6, 29, 45, 0.9), rgba(7, 42, 62, 0.78) 58%, rgba(5, 25, 40, 0.92));
+    box-shadow:
+        0 14px 28px rgba(3, 16, 27, 0.14),
+        inset 0 1px 0 rgba(245, 252, 255, 0.065);
+}
+
+.detail-page .price-badge::after {
+    opacity: 0.42;
+}
+
+.detail-page .price-brief {
+    color: rgba(200, 232, 242, 0.58);
+}
+
+.detail-page .price-layer {
+    color: rgba(226, 243, 249, 0.74);
+}
+
+.detail-page .price-figure {
+    margin-top: 12px;
+    padding: 7px 10px;
+    border-color: rgba(188, 228, 240, 0.09);
+    background:
+        linear-gradient(180deg, rgba(232, 247, 252, 0.07), rgba(139, 202, 226, 0.025)),
+        rgba(255, 255, 255, 0.018);
+}
+
+.detail-page .price-label,
+.detail-page .price-period {
+    color: rgba(205, 234, 243, 0.54);
+    font-size: 0.68rem;
+}
+
+.detail-page .price-amount {
+    font-size: clamp(1.12rem, 1.34vw, 1.34rem);
+    font-weight: 560;
+    color: rgba(235, 247, 252, 0.84);
 }
 
 .detail-page .booking-copy {
@@ -16339,6 +16436,25 @@ body.page-transition-active .booking-match-floating-confirm {
         0 18px 34px rgba(4, 18, 30, 0.18),
         0 0 0 1px rgba(212, 237, 245, 0.08) inset,
         0 0 22px rgba(105, 182, 210, 0.08);
+}
+
+.detail-page .booking-focus-price-wrap {
+    min-width: 104px;
+    padding: 9px 11px 8px;
+    border-color: rgba(180, 223, 237, 0.1);
+    background:
+        linear-gradient(180deg, rgba(240, 249, 252, 0.075), rgba(155, 208, 228, 0.035)),
+        rgba(255, 255, 255, 0.02);
+}
+
+.detail-page .booking-focus-price-label {
+    color: rgba(187, 224, 236, 0.5);
+}
+
+.detail-page .booking-focus-price {
+    font-size: 1.04rem;
+    font-weight: 560;
+    color: rgba(234, 247, 252, 0.82);
 }
 
 .detail-page .booking-note {
