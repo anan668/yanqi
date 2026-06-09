@@ -94,6 +94,38 @@
                                  这一层看起来像搜索栏，但实际上是行程页的三段式安排行程面板。
                                  脚本会在这里监听按钮点击，再把真正的浮层挂到页面顶层容器。 -->
                             <div class="planner-capsule trip-reveal-block" id="plannerCapsule" data-capsule-state="idle">
+                                <section class="planner-current-summary" id="plannerCurrentSummary" aria-labelledby="plannerCurrentSummaryTitle" hidden>
+                                    <div class="planner-current-summary-head">
+                                        <div>
+                                            <p class="planner-current-summary-kicker">Current Descent</p>
+                                            <h2 class="planner-current-summary-title" id="plannerCurrentSummaryTitle">当前这一程</h2>
+                                        </div>
+                                        <p class="planner-current-summary-copy" id="plannerCurrentSummaryCopy">这一程已经收住。需要时再展开桌面，调整日期与同行节奏。</p>
+                                    </div>
+                                    <div class="planner-current-summary-grid">
+                                        <div class="planner-current-summary-item">
+                                            <span>海域</span>
+                                            <strong id="plannerCurrentSpot">海域待定</strong>
+                                        </div>
+                                        <div class="planner-current-summary-item">
+                                            <span>日期</span>
+                                            <strong id="plannerCurrentDate">潮汐待定</strong>
+                                        </div>
+                                        <div class="planner-current-summary-item">
+                                            <span>同行</span>
+                                            <strong id="plannerCurrentPeople">同行待定</strong>
+                                        </div>
+                                        <div class="planner-current-summary-item">
+                                            <span>套餐</span>
+                                            <strong id="plannerCurrentPackage">套餐待定</strong>
+                                        </div>
+                                    </div>
+                                    <div class="planner-current-summary-actions">
+                                        <button type="button" class="planner-current-summary-action" id="plannerDeskEditToggle" aria-controls="plannerDeskControl" aria-expanded="false">调整这一程</button>
+                                        <button type="button" class="planner-current-summary-action planner-current-summary-action-primary" id="plannerDeskViewBrief">查看 Sea Brief</button>
+                                    </div>
+                                </section>
+
                                 <div class="search-bar trip-search-bar planner-desk-control" id="plannerDeskControl">
                                 <div class="planner-console-head">
                                     <p class="planner-console-kicker">Planner Desk</p>
@@ -288,21 +320,14 @@
                                 <div class="planner-summary-head">
                                     <div class="planner-summary-heading">
                                         <p class="planner-summary-kicker">Live Draft</p>
-                                        <h2 class="planner-summary-title">当前这一潜</h2>
+                                        <h2 class="planner-summary-title" id="plannerSummaryProgressLabel">草稿进度 0 / 3</h2>
                                     </div>
-                                    <div class="planner-summary-active-identity">
-                                        <div class="planner-summary-active-index-wrap">
-                                            <span class="planner-summary-active-index" id="plannerSummaryActiveIndex">01 / 01</span>
-                                            <span class="planner-summary-active-dot" aria-hidden="true"></span>
-                                        </div>
-                                        <p class="planner-summary-active-label">Current Descent</p>
-                                    </div>
+                                    <span class="sr-only" id="plannerSummaryActiveIndex">01 / 01</span>
                                 </div>
 
                                 <p class="planner-summary-intro" id="plannerSummaryIntro">
-                                    这里会贴着操作台，继续回看当前这一潜已经写到哪一层。
+                                    桌面只记下还没有收齐的部分。
                                 </p>
-                                <p class="planner-summary-stage-note">01 · 先把草稿贴着桌面收住，再继续向下一层潜去。</p>
 
                                 <div class="planner-summary-meter" aria-hidden="true">
                                     <div class="planner-summary-meter-track">
@@ -319,54 +344,9 @@
                                     <p class="planner-summary-status-note" data-summary-slot="status-note">
                                         先让草稿停在一声很轻的潮响里，等第一片愿意下去的蓝慢慢靠近。
                                     </p>
-
-                                    <div class="planner-summary-draft-rail">
-                                        <div class="planner-summary-draft-segment planner-summary-draft-segment--spot">
-                                            <p class="planner-summary-draft-label">Current Water</p>
-                                            <strong class="planner-summary-draft-spot" data-summary-slot="route-spot">当前海域待定</strong>
-                                        </div>
-                                        <div class="planner-summary-draft-segment planner-summary-draft-segment--rhythm">
-                                            <p class="planner-summary-draft-label">Current Draft</p>
-                                            <p class="planner-summary-draft-rhythm" data-summary-slot="rhythm-sentence">
-                                                这一潜还在收束。等海域、潮汐与同行节奏写齐，它会变成一句完整的出发节奏。
-                                            </p>
-                                        </div>
-                                        <div class="planner-summary-draft-tags">
-                                            <span class="planner-summary-draft-tag planner-summary-draft-tag-package" data-summary-slot="active-package">套餐尚未收住</span>
-                                            <span class="planner-summary-draft-tag planner-summary-draft-tag-companion" data-summary-slot="active-companion">同行节奏待定</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="planner-summary-draft-steps">
-                                        <article class="planner-item is-empty" data-summary-field="spot">
-                                            <span class="planner-item-index">01</span>
-                                            <div class="planner-item-copy">
-                                                <span class="planner-label">海域</span>
-                                                <strong data-summary-slot="spot-value">海域待定</strong>
-                                                <small data-summary-slot="spot-meta">还没写进草稿。</small>
-                                            </div>
-                                            <span class="planner-item-state" data-summary-slot="spot-state">待落位</span>
-                                        </article>
-
-                                        <article class="planner-item is-empty" data-summary-field="date">
-                                            <span class="planner-item-index">02</span>
-                                            <div class="planner-item-copy">
-                                                <span class="planner-label">出发</span>
-                                                <strong data-summary-slot="date-value">日期待定</strong>
-                                                <small data-summary-slot="date-meta">还在等一段更合适的潮汐窗口。</small>
-                                            </div>
-                                            <span class="planner-item-state" data-summary-slot="date-state">待落位</span>
-                                        </article>
-
-                                        <article class="planner-item is-empty" data-summary-field="people">
-                                            <span class="planner-item-index">03</span>
-                                            <div class="planner-item-copy">
-                                                <span class="planner-label">同行</span>
-                                                <strong data-summary-slot="people-value">人数待定</strong>
-                                                <small data-summary-slot="people-meta">同行节奏还没写进来。</small>
-                                            </div>
-                                            <span class="planner-item-state" data-summary-slot="people-state">待落位</span>
-                                        </article>
+                                    <div class="planner-summary-compact-meta">
+                                        <span class="planner-summary-draft-tag planner-summary-draft-tag-package" data-summary-slot="active-package">套餐尚未收住</span>
+                                        <span class="planner-summary-draft-tag planner-summary-draft-tag-companion" data-summary-slot="active-companion">同行节奏待定</span>
                                     </div>
                                 </div>
 
@@ -375,26 +355,13 @@
                             </div>
 
                             <div class="trip-brief-deck">
-                                <div class="trip-brief-order" aria-label="行程桌面的当前顺序">
-                                    <div class="trip-brief-order-copy">
-                                        <p class="trip-brief-order-kicker">Desk Sequence</p>
-                                        <h2 class="trip-brief-order-title">先回看草稿，再确认已收进行程，最后把这一潜收成 Sea Brief</h2>
-                                        <p class="trip-brief-order-intro">Planner Desk 先把草稿贴住桌面，左侧收住已确认的海，右侧再把当前被点亮的那一程压成 Sea Brief。</p>
-                                    </div>
-                                    <div class="trip-brief-order-track" aria-hidden="true">
-                                        <span class="trip-brief-order-step is-complete"><strong>01</strong><small>Live Draft</small></span>
-                                        <span class="trip-brief-order-step is-current"><strong>02</strong><small>Booked Waters</small></span>
-                                        <span class="trip-brief-order-step"><strong>03</strong><small>Sea Brief</small></span>
-                                    </div>
-                                </div>
-
                                 <!-- 已收进行程：改成侧边轨道，让它只负责切换当前这条海域安排。 -->
                                 <section class="confirmed-bookings-stage" id="confirmedBookingsStage" aria-labelledby="confirmedBookingsTitle">
                                     <div class="confirmed-bookings-head">
                                         <div class="confirmed-bookings-copy">
                                             <p class="confirmed-bookings-kicker">Booked Waters</p>
                                             <h2 class="confirmed-bookings-title" id="confirmedBookingsTitle">已收进行程</h2>
-                                            <p class="confirmed-bookings-intro">这一列只负责收住已经确认过的海域与套餐。当前亮起的那一程，会继续把状态往右侧 Sea Brief 里送。</p>
+                                            <p class="confirmed-bookings-intro">切换已经收住的海域。当前亮起的那一程，会在右侧整理成 Sea Brief。</p>
                                         </div>
 
                                         <button type="button" class="confirmed-bookings-switch" id="confirmedBookingsSwitch" hidden>
@@ -405,22 +372,15 @@
                                     <div class="confirmed-bookings-empty" id="confirmedBookingsEmpty">
                                         <p class="confirmed-bookings-empty-kicker">Booked Waters Pending</p>
                                         <h3 class="confirmed-bookings-empty-title">这里还没有被正式收进来的海</h3>
-                                        <p class="confirmed-bookings-empty-copy">等你在详情页慢慢确认套餐以后，这里会开始出现已经靠岸的行程卡。它们会以潮水收住的海域回声停在这里。</p>
-                                        <div class="confirmed-bookings-empty-tags" aria-hidden="true">
-                                            <span>来自海域档案的确认</span>
-                                            <span>会停在这一层</span>
-                                            <span>再向右汇入 Sea Brief</span>
-                                        </div>
+                                        <p class="confirmed-bookings-empty-copy">从海域档案收住一程以后，它会停在这里。</p>
                                     </div>
 
                                     <div class="confirmed-bookings-list" id="confirmedBookingsList"></div>
 
-                                    <div class="confirmed-bookings-echo-dock" id="confirmedBookingsEchoDock" aria-live="polite">
-                                        <div class="confirmed-bookings-echo-dock-head">
-                                            <span class="confirmed-bookings-echo-dock-kicker" id="confirmedBookingsEchoBadge">Current Tide</span>
-                                            <span class="confirmed-bookings-echo-dock-state" id="confirmedBookingsEchoState">等待潮线</span>
-                                        </div>
-                                        <p class="confirmed-bookings-echo-dock-copy" id="confirmedBookingsEchoCopy">这层水域还没有收进新的行程。</p>
+                                    <div class="sr-only" id="confirmedBookingsEchoDock" aria-live="polite">
+                                        <span id="confirmedBookingsEchoBadge">Current Tide</span>
+                                        <span id="confirmedBookingsEchoState">等待潮线</span>
+                                        <span id="confirmedBookingsEchoCopy">这层水域还没有收进新的行程。</span>
                                         <div class="confirmed-bookings-echo-dock-meta" id="confirmedBookingsEchoMeta"></div>
                                     </div>
                                 </section>
@@ -430,8 +390,7 @@
                                         <div class="sea-brief-copy">
                                             <p class="sea-brief-kicker">Sea Brief</p>
                                             <h2 class="sea-brief-title" id="seaBriefTitle">这一潜的 Sea Brief</h2>
-                                            <p class="sea-brief-intro">这一舱会把当前这程慢慢收成更清楚的桌面摘要。左侧切换哪一片海，右侧就把来源、已收进行程与准备节奏压进同一层更稳的蓝里。</p>
-                                            <p class="sea-brief-stage-note">03 · 当左侧已有一程被点亮，这里会把它整理成一张更清楚的下潜摘要。</p>
+                                            <p class="sea-brief-intro">当前被点亮的这一程，会在这里整理成最终下潜摘要。</p>
                                         </div>
 
                                         <div class="sea-brief-proof-shell" id="tripProofFlow" aria-labelledby="tripProofTitle">
@@ -441,54 +400,22 @@
                                                     <h3 class="trip-proof-flow-title" id="tripProofTitle">当前潮线</h3>
                                                 </div>
                                                 <p class="trip-proof-flow-intro" id="tripProofFlowIntro">
-                                                    这里会先说明这程海从哪里被带进来，再把当前焦点与 Sea Brief 慢慢排成一条潮线。
+                                                    最近来路、当前海域与摘要状态会停在这里。
                                                 </p>
                                             </div>
 
                                             <div class="trip-proof-flow-status" id="tripProofFlowStatus" aria-live="polite">
                                                 <span class="trip-proof-flow-status-badge" id="tripProofFlowStatusBadge">当前入口</span>
-                                                <p class="trip-proof-flow-status-copy" id="tripProofFlowStatusCopy">还没有新的来路，先从首页或海域档案带一片海下来也可以。</p>
+                                                <p class="trip-proof-flow-status-copy" id="tripProofFlowStatusCopy">还没有已收进行程，可以先从 Planner Desk 开始。</p>
                                                 <div class="trip-proof-flow-meta" id="tripProofFlowMeta"></div>
                                             </div>
-
-                                            <ol class="trip-proof-flow-list">
-                                                <li class="trip-proof-flow-step" data-proof-step="choose">
-                                                    <span class="trip-proof-flow-step-index">01</span>
-                                                    <div class="trip-proof-flow-step-copy">
-                                                        <strong>选海</strong>
-                                                        <p>先决定从首页空白进入，还是从海域档案带着具体海域与安排下潜。</p>
-                                                    </div>
-                                                    <span class="trip-proof-flow-step-state" data-proof-step-state="choose">等待进入</span>
-                                                </li>
-                                                <li class="trip-proof-flow-step" data-proof-step="store">
-                                                    <span class="trip-proof-flow-step-index">02</span>
-                                                    <div class="trip-proof-flow-step-copy">
-                                                        <strong>收住</strong>
-                                                        <p>Planner Desk 的草稿、已收进行程与当前焦点会在这里对齐。</p>
-                                                    </div>
-                                                    <span class="trip-proof-flow-step-state" data-proof-step-state="store">待收住</span>
-                                                </li>
-                                                <li class="trip-proof-flow-step" data-proof-step="receipt">
-                                                    <span class="trip-proof-flow-step-index">03</span>
-                                                    <div class="trip-proof-flow-step-copy">
-                                                        <strong>简报</strong>
-                                                        <p>当前被选中的这一程会继续在 Sea Brief 里被整理成完整摘要。</p>
-                                                    </div>
-                                                    <span class="trip-proof-flow-step-state" data-proof-step-state="receipt">等待高亮</span>
-                                                </li>
-                                            </ol>
                                         </div>
                                     </div>
 
                                     <div class="sea-brief-empty" id="seaBriefEmpty">
                                         <p class="sea-brief-empty-kicker">Sea Brief Pending</p>
                                         <h3 class="sea-brief-empty-title">Sea Brief 还没有浮出这一层</h3>
-                                        <p class="sea-brief-empty-copy">当左侧出现至少一条已收进行程，并被切到当前项时，这里会把海域、套餐、窗口与准备提示收成一张更完整的桌面摘要。</p>
-                                        <div class="sea-brief-empty-signals" aria-hidden="true">
-                                            <span>先确认一程海</span>
-                                            <span>再切到当前项</span>
-                                            <span>摘要会在这里亮起</span>
-                                        </div>
+                                        <p class="sea-brief-empty-copy">收住一程海以后，最终摘要会在这里亮起。</p>
                                     </div>
                                     <article class="sea-brief-card" id="seaBriefCard" hidden>
                                         <div class="sea-brief-card-head">

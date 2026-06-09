@@ -643,10 +643,19 @@ function setupPlannerSummary() {
 
     const plannerCapsule = document.getElementById('plannerCapsule');
     const plannerDeskControl = document.getElementById('plannerDeskControl');
+    const plannerCurrentSummary = document.getElementById('plannerCurrentSummary');
+    const plannerCurrentSummaryCopy = document.getElementById('plannerCurrentSummaryCopy');
+    const plannerCurrentSpot = document.getElementById('plannerCurrentSpot');
+    const plannerCurrentDate = document.getElementById('plannerCurrentDate');
+    const plannerCurrentPeople = document.getElementById('plannerCurrentPeople');
+    const plannerCurrentPackage = document.getElementById('plannerCurrentPackage');
+    const plannerDeskEditToggle = document.getElementById('plannerDeskEditToggle');
+    const plannerDeskViewBrief = document.getElementById('plannerDeskViewBrief');
     const summaryRoot = document.getElementById('plannerSummary');
     const summaryDockBody = document.getElementById('plannerSummaryDockBody');
     const summaryIntro = document.getElementById('plannerSummaryIntro');
     const summaryActiveIndex = document.getElementById('plannerSummaryActiveIndex');
+    const summaryProgressLabel = document.getElementById('plannerSummaryProgressLabel');
     const summaryMeterFill = document.getElementById('plannerSummaryMeterFill');
     const summaryMeterOrbs = Array.from(document.querySelectorAll('#plannerSummary .planner-summary-meter-orb'));
     const summarySwitchLive = document.getElementById('plannerSummarySwitchLive');
@@ -692,10 +701,19 @@ function setupPlannerSummary() {
         !peopleInput ||
         !plannerCapsule ||
         !plannerDeskControl ||
+        !plannerCurrentSummary ||
+        !plannerCurrentSummaryCopy ||
+        !plannerCurrentSpot ||
+        !plannerCurrentDate ||
+        !plannerCurrentPeople ||
+        !plannerCurrentPackage ||
+        !plannerDeskEditToggle ||
+        !plannerDeskViewBrief ||
         !summaryRoot ||
         !summaryDockBody ||
         !summaryIntro ||
         !summaryActiveIndex ||
+        !summaryProgressLabel ||
         !summaryMeterFill ||
         !summarySwitchLive ||
         !spotField ||
@@ -972,6 +990,7 @@ function setupPlannerSummary() {
     let previousSummaryFilledCount = 0;
     let hasInitializedProgressiveState = false;
     let activeBookingEntryId = '';
+    let plannerEditing = false;
     const fieldUnlockTimers = new WeakMap();
     const defaultSubmitButtonLabel = submitButtonLabel.textContent.trim() || '\u786e\u8ba4\u8fd9\u4e00\u5c42\u5b89\u6392';
     const defaultSummaryActiveIndex = summaryActiveIndex.textContent.trim() || '01 / 01';
@@ -1351,62 +1370,14 @@ function setupPlannerSummary() {
     }
 
     function buildPlannerSummaryDeckMarkup(state) {
-        const spotItem = state.items.spot;
-        const dateItem = state.items.date;
-        const peopleItem = state.items.people;
-
         return `
             <p class="planner-summary-status-note" data-summary-slot="status-note">
                 ${escapeHtml(state.statusNote)}
             </p>
 
-            <div class="planner-summary-draft-rail">
-                <div class="planner-summary-draft-segment planner-summary-draft-segment--spot">
-                    <p class="planner-summary-draft-label">Current Water</p>
-                    <strong class="planner-summary-draft-spot" data-summary-slot="route-spot">${escapeHtml(state.activeSpotLabel || '当前海域待定')}</strong>
-                </div>
-                <div class="planner-summary-draft-segment planner-summary-draft-segment--rhythm">
-                    <p class="planner-summary-draft-label">Current Draft</p>
-                    <p class="planner-summary-draft-rhythm" data-summary-slot="rhythm-sentence">
-                        ${escapeHtml(state.rhythmSentence)}
-                    </p>
-                </div>
-                <div class="planner-summary-draft-tags">
-                    <span class="planner-summary-draft-tag planner-summary-draft-tag-package" data-summary-slot="active-package">${escapeHtml(state.activePackageLabel)}</span>
-                    <span class="planner-summary-draft-tag planner-summary-draft-tag-companion" data-summary-slot="active-companion">${escapeHtml(state.activeCompanionLabel)}</span>
-                </div>
-            </div>
-
-            <div class="planner-summary-draft-steps">
-                <article class="planner-item${spotItem.isFilled ? ' is-confirmed' : ' is-empty'}" data-summary-field="spot">
-                    <span class="planner-item-index">01</span>
-                    <div class="planner-item-copy">
-                        <span class="planner-label">海域</span>
-                        <strong data-summary-slot="spot-value">${escapeHtml(spotItem.value)}</strong>
-                        <small data-summary-slot="spot-meta">${escapeHtml(spotItem.meta)}</small>
-                    </div>
-                    <span class="planner-item-state" data-summary-slot="spot-state">${escapeHtml(spotItem.state)}</span>
-                </article>
-
-                <article class="planner-item${dateItem.isFilled ? ' is-confirmed' : ' is-empty'}" data-summary-field="date">
-                    <span class="planner-item-index">02</span>
-                    <div class="planner-item-copy">
-                        <span class="planner-label">出发</span>
-                        <strong data-summary-slot="date-value">${escapeHtml(dateItem.value)}</strong>
-                        <small data-summary-slot="date-meta">${escapeHtml(dateItem.meta)}</small>
-                    </div>
-                    <span class="planner-item-state" data-summary-slot="date-state">${escapeHtml(dateItem.state)}</span>
-                </article>
-
-                <article class="planner-item${peopleItem.isFilled ? ' is-confirmed' : ' is-empty'}" data-summary-field="people">
-                    <span class="planner-item-index">03</span>
-                    <div class="planner-item-copy">
-                        <span class="planner-label">同行</span>
-                        <strong data-summary-slot="people-value">${escapeHtml(peopleItem.value)}</strong>
-                        <small data-summary-slot="people-meta">${escapeHtml(peopleItem.meta)}</small>
-                    </div>
-                    <span class="planner-item-state" data-summary-slot="people-state">${escapeHtml(peopleItem.state)}</span>
-                </article>
+            <div class="planner-summary-compact-meta">
+                <span class="planner-summary-draft-tag planner-summary-draft-tag-package" data-summary-slot="active-package">${escapeHtml(state.activePackageLabel)}</span>
+                <span class="planner-summary-draft-tag planner-summary-draft-tag-companion" data-summary-slot="active-companion">${escapeHtml(state.activeCompanionLabel)}</span>
             </div>
         `;
     }
@@ -2484,6 +2455,7 @@ function setupPlannerSummary() {
             return;
         }
 
+        plannerEditing = true;
         const safeEntryId = String(entryId || '').trim();
         if (safeEntryId) {
             setActiveBooking(safeEntryId, {
@@ -2492,6 +2464,7 @@ function setupPlannerSummary() {
             });
         }
 
+        syncPlannerDeskPresentation(buildPlannerSummaryViewState());
         closeActivePanel();
         scrollToSection('#plannerDeskControl', 1320);
 
@@ -2737,11 +2710,13 @@ function setupPlannerSummary() {
             renderConfirmedBookings();
         }
 
-        window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated', {
-            detail: {
-                entryId: nextBooking.entryId
-            }
-        }));
+        if (options.broadcast !== false) {
+            window.dispatchEvent(new CustomEvent('yanqi:confirmed-bookings-updated', {
+                detail: {
+                    entryId: nextBooking.entryId
+                }
+            }));
+        }
 
         return nextBooking;
     }
@@ -2871,6 +2846,36 @@ function setupPlannerSummary() {
         };
     }
 
+    function syncPlannerDeskPresentation(state) {
+        const hasActiveBooking = Boolean(state.activeBooking);
+        if (!hasActiveBooking) {
+            plannerEditing = true;
+        }
+
+        const isCollapsed = hasActiveBooking && !plannerEditing;
+        plannerCapsule.classList.toggle('has-active-booking', hasActiveBooking);
+        plannerCapsule.classList.toggle('is-planner-editing', !isCollapsed);
+        plannerCapsule.classList.toggle('is-planner-collapsed', isCollapsed);
+        plannerDeskControl.toggleAttribute('inert', isCollapsed);
+        plannerDeskControl.setAttribute('aria-hidden', String(isCollapsed));
+        summaryRoot.setAttribute('aria-hidden', String(isCollapsed));
+        plannerCurrentSummary.hidden = !hasActiveBooking;
+
+        if (!hasActiveBooking) {
+            return;
+        }
+
+        plannerCurrentSpot.textContent = state.activeSpotLabel || '海域待定';
+        plannerCurrentDate.textContent = state.hasDate ? state.items.date.value : '潮汐待定';
+        plannerCurrentPeople.textContent = state.hasPeople ? state.items.people.value : '同行待定';
+        plannerCurrentPackage.textContent = state.activePackageLabel || '套餐待定';
+        plannerCurrentSummaryCopy.textContent = plannerEditing
+            ? '桌面已经展开。海域保持当前绑定，只调整这一程的日期与同行节奏。'
+            : '这一程已经收住。需要时再展开桌面，调整日期与同行节奏。';
+        plannerDeskEditToggle.textContent = plannerEditing ? '收起调整' : '调整这一程';
+        plannerDeskEditToggle.setAttribute('aria-expanded', String(plannerEditing));
+    }
+
     function applyPlannerSummaryState(state, options = {}) {
         const { renderDeck = true } = options;
         const previousCapsuleState = String(plannerCapsule.dataset.capsuleState || 'idle').trim() || 'idle';
@@ -2880,6 +2885,7 @@ function setupPlannerSummary() {
         const wasConfirmed = previousCapsuleState === 'confirmed';
 
         summaryActiveIndex.textContent = state.activeIndexLabel;
+        summaryProgressLabel.textContent = `草稿进度 ${state.filledCount} / 3`;
         summaryIntro.textContent = state.intro;
         syncPlannerSummaryGuidance(state.guidance);
         summaryRoot.dataset.summaryStage = state.summaryStage;
@@ -2900,6 +2906,7 @@ function setupPlannerSummary() {
         if (renderDeck) {
             renderPlannerSummaryDeckState(state);
         }
+        syncPlannerDeskPresentation(state);
 
         if (hasRenderedSummaryOnce && state.isConfirmed && !wasConfirmed) {
             restartTransientClassAnimation(plannerCapsule, 'is-updated-confirmed');
@@ -2968,7 +2975,8 @@ function setupPlannerSummary() {
             setActiveBooking(resolveInitialActiveBookingEntryId(bookings), {
                 bookings,
                 refreshSummary: false,
-                refreshCards: false
+                refreshCards: false,
+                broadcast: false
             });
             return;
         }
@@ -2987,6 +2995,25 @@ function setupPlannerSummary() {
         restoreDraftSelection(draft);
     }
     const peopleOptions = Array.from(peoplePanel.querySelectorAll('.planner-option[data-option-group="people"]'));
+
+    plannerDeskEditToggle.addEventListener('click', () => {
+        plannerEditing = !plannerEditing;
+        closeActivePanel();
+        syncPlannerDeskPresentation(buildPlannerSummaryViewState());
+
+        if (plannerEditing) {
+            scrollToSection('#plannerDeskControl', 920);
+        }
+    });
+
+    plannerDeskViewBrief.addEventListener('click', () => {
+        writeTripDemoFlowState({
+            source: 'trip',
+            action: 'planner-draft',
+            targetAnchor: '#seaBriefStage'
+        });
+        scrollToSeaBriefStage();
+    });
 
     // 三个字段都采用“再点一次自己就收起”的切换规则，减少手机端多余操作。
     spotTrigger.addEventListener('click', () => {
@@ -3126,6 +3153,7 @@ function setupPlannerSummary() {
         }
 
         if (getActiveBooking()?.entryId) {
+            plannerEditing = false;
             commitPlannerDeskSelection();
         } else {
             writeTripDemoFlowState({
@@ -3501,53 +3529,47 @@ function syncTripProofFlowState() {
     if (isReload && (bookings.length > 0 || draftFilledCount > 0)) {
         statusBadge.textContent = '潮线已接上';
         statusCopy.textContent = activeBooking
-            ? `上一条安排已经重新浮回这一层，当前高亮的是 ${activeBooking.spotName || '这一程'}。`
-            : '上一轮草稿已经重新浮回这一层，你可以继续接着整理。';
-        introCopy.textContent = '页面刷新以后，Planner Desk、已收进行程和 Sea Brief 会继续接着上一层往下收。';
+            ? `${activeBooking.spotName || '这一程'} 已恢复为当前摘要。`
+            : '上一轮草稿已经恢复，可以继续整理。';
     } else if (marker?.source === 'detail' && marker?.action === 'booking-confirmed') {
         statusBadge.textContent = '海域档案带入';
         statusCopy.textContent = activeBooking
-            ? `刚刚从海域档案把 ${activeBooking.spotName || '这片海'} 收进这一层，Sea Brief 会先围绕这一条亮起来。`
-            : '刚刚从海域档案收进了一条安排，下面会先展示它如何停进这一层。';
-        introCopy.textContent = '海域档案会把一条安排带下来，再让已收进行程和 Sea Brief 一起围绕它展开。';
+            ? `${activeBooking.spotName || '这片海'} 已收进行程，Sea Brief 已对准。`
+            : '一条安排已经从海域档案进入。';
     } else if (marker?.source === 'home') {
         statusBadge.textContent = '海面下潜';
-        statusCopy.textContent = '这是从首页直接下来的空白入口，先在 Planner Desk 里把海域、潮汐和同行节奏慢慢写齐。';
-        introCopy.textContent = '从首页直接下潜以后，Planner Desk 会先把草稿慢慢收出来，再把这一程往后带。';
+        statusCopy.textContent = '先在 Planner Desk 写下海域、日期和同行。';
     } else if (marker?.source === 'trip') {
-        statusBadge.textContent = '当前桌面';
+        statusBadge.textContent = 'Planner Desk';
         statusCopy.textContent = bookings.length > 0
-            ? '最近一次更新来自 Planner Desk，已收进行程和当前高亮会继续跟着这一程一起收束。'
-            : '最近一次动作来自 Planner Desk，草稿会先留在这一层，等你继续往下收。';
-        introCopy.textContent = 'Planner Desk 会先整理草稿，再把结果慢慢送到后面的 Sea Brief。';
+            ? `${activeBooking?.spotName || '当前这一程'} 的调整已经收住。`
+            : '当前草稿正在成形。';
     } else if (bookings.length > 0) {
         statusBadge.textContent = '已收进行程';
         statusCopy.textContent = activeBooking
-            ? `当前已经收着 ${bookings.length} 条行程，${activeBooking.spotName || '这一程'} 正在作为当前摘要中心。`
+            ? `${activeBooking.spotName || '这一程'} 是当前摘要。`
             : `当前已经收着 ${bookings.length} 条行程。`;
-        introCopy.textContent = '这里会依次看到：入口如何落位，已收进行程怎样停住，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
     } else {
         statusBadge.textContent = '当前入口';
-        statusCopy.textContent = '还没有新的来路，先从首页或海域档案进入也可以。';
-        introCopy.textContent = '这里会依次看到：入口如何落位，已收进行程怎样停住，以及 Sea Brief 怎样围绕当前这一条慢慢亮起来。';
+        statusCopy.textContent = '还没有已收进行程，可以先从 Planner Desk 开始。';
     }
+    introCopy.textContent = '最近来路、当前海域与摘要状态会停在这里。';
 
     const echoChips = [];
-    if (bookings.length > 0) {
-        echoChips.push(`已收进行程 ${bookings.length} 条`);
-    } else {
-        echoChips.push(`草稿进度 ${draftFilledCount} / 3`);
-    }
     if (sourceLabel) {
         echoChips.push(`最近来路：${sourceLabel}`);
+    } else {
+        echoChips.push('最近来路：Planner Desk');
     }
     if (activeBooking?.spotName) {
-        echoChips.push(`当前高亮：${activeBooking.spotName}`);
+        echoChips.push(`当前海域：${activeBooking.spotName}`);
     }
-    if (activeBooking?.packageTitle) {
-        echoChips.push(`当前摘要：${activeBooking.packageTitle}`);
+    if (activeBooking) {
+        echoChips.push('当前状态：可查看摘要');
     } else if (bookings.length > 0) {
-        echoChips.push('Sea Brief 待对准');
+        echoChips.push('当前状态：已收住');
+    } else {
+        echoChips.push(`当前状态：草稿 ${draftFilledCount} / 3`);
     }
     proofMeta.innerHTML = echoChips
         .map((chip) => `<span class="trip-proof-flow-meta-chip">${escapeHtml(chip)}</span>`)
@@ -3871,6 +3893,78 @@ const tripRevealObservers = new Map();
 // 这样区块还没来得及显示就被重新渲染时，可以先把旧计时器清掉，避免动画串线。
 const tripRevealTimers = new WeakMap();
 
+// IntersectionObserver 只会在跨过阈值时回调一次。
+// 如果元素已经相交、但还没走到更深的“可显形水层”，就继续等下一次滚动；
+// 否则一路向下时可能再也没有新阈值可跨，必须反向滚动才会补触发。
+const tripRevealViewportWaiters = new WeakMap();
+
+/**
+ * clearTripRevealViewportWaiter(element) - 清理元素等待进入可显形水层时挂载的轻量监听
+ * @param {Element} element - 需要停止等待的 reveal 元素
+ * @returns {void} - 无返回值，直接清理滚动、尺寸监听和待执行帧
+ */
+function clearTripRevealViewportWaiter(element) {
+    const waiter = tripRevealViewportWaiters.get(element);
+    if (!waiter) {
+        return;
+    }
+
+    window.removeEventListener('scroll', waiter.queueCheck);
+    window.removeEventListener('resize', waiter.queueCheck);
+    if (waiter.frameId) {
+        window.cancelAnimationFrame(waiter.frameId);
+    }
+
+    tripRevealViewportWaiters.delete(element);
+}
+
+/**
+ * waitForTripRevealViewportReady(element, options, reveal) - 元素首次相交过早时继续等到真正可显形
+ * @param {Element} element - 正在等待显形的元素
+ * @param {{ topRatio?: number, bottomRatio?: number }} options - 可显形水层范围
+ * @param {() => void} reveal - 进入范围后执行的显形函数
+ * @returns {void} - 无返回值，直接挂载短生命周期监听
+ */
+function waitForTripRevealViewportReady(element, options, reveal) {
+    if (!(element instanceof Element) || tripRevealViewportWaiters.has(element)) {
+        return;
+    }
+
+    const waiter = {
+        frameId: 0,
+        queueCheck: null
+    };
+
+    const runCheck = () => {
+        waiter.frameId = 0;
+
+        if (!element.isConnected || element.classList.contains('is-visible')) {
+            clearTripRevealViewportWaiter(element);
+            return;
+        }
+
+        if (!isElementReadyForViewportEntrance(element, options)) {
+            return;
+        }
+
+        clearTripRevealViewportWaiter(element);
+        reveal();
+    };
+
+    waiter.queueCheck = () => {
+        if (waiter.frameId) {
+            return;
+        }
+
+        waiter.frameId = window.requestAnimationFrame(runCheck);
+    };
+
+    tripRevealViewportWaiters.set(element, waiter);
+    window.addEventListener('scroll', waiter.queueCheck, { passive: true });
+    window.addEventListener('resize', waiter.queueCheck);
+    waiter.queueCheck();
+}
+
 /**
  * clearTripRevealTimer(element) - 清理某个 reveal 元素挂着的延迟计时器
  * @param {Element} element - 需要清理计时器的目标元素
@@ -3895,6 +3989,7 @@ function scheduleTripReveal(element, delay) {
         return;
     }
 
+    clearTripRevealViewportWaiter(element);
     clearTripRevealTimer(element);
     const timerId = window.setTimeout(() => {
         element.classList.add('is-visible');
@@ -3941,9 +4036,20 @@ function getTripRevealObserver(options = {}) {
                 topRatio: readyTopRatio,
                 bottomRatio: readyBottomRatio
             })) {
+                waitForTripRevealViewportReady(target, {
+                    topRatio: readyTopRatio,
+                    bottomRatio: readyBottomRatio
+                }, () => {
+                    const revealIndex = Number(target.dataset.tripRevealIndex || 0);
+                    const revealDelay = Number(target.dataset.tripRevealDelay || 0);
+                    const stepDelay = Number(target.dataset.tripRevealStepDelay || 0);
+                    scheduleTripReveal(target, revealDelay || (revealIndex * stepDelay));
+                    currentObserver.unobserve(target);
+                });
                 return;
             }
 
+            clearTripRevealViewportWaiter(target);
             const revealIndex = Number(target.dataset.tripRevealIndex || 0);
             const revealDelay = Number(target.dataset.tripRevealDelay || 0);
             const stepDelay = Number(target.dataset.tripRevealStepDelay || 0);

@@ -1451,7 +1451,7 @@ const SEA_ATLAS_WAYPOINT_LABEL_PRESETS = Object.freeze({
     'maldives-liveaboard': ['Maaya Thila', 'Atoll Pass', 'Blue Channel', 'Manta Ridge', 'Shark Shelf'],
     coron: ['Skeleton Wreck', 'Cargo Hold', 'Jetty Drop', 'Coral Slip', 'Bay Echo'],
     bohol: ['Balicasag Wall', 'Turtle Plateau', 'Coral Shelf', 'Blue Entry', 'Dropoff Bend'],
-    racha: ['Racha Yai Bay', 'Coral Garden', 'White Sand Line', 'Blue Edge', 'Training Shelf'],
+    racha: ['Racha Yai Bay', 'Blue Edge'],
     redang: ['Redang Reef Line', 'Lagoon Patch', 'Coral Slope', 'Blue Passage', 'Turtle Line']
 });
 
@@ -1819,7 +1819,7 @@ class DetailPage {
         this.detailFooterNextName = document.getElementById('detailFooterNextName');
         this.detailFooterNextCopy = document.getElementById('detailFooterNextCopy');
         this.relatedLiveSummary = document.getElementById('relatedLiveSummary');
-        this.activeSeaView = 'location';
+        this.activeSeaView = this.spotId === 13 ? 'route' : 'location';
         this.routeAnimationPlayed = false;
         this.seaRouteMotionRafId = 0;
         this.seaRouteMotionDelayId = 0;
@@ -2923,6 +2923,7 @@ class DetailPage {
         }
 
         this.body.classList.toggle('spot-mabul', this.spotId === 9);
+        this.body.classList.toggle('spot-racha', this.spotId === 13);
         this.applyHeroEnvironmentProfile();
 
         this.packageData = this.buildPackageData();
@@ -4364,7 +4365,10 @@ class DetailPage {
 
         if (this.bookingFocusPanel) {
             this.bookingFocusPanel.dataset.readingZone = nextZone;
-            this.bookingFocusPanel.classList.add('is-reading-current');
+            this.bookingFocusPanel.classList.toggle(
+                'is-reading-current',
+                nextZone === 'reviews' || nextZone === 'related'
+            );
         }
     }
 
@@ -5331,8 +5335,8 @@ class DetailPage {
     }
 
     /**
-     * isIntroSectionInImmediateRevealBand() - 判断介绍区是否已经处于首屏应立即可见的阅读带。
-     * 只要用户一进入页面就能看见较完整的 overview，就先给壳体，再补内部 reveal。
+     * isIntroSectionInImmediateRevealBand() - 判断介绍区是否已经进入首屏下缘的可读带。
+     * 详情页 hero 和正文有重叠露出的设计；只要档案头已经探进视口，就先补显形，避免留下空白玻璃层。
      * @returns {boolean}
      */
     isIntroSectionInImmediateRevealBand() {
@@ -5345,13 +5349,32 @@ class DetailPage {
         const visibleTop = Math.max(rect.top, 0);
         const visibleBottom = Math.min(rect.bottom, viewportHeight);
         const visibleHeight = Math.max(0, visibleBottom - visibleTop);
-        const minimumVisibleHeight = Math.min(260, viewportHeight * 0.2);
+        const minimumVisibleHeight = Math.min(88, Math.max(44, viewportHeight * 0.08));
 
         return (
-            rect.top < viewportHeight * 0.82
-            && rect.bottom > viewportHeight * 0.16
+            rect.top < viewportHeight * 0.94
+            && rect.bottom > viewportHeight * 0.08
             && visibleHeight >= minimumVisibleHeight
         );
+    }
+
+    /**
+     * syncIntroViewportState() - 在滚动/重测时补齐海域档案的显形状态。
+     * IntersectionObserver 的阈值对高内容块不够敏感时，这里负责兜底。
+     * @returns {boolean} - 本次是否触发了介绍区显形
+     */
+    syncIntroViewportState() {
+        if (
+            !this.introSection
+            || this.introSection.classList.contains('is-visible')
+            || !this.isIntroSectionInImmediateRevealBand()
+        ) {
+            return false;
+        }
+
+        this.introRevealObserver?.unobserve?.(this.introSection);
+        this.scheduleIntroReveal({ delay: 70 });
+        return true;
     }
 
     /**
@@ -5424,8 +5447,8 @@ class DetailPage {
                 this.introRevealObserver?.unobserve(entry.target);
             });
         }, {
-            threshold: 0.1,
-            rootMargin: '0px 0px 8% 0px'
+            threshold: 0.01,
+            rootMargin: '0px 0px 18% 0px'
         });
 
         this.introRevealObserver.observe(this.introSection);
@@ -6782,9 +6805,11 @@ class DetailPage {
 
         markerLayer.clearLayers();
         const mapData = this.seaAtlasCurrentMapData;
+        const useQuietInlineMap = target === 'inline' && this.spotId === 13;
         const markerOptions = {
             keyboard: false,
-            riseOnHover: false
+            riseOnHover: false,
+            interactive: !useQuietInlineMap
         };
         const waypointMarkers = this.getSeaAtlasClusterMarkers(mapData).map((markerData) => window.L.marker(markerData.coords, {
             ...markerOptions,
@@ -6813,15 +6838,17 @@ class DetailPage {
             })
         });
 
-        portMarker.on('mouseover', () => this.setSeaAtlasPortCardVisible(true, target));
-        portMarker.on('mouseout', () => this.setSeaAtlasPortCardVisible(false, target));
-        portMarker.on('click', () => {
-            const currentVisible = target === 'fullscreen'
-                ? this.seaAtlasFullscreenPortCardVisible
-                : this.seaAtlasPortCardVisible;
-            this.setSeaAtlasPortCardVisible(!currentVisible, target);
-        });
-        spotMarker.on('click', () => this.setSeaAtlasPortCardVisible(false, target));
+        if (!useQuietInlineMap) {
+            portMarker.on('mouseover', () => this.setSeaAtlasPortCardVisible(true, target));
+            portMarker.on('mouseout', () => this.setSeaAtlasPortCardVisible(false, target));
+            portMarker.on('click', () => {
+                const currentVisible = target === 'fullscreen'
+                    ? this.seaAtlasFullscreenPortCardVisible
+                    : this.seaAtlasPortCardVisible;
+                this.setSeaAtlasPortCardVisible(!currentVisible, target);
+            });
+            spotMarker.on('click', () => this.setSeaAtlasPortCardVisible(false, target));
+        }
 
         waypointMarkers.forEach((marker) => marker.addTo(markerLayer));
         spotMarker.addTo(markerLayer);
@@ -8539,6 +8566,14 @@ class DetailPage {
         const mapData = this.spotData.map || getMapCatalogSpotById(this.spotId) || null;
         const shouldPreserveRouteState = preserveRouteState && this.routeAnimationPlayed;
         const shouldAnimateScene = Boolean(this.seaAtlasMap);
+        const shouldUseRachaPresentationRoute = this.spotId === 13 && !preserveRouteState && !this.seaAtlasRachaRouteDefaultApplied;
+
+        if (shouldUseRachaPresentationRoute) {
+            this.activeSeaView = 'route';
+            this.seaAtlasRachaRouteDefaultApplied = true;
+        } else if (this.spotId !== 13) {
+            this.seaAtlasRachaRouteDefaultApplied = false;
+        }
 
         this.clearSeaRouteMotion();
         this.clearSeaProfileEntrance();
@@ -11662,6 +11697,26 @@ class DetailPage {
         input.select();
     }
 
+    releasePackageModalCustomPeopleInputSelection(packageId) {
+        const input = this.getPackageModalCustomPeopleInput(packageId);
+        if (!input) {
+            return;
+        }
+
+        try {
+            const valueLength = String(input.value || '').length;
+            input.setSelectionRange(valueLength, valueLength);
+        } catch (error) {
+            // number input 在部分浏览器不支持 setSelectionRange，blur 仍能清掉选中态。
+        }
+
+        if (document.activeElement === input) {
+            input.blur();
+        }
+
+        window.getSelection?.().removeAllRanges?.();
+    }
+
     getPackageModalEditorFieldElement(packageId, fieldKey) {
         if (!this.bookingModal) {
             return null;
@@ -12277,7 +12332,7 @@ class DetailPage {
 
         if (!hasPresetMatch) {
             window.requestAnimationFrame(() => {
-                this.focusPackageModalCustomPeopleInput(pkg.id);
+                this.releasePackageModalCustomPeopleInputSelection(pkg.id);
             });
         }
     }
@@ -14759,7 +14814,10 @@ class DetailPage {
             !this.relatedGrid ||
             !Number.isFinite(targetId) ||
             targetId === this.activeRelatedSpotId ||
-            this.relatedTransitionTimer
+            this.relatedTransitionTimer ||
+            this.relatedStageSwitchTimer ||
+            this.relatedStageCleanupTimer ||
+            this.relatedGrid.classList.contains('is-stage-switching')
         ) {
             return;
         }
@@ -14769,7 +14827,7 @@ class DetailPage {
         const targetIndex = relatedSpots.findIndex((spot) => spot.id === targetId);
         const currentStage = this.relatedGrid.querySelector('.related-stage-shell:not(.is-stage-outgoing)')
             || this.relatedGrid.querySelector('.related-stage-shell');
-        if (targetIndex === -1 || this.relatedStageSwitchTimer || !currentStage) {
+        if (targetIndex === -1 || !currentStage) {
             return;
         }
 
@@ -14797,6 +14855,8 @@ class DetailPage {
         const incomingStage = stageShells[stageShells.length - 1] || null;
 
         if (incomingStage) {
+            incomingStage.classList.add('is-stage-incoming');
+            incomingStage.setAttribute('aria-hidden', 'true');
             const incomingStageHeight = incomingStage.offsetHeight || 0;
             if (incomingStageHeight > currentStageHeight) {
                 this.relatedGrid.style.minHeight = `${incomingStageHeight}px`;
@@ -14807,8 +14867,7 @@ class DetailPage {
                 this.relatedGrid.style.minHeight = `${this.relatedStageStableHeight}px`;
             }
 
-            incomingStage.classList.add('is-stage-incoming', 'is-stacked-stage');
-            incomingStage.setAttribute('aria-hidden', 'true');
+            incomingStage.classList.add('is-stacked-stage');
             this.bindRelatedStageInteractions(incomingStage);
         }
 
@@ -14822,23 +14881,38 @@ class DetailPage {
             });
         }, 24);
 
-        if (this.relatedStageCleanupTimer) {
-            window.clearTimeout(this.relatedStageCleanupTimer);
-        }
-
         this.relatedStageCleanupTimer = window.setTimeout(() => {
-            currentStage.remove();
-            incomingStage?.classList.remove(
-                'is-stage-incoming',
-                'is-stacked-stage',
-                'is-flow-forward',
-                'is-flow-backward'
-            );
-            incomingStage?.removeAttribute('aria-hidden');
+            const preservedStage = incomingStage?.isConnected
+                ? incomingStage
+                : this.relatedGrid?.querySelector('.related-stage-shell:not(.is-stage-outgoing)')
+                    || this.relatedGrid?.querySelector('.related-stage-shell');
+            const stageShells = Array.from(this.relatedGrid?.querySelectorAll('.related-stage-shell') || []);
+
+            stageShells.forEach((stage) => {
+                if (preservedStage && stage !== preservedStage) {
+                    stage.remove();
+                    return;
+                }
+
+                stage.classList.remove(
+                    'is-stage-outgoing',
+                    'is-stage-incoming',
+                    'is-stacked-stage',
+                    'is-flow-forward',
+                    'is-flow-backward',
+                    'is-entry-reveal'
+                );
+                stage.classList.add('is-stage-active');
+                stage.removeAttribute('aria-hidden');
+            });
+
+            this.relatedGrid?.querySelectorAll('.is-leaving').forEach((card) => {
+                card.classList.remove('is-leaving');
+            });
             this.relatedGrid?.classList.remove('is-stage-switching');
             this.relatedGrid?.style.removeProperty('min-height');
             this.relatedStageCleanupTimer = 0;
-        }, 780);
+        }, 980);
     }
 
     /**
@@ -14893,7 +14967,12 @@ class DetailPage {
      * @returns {void} - 无返回值，直接更新相关推荐首屏舞台状态
      */
     activateRelatedInitialStage() {
-        const initialStage = this.relatedGrid?.querySelector('.related-stage-shell');
+        if (this.relatedGrid?.classList.contains('is-stage-switching')) {
+            return;
+        }
+
+        const initialStage = this.relatedGrid?.querySelector('.related-stage-shell:not(.is-stage-outgoing)')
+            || this.relatedGrid?.querySelector('.related-stage-shell');
         if (!initialStage) {
             return;
         }
@@ -14953,6 +15032,46 @@ class DetailPage {
     }
 
     /**
+     * isRelatedRevealTargetReady() - 判断相关推荐是否已完成上游内容布局，并真正进入当前阅读带
+     * @returns {boolean} - 当前是否可以提交相关推荐出场动画
+     */
+    isRelatedRevealTargetReady() {
+        return Boolean(
+            this.relatedSection
+            && this.reviewsHydrated
+            && this.relatedHydrated
+            && this.isDetailSectionInView(this.relatedSection, {
+                topRatio: 0.9,
+                bottomRatio: 0.1
+            })
+        );
+    }
+
+    /**
+     * syncRelatedViewportState() - 先补齐评论与相关推荐 hydration，再在稳定布局中提交相关推荐显形
+     * @returns {boolean} - 本次是否已将相关推荐切换到可见态
+     */
+    syncRelatedViewportState() {
+        if (!this.relatedSection) {
+            return false;
+        }
+
+        if (this.shouldHydrateDeferredSectionImmediately(this.relatedSection, 1.18)) {
+            this.deferredReviewsHydration?.run?.();
+            this.deferredRelatedHydration?.run?.();
+        }
+
+        if (!this.isRelatedRevealTargetReady()) {
+            return false;
+        }
+
+        this.relatedSection.classList.add('is-visible', 'is-sea-shift-awake');
+        this.activateRelatedInitialStage();
+        this.relatedRevealObserver?.unobserve(this.relatedSection);
+        return true;
+    }
+
+    /**
      * setupRelatedReveal() - 监听相邻海域区域进入视口后再激活整体显现动画
      * @returns {void} - 无返回值，直接注册相关推荐区域的显现逻辑
      */
@@ -14962,6 +15081,8 @@ class DetailPage {
         }
 
         if (!('IntersectionObserver' in window)) {
+            this.deferredReviewsHydration?.run?.();
+            this.deferredRelatedHydration?.run?.();
             this.relatedSection.classList.add('is-visible');
             this.relatedSection.classList.add('is-sea-shift-awake');
             this.activateRelatedInitialStage();
@@ -14974,9 +15095,7 @@ class DetailPage {
                     return;
                 }
 
-                entry.target.classList.add('is-visible', 'is-sea-shift-awake');
-                this.activateRelatedInitialStage();
-                this.relatedRevealObserver?.unobserve(entry.target);
+                this.syncRelatedViewportState();
             });
         }, {
             threshold: 0.18,
@@ -16013,6 +16132,9 @@ class DetailPage {
         }
 
         this.seaGuideDeferredRevealLastAt = now;
+        this.syncIntroViewportState();
+        this.syncReviewsViewportState();
+        this.syncRelatedViewportState();
         this.scheduleIntroCardShellReveal();
         this.scheduleIntroCardContentReveal();
         this.scheduleReviewCardShellReveal();

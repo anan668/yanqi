@@ -2,7 +2,7 @@
    登录页脚本逻辑 - auth.js
    ============================================
    职责：
-   1. 处理登录 / 注册切换、表单验证和前端演示账号逻辑。
+   1. 处理登录 / 注册切换、表单验证和展示态账号逻辑。
    2. 管理登录门厅里的轻交互、反馈提示和本地记忆状态。
    3. 在用户进入首页前，把认证流程维持在“潜前门厅”的节奏里。
    阅读顺序：
@@ -225,7 +225,7 @@ function resetGuestBrowsingState() {
     }));
 }
 
-function startDemoVoyage(feedbackNode, sourceLabel = '展示航线') {
+function startDemoVoyage(feedbackNode, sourceLabel = '带上一段航线') {
     const result = window.YanqiShowcaseState?.seedShowcaseState?.({
         presetKey: 'desktop-full'
     });
@@ -235,7 +235,7 @@ function startDemoVoyage(feedbackNode, sourceLabel = '展示航线') {
     const loadedPackage = booking?.packageTitle || '当前安排';
     showFeedback(
         feedbackNode,
-        `${sourceLabel} 已为你放入潜水者档案、${loadedSpot} 的完整航线，以及「${loadedPackage}」的 Sea Brief 回执，接下来沿静水进入首页主线。`,
+        `${sourceLabel} 已把潜水者档案、${loadedSpot} 的完整航线，以及「${loadedPackage}」的 Sea Brief 回执轻轻放好，接下来沿静水进入首页主线。`,
         'success'
     );
     window.setTimeout(() => {

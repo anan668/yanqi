@@ -28,34 +28,34 @@
         Object.freeze({
             key: 'email',
             label: '联系邮箱',
-            value: '暂未开放',
+            value: '静水候岸',
             href: 'contact.html#contactStatusSection',
-            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先去站内留言台收住想法。',
-            status: '未开放'
+            note: '这一路径会先停在联络说明里；如果你想留下方向，可以先去站内留言台收住想法。',
+            status: '静候靠近'
         }),
         Object.freeze({
             key: 'wechat',
             label: '微信 / 公众号',
-            value: '暂未开放',
+            value: '浅层候岸',
             href: 'contact.html#contactStatusSection',
-            note: '微信与公众号入口还没有正式整理好，这一层会先保留为未开放状态。',
-            status: '未开放'
+            note: '这一层会先把微信与公众号的靠近方式收在状态说明里。',
+            status: '静候靠近'
         }),
         Object.freeze({
             key: 'xiaohongshu',
             label: '小红书',
-            value: '暂未开放',
+            value: '回声候岸',
             href: 'contact.html#contactStatusSection',
-            note: '品牌展示入口还在慢慢整理，这里暂时不放真实账号，先保留为未开放。',
-            status: '未开放'
+            note: '关于海域故事与页面反馈，可以先把方向留在站内留言台。',
+            status: '静候靠近'
         }),
         Object.freeze({
             key: 'weibo',
             label: '微博',
-            value: '暂未开放',
+            value: '港湾候岸',
             href: 'contact.html#contactStatusSection',
-            note: '微博联络路径也还没有启用，当前只保留一个安静的占位说明。',
-            status: '未开放'
+            note: '这一条靠近方式会先停在联络说明水域里，方便你判断是否需要留下回声。',
+            status: '静候靠近'
         })
     ]);
 
@@ -432,7 +432,7 @@
         const items = getContactMethodEntries().map((meta) => {
             const value = String(meta?.value || '').trim();
             const href = String(meta?.href || '').trim();
-            const status = String(meta?.status || '未开放').trim() || '未开放';
+            const status = String(meta?.status || '静候靠近').trim() || '静候靠近';
             const isAvailable = status === '已开放';
             const valueClassName = `contact-method-value${isAvailable ? '' : ' is-unavailable'}`;
             return `
@@ -467,10 +467,10 @@
         const totalCount = items.length;
         const title = availableCount
             ? `目前已有 ${availableCount} 条联络渠道慢慢打开`
-            : '这一层现在先只展示联络状态，不开放真实渠道';
+            : '这一层先把靠近方式收在静水里';
         const copy = availableCount
-            ? '已经开放的渠道会继续留在这里，尚未开放的入口仍会停在状态说明里，不会突然把你带去站外。'
-            : `当前展示的 ${totalCount} 条联络入口都还在整理中，所以这里先不伪装成真实联络系统，只保留一层更清楚的状态说明。`;
+            ? '已经打开的渠道会继续留在这里，其余入口仍会停在状态说明里，不会突然把你带去站外。'
+            : `当前 ${totalCount} 条联络入口会先留在同一层说明水域里，帮助你看清哪一种靠近方式更合适；真正要留下的内容，可以交给下方留言台。`;
 
         container.innerHTML = `
             <article class="contact-status-primary">
@@ -480,7 +480,7 @@
             </article>
             <div class="contact-status-list">
                 ${items.map((meta) => {
-        const status = String(meta?.status || '未开放').trim() || '未开放';
+        const status = String(meta?.status || '静候靠近').trim() || '静候靠近';
         const isAvailable = status === '已开放';
         return `
                         <article class="contact-status-item${isAvailable ? ' is-available' : ''}">
@@ -673,7 +673,7 @@
             clearContactDraft();
             updateContactDraftState(createEmptyContactDraft());
             renderStoredContactMessages();
-            showContactFeedback('这条回声已经先替你留在这层静水里，不会发往真实渠道；刷新回来也还能继续看见。');
+            showContactFeedback('这条回声已经先替你留在这层静水里；刷新回来也还能继续看见。');
         });
     }
 

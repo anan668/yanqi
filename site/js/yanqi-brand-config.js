@@ -5,34 +5,34 @@
         email: Object.freeze({
             key: 'email',
             label: '联系邮箱',
-            value: '暂未开放',
+            value: '静水候岸',
             href: CONTACT_STATUS_HREF,
-            note: '联络邮箱还在整理中，目前先不开放直接收件；如果你想留下方向，可以先去演示留言台收住想法。',
-            status: '未开放'
+            note: '这一路径会先停在联络说明里；如果你想留下方向，可以先去站内留言台收住想法。',
+            status: '静候靠近'
         }),
         wechat: Object.freeze({
             key: 'wechat',
             label: '微信 / 公众号',
-            value: '暂未开放',
+            value: '浅层候岸',
             href: CONTACT_STATUS_HREF,
-            note: '微信与公众号入口还没有正式整理好，这一层会先停在联络状态说明里。',
-            status: '未开放'
+            note: '这一层会先把微信与公众号的靠近方式收在状态说明里。',
+            status: '静候靠近'
         }),
         xiaohongshu: Object.freeze({
             key: 'xiaohongshu',
             label: '小红书',
-            value: '暂未开放',
+            value: '回声候岸',
             href: CONTACT_STATUS_HREF,
-            note: '品牌展示入口还在慢慢整理，这里暂时不放真实账号，先保留为未开放。',
-            status: '未开放'
+            note: '关于海域故事与页面反馈，可以先把方向留在站内留言台。',
+            status: '静候靠近'
         }),
         weibo: Object.freeze({
             key: 'weibo',
             label: '微博',
-            value: '暂未开放',
+            value: '港湾候岸',
             href: CONTACT_STATUS_HREF,
-            note: '微博联络路径也还没有启用，当前只保留一层更安静的状态说明。',
-            status: '未开放'
+            note: '这一条靠近方式会先停在联络说明水域里，方便你判断是否需要留下回声。',
+            status: '静候靠近'
         })
     });
 
@@ -40,28 +40,28 @@
         email: Object.freeze({
             key: 'email',
             href: CONTACT_STATUS_HREF,
-            value: '暂未开放',
+            value: '静水候岸',
             label: '联系邮箱',
             external: false
         }),
         wechat: Object.freeze({
             key: 'wechat',
             href: CONTACT_STATUS_HREF,
-            value: '暂未开放',
+            value: '浅层候岸',
             label: '微信 / 公众号',
             external: false
         }),
         xiaohongshu: Object.freeze({
             key: 'xiaohongshu',
             href: CONTACT_STATUS_HREF,
-            value: '暂未开放',
+            value: '回声候岸',
             label: '小红书',
             external: false
         }),
         weibo: Object.freeze({
             key: 'weibo',
             href: CONTACT_STATUS_HREF,
-            value: '暂未开放',
+            value: '港湾候岸',
             label: '微博',
             external: false
         }),
@@ -75,7 +75,7 @@
         forgot: Object.freeze({
             key: 'forgot',
             href: CONTACT_STATUS_HREF,
-            value: '联络状态与演示留言台',
+            value: '联络状态与站内留言台',
             label: '忘记密码',
             external: false
         }),

@@ -6760,3 +6760,260 @@ body.trip-planner-submerge-active .planner-capsule > .trip-search-bar {
     }
 }
 
+/* Planner Desk 单一主线收束：
+   已收进行程存在时先停在当前摘要，只有用户主动调整才重新展开桌面。 */
+.planner-current-summary {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 18px;
+    padding: clamp(24px, 3vw, 32px);
+    border-bottom: 1px solid rgba(202, 229, 241, 0.08);
+    background:
+        radial-gradient(circle at 12% 0%, rgba(200, 233, 246, 0.11), rgba(200, 233, 246, 0) 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(112, 155, 178, 0.018));
+}
+
+.planner-current-summary[hidden] {
+    display: none;
+}
+
+.planner-current-summary-head {
+    display: grid;
+    grid-template-columns: minmax(0, 0.84fr) minmax(280px, 1.16fr);
+    gap: 18px;
+    align-items: end;
+}
+
+.planner-current-summary-kicker,
+.planner-current-summary-title,
+.planner-current-summary-copy,
+.planner-current-summary-item span,
+.planner-current-summary-item strong {
+    margin: 0;
+}
+
+.planner-current-summary-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(191, 220, 234, 0.52);
+}
+
+.planner-current-summary-title {
+    margin-top: 8px;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.34rem, 2vw, 1.72rem);
+    line-height: 1.42;
+    color: rgba(242, 249, 253, 0.94);
+}
+
+.planner-current-summary-copy {
+    max-width: 56ch;
+    line-height: 1.76;
+    color: rgba(211, 229, 238, 0.72);
+}
+
+.planner-current-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.planner-current-summary-item {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    padding: 13px 14px 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(201, 229, 241, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.planner-current-summary-item span {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    color: rgba(188, 216, 230, 0.52);
+}
+
+.planner-current-summary-item strong {
+    min-width: 0;
+    font-size: 0.9rem;
+    line-height: 1.58;
+    color: rgba(236, 246, 251, 0.9);
+    overflow-wrap: anywhere;
+}
+
+.planner-current-summary-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.planner-current-summary-action {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 15px;
+    border-radius: 999px;
+    border: 1px solid rgba(200, 229, 242, 0.12);
+    background: rgba(255, 255, 255, 0.045);
+    color: rgba(236, 246, 251, 0.88);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background-color 220ms ease;
+}
+
+.planner-current-summary-action-primary {
+    border-color: rgba(190, 228, 242, 0.18);
+    background:
+        linear-gradient(180deg, rgba(191, 231, 247, 0.14), rgba(139, 201, 225, 0.07)),
+        rgba(255, 255, 255, 0.06);
+}
+
+.planner-current-summary-action:hover,
+.planner-current-summary-action:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(214, 238, 248, 0.2);
+    background-color: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.planner-capsule > .trip-search-bar,
+.planner-capsule > .planner-summary-dock {
+    overflow: hidden;
+    transition:
+        max-height 420ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        opacity 320ms ease,
+        transform 420ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        padding 420ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        border-color 320ms ease,
+        visibility 0s linear 0s;
+}
+
+.planner-capsule > .trip-search-bar {
+    max-height: 1320px;
+}
+
+.planner-capsule > .planner-summary-dock {
+    max-height: 280px;
+}
+
+.trip-page-planner .planner-capsule.is-planner-collapsed > .trip-search-bar {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        max-height 420ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        opacity 280ms ease,
+        transform 420ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        padding 420ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        visibility 0s linear 420ms;
+}
+
+.trip-page-planner .planner-capsule.is-planner-collapsed > .planner-summary-dock.trip-summary-reveal {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top-color: transparent;
+    opacity: 0 !important;
+    transform: translate3d(0, -8px, 0) !important;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        max-height 360ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        opacity 240ms ease,
+        transform 360ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        padding 360ms cubic-bezier(0.16, 0.82, 0.2, 1),
+        border-color 240ms ease,
+        visibility 0s linear 360ms;
+}
+
+.planner-summary-dock {
+    padding-top: 16px;
+    padding-bottom: 18px;
+}
+
+.planner-summary-dock .planner-summary-head {
+    margin-bottom: 6px;
+}
+
+.planner-summary-dock .planner-summary-intro {
+    margin-bottom: 12px;
+}
+
+.planner-summary-dock .planner-summary-meter {
+    margin-bottom: 12px;
+}
+
+.planner-summary-dock-body {
+    gap: 10px;
+}
+
+.planner-summary-compact-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.planner-summary-compact-meta .planner-summary-draft-tag {
+    min-height: 26px;
+    padding: 0 10px;
+    font-size: 0.68rem;
+}
+
+.sea-brief-proof-shell {
+    gap: 10px;
+    padding: 14px 16px 15px;
+}
+
+.sea-brief-proof-head {
+    grid-template-columns: minmax(0, auto) minmax(240px, 1fr);
+    gap: 14px;
+    align-items: end;
+}
+
+.trip-proof-flow-intro {
+    max-width: none;
+}
+
+.trip-proof-flow-status {
+    padding-top: 2px;
+}
+
+@media (max-width: 980px) {
+    .planner-current-summary-head,
+    .sea-brief-proof-head {
+        grid-template-columns: 1fr;
+    }
+
+    .planner-current-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .planner-current-summary {
+        gap: 15px;
+        padding: 20px 18px;
+    }
+
+    .planner-current-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .planner-current-summary-action {
+        width: 100%;
+    }
+}
+

@@ -1,5 +1,749 @@
 ﻿# AI 修改记录 / AI_CHANGELOG.md
 
+## 2026-06-08 20:58
+
+### 任务目的
+
+- 继续精简皇帝岛 Sea Atlas 演示画面，减少“海域位置”视图里的辅助点，避免现场介绍时点位标签过多、视觉太乱。
+
+### 改动文件
+
+- `site/js/detail.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/detail.js`：将皇帝岛 `racha` 的 Sea Atlas waypoint 预设从 `Racha Yai Bay / Coral Garden / Blue Edge` 收成 `Racha Yai Bay / Blue Edge`，内联海图切到“海域位置”时只保留 1 个辅助潜点。
+- 已同步更新桌面项目本体文件夹里的 `site/js/detail.js`，方便明天直接用文件夹演示。
+- 未修改 CSS、HTML、图片资源、Leaflet、Sea Atlas 离线地图 pack、深度计、页面过渡、本地状态 schema 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js`，通过。
+- 运行 `git diff --check -- site/js/detail.js`，通过；仅有 Git 的 CRLF 提示。
+- 使用 `tools/qa/node_modules/playwright` 和项目指定 Chrome 打开 `detail.html?id=13`，切换到 Sea Atlas “海域位置”验证：marker 总数为 3，分别为 `查龙码头`、`Racha Yai Bay` 和 `Blue Edge`，其中 waypoint 仅 1 个。
+
+### 尚未验证
+
+- 未重新跑 `tools/qa` 的完整性能烟雾测试；本轮只针对皇帝岛海图点位数量做快速校准。
+- 未做移动端专项验证；当前项目仍以桌面端展示为准。
+
+## 2026-06-08 19:56
+
+### 任务目的
+
+- 继续收束明天以“皇帝岛”为主线的现场介绍体验：取消自定义同行人数确认后的蓝色选中残留，让皇帝岛首屏照片露出更多船和海，并精简 Sea Atlas 内联海图点位，避免演示时视觉太乱。
+
+### 改动文件
+
+- `site/js/detail.js`
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/detail.js`：把皇帝岛 Sea Atlas 的 waypoint 预设从 5 个压到 3 个标签，内联地图切到“海域位置”时只显示主点、查龙码头和两个辅助潜点，让路线和海域关系更容易讲清。
+- `site/js/detail.js`：新增 `releasePackageModalCustomPeopleInputSelection()`，自定义同行人数成功“带入同行”后不再重新 `focus + select` 输入框；输入无效时仍保留原本的聚焦选中提醒。
+- `site/css/detail.css`：将 `.detail-page.spot-racha .hero-image` 的 `object-position` 调整为 `50% 84%`，让皇帝岛首屏保留原图气质，同时看到更多下方船和海面。
+- 已同步更新桌面项目本体文件夹里的 `site/js/detail.js` 与 `site/css/detail.css`，方便明天直接打开文件夹演示。
+- 未修改 HTML、图片资源、Leaflet、Sea Atlas 离线地图 pack、深度计、页面过渡、本地状态 schema 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js`，通过。
+- 运行 `git diff --check -- site/js/detail.js site/css/detail.css`，通过；仅有 Git 的 CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/` 和应用内浏览器打开 `detail.html?id=13` 验证：body 带 `spot-racha`，hero 图片 `object-position` 为 `50% 84%`，首屏能看到船和下方海面。
+- 切换 Sea Atlas 到“海域位置”验证：内联地图 marker 为查龙码头 1 个、主点 1 个、waypoint 2 个，标签为 `Coral Garden`、`Blue Edge`、`Racha Yai Bay`、`查龙码头`。
+- 打开套餐弹层并输入自定义同行人数 `4`，点击“带入同行”后验证：输入框仍保留 `4`，但 `document.activeElement` 不再是该输入框，页面无选中文本残留。
+- 读取浏览器控制台 `error` / `warning`，未发现项目页面新增报错。
+
+### 尚未验证
+
+- 未重新跑 `tools/qa` 的完整性能烟雾测试；本轮只针对皇帝岛现场介绍路径做快速校准。
+- 未做移动端专项验证；当前项目仍以桌面端展示为准。
+- 未重建此前生成的 zip 包；明天建议使用已同步修复的桌面文件夹版本。
+
+## 2026-06-08 19:20
+
+### 任务目的
+
+- 针对明天以“皇帝岛”为主线的现场介绍，收束详情页演示路径：右侧套餐焦点舱在第一个评论区正常出现，不再提前压在上方；Sea Atlas 默认展示更好讲的到达航线；皇帝岛首屏裁切避开整片云墙；相关推荐切换不再被系统减弱动态压成一闪而过。
+
+### 改动文件
+
+- `site/js/detail.js`
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/detail.js`：恢复 `reviews` 进入 focus-only 语境，让滑到第一个评论时右侧 `booking-focus-panel` 即可出现；同时 `booking-focus-panel.is-reading-current` 只在 `reviews` / `related` 区出现，避免上方 `overview` / `map` 提前显示。
+- `site/css/detail.css`：保留普通列表态下隐藏 `booking-focus-panel` 的末尾覆盖，确保上方阅读区只显示套餐列表和陪读卡；进入评论区后再交给 focus-only 过渡显示。
+- `site/js/detail.js`：为皇帝岛 `id=13` 默认把 Sea Atlas 切到 `route` / “到达方式”，并关闭内联地图上皇帝岛码头和潜点 marker 的 hover/click 噪音；全屏地图仍保留探索能力。
+- `site/css/detail.css` 与 `site/js/detail.js`：补 `spot-racha` body class 和皇帝岛 hero 图片裁切，让原图首屏更偏向下方船和海，而不是整片云墙。
+- `site/css/detail.css`：从 `prefers-reduced-motion: reduce` 的 1ms 过渡清单里移除 `.related-stage-shell`，避免“还可以继续看的海”切换被系统减弱动态设置压成瞬闪。
+- `site/js/detail.js`：`activateRelatedInitialStage()` 在 related 切换中不再重新激活旧舞台，避免旧卡片在切换途中被滚动 reveal 逻辑补回 `is-stage-active`。
+- 已同步更新桌面项目本体文件夹里的 `site/js/detail.js` 与 `site/css/detail.css`，方便明天直接用文件夹演示。
+- 未修改 HTML、图片文件、Sea Atlas 离线 pack、Leaflet 依赖、本地状态 schema、深度计、页面过渡或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js`，通过。
+- 运行 `git diff --check -- site/js/detail.js site/css/detail.css`，通过；仅有 Git 的 CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/` 和项目指定 Chrome / Playwright 打开 `detail.html?id=13` 验证：首屏 body 带 `spot-racha`，hero 图片 `object-position` 为 `50% 72%`，Sea Atlas 初始视图为 `route`，当前 tab 为“到达方式”。
+- 滚动到 `#spotReviews` 验证：右侧 `booking-sticky` 的阅读区为 `reviews`，`booking-focus-panel` 带 `is-reading-current is-review-context`，`opacity` 为 `1`，`max-height` 为 `760px`，且 `booking-copy` 未折叠，说明第一个评论处已正常出现。
+- 模拟 `prefers-reduced-motion: reduce` 后点击 related 相邻卡片：160ms 时旧舞台 `opacity` 约 `0.12`、新舞台约 `0.60`，切换完成后 `#relatedGrid` 只剩 1 个 `.related-stage-shell.is-stage-active`，没有多层残留。
+- 截图检查目录：`C:\Users\桉桉\AppData\Local\Temp\yanqi-racha-presentation-check`。
+
+### 尚未验证
+
+- 未重新跑 `tools/qa` 的完整性能烟雾测试；本轮只针对皇帝岛现场介绍链路做快速修复。
+- 未做移动端专项验证；当前项目仍以桌面端展示为准。
+- 未重建此前生成的 zip 包；明天建议使用已同步修复的桌面文件夹版本。
+
+## 2026-06-08 18:49
+
+### 任务目的
+
+- 修复 `detail.html` 相关推荐区域 `.related-shell` / `related-stage` 卡片切换时旧卡片残留的问题，避免点击右侧相邻海域后上一张大卡、文字或邻近卡半透明压在新舞台上。
+
+### 改动文件
+
+- `site/js/detail.js`
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/detail.js`：在 `switchRelatedStage()` 中把 `relatedStageCleanupTimer` 和 `is-stage-switching` 纳入忙碌态判断，切换尚未清理完成时不再接受新的 related 卡片切换。
+- `site/js/detail.js`：切换清理阶段改为统一保留最终 incoming 舞台并移除其他 `.related-stage-shell`，同时清理 `is-leaving`、`aria-hidden`、临时入场/退场类，避免多次快速点击覆盖旧清理计时器后留下残影。
+- `site/js/detail.js`：让 incoming 舞台先进入 `.is-stage-incoming` 初始态并完成一次布局读取，再加入 stacked/active 状态，使新卡片从稳定的入场透明度过渡到清晰态，不再从 0 透明开始发暗。
+- `site/css/detail.css`：切换期间禁用 related 舞台指针事件，旧舞台退场改为更快、更干净的透明/模糊收束，新舞台初始透明度提高，减少浅色玻璃层下的旧图残留。
+- 已同步更新桌面项目本体文件夹里的 `site/js/detail.js` 与 `site/css/detail.css`，方便明天直接用文件夹演示。
+- 未修改 HTML、Sea Atlas 架构、Leaflet、离线地图数据、深度计、页面过渡、本地状态 schema 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js`，通过。
+- 运行 `git diff --check -- site/js/detail.js site/css/detail.css`，通过；仅有 Git 的 CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/` 和项目指定 Chrome / Playwright 打开 `detail.html?id=7`，滚动到 `#relatedSpots` 后点击右侧相邻海域卡片。
+- 动态采样确认：点击后 120ms 旧 outgoing 舞台 `opacity` 约为 `0.06`、`pointer-events` 为 `none`；新 incoming 舞台 `opacity` 约为 `0.74`，不会再被旧图大块覆盖。
+- 模拟快速二次点击后，切换完成时 `#relatedGrid` 只剩 1 个 `.related-stage-shell.is-stage-active`，`pointer-events` 恢复为 `auto`，未出现多层残留。
+- 截图检查目录：`C:\Users\桉桉\AppData\Local\Temp\yanqi-related-switch-fixed`。
+
+### 尚未验证
+
+- 未重新跑 `tools/qa` 的完整性能烟雾测试；本轮只针对详情页 related 卡片切换残影做快速修复。
+- 未做移动端专项验证；当前项目仍以桌面端展示为准。
+- 未重建此前生成的 zip 包；明天建议使用已同步修复的桌面文件夹版本。
+
+## 2026-06-08 18:33
+
+### 任务目的
+
+- 修复 `detail.html` 进入后首屏下缘 `.intro-section-head` / Sea Dossier 偶发不显形的问题，避免演示时英雄区下方左侧只露出空白玻璃层。
+
+### 改动文件
+
+- `site/js/detail.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/detail.js`：放宽 `isIntroSectionInImmediateRevealBand()` 对首个海域档案区的可见高度和位置判断，让正文与 hero 重叠露出时即可补触发显形。
+- `site/js/detail.js`：新增 `syncIntroViewportState()`，在滚动/Sea Guide 延迟 reveal 扫描里兜底检查 `#spotOverview` 是否已进入视口边缘，并主动调用 `scheduleIntroReveal()`。
+- `site/js/detail.js`：将介绍区 `IntersectionObserver` 阈值从 `0.1` 调整为 `0.01`，并扩大底部 `rootMargin`，减少高内容块进入视口但未触发的问题。
+- 同步更新桌面项目本体文件夹里的 `site/js/detail.js`，方便明天直接用文件夹演示。
+- 未修改 `detail.html`、CSS、Sea Atlas 架构、Leaflet、离线地图数据、深度计、页面过渡、本地状态 schema 或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js`，通过。
+- 运行 `git diff --check -- site/js/detail.js`，通过；仅有 Git 的 CRLF 提示。
+- 使用本地服务 `http://127.0.0.1:8766/site/` 和项目指定 Chrome / Playwright 检查 `detail.html?id=2` 与 `detail.html?id=7`，初始进入时 `#spotOverview` 均带有 `is-shell-visible is-visible`，`.intro-section-head` 的 `opacity` 为 `1`、`filter` 为 `blur(0px)`；滚动 320px 后仍保持可见。
+- 已将修复后的 `site/js/detail.js` 同步到 `C:\Users\桉桉\Desktop\盐憩YANQI项目本体_20260608-181345\site\js\detail.js`。
+
+### 尚未验证
+
+- 未重新跑 `tools/qa` 的性能烟雾测试；本轮只针对详情页首段显形做快速修复。
+- 未做移动端专项验证；当前项目仍以桌面端展示为准。
+- 未重建此前生成的 zip 包；明天建议使用已同步修复的桌面文件夹版本。
+
+## 2026-06-04 23:12
+
+### 任务目的
+
+- 修正此前答辩讲解资料，使其匹配当前最新版盐憩项目状态。
+- 去掉旧稿中“展示航线 / 演示版留言”等过时说法，补充当前的 Sea Atlas、Dive Brief、Planner Desk / 已收进行程 / Sea Brief 和信息页说明水域口径。
+
+### 改动文件
+
+- `docs/YANQI_5MIN_SPEECH.md`
+- `docs/YANQI_PRESENTATION.md`
+
+### 具体改动
+
+- `docs/YANQI_5MIN_SPEECH.md`：重写为当前 5 分钟答辩稿，按 `index -> home -> detail -> trip -> info pages` 的展示主线讲解；加入“带上一段航线”、Sea Atlas 离线海图、Dive Brief 潜水简报、Trip 三段关系和站内留言回声。
+- `docs/YANQI_PRESENTATION.md`：重写为最新版展示提纲，补充推荐演示路线、重点系统、老师常见追问回答和不足说明；将本地状态从“演示版留言”改为“站内留言回声 / 当前浏览器本地留存”。
+- 本轮只修改文档，不修改页面代码、深度计、页面过渡、本地状态 schema、Sea Atlas 或 Planner Desk 逻辑。
+
+### 验证方式
+
+- 运行 `rg -n "演示版留言|展示航线|真实业务|未开放|暂未开放|真实渠道" docs/YANQI_5MIN_SPEECH.md docs/YANQI_PRESENTATION.md`，未发现需要清理的旧口径；仅保留“不是普通表单页”这类答辩定位表述。
+- 运行 `git diff --check -- docs/YANQI_5MIN_SPEECH.md docs/YANQI_PRESENTATION.md`，通过；仅有 Git 的 CRLF 提示。
+
+### 尚未验证
+
+- 本轮为文档口径修正，未做浏览器动态验证。
+- 尚未把讲解稿拆成 3 分钟快讲版或逐页 PPT 文案。
+
+## 2026-06-03 15:30
+
+### 任务目的
+
+- 完成终审 P0/P1 小修：修复 `detail.html` 右侧 Dive Brief 的“展开这套安排”在桌面视口下被套餐卡拦截、不可稳定点击的问题。
+- 清理入口页与信息页里用户可见的开发态 / 未开放 / 真实渠道说明，让展示路径更像完整品牌体验。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `site/index.html`
+- `site/js/auth.js`
+- `site/contact.html`
+- `site/js/info-pages.js`
+- `site/js/yanqi-brand-config.js`
+- `site/terms.html`
+- `site/privacy.html`
+
+### 具体改动
+
+- `site/css/detail.css`：在详情页末尾增加终审层级补丁，让可见的右侧 `booking-focus-panel` 保持正常高度、指针事件与层级，并让 `bookingFocusAction` 命中点不再被下方 `itineraryList` / `package-card` 覆盖。
+- `site/index.html`、`site/js/auth.js`：将入口按钮从“展示航线”改为“带上一段航线”，并把进入首页前反馈改为“已把完整航线轻轻放好”的品牌语气。
+- `site/contact.html`、`site/js/info-pages.js`、`site/js/yanqi-brand-config.js`：把“真实联络渠道 / 未开放 / 暂未开放 / 演示留言台 / 真实账号”等用户可见表达改为“静候靠近 / 站内留言台 / 静水候岸”等联络水域语气，同时保留本地留言与品牌链接逻辑。
+- `site/terms.html`、`site/privacy.html`：把“展示与规划体验 / 后续真实业务接入 / 业务后台 / 正式订单”等说明改成更平稳的行程意向、服务边界与本地存储表达。
+- 未修改 Sea Atlas 架构、Leaflet、离线地图数据、深度计、页面过渡、`localStorage` / `sessionStorage` key 或 Planner Desk 状态链。
+
+### 验证方式
+
+- 运行 `node --check site/js/auth.js`、`node --check site/js/info-pages.js`、`node --check site/js/yanqi-brand-config.js`、`node --check site/js/detail.js`、`node --check site/js/depth-manager.js`，均通过。
+- 运行 `git diff --check`，通过；仅有 Git 的 CRLF 提示。
+- 在 `tools/qa` 运行 `npm run perf:detail`，通过；详情页、Sea Atlas inline、全屏 Leaflet 与离线地图 pack 正常。
+- 使用项目指定 Chrome、`1440x900` 与 `1920x1080` 桌面深色模式验证 `detail.html?id=7`：`#bookingFocusAction` 命中点为按钮本身，点击可打开套餐弹层；Sea Atlas 可打开全屏，`Esc` 可回退。
+- 使用项目指定 Chrome 验证 `index.html`、`contact.html`、`terms.html`、`privacy.html` 首屏渲染，正文未再出现本轮清理的开发态 / 未开放类文案。
+- 使用应用内浏览器刷新 `http://127.0.0.1:8766/site/detail.html?id=7` 复核：按钮命中正常，控制台无新增 `error` / `warning`。
+- 截图输出目录：`C:\Users\桉桉\AppData\Local\Temp\yanqi-p0p1-final-KS12lm`。
+
+### 尚未验证
+
+- 本轮未做移动端专项验证；当前项目范围仍为桌面端。
+- 本轮未重新完整点击跑通 `index -> home -> detail -> trip -> info pages` 全链路，只验证了本次 P0/P1 涉及的入口、详情页、联系页、协议页与隐私页。
+
+## 2026-05-31 20:53
+
+### 任务目的
+
+- 修复 `detail.html` 中“还可以继续看的海”出场动画肉眼不可见的问题：相关推荐会在评论区延迟 hydration 尚未撑开布局时提前拿到 `.is-visible`，导致动画在用户真正滚到该区块之前已经播完。
+- 修复停在 related 区刷新后再向上回滑时，评论区短暂保持空壳、上方档案卡仍停留在透明初始态的问题。
+
+### 改动文件
+
+- `site/js/detail.js`
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/detail.js`：新增 `isRelatedRevealTargetReady()` 与 `syncRelatedViewportState()`。related 区靠近视口时先预热评论和相关推荐 hydration，只有评论内容、推荐舞台都完成渲染且 related 真正进入阅读带后，才提交 `.is-visible` 与 `.is-sea-shift-awake`。
+- `site/js/detail.js`：将 `syncReviewsViewportState()` 与 `syncRelatedViewportState()` 接入既有 `runSeaGuideDeferredRevealWork()` 节流更新，让深位置刷新后的回滑路径持续补齐评论 hydration、评论卡显形、档案卡显形和 related 出场，不新增第二套滚动监听。
+- `site/js/detail.js`：保留 `IntersectionObserver` 作为 related 入口，但不再在空壳布局阶段直接消耗动画；无 `IntersectionObserver` 时仍维持立即可用的降级路径。
+- `site/css/detail.css`：将 `relatedShellAwaken` 从约 `680ms` 微调为约 `720ms`，初始状态由 `opacity: 0.84 / translateY(14px) / blur(4px)` 调整为更可感知但仍克制的 `opacity: 0.72 / translateY(18px) / blur(5px)`。
+- 未修改 HTML、Sea Atlas 架构、Leaflet、离线地图数据、深度计、页面过渡、本地状态或 Planner Desk。
+
+### 验证方式
+
+- 运行 `node --check site/js/detail.js` 与 `node --check site/js/depth-manager.js`，通过。
+- 运行 `git diff --check -- site/js/detail.js site/css/detail.css` 与 `git diff --check`，通过；仅有 Git 的 CRLF 提示。
+- 在 `tools/qa` 运行 `npm run perf:detail`，通过；详情页、Sea Atlas inline、全屏 Leaflet 与离线地图 pack 正常。
+- 使用项目指定 Chrome、`1440x900` 桌面深色模式从页面顶部单向慢滚：related 首次获得 `.is-visible` 时位于视口下缘，`.related-shell` 从 `opacity: 0.72 / translateY(18px) / blur(5px)` 开始出场，约 `780ms` 后稳定清晰，不再提前播完。
+- 使用项目指定 Chrome 停在 related 区刷新，再向上回滑：刷新后评论内容先完成 hydration；回到评论区时三张评论卡均恢复为 `opacity: 1` 且带有 `.is-shell-visible.is-copy-visible`；回到档案区时四张 `.intro-archive-card` 均恢复为 `opacity: 1` 且带有 `.is-shell-visible.is-content-visible`。
+- 使用项目指定 Chrome 验证 Sea Atlas 全屏打开与 `Esc` 回退，均正常。
+- 使用项目指定 Chrome 模拟 `prefers-reduced-motion: reduce`，确认 related 外壳动画为 `none`，内容立即可读。
+- 使用页面内浏览器复核详情页正常打开，控制台无新增 `error` / `warning`。
+- 截图输出：`C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-refresh-fixed-k8dFdb\03-reviews-after-refresh-up.png`、`04-intro-after-refresh-up.png` 与 `C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-related-final-nDAW9E\01-related-stage-fixed.png`。
+
+### 尚未验证
+
+- 本轮未做移动端专项验证；当前项目范围仍为桌面端。
+- 本轮未重复完整跑通 `index -> home -> detail -> trip -> info pages` 主线，仅验证了本次改动涉及的详情页正常下滑、深位置刷新回滑、Sea Atlas 全屏与回退链路。
+
+## 2026-05-31 20:38
+
+### 任务目的
+
+- 修复 `detail.html` 下半段 `.related-shell` 没有可感知出场动画的问题：此前推荐区虽然会为标题、舞台卡片和外围海层分别触发状态变化，但整个外壳仍像静态模块直接出现。
+- 保持“还可以继续看的海”现有布局、调色和卡片切换逻辑，只补一段短促、舒缓的 CSS 外壳归位过程。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- 复用现有 `.related-spots.is-visible.is-sea-shift-awake` 首次进入视口状态，为 `.related-shell` 增加约 `680ms` 的 `relatedShellAwaken` 动画。
+- 外壳从 `opacity: 0.84`、`translateY(14px)` 与 `blur(4px)` 轻轻归位到稳定清晰状态；透明度、位移和模糊都保持克制，避免整段内容闪白或拖慢阅读。
+- 保留内部 `.related-head`、`.related-stage-shell`、相邻卡片及切换舞台的既有动画，不修改相关推荐数据、Sea Atlas、HTML 或 JS。
+- 在 `prefers-reduced-motion: reduce` 下关闭新增外壳动画，让 related 区直接清晰显示。
+- 未修改 Sea Atlas 架构、Leaflet、离线地图数据、深度计、页面过渡、本地状态或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 CRLF 提示。
+- 在 `tools/qa` 运行 `npm run perf:detail`，通过；详情页、Sea Atlas inline、全屏 Leaflet 与离线地图 pack 正常。
+- 使用项目指定 Chrome、`1440x900` 桌面深色模式从页面顶部单向慢滚进入 related 区并逐帧采样：首次进入视口时 `.related-shell` 真实触发 `relatedShellAwaken`，从 `translateY(14px) + blur(4px)` 开始，约 `760ms` 后外壳、标题和舞台均稳定为清晰状态。
+- 使用项目指定 Chrome 验证 Sea Atlas 全屏打开与 `Esc` 回退，均正常。
+- 使用项目指定 Chrome 模拟 `prefers-reduced-motion: reduce`，确认新增外壳动画为 `none`，内容立即可读。
+- 使用禁用浏览器扩展的项目指定 Chrome 输出稳定态截图：`C:\Users\桉桉\AppData\Local\Temp\yanqi-related-shell-motion-IRvAVb\01-related-shell-stable.png`。
+- 动态验证期间控制台无新增 `error` / `warning`。
+
+### 尚未验证
+
+- 本轮未做移动端专项验证；当前项目范围仍为桌面端。
+- 本轮未重复完整跑通 `index -> home -> detail -> trip -> info pages` 主线，仅验证了本次改动涉及的详情页 related 区、Sea Atlas 全屏与回退链路。
+
+## 2026-05-31 20:12
+
+### 任务目的
+
+- 修复 `detail.html` 中 `.spot-map-head` 缺少可感知入场动画的问题：此前 Sea Atlas 进入当前阅读层时只有外围导引线与雾光变化，标题区本身会直接出现。
+- 保持既有 Sea Atlas 状态链与深海舒缓节奏，仅补一段短促、克制的 CSS 显形过程。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- 复用现有 `.detail-reading-section-map.is-reading-current.is-reading-awakened` 阅读态，在 `.spot-map-head` 上增加约 `620ms` 的轻量归位动画：从少量下沉和微模糊回到稳定清晰状态。
+- 为标题区导引线增加约 `560ms` 的横向舒展，为 `SEA ATLAS`、主标题与说明文字增加约 `520ms` 的短错峰显形；错峰仅为 `40ms / 90ms / 150ms`，避免用户抵达后等待。
+- 在 `prefers-reduced-motion: reduce` 下关闭新增动画，让标题区立即清晰显示。
+- 未修改 `detail.html`、`site/js/detail.js`、Sea Atlas 架构、Leaflet、离线地图数据、深度计、页面过渡、本地状态或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 CRLF 提示。
+- 在 `tools/qa` 运行 `npm run perf:detail`，通过；确认详情页、Sea Atlas inline、全屏 Leaflet 与离线地图 pack 正常。
+- 使用项目指定 Chrome、`1440x900` 桌面深色模式从页面顶部滚入 Sea Atlas 并逐帧读取样式：进入阅读层时 `.spot-map-head` 从 `translateY(10px) + blur(4px)` 开始，在约 `620ms` 内归位，约 `1080ms` 后稳定清晰且临时唤醒 class 正常移除。
+- 使用项目指定 Chrome 验证 Sea Atlas 全屏打开与 `Esc` 回退，均正常。
+- 使用项目指定 Chrome 模拟 `prefers-reduced-motion: reduce`，确认新增动画为 `none`，文字立即可读。
+- 使用禁用浏览器扩展的项目指定 Chrome 输出干净截图：`C:\Users\桉桉\AppData\Local\Temp\yanqi-spot-map-head-motion-clean-dFl5rv\01-map-head-stable-clean.png`、`C:\Users\桉桉\AppData\Local\Temp\yanqi-spot-map-head-motion-clean-dFl5rv\02-map-head-local-clean.png`。
+- 动态验证期间控制台无新增 `error` / `warning`。
+
+### 尚未验证
+
+- 本轮未做移动端专项验证；当前项目范围仍为桌面端。
+- 本轮未重复完整跑通 `index -> home -> detail -> trip -> info pages` 主线，仅验证了本次改动涉及的详情页 Sea Atlas 标题区与地图回退链路。
+
+## 2026-05-31 19:16
+
+### 任务目的
+
+- 修复 `detail.html` 中 `.spot-map-head` 的局部文字在深色模式与桌面投屏下偏淡、容易融进浅海玻璃背景的问题。
+- 只提稳 Sea Atlas 外层标题区的小英文标签、主标题与说明文字，不修改地图结构、背景、布局或交互。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：在文件末尾追加“Sea Atlas 标题区投屏可读性收束”覆盖层，仅作用于 `.spot-map-head`。
+- `site/css/detail.css`：将 `SEA ATLAS` 小英文标签切换为更稳的深海墨蓝，提高浅蓝玻璃底上的辨识度。
+- `site/css/detail.css`：轻微提稳 `Sea Atlas / 潜点位置` 主标题颜色与阴影，并提高标题下方说明文字的墨蓝对比度。
+- `site/css/detail.css`：同步覆盖 `.detail-reading-section-map.is-reading-current` 阅读态，避免滚动进入 Sea Atlas 后旧规则重新把文字压淡。
+- 本次未修改 `detail.html`、任何 JS、Sea Atlas 架构、Leaflet、离线 pack、地图数据、深度计、页面过渡、本地状态或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 LF / CRLF 提示。
+- 在 `tools/qa` 运行 `npm run perf:detail`，通过；Sea Atlas inline 地图、全屏地图、Leaflet 与离线 pack 均正常加载。
+- 使用项目指定 Chrome，在 `1440x900`、深色模式下真实访问 `http://127.0.0.1:8766/site/detail.html?id=7`，滚动到 Sea Atlas 标题区并截图复核。
+- 动态确认 Sea Atlas 阅读态下：小英文标签为 `rgba(24, 69, 94, 0.94)`，主标题为 `rgba(11, 50, 75, 0.99)`，说明文字为 `rgba(28, 65, 87, 0.96)`。
+- 动态确认 Sea Atlas 全屏打开时带有 `.is-open` 且 `aria-hidden="false"`，按 `Esc` 后移除 `.is-open` 且恢复 `aria-hidden="true"`。
+- 动态检查期间控制台无新增 `error`、`warning`，无失败请求。
+- 修改前截图：`C:\Users\桉桉\AppData\Local\Temp\yanqi-spot-map-head-before-3AM3cJ\01-spot-map-head-before.png`。
+- 修改后截图：`C:\Users\桉桉\AppData\Local\Temp\yanqi-spot-map-head-after-246rxv\01-spot-map-head-after.png`。
+
+### 尚未验证
+
+- 本轮范围仅为桌面端深色模式 `.spot-map-head` 局部文字可读性校准，未做移动端专项验证。
+- 未重新走完整 `index -> home -> detail -> trip -> info pages` 展示链路；本轮未修改这些链路。
+
+## 2026-05-31 15:11
+
+### 任务目的
+
+- 修复 `trip.html` 中 `#plannerSummary.planner-summary-dock.trip-summary-reveal` 首次向下滚动时偶发长期不显形、必须反向上下滑动才补触发的问题。
+- 保留 Planner Desk、Booked Waters、Sea Brief 的既有结构、状态语义和视觉动画，只修复 reveal 触发链。
+
+### 改动文件
+
+- `site/js/trip.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/js/trip.js`：确认问题来自统一 reveal observer 的双重门槛：元素跨过 `IntersectionObserver` 阈值时已经相交，但尚未进入更深的 `readyTopRatio` 可显形范围；回调直接返回后，继续向下滚动不会再跨过新阈值，因此摘要会一直保持透明，直到反向滚动。
+- `site/js/trip.js`：新增 `tripRevealViewportWaiters`、`clearTripRevealViewportWaiter()` 与 `waitForTripRevealViewportReady()`。元素首次相交过早时，临时监听滚动与窗口尺寸变化，并通过 `requestAnimationFrame` 节流复查；一旦进入可显形水层，立即沿用原有 reveal 延迟触发 `.is-visible`，随后清理监听。
+- `site/js/trip.js`：在正常显形和调度显形前统一清理等待器，避免滚动监听、尺寸监听或待执行帧残留。
+- 本次未修改 `site/trip.html`、`site/css/trip.css`、Planner Desk 本地状态 schema、深度计、页面过渡、Sea Atlas 或其他页面文件。
+
+### 验证方式
+
+- 运行 `node --check site/js/trip.js` 与 `node --check site/js/depth-manager.js`，通过。
+- 运行 `git diff --check -- site/js/trip.js` 与 `git diff --check`，通过；仅有 Git 的 LF / CRLF 提示。
+- 使用项目指定 Chrome，在 `1440x900`、深色模式下清空隔离浏览器上下文中的本地状态并真实访问 `http://127.0.0.1:8766/site/trip.html`。
+- 修改前复现：只向下滚动时，`#plannerSummary` 从 `top=784px` 滑到 `top=-206px` 仍保持 `opacity: 0` 与 `blur(18px)`，反向滚动才补上 `.is-visible`。
+- 修改后验证：使用同一条单向向下滚动轨迹，`#plannerSummary` 在 `scrollY=810px`、`top=479px` 时直接进入 `.is-visible`，稳定态为 `opacity: 1` 与 `blur(0)`，无需反向回拉。
+- 使用项目指定 Chrome 单向向下慢滚检查 Planner Desk、摘要、Booked Waters、Sea Brief、下方说明标题与准备面板；所有 reveal 区块最终均稳定为 `opacity: 1` 与 `blur(0)`，控制台无新增 `error`、`warning`，无失败请求。
+- 使用隔离浏览器上下文写入一条已确认行程后重新访问 Trip：Planner 仍默认折叠，摘要 dock 仍按设计隐藏，Brief deck 正常显形，未破坏已有行程状态路径。
+- 在 `tools/qa` 运行 `npm run perf:pages`，通过；`index`、`home`、`trip`、`contact` 在 `1440`、`1920`、`2560` 三种桌面宽度下均无缺失选择器、控制台错误或页面错误。
+- 稳定态截图：`C:\Users\桉桉\AppData\Local\Temp\yanqi-trip-reveal-fixed-3Cq4mX\02-summary-stable.png` 与 `C:\Users\桉桉\AppData\Local\Temp\yanqi-trip-reveal-stable-MfKkh3\01-brief-stable.png`。
+
+### 尚未验证
+
+- 本轮范围仅为桌面端 Trip reveal 触发链修复，未做移动端专项验证。
+- 未重新走完整 `index -> home -> detail -> trip -> info pages` 人工展示链路；`npm run perf:pages` 已覆盖主要页面加载烟雾检查。
+
+## 2026-05-31 14:41
+
+### 任务目的
+
+- 只对 `detail.html` 下半段做最后一轮局部 CSS 收束：降低“还可以继续看的海”内部推荐卡的浅白跳出感，并将 `SEA SHIFT` 横向提示卡收回同一层深海蓝灰。
+- 保持 Sea Dossier、Sea Atlas、右侧 `Dive Brief`、页面外层背景、布局、字号、卡片位置和交互逻辑不变。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：在文件末尾追加“详情页下半段最后收束”覆盖层，仅调整 `#relatedSpots` 内部样式。
+- `site/css/detail.css`：将 `.related-feature-card` 与 `.related-neighbor-card` 从接近白蓝的双层玻璃压成低饱和雾蓝灰，降低边框亮度、外阴影与内高光；保留浅色阅读面和原有 hover、切换结构。
+- `site/css/detail.css`：轻微降低 related 舞台稳定态的外围微光，避免推荐卡周围形成额外亮晕。
+- `site/css/detail.css`：将 `.related-closing-ledge` 从浅蓝白横幅改成半透明深海蓝灰，并同步将 `SEA SHIFT` 标签、标题与说明文字切换为克制的盐白 / 雾蓝，确保深背景下仍然清楚。
+- 本次未修改页面整体亮度、上半段 Sea Dossier、Sea Atlas、右侧 `Dive Brief`、任何 HTML 或 JS，也未新增动画。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 LF / CRLF 提示。
+- 在 `tools/qa` 运行 `npm run perf:detail`，通过；Sea Atlas inline 地图、全屏地图、Leaflet 与离线 pack 均正常加载。
+- 使用项目指定 Chrome，在 `1440x900`、深色模式下真实访问 `http://127.0.0.1:8766/site/detail.html?id=7`，对比检查 related 舞台、`SEA SHIFT` 与 Footer 的连续性。
+- 使用项目指定 Chrome 慢滚 `Sea Atlas -> 下潜回声 -> related-spots -> Footer`，确认下半段没有新增白色断层。
+- 动态确认 Sea Atlas 全屏打开时带有 `.is-open` 且 `aria-hidden="false"`，按 `Esc` 后移除 `.is-open` 且恢复 `aria-hidden="true"`。
+- 动态检查期间控制台无新增 `error`、`warning`，无失败请求。
+- 修改前截图：`C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-related-before-N1x7cT\01-related-before.png` 与 `02-sea-shift-before.png`。
+- 修改后截图：`C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-related-after-ywSyHu\01-related-sea-shift-after.png`、`02-related-stage-after.png`，以及 `C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-lower-flow-ANETab\01-footer-after.png`。
+
+### 尚未验证
+
+- 本轮范围仅为桌面端深色模式详情页下半段局部调色，未做移动端专项验证。
+- 未重新走完整 `index -> home -> detail -> trip -> info pages` 展示链路；本轮未修改这些链路。
+
+## 2026-05-31 14:22
+
+### 任务目的
+
+- 只对 `detail.html` 详情页做背景连续性与舒缓视觉收束：优先清理 `Dive Brief` 外壳的浅白残留、Sea Atlas 下方到下潜回声与相关推荐之间的海层断层，以及 Footer 顶部偏亮水线。
+- 在不改布局、结构、字号、卡片位置、HTML 或 JS 的前提下，缩短 reveal 动画长尾，并为详情页补充 `prefers-reduced-motion` 支持。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：在文件末尾追加“详情页连续海层收束”覆盖层，调整 `.content-wrapper::before` 下半段渐变，并将下潜回声、相关推荐和 Footer 外层背景收进连续的中深海雾蓝范围。
+- `site/css/detail.css`：降低评论浅色卡的白蓝透明度、边缘高光和边框亮度；将 `.related-spots` 外层从接近白蓝的背景改为中深海蓝渐变，同时保留内部推荐卡的浅色可读层级。
+- `site/css/detail.css`：压低 `.related-spots::before` 与 Footer 顶部水线的亮度、扩散和高度；同步将相关推荐标题、英文标签与说明文字切换为适合深背景的低饱和盐白 / 雾蓝。
+- `site/css/detail.css`：直接收束 `.booking-sticky` 外壳、伪元素、导引线、`.booking-copy` 和 `.booking-note`，并覆盖评论阅读态下的高权重浅白样式，让右侧更像陪读简报而不是购买栏。
+- `site/css/detail.css`：缩短档案区、评论区、相关推荐和 Footer 的 reveal 时长，降低初始 `blur`；补充稳定态滤镜复位，避免档案卡完成入场后持续发虚。
+- `site/css/detail.css`：在 Sea Atlas 进入 `ready` 或 `fallback` 状态后暂停隐藏 loading 层中的扫描线与脉冲环动画；新增仅限 `.detail-page` 的 `prefers-reduced-motion: reduce` 规则，关闭装饰性无限动画并让主要文字近乎即时显示。
+- 本次未修改 Sea Atlas 架构、Leaflet、离线 pack、地图数据、全屏与 `Esc` 回退逻辑，也未修改深度计、页面过渡、本地状态或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 LF / CRLF 提示。
+- 运行 `node --check site/js/detail.js` 与 `node --check site/js/depth-manager.js`，通过；两份 JS 均未修改。
+- 在 `tools/qa` 运行 `npm run perf:detail`，通过；Sea Atlas inline 地图、全屏地图、Leaflet 与离线 pack 均正常加载。
+- 使用项目指定 Chrome，在 `1440x900`、深色模式下真实访问 `http://127.0.0.1:8766/site/detail.html?id=7`，慢滚检查 Sea Dossier、适潜判断、Sea Atlas、下潜回声、相关推荐与 Footer，并输出八张截图。
+- 动态确认 Sea Atlas 全屏打开时带有 `.is-open` 且 `aria-hidden="false"`，按 `Esc` 后移除 `.is-open` 且恢复 `aria-hidden="true"`。
+- 动态确认 Sea Atlas `ready` 后隐藏 loading 层的扫描线与脉冲环均为 `animation-play-state: paused`；在 reduced-motion 环境下，档案卡文字立即清楚，装饰性动画为 `none`。
+- 动态检查期间控制台无新增 `error`、`warning`，无失败请求。
+- 截图输出：`C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-calm-final2-1780208375755\01-dossier.png` 至 `08-reduced-motion.png`。
+
+### 尚未验证
+
+- 本轮范围仅为桌面端深色模式详情页视觉收束，未做移动端专项验证。
+- 未人为制造 Sea Atlas `fallback` 异常加载；`fallback` 与已验证的 `ready` 状态由同一组 CSS 规则覆盖。
+- 未重新走完整 `index -> home -> detail -> trip -> info pages` 展示链路；本轮未修改这些链路。
+
+## 2026-05-31 12:25
+
+### 任务目的
+
+- 统一修复 `detail.html` 详情页文字可读性偏淡的问题，让海域档案、证书水层、Sea Atlas、下潜回声、相关推荐、页尾和右侧 `Dive Brief` 在桌面投屏环境下更稳定可读。
+- 只做颜色与对比度微调，不继续压暗背景，不修改布局、结构、字号、字重、间距、卡片位置、动画或任何 JS。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：在文件末尾追加“详情页投屏可读性校准”覆盖层，统一提升浅底区域的小英文标签、中文标题下方导语和相关推荐说明文字的深海墨蓝对比度。
+- `site/css/detail.css`：将 `intro-archive-card`、天气水温卡、`detail-readiness-card` 内的正文、列表项、辅助标签、指标文案和证书说明提到更稳定的低饱和盐白 / 雾蓝范围，避免深色卡片文字闷住。
+- `site/css/detail.css`：提稳 Sea Atlas 外层标题区的 `SEA ATLAS` 标签与说明文字，以及内层海图说明区的英文标签和导语；不修改地图结构、Leaflet、三态切换、懒加载或全屏逻辑。
+- `site/css/detail.css`：提稳 `Travel Echoes`、评论浅色卡、相关推荐浅色卡和 `Keep Diving` 页尾的辅助文字，让浅色卡正文不再灰到发糊，深色页尾仍保持克制。
+- `site/css/detail.css`：提稳右侧 `Dive Brief` 的顶部标签、摘要说明、浅色导览卡、深色方案摘要和套餐辅助文案，保持侧栏简报感，不增强价格视觉权重。
+- 本次未修改任何元素的 `opacity`、`filter`、`backdrop-filter`，保留原有 reveal 动画节奏；未修改 `detail.html`、任何 JS、本地状态、深度计、页面过渡、Planner Desk 或其他页面文件。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css` 与 `git diff --check`，通过；仅有 Git 的 LF / CRLF 提示。
+- 运行 `node --check site/js/detail.js` 与 `node --check site/js/depth-manager.js`，通过。
+- 使用项目指定 Chrome，在 `1440x900`、深色模式下真实访问 `http://127.0.0.1:8766/site/detail.html?id=7`，依次滚动检查海域档案、证书水层、Sea Atlas、下潜回声、相关推荐和页尾六段，并截图复核文字层级。
+- 使用项目指定 Chrome 验证 Sea Atlas 全屏打开后 `aria-hidden="false"` 且带有 `.is-open`，按 `Esc` 后恢复 `aria-hidden="true"` 并移除 `.is-open`。
+- 动态检查期间控制台无新增 `error`、`warning`，无失败请求。
+- 运行 `npm run perf:detail`，通过；Sea Atlas inline 地图、全屏地图、Leaflet 和离线 pack 均正常加载。
+- 截图输出：`C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-readable-final-1780201468155\01-dossier.png` 至 `06-footer.png`。
+
+### 尚未验证
+
+- 本轮范围仅为桌面端深色模式详情页投屏可读性校准，未做移动端专项验证。
+- 未重新走完整 `index -> home -> detail -> trip -> info pages` 展示链路；本轮未修改这些链路。
+
+## 2026-05-31 12:02
+
+### 任务目的
+
+- 只微调 `detail.html` 详情页的颜色舒缓感：减少浅蓝白背景的文档壳感，降低深色档案卡的硬边界，并让右侧 `Dive Brief` 更自然地融入同一层海水。
+- 保持现有布局、结构、字体尺寸、卡片位置和交互链路，不改 Sea Atlas、不改任何 JS。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：在文件末尾追加详情页舒缓调色覆盖，将页面外层海水背景和正文玻璃外壳压深约一档，降低顶部浅蓝白径向雾光、边缘高光和内层白亮度。
+- `site/css/detail.css`：让 `intro-archive-card`、天气水温卡和 `detail-readiness-card` 保持深蓝档案层，但降低渐变实心感、边缘亮度与阴影强度；档案正文仍使用低饱和盐白和雾蓝，确保可读。
+- `site/css/detail.css`：降低 `booking-sticky` 外层浅色玻璃壳亮度、边缘和顶部微光；同步收束 `price-badge`、匹配标签、`booking-copy`、`booking-focus-panel` 与 `booking-note` 的亮度和阴影，让 `Dive Brief` 更像同一片海里的简报而不是独立购买栏。
+- 本次未修改布局、页面结构、字体大小、卡片位置、复杂动画、`filter`、大面积 `backdrop-filter`、`detail.html`、任何 JS、本地状态、Sea Atlas 架构、Leaflet、离线地图数据、深度计、页面过渡或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 LF / CRLF 提示。
+- 运行 `node --check site/js/detail.js` 与 `node --check site/js/depth-manager.js`，通过。
+- 使用项目指定 Chrome，在 `1440x900`、深色模式下真实访问 `http://127.0.0.1:8766/site/detail.html?id=7`，检查 `Sea Dossier`、档案卡、右侧 `Dive Brief` 与 Sea Atlas 内联地图；确认文字清楚，卡片边界更柔和，右侧简报更融入页面。
+- 使用项目指定 Chrome 验证 Sea Atlas 全屏打开后 `aria-hidden="false"` 且带有 `.is-open`，按 `Esc` 后恢复 `aria-hidden="true"` 并移除 `.is-open`。
+- 动态检查期间控制台无新增 `error`、`warning`，无失败请求。
+- 运行 `npm run perf:detail`，通过；Sea Atlas inline 地图、全屏地图、Leaflet 和离线 pack 均正常加载。
+
+### 尚未验证
+
+- 本轮范围仅为桌面端深色模式详情页颜色微调，未做移动端专项验证。
+- 未重新走完整 `index -> home -> detail -> trip -> info pages` 展示链路；本轮未修改这些链路。
+
+## 2026-05-31 11:41
+
+### 任务目的
+
+- 修复详情页 `intro-archive-grid` 档案卡在深色模式下过亮、与外围海水背景脱节的问题，让档案阅读区更像继续下潜后的海域档案。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：仅调整文件末尾详情页视觉覆盖层，将 `intro-archive-card` 从偏白浅蓝玻璃压回中深海青蓝，保留低对比度径向微光、细边缘和轻量内层高光。
+- `site/css/detail.css`：同步将档案序号、标题、正文和列表文字改为分层盐白色，确保深色卡片中的阅读对比清楚但不刺眼。
+- `site/css/detail.css`：收束天气水温卡的亮度、边框与 hover 光晕，并统一标签和值的文字层级，避免底部天气区重新跳回浅色组件感。
+- 本次未修改 `site/js/depth-manager.js`、`site/css/depth-gauge.css`、`site/css/page-transition.css`、本地状态逻辑、Sea Atlas 地图架构、Leaflet、离线地图数据或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过。
+- 运行 `node --check site/js/detail.js` 与 `node --check site/js/depth-manager.js`，通过。
+- 使用项目指定 Chrome，在 `1440x900`、深色模式下真实访问 `http://127.0.0.1:8766/site/detail.html?id=7`，滚动到 `intro-archive-grid` 并等待 reveal 动画完成后截图检查；四张档案卡均完成显示，标题、正文和天气信息可读。
+- 使用项目指定 Chrome 验证 Sea Atlas 全屏打开后 `aria-hidden="false"` 且带有 `.is-open`，按 `Esc` 后恢复 `aria-hidden="true"` 并移除 `.is-open`。
+- 动态检查期间控制台无新增 `error`、`warning`，无失败请求。
+- 运行 `npm run perf:detail`，通过；Sea Atlas inline 地图、全屏地图、Leaflet 和离线 pack 均正常加载。
+- 运行 `git diff --check`，通过；仅提示工作区既有 LF / CRLF 转换提醒。
+
+### 尚未验证
+
+- 本轮范围仅为桌面端深色模式档案区局部视觉收束，未做移动端专项验证。
+- 未重新走完整 `index -> home -> detail -> trip -> info pages` 展示链路；本轮未修改这些链路。
+
+## 2026-05-30 19:20
+
+### 任务目的
+
+- 修复详情页 `detail-readiness-cert-panel` 在深色模式下选中态不够明显的问题，让证书水层与近期下潜状态被选中后能够一眼辨认。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：确认运行时会正确生成 `.detail-readiness-cert.is-current` 与 `aria-pressed="true"`，问题来自文件末尾深色模式可读性保护层覆盖了基础选中态背景和边框。
+- `site/css/detail.css`：在末尾保护层中为选中项补充更高优先级的深海青蓝背景、浅青边缘、内层描边与柔和光晕，让选中项稳定区别于未选中项。
+- `site/css/detail.css`：为证书与近期下潜选项增加右上角低调状态点；未选中项保持弱轮廓，选中项亮起微光状态点，左侧水层刻度同时由 `2px` 加强为带微光的 `3px`。
+- `site/css/detail.css`：小幅增加选项右侧内边距，避免新增状态点与较长文案重叠。
+- 本次不修改 `detail.html`、`site/js/detail.js`、深度计、页面过渡、本地状态、Sea Atlas 架构或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css docs/AI_CHANGELOG.md`，通过；仅有 Git 的 LF/CRLF 提示。
+- 运行 `node --check site/js/detail.js`、`node --check site/js/depth-manager.js`，通过。
+- 运行 `npm run perf:detail`，通过；Leaflet、离线地图 pack、内联海图与全屏海图均正常加载。
+- 使用本地服务 `http://127.0.0.1:8766/site/detail.html?id=7` 和项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 `1440x900` 深色模式 Playwright 动态验证。
+- 真实点击 `OW` 与“近 6 个月有潜”，确认两项均更新为 `.is-current` 与 `aria-pressed="true"`；未选中项保持暗色弱轮廓，选中项边框透明度由 `0.16` 提升到 `0.62`，左侧刻度由 `2px` 提升到带微光的 `3px`，右上状态点亮起。
+- 复查 Sea Atlas：“放大全屏海图”可打开，全屏态可用 `Esc` 回到航线档案；动态验证期间 console warning/error、pageerror 和请求失败均为 0。
+- 局部截图输出：`C:\Users\桉桉\AppData\Local\Temp\yanqi-readiness-visual-mf6HYv\readiness-selected.png`。
+
+### 尚未验证
+
+- 未做移动端专项验证；项目当前规则以桌面端普通浏览器展示为准。
+- 未完整重走全站跨页主线；本次仅调整详情页 readiness 选中态 CSS。
+
+## 2026-05-30 19:13
+
+### 任务目的
+
+- 只收束 `trip.html` 的 `.trip-planner-section.trip-page-planner`，解决 Planner Desk、已收进行程与 Sea Brief 连续重复解释同一条流程、用户难以区分功能的问题。
+- 保留现有桌面端深海叙事、字段交互、本地状态 schema、深度计与跨页过渡，不扩展移动端，不引入 GSAP 或新依赖。
+
+### 改动文件
+
+- `site/trip.html`
+- `site/css/trip.css`
+- `site/js/trip.js`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/trip.html`：为已有行程新增“当前这一程”摘要态，只显示海域、日期、同行、套餐，以及“调整这一程 / 查看 Sea Brief”两个动作；保留原 Planner Desk 字段作为主动展开后的编辑层。
+- `site/trip.html`：把 `Live Draft` 压缩为“草稿进度 x / 3”、一条状态句和两个轻量标签，删除重复的海域、日期、同行三张摘要卡。
+- `site/trip.html`：移除可见的 `Desk Sequence` 大卡、Sea Brief 内第二组三步流程卡、Booked Waters 底部重复回声大卡；保留 `#plannerSummary`、`#confirmedBookingsStage`、`#seaBriefStage` 锚点和无障碍 live region。
+- `site/trip.html`：缩短 Booked Waters、Sea Brief 和空状态文案，让左栏只承担行程索引与切换，右栏只承担当前一程最终摘要。
+- `site/css/trip.css`：新增当前一程摘要的深海玻璃层样式；已有行程时用约 `320–420ms` 的 `opacity`、`transform` 与高度收束将 Planner Desk 折叠，主动调整时再展开，不增加动画库或新的大面积模糊。
+- `site/css/trip.css`：压低 Live Draft 高度，收紧 Current Tide 状态条，使 Booked Waters 与 Sea Brief 更像“左侧索引 / 右侧简报”，减少两栏雷同感。
+- `site/js/trip.js`：新增仅存在于当前页面生命周期的 `plannerEditing` UI 状态；无已确认行程时 Planner Desk 展开，已有行程时默认折叠，点击“调整这一程”展开，完整确认后重新折叠。
+- `site/js/trip.js`：让“补日期 / 补同行”继续展开对应 Planner 字段；多条行程切换后，顶部摘要、字段绑定、Booked Waters 当前态和 Sea Brief 同步更新。
+- `site/js/trip.js`：将 Sea Brief 的 Current Tide 压缩为“最近来路 / 当前海域 / 当前状态”；避免重复讲解选海、收住、简报三步。
+- `site/js/trip.js`：为 Planner 内部恢复路径补 `broadcast: false`，避免恢复已确认行程时再次广播同一更新事件；不修改任何 `localStorage` / `sessionStorage` key 或数据结构。
+- 本次不修改 `site/js/yanqi-trip-store.js`、`site/js/depth-manager.js`、`site/css/depth-gauge.css`、`site/css/page-transition.css`，不修改首页、详情页、信息页、Sea Atlas 或下方 Planning Notes / 潜前准备区。
+
+### 验证方式
+
+- 运行 `node --check site/js/trip.js`，通过。
+- 运行 `node --check site/js/depth-manager.js`，通过。
+- 运行 `git diff --check`，通过；仅有 Git 的 LF/CRLF 提示。
+- 运行 `npm run perf:pages`，通过；`index`、`home`、`trip`、`contact` 在 `1440 / 1920 / 2560` 三档均无缺失选择器、console error 或 pageerror。
+- 使用本地服务 `http://127.0.0.1:8766/site/` 和项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 `1440x900` 深色模式 Playwright 桌面验证。
+- 验证清空本地状态直接进入 `trip.html`：Planner Desk 默认展开，显示 `草稿进度 0 / 3`，Booked Waters 与 Sea Brief 为短空状态。
+- 验证注入两条已确认行程后：顶部当前一程摘要默认折叠，Sea Brief 正常亮起；点击“调整这一程”后字段展开，修改同行并确认后重新折叠；切换另一条行程时顶部摘要与 Sea Brief 同步切换；删除最后一条行程后恢复展开与空状态。
+- 验证真实 `detail.html?id=7 -> confirmBooking() -> trip.html#seaBriefStage` 链路：详情页现有确认逻辑写入套餐后，Trip 顶部摘要默认折叠，Sea Brief 正常亮起，Current Tide 显示“海域档案带入”，深度计仍存在。
+- 验证“查看 Sea Brief”按钮可滚动到 `#seaBriefStage`，并写入现有跨页潮线状态。
+- 动态验证期间 console warning/error、pageerror 和请求失败均为 0。
+- 截图输出：`C:\Users\桉桉\AppData\Local\Temp\yanqi-trip-collapse-UoH0xw\01-empty.png`、`02-booked-collapsed.png`、`03-editing.png`、`04-switched-palau.png`、`05-back-to-empty.png`。
+
+### 尚未验证
+
+- 未做移动端专项验证；项目当前规则以桌面端普通浏览器展示为准。
+- 未运行 `npm run perf:detail`；本轮未修改详情页或 Sea Atlas。
+- 未完整重走 `index -> home -> detail -> trip -> info pages` 全站答辩路线；已重点验证本轮直接相关的 `detail -> trip` 写入与回执链路。
+
+## 2026-05-30 18:08
+
+### 任务目的
+
+- 修复上一轮详情页视觉收束后，`DIVE READINESS / 证书水层` 在深色模式下出现浅色舱体叠加浅色文字、部分内容难以辨认的问题。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：将 `.detail-readiness-card` 从过亮的浅蓝玻璃覆盖层恢复为深海蓝舱体，保留柔和微光、细边框和浅色文字体系。
+- `site/css/detail.css`：将 `.detail-readiness-cert` 证书选择块恢复为暗色半透明层，让证书名称和辅助说明在深色模式下重新获得稳定对比度。
+- 本次不修改 `detail.html`、`site/js/detail.js`、深度计、页面过渡、本地状态、Sea Atlas 架构或 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 LF/CRLF 提示。
+- 运行 `node --check site/js/detail.js`，通过。
+- 使用项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 1440x900 Playwright 桌面验证。
+- 分别使用 `colorScheme: dark` 和 `colorScheme: light` 截取证书水层组件，确认标题、正文、指标、证书选项和按钮均可读；截图输出到 `C:\Users\桉桉\AppData\Local\Temp\yanqi-readiness-contrast-1780135622893\readiness-dark.png` 和 `readiness-light.png`。
+- 在深色模式下复查 Sea Atlas：“放大全屏海图”可打开，全屏态可用 `Esc` 回退；控制台 warning/error/pageerror 为 0，请求失败为 0。
+
+### 尚未验证
+
+- 未运行 `npm run perf:pages` / `npm run perf:detail`；本次仅修复局部 CSS 对比度。
+- 未做移动端专项验证；项目当前规则以桌面端普通浏览器展示为准。
+- 未完整重走全站跨页主线；本次未修改跨页状态逻辑。
+
+## 2026-05-29 23:58
+
+### 任务目的
+
+- 只对 `detail.html` 详情页做一轮视觉收束，让页面更像深海海域档案，同时保留现有浅蓝玻璃可读性，不重构、不改 Sea Atlas 架构、不改 JS 状态链。
+
+### 改动文件
+
+- `site/css/detail.css`
+- `docs/AI_CHANGELOG.md`
+
+### 具体改动
+
+- `site/css/detail.css`：压深详情页外层背景、首屏下沿遮罩和正文玻璃壳外围，让 `Sea Dossier -> DIVE READINESS -> Sea Atlas -> 下潜回声 -> 继续向海而行` 的阅读过程更像持续下潜，而不是浅蓝文档壳分块拼接。
+- `site/css/detail.css`：调整正文容器暗纹、section 当前阅读光晕、档案卡/证书卡/评论卡的边框和阴影，保持卡片浅蓝、清爽、可读，只降低外围水域亮度和拼接感。
+- `site/css/detail.css`：只做 Sea Atlas 外围协调，增加地图区上下间距、标题区层级和地图容器暗边，不修改地图结构、Leaflet、离线 pack、全屏逻辑或地图数据。
+- `site/css/detail.css`：进一步弱化右侧 `Dive Brief` 的价格胶囊、价格字号、价格亮度和购买栏感，让 `Sea Bearing`、当前阅读摘要、海况判断和“航线参考”更像潜水简报。
+- `site/css/detail.css`：补强 `Travel Echoes / 下潜回声` 在深色外层水域上的标题与导语可读性，避免压深背景后文字偏暗。
+- 本次不修改 `detail.html`、`site/js/detail.js`、`depth-manager.js`、`depth-gauge.css`、`page-transition.css`，不修改本地状态 key/schema，不影响 Planner Desk。
+
+### 验证方式
+
+- 运行 `git diff --check -- site/css/detail.css`，通过；仅有 Git 的 LF/CRLF 提示。
+- 运行 `node --check site/js/detail.js`，通过。
+- 使用本地服务 `http://127.0.0.1:8766/site/detail.html?id=7` 和项目指定 Chrome 路径 `C:\Users\桉桉\Desktop\_文件夹分类_2026-04-29\AI与提示词\ai工具\playwright-browser\chrome-win64\chrome.exe` 做 1440x900 桌面 Playwright 动态验证。
+- 验证首屏 `Sea Dossier`、证书水层、`Sea Atlas`、`Travel Echoes`、`relatedSpots` 均存在并可滚动到达。
+- 验证 `Sea Atlas` 的“放大全屏海图”可打开，全屏态可用 `Esc` 回到航线档案，关闭后 `aria-hidden="true"`。
+- 验证右侧 `Dive Brief` 顶部价格区文案为“航线参考 / ¥5,000”，未出现“从 ¥ / 起 / 立即购买 / 下单”等促销式拆分。
+- 动态验证期间控制台 warning/error/pageerror 均为 0，请求失败为 0；滚动抽样 `frames=132`、`avgDelta=6.84ms`、`maxDelta=18.3ms`。
+- 截图输出：`C:\Users\桉桉\AppData\Local\Temp\yanqi-detail-final-1780070252532\01-top.png`、`02-readiness.png`、`03-atlas.png`、`04-fullscreen.png`、`05-reviews.png`、`06-related.png`。
+
+### 尚未验证
+
+- 未运行 `npm run perf:pages` / `npm run perf:detail`；本轮是详情页 CSS 视觉收束。
+- 未做移动端专项验证；项目当前规则以桌面端普通浏览器展示为准。
+- 未完整重走 `index -> home -> detail -> trip -> info pages` 主线；本轮只允许处理 `detail.html` 详情页视觉层，且未修改跨页状态和 Planner Desk。
+
 ## 2026-05-29 21:57
 
 ### 任务目的

@@ -304,7 +304,7 @@
                                         </div>
                                     </form>
 
-                                    <!-- 底部辅助链接：提供"忘记密码"、"展示航线"、"先逛逛"和"联系我们"四个备选入口，
+                                    <!-- 底部辅助链接：提供"忘记密码"、"完整航线"、"先逛逛"和"联系我们"四个备选入口，
                                          用 / 分隔符排成一行，让不想登录的用户也有进入方式。
                                          这四种进入方式在 auth.js 中对应不同的权限状态（游客 / 展示模式 / 未认证）。 -->
                                     <div class="footer-links fade-in-up" style="animation-delay: 0.86s">
@@ -312,8 +312,8 @@
                                         <div class="footer-links-row">
                                             <a href="contact.html#contactStatusSection" class="link-forgot" data-brand-link="forgot">忘记密码</a>
                                             <span class="divider">/</span>
-                                            <!-- 展示航线按钮：以游客身份进入，但展示完整的首页航线轮播（仅浏览，不开放预订） -->
-                                            <button type="button" class="link-guest link-demo-voyage" id="demoVoyageButton" data-guest-entry="showcase">展示航线</button>
+                                            <!-- 完整航线按钮：以游客身份进入，并载入一段完整首页航线用于浏览主线。 -->
+                                            <button type="button" class="link-guest link-demo-voyage" id="demoVoyageButton" data-guest-entry="showcase">带上一段航线</button>
                                             <span class="divider">/</span>
                                             <!-- 先逛逛按钮：以最低权限游客身份进入首页（浏览内容受限） -->
                                             <button type="button" class="link-guest" data-guest-entry="soft-browse">先逛逛</button>
